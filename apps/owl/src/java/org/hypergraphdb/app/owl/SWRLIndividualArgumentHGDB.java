@@ -13,6 +13,9 @@ public class SWRLIndividualArgumentHGDB extends OWLObjectHGDB implements
 {
 	private OWLIndividual individual;
 	
+	public SWRLIndividualArgumentHGDB() { }
+	public SWRLIndividualArgumentHGDB(OWLIndividual individual) { this.individual = individual; }
+	
 	public void setIndividual(OWLIndividual individual)
 	{
 		this.individual = individual;

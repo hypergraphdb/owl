@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HyperGraph;
+import org.semanticweb.owlapi.io.ToStringRenderer;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -172,4 +173,9 @@ public abstract class OWLObjectHGDB implements OWLObject, HGGraphHolder
 		}
 		return hashCode;
 	}
+	
+    public String toString() 
+    {
+        return ToStringRenderer.getInstance().getRendering(this);
+    }	
 }

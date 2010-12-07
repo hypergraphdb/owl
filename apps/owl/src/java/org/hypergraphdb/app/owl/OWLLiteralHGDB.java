@@ -16,25 +16,29 @@ public class OWLLiteralHGDB extends OWLObjectHGDB implements OWLLiteral
 	private OWLDatatype datatype;
 	private String lang;
 
+	public OWLLiteralHGDB()
+	{
+	}
+
 	public OWLLiteralHGDB(String literal, OWLDatatype datatype, String lang)
 	{
 		this.literal = literal;
 		this.datatype = datatype;
 		this.lang = lang;
 	}
-	
+
 	public void setLiteral(String literal)
 	{
 		this.literal = literal;
 	}
-	
+
 	public String getLiteral()
 	{
 		return literal;
 	}
 
 	public boolean isRDFPlainLiteral()
-	{		
+	{
 		return datatype.equals(getOWLDataFactory().getRDFPlainLiteral());
 	}
 
@@ -103,7 +107,7 @@ public class OWLLiteralHGDB extends OWLObjectHGDB implements OWLLiteral
 	{
 		this.lang = lang;
 	}
-	
+
 	public String getLang()
 	{
 		return lang;
@@ -118,7 +122,7 @@ public class OWLLiteralHGDB extends OWLObjectHGDB implements OWLLiteral
 	{
 		this.datatype = datatype;
 	}
-	
+
 	public OWLDatatype getDatatype()
 	{
 		return datatype;

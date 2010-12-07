@@ -1,10 +1,10 @@
 package org.hypergraphdb.app.owl;
 
 import java.net.URI;
+
 import java.util.Collections;
 import java.util.Set;
 
-import org.semanticweb.owlapi.model.DataRangeType;
 import org.semanticweb.owlapi.model.EntityType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -13,10 +13,6 @@ import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataProperty;
-import org.semanticweb.owlapi.model.OWLDataRangeVisitor;
-import org.semanticweb.owlapi.model.OWLDataRangeVisitorEx;
-import org.semanticweb.owlapi.model.OWLDataVisitor;
-import org.semanticweb.owlapi.model.OWLDataVisitorEx;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEntityVisitor;
@@ -25,49 +21,30 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObjectVisitor;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectVisitor;
 import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLPropertyExpressionVisitor;
+import org.semanticweb.owlapi.model.OWLPropertyExpressionVisitorEx;
 import org.semanticweb.owlapi.model.OWLRuntimeException;
-import org.semanticweb.owlapi.vocab.OWL2Datatype;
+import org.semanticweb.owlapi.model.OWLSubPropertyAxiom;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
-public class OWLDatatypeHGDB extends OWLObjectHGDB implements OWLDatatype
+public class OWLObjectPropertyHGDB extends OWLObjectPropertyExpressionHGDB
+		implements OWLObjectProperty
 {
 	private IRI iri;
-
-	private boolean top;
-
 	private boolean builtin;
-
-	public OWLDatatypeHGDB()
-	{
-	}
-
-	public OWLDatatypeHGDB(IRI iri)
-	{
-		this.iri = iri;
-	}
 
 	public boolean isTopEntity()
 	{
-		return top;
+		return isOWLTopObjectProperty();
 	}
 
 	public boolean isBottomEntity()
 	{
-		return false;
-	}
-
-	/**
-	 * Determines if this datatype has the IRI <code>rdf:PlainLiteral</code>
-	 * 
-	 * @return <code>true</code> if this datatype has the IRI
-	 *         <code>rdf:PlainLiteral</code> otherwise <code>false</code>
-	 */
-	public boolean isRDFPlainLiteral()
-	{
-		return iri.isPlainLiteral();
+		return isOWLBottomObjectProperty();
 	}
 
 	/**
@@ -75,9 +52,9 @@ public class OWLDatatypeHGDB extends OWLObjectHGDB implements OWLDatatype
 	 * 
 	 * @return The entity type
 	 */
-	public EntityType<OWLDatatype> getEntityType()
+	public EntityType getEntityType()
 	{
-		return EntityType.DATATYPE;
+		return EntityType.OBJECT_PROPERTY;
 	}
 
 	/**
@@ -103,7 +80,6 @@ public class OWLDatatypeHGDB extends OWLObjectHGDB implements OWLDatatype
 	 * @return <code>true</code> if this entity is of the specified type,
 	 *         otherwise <code>false</code>.
 	 */
-	@SuppressWarnings("unchecked")
 	public boolean isType(EntityType entityType)
 	{
 		return getEntityType().equals(entityType);
@@ -123,72 +99,15 @@ public class OWLDatatypeHGDB extends OWLObjectHGDB implements OWLDatatype
 	public void setIRI(IRI iri)
 	{
 		this.iri = iri;
-		top = iri.equals(OWLRDFVocabulary.RDFS_LITERAL.getIRI());
-		builtin = top || OWL2Datatype.isBuiltIn(iri)
-				|| iri.equals(OWLRDFVocabulary.RDF_PLAIN_LITERAL.getIRI());
+		this.builtin = iri.equals(OWLRDFVocabulary.OWL_TOP_OBJECT_PROPERTY
+				.getIRI())
+				|| iri.equals(OWLRDFVocabulary.OWL_BOTTOM_OBJECT_PROPERTY
+						.getIRI());		
 	}
-
+	
 	public IRI getIRI()
 	{
 		return iri;
-	}
-
-	public boolean isBuiltIn()
-	{
-		return builtin;
-	}
-
-	public DataRangeType getDataRangeType()
-	{
-		return DataRangeType.DATATYPE;
-	}
-
-	public OWL2Datatype getBuiltInDatatype()
-	{
-		if (!builtin)
-		{
-			throw new OWLRuntimeException(
-					"Not a built in datatype.  The getBuiltInDatatype() method should only be called on built in datatypes.");
-		}
-		else
-		{
-			return OWL2Datatype.getDatatype(iri);
-		}
-	}
-
-	public boolean isDouble()
-	{
-		return iri.equals(OWL2Datatype.XSD_DOUBLE.getIRI());
-	}
-
-	public boolean isFloat()
-	{
-		return iri.equals(OWL2Datatype.XSD_FLOAT.getIRI());
-	}
-
-	public boolean isInteger()
-	{
-		return iri.equals(OWL2Datatype.XSD_INTEGER.getIRI());
-	}
-
-	public boolean isString()
-	{
-		return iri.equals(OWL2Datatype.XSD_STRING.getIRI());
-	}
-
-	public boolean isBoolean()
-	{
-		return iri.equals(OWL2Datatype.XSD_BOOLEAN.getIRI());
-	}
-
-	public boolean isDatatype()
-	{
-		return true;
-	}
-
-	public boolean isTopDatatype()
-	{
-		return top;
 	}
 
 	public URI getURI()
@@ -196,16 +115,74 @@ public class OWLDatatypeHGDB extends OWLObjectHGDB implements OWLDatatype
 		return iri.toURI();
 	}
 
+	public boolean isBuiltIn()
+	{
+		return builtin;
+	}
+
 	public boolean equals(Object obj)
 	{
 		if (super.equals(obj))
 		{
-			if (obj instanceof OWLDatatype)
+			if (!(obj instanceof OWLObjectProperty))
 			{
-				return ((OWLDatatype) obj).getIRI().equals(getIRI());
+				return false;
 			}
+			IRI otherIRI = ((OWLObjectProperty) obj).getIRI();
+			return otherIRI.equals(this.iri);
 		}
 		return false;
+	}
+
+	public void accept(OWLEntityVisitor visitor)
+	{
+		visitor.visit(this);
+	}
+
+	public void accept(OWLPropertyExpressionVisitor visitor)
+	{
+		visitor.visit(this);
+	}
+
+	public void accept(OWLObjectVisitor visitor)
+	{
+		visitor.visit(this);
+	}
+
+	public void accept(OWLNamedObjectVisitor visitor)
+	{
+		visitor.visit(this);
+	}
+
+	public <O> O accept(OWLEntityVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
+
+	public <O> O accept(OWLPropertyExpressionVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
+
+	public <O> O accept(OWLObjectVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
+
+	public boolean isAnonymous()
+	{
+		return false;
+	}
+
+	public OWLObjectProperty asOWLObjectProperty()
+	{
+		return this;
+	}
+
+	protected Set<? extends OWLSubPropertyAxiom<OWLObjectPropertyExpression>> getSubPropertyAxiomsForRHS(
+			OWLOntology ont)
+	{
+		return ont.getObjectSubPropertyAxiomsForSuperProperty(this);
 	}
 
 	public Set<OWLAnnotation> getAnnotations(OWLOntology ontology)
@@ -227,11 +204,6 @@ public class OWLDatatypeHGDB extends OWLObjectHGDB implements OWLDatatype
 				.singleton(ontology));
 	}
 
-	public OWLClass asOWLClass()
-	{
-		throw new OWLRuntimeException("Not an OWLClass!");
-	}
-
 	public OWLDataProperty asOWLDataProperty()
 	{
 		throw new OWLRuntimeException("Not a data property!");
@@ -239,7 +211,7 @@ public class OWLDatatypeHGDB extends OWLObjectHGDB implements OWLDatatype
 
 	public OWLDatatype asOWLDatatype()
 	{
-		return this;
+		throw new OWLRuntimeException("Not a data type!");
 	}
 
 	public OWLNamedIndividual asOWLNamedIndividual()
@@ -247,9 +219,9 @@ public class OWLDatatypeHGDB extends OWLObjectHGDB implements OWLDatatype
 		throw new OWLRuntimeException("Not an individual!");
 	}
 
-	public OWLObjectProperty asOWLObjectProperty()
+	public OWLClass asOWLClass()
 	{
-		throw new OWLRuntimeException("Not an object property");
+		throw new OWLRuntimeException("Not an OWLClass!");
 	}
 
 	public boolean isOWLClass()
@@ -264,7 +236,7 @@ public class OWLDatatypeHGDB extends OWLObjectHGDB implements OWLDatatype
 
 	public boolean isOWLDatatype()
 	{
-		return true;
+		return false;
 	}
 
 	public boolean isOWLNamedIndividual()
@@ -274,7 +246,7 @@ public class OWLDatatypeHGDB extends OWLObjectHGDB implements OWLDatatype
 
 	public boolean isOWLObjectProperty()
 	{
-		return false;
+		return true;
 	}
 
 	public OWLAnnotationProperty asOWLAnnotationProperty()
@@ -287,54 +259,53 @@ public class OWLDatatypeHGDB extends OWLObjectHGDB implements OWLDatatype
 		return false;
 	}
 
-	public void accept(OWLEntityVisitor visitor)
-	{
-		visitor.visit(this);
-	}
-
-	public void accept(OWLDataVisitor visitor)
-	{
-		visitor.visit(this);
-	}
-
-	public void accept(OWLObjectVisitor visitor)
-	{
-		visitor.visit(this);
-	}
-
-	public void accept(OWLNamedObjectVisitor visitor)
-	{
-		visitor.visit(this);
-	}
-
-	public <O> O accept(OWLEntityVisitorEx<O> visitor)
-	{
-		return visitor.visit(this);
-	}
-
-	public <O> O accept(OWLDataVisitorEx<O> visitor)
-	{
-		return visitor.visit(this);
-	}
-
-	public <O> O accept(OWLObjectVisitorEx<O> visitor)
-	{
-		return visitor.visit(this);
-	}
-
-	public void accept(OWLDataRangeVisitor visitor)
-	{
-		visitor.visit(this);
-	}
-
-	public <O> O accept(OWLDataRangeVisitorEx<O> visitor)
-	{
-		return visitor.visit(this);
-	}
-
 	protected int compareObjectOfSameType(OWLObject object)
 	{
-		return iri.compareTo(((OWLDatatype) object).getIRI());
+		return iri.compareTo(((OWLObjectProperty) object).getIRI());
+	}
+
+	/**
+	 * Determines if this is the owl:topObjectProperty
+	 * 
+	 * @return <code>true</code> if this property is the owl:topObjectProperty
+	 *         otherwise <code>false</code>
+	 */
+	public boolean isOWLTopObjectProperty()
+	{
+		return iri.equals(OWLRDFVocabulary.OWL_TOP_OBJECT_PROPERTY.getIRI());
+	}
+
+	/**
+	 * Determines if this is the owl:bottomObjectProperty
+	 * 
+	 * @return <code>true</code> if this property is the
+	 *         owl:bottomObjectProperty otherwise <code>false</code>
+	 */
+	public boolean isOWLBottomObjectProperty()
+	{
+		return iri.equals(OWLRDFVocabulary.OWL_BOTTOM_OBJECT_PROPERTY.getIRI());
+	}
+
+	/**
+	 * Determines if this is the owl:topDataProperty
+	 * 
+	 * @return <code>true</code> if this property is the owl:topDataProperty
+	 *         otherwise <code>false</code>
+	 */
+	public boolean isOWLTopDataProperty()
+	{
+		return false;
+	}
+
+	/**
+	 * Determines if this is the owl:bottomDataProperty
+	 * 
+	 * @return <code>true</code> if this property is the owl:bottomDataProperty
+	 *         otherwise <code>false</code>
+	 */
+	public boolean isOWLBottomDataProperty()
+	{
+		return false;
 	}
 
 	public Set<OWLAxiom> getReferencingAxioms(OWLOntology ontology)

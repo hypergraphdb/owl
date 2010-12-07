@@ -17,6 +17,9 @@ public class SWRLVariableHGDB extends OWLObjectHGDB implements SWRLVariable
 		return iri.compareTo(((SWRLVariable) object).getIRI());
 	}
 
+	public SWRLVariableHGDB() { }
+	public SWRLVariableHGDB(IRI iri) { this.iri = iri; }
+	
 	public void setIRI(IRI iri)
 	{
 		this.iri = iri;

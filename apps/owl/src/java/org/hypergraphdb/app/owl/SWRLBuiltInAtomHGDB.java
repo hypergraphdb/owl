@@ -1,8 +1,8 @@
 package org.hypergraphdb.app.owl;
 
 import java.util.ArrayList;
+
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import org.semanticweb.owlapi.model.IRI;
@@ -54,7 +54,7 @@ public class SWRLBuiltInAtomHGDB extends SWRLAtomHGDB implements SWRLBuiltInAtom
 
 	public List<SWRLDArgument> getArguments()
 	{
-		return Collections.unmodifiableList(args);
+		return args;
 	}
 
 	public Collection<SWRLArgument> getAllArguments()

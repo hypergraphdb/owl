@@ -31,6 +31,9 @@ public class OWLNamedIndividualHGDB extends OWLIndividualHGDB implements
 {
 	private IRI iri;
 
+	public OWLNamedIndividualHGDB() { }
+	public OWLNamedIndividualHGDB(IRI iri) { this.iri = iri; }
+	
 	public boolean isNamed()
 	{
 		return true;

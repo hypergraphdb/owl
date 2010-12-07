@@ -15,18 +15,18 @@ public abstract class SWRLBinaryAtomHGDB<A extends SWRLArgument, B extends SWRLA
 	private A arg0;
 	private B arg1;
 
-	protected SWRLBinaryAtomHGDB(SWRLPredicate predicate, A arg0, B arg1)
-	{
-		this.predicate = predicate;
-		this.arg0 = arg0;
-		this.arg1 = arg1;
-	}
-
 	public SWRLBinaryAtomHGDB()
 	{
 
 	}
 
+	public SWRLBinaryAtomHGDB(SWRLPredicate predicate, A arg0, B arg1)
+	{
+		this.predicate = predicate;
+		this.arg0 = arg0;
+		this.arg1 = arg1;
+	}
+	
 	public Collection<SWRLArgument> getAllArguments()
 	{
 		List<SWRLArgument> objs = new ArrayList<SWRLArgument>();
