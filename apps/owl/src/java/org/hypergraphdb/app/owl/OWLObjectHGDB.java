@@ -175,7 +175,7 @@ public abstract class OWLObjectHGDB implements OWLObject, HGGraphHolder
 	}
 	
     public String toString() 
-    {
+    {    	
         return ToStringRenderer.getInstance().getRendering(this);
     }	
 }

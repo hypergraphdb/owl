@@ -1,5 +1,6 @@
 package org.hypergraphdb.app.owl;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -25,6 +26,32 @@ public class SWRLRuleHGDB extends OWLAxiomHGDB implements SWRLRule, HGLink
 		head = args[1];
 	}
 
+	public SWRLHead getHeadAtom()
+	{
+		return getHyperGraph().get(head);
+	}
+
+	public SWRLBody getBodyAtom()
+	{
+		return getHyperGraph().get(body);
+	}
+	
+	public void addConclusion(HGHandle conclusion)
+	{
+		SWRLHead H = getHeadAtom();
+		ArrayList<HGHandle> L = new ArrayList<HGHandle>(H.asCollection());
+		L.add(conclusion);
+		getHyperGraph().replace(head, new SWRLHead(L));
+	}
+	
+	public void addPremise(HGHandle premise)
+	{
+		SWRLBody H = getBodyAtom();
+		ArrayList<HGHandle> L = new ArrayList<HGHandle>(H.asCollection());
+		L.add(premise);
+		getHyperGraph().replace(body, new SWRLBody(L));		
+	}
+	
 	public int getArity()
 	{
 		return 2;

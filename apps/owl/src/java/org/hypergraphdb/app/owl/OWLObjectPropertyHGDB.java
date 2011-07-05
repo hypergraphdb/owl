@@ -37,6 +37,18 @@ public class OWLObjectPropertyHGDB extends OWLObjectPropertyExpressionHGDB
 	private IRI iri;
 	private boolean builtin;
 
+	public OWLObjectPropertyHGDB()
+	{		
+	}
+	
+	public OWLObjectPropertyHGDB(IRI iri)
+	{
+		this.iri = iri;
+		this.builtin = ((iri.equals(OWLRDFVocabulary.OWL_TOP_OBJECT_PROPERTY
+				.getIRI())) || (iri
+				.equals(OWLRDFVocabulary.OWL_BOTTOM_OBJECT_PROPERTY.getIRI())));
+	}
+
 	public boolean isTopEntity()
 	{
 		return isOWLTopObjectProperty();
@@ -102,9 +114,9 @@ public class OWLObjectPropertyHGDB extends OWLObjectPropertyExpressionHGDB
 		this.builtin = iri.equals(OWLRDFVocabulary.OWL_TOP_OBJECT_PROPERTY
 				.getIRI())
 				|| iri.equals(OWLRDFVocabulary.OWL_BOTTOM_OBJECT_PROPERTY
-						.getIRI());		
+						.getIRI());
 	}
-	
+
 	public IRI getIRI()
 	{
 		return iri;

@@ -8,8 +8,6 @@ import org.semanticweb.owlapi.model.SWRLObjectVisitorEx;
 import org.semanticweb.owlapi.model.SWRLSameIndividualAtom;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
-import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
-
 public class SWRLSameIndividualAtomHGDB extends
 		SWRLBinaryAtomHGDB<SWRLIArgument, SWRLIArgument> implements
 		SWRLSameIndividualAtom
@@ -20,8 +18,7 @@ public class SWRLSameIndividualAtomHGDB extends
 	
 	public SWRLSameIndividualAtomHGDB(SWRLIArgument arg0, SWRLIArgument arg1)
 	{
-		super(OWLDataFactoryImpl.getInstance()
-				.getOWLObjectProperty(OWLRDFVocabulary.OWL_SAME_AS.getIRI()),
+		super(new OWLObjectPropertyHGDB(OWLRDFVocabulary.OWL_SAME_AS.getIRI()),
 				arg0, arg1);
 	}
 

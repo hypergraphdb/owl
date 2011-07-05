@@ -22,13 +22,20 @@ public class SWRLBuiltInAtomHGDB extends SWRLAtomHGDB implements SWRLBuiltInAtom
 
 	public SWRLBuiltInAtomHGDB()
 	{
-		
+		this.args = new ArrayList<SWRLDArgument>();
+	}
+	
+	public SWRLBuiltInAtomHGDB(IRI predicate)
+	{
+		this();
+		this.predicate = predicate;
 	}
 	
 	public SWRLBuiltInAtomHGDB(IRI predicate, List<SWRLDArgument> args)
 	{
+		this();
 		this.predicate = predicate;
-		this.args = new ArrayList<SWRLDArgument>(args);
+		this.args.addAll(args);
 	}
 
 	public IRI getPredicate()

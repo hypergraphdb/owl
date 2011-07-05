@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
@@ -13,11 +14,18 @@ public class SWRLConjuction implements HGLink
 	{		
 	}
 	
+	public SWRLConjuction(Collection<HGHandle> args)
+	{
+		this(args.toArray(new HGHandle[0]));
+	}
+	
 	public SWRLConjuction(HGHandle...args)
 	{
 		for (HGHandle x:args)
 			L.add(x);
 	}
+	
+	public Collection<HGHandle> asCollection() { return L; }
 	
 	public int getArity()
 	{

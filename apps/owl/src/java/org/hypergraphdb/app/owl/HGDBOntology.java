@@ -225,7 +225,8 @@ public class HGDBOntology implements OWLOntology, HGGraphHolder, HGHandleHolder
 	public boolean containsEntityInSignature(IRI iri)
 	{
 		// this is a TODO: we need appropriate complex type for the iri to be a RW property.
-		return hg.findOne(manager.getHyperGraph(), hg.and(hg.typePlus(OWLEntity.class), hg.eq("iri", iri)));
+		//return hg.findOne(manager.getHyperGraph(), hg.and(hg.typePlus(OWLEntity.class), hg.eq("iri", iri)));
+		return false;
 	}
 
 	public boolean containsEntityInSignature(OWLEntity owlEntity, final boolean includeImportsClosure)
