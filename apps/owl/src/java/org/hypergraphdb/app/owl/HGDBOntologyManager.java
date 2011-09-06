@@ -3,7 +3,10 @@ package org.hypergraphdb.app.owl;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -11,6 +14,7 @@ import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HyperGraph;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentTarget;
+import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.ImpendingOWLOntologyChangeListener;
 import org.semanticweb.owlapi.model.MissingImportListener;
@@ -22,6 +26,7 @@ import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyChangeBroadcastStrategy;
 import org.semanticweb.owlapi.model.OWLOntologyChangeListener;
 import org.semanticweb.owlapi.model.OWLOntologyChangeProgressListener;
+import org.semanticweb.owlapi.model.OWLOntologyChangeVetoException;
 import org.semanticweb.owlapi.model.OWLOntologyChangesVetoedListener;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFactory;
@@ -59,17 +64,18 @@ public class HGDBOntologyManager implements OWLOntologyManager, HGGraphHolder
 		this.graph = graph;
 	}
 
-	public List<OWLOntologyChange> addAxiom(OWLOntology ontology, OWLAxiom axiom)
+	public List<OWLOntologyChange> addAxiom(OWLOntology ont, OWLAxiom axiom)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		return addAxioms(ont, Collections.singleton(axiom));
 	}
 
-	public List<OWLOntologyChange> addAxioms(OWLOntology arg0,
-			Set<? extends OWLAxiom> arg1)
+	public List<OWLOntologyChange> addAxioms(OWLOntology ont, Set<? extends OWLAxiom> axioms)
 	{
-		// TODO Auto-generated method stub
-		return null;
+        List<OWLOntologyChange> changes = new ArrayList<OWLOntologyChange>(axioms.size() + 2);
+        for (OWLAxiom ax : axioms) {
+            changes.add(new AddAxiom(ont, ax));
+        }
+        return applyChanges(changes);
 	}
 
 	public void addIRIMapper(OWLOntologyIRIMapper arg0)
@@ -122,19 +128,35 @@ public class HGDBOntologyManager implements OWLOntologyManager, HGGraphHolder
 
 	}
 
-	public List<OWLOntologyChange> applyChange(OWLOntologyChange arg0)
+	public List<OWLOntologyChange> applyChange(OWLOntologyChange change)
 			throws OWLOntologyRenameException
 	{
-		// TODO Auto-generated method stub
-		return null;
-	}
+        return applyChanges(Arrays.asList(change));
+    }
 
-	public List<OWLOntologyChange> applyChanges(
-			List<? extends OWLOntologyChange> arg0)
+	public List<OWLOntologyChange> applyChanges(List<? extends OWLOntologyChange> changes)
 			throws OWLOntologyRenameException
 	{
-		// TODO Auto-generated method stub
-		return null;
+        try 
+        {
+            //broadcastImpendingChanges(changes);
+        }
+        catch (OWLOntologyChangeVetoException e) 
+        {
+            // Some listener blocked the changes.
+            //broadcastOntologyChangesVetoed(changes, e);
+            return Collections.emptyList();
+        }
+        List<OWLOntologyChange> appliedChanges = new ArrayList<OWLOntologyChange>(changes.size() + 2);
+//        fireBeginChanges(changes.size());
+//        for (OWLOntologyChange change : changes) 
+//        {
+//            appliedChanges.addAll(enactChangeApplication(change));
+//            fireChangeApplied(change);
+//        }
+//        fireEndChanges();
+//        broadcastChanges(changes);
+        return appliedChanges;
 	}
 
 	public void clearIRIMappers()
