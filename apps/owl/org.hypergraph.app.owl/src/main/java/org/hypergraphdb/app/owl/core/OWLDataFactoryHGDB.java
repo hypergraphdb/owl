@@ -12,7 +12,8 @@ import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.model.OWLDeclarationAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLDeclarationAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.CollectionFactory;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
@@ -827,15 +828,11 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
         }
         //owlEntity and annotations are in Graph, if created by this Datafactory
         OWLDeclarationAxiomHGDB axiom; 
-        HGHandle owlEntityHandle = graph.getHandle(owlEntity);
-        if (owlEntityHandle == null) {
-        	//TODO TROUBLE specifiy exact type use map.
-        	owlEntityHandle = graph.findOne(hg.and(hg.type(OWLEntity.class), hg.eq("IRI", owlEntity.getIRI())));
-        }
+        HGHandle owlEntityHandle = getOrFindOWLEntityHandleInGraph(owlEntity);
         if (owlEntityHandle == null) {
         	//TODO FIX THIS :::: Need Ontology bootstrapping? with Top/Bottom Types?
         	System.out.println("WARNING: Had to create NONHGDB DeclarationAxiom for :" + owlEntity);
-        	return new OWLDeclarationAxiomImpl(this,owlEntity, annotations); 
+        	return new OWLDeclarationAxiomImpl(this, owlEntity, annotations); 
         	//throw new IllegalStateException("Could not find owlEntity in Cache or store." + owlEntity);
         }
         //Check if OWLDeclarationAxiom already exists.
@@ -845,6 +842,8 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
         		));
         if (axiom == null) {
         	axiom = new OWLDeclarationAxiomHGDB(owlEntityHandle, annotations);
+        	//TODO maybe we shall not do this here, but wait for appliedChanges,
+        	//especially for axiom.
             graph.add(axiom);
         }
         return axiom;
@@ -1157,7 +1156,30 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 
     public OWLSubClassOfAxiom getOWLSubClassOfAxiom(OWLClassExpression subClass, OWLClassExpression superClass, Set<? extends OWLAnnotation> annotations) {
-        return new OWLSubClassOfAxiomImpl(this, subClass, superClass, annotations);
+        if (subClass == null) throw new IllegalArgumentException("subClass null");
+        if (superClass == null) throw new IllegalArgumentException("superClass null");
+        if (annotations == null) throw new IllegalArgumentException("annotations null");
+        //subClass, superClass and annotations are in Graph, if created by this Datafactory
+        OWLSubClassOfAxiomHGDB axiom; 
+        //TODO Implement use of OWLClassExpression 
+        HGHandle subClassHandle = getOrFindOWLEntityHandleInGraph((OWLClass)subClass);
+        HGHandle superClassHandle = getOrFindOWLEntityHandleInGraph((OWLClass)superClass);
+        if (subClassHandle == null || superClassHandle == null ) {
+        	throw new IllegalStateException("No Handle for subClass or superClass");
+        }
+        //Check if OWLDeclarationAxiom already exists.
+        axiom = hg.getOne(graph, hg.and(
+        		hg.type(OWLSubClassOfAxiomHGDB.class),
+        		hg.link(subClassHandle, superClassHandle)
+        		));
+        if (axiom == null) {
+        	axiom = new OWLSubClassOfAxiomHGDB(subClassHandle, superClassHandle, annotations);
+        	//TODO maybe we shall not do this here, but wait for appliedChanges in cl,
+        	//especially for axiom.
+            graph.add(axiom);
+        }
+        return axiom;    	
+        //return new OWLSubClassOfAxiomImpl(this, subClass, superClass, annotations);
     }
 
 
@@ -1535,5 +1557,24 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	public HyperGraph getHyperGraph() {
 		return graph;
 	}
+
+	
+	//
+	// Helpers: Should be own class later 
+	//
+	
+    /**
+     * Tries to get a handle or find it by classtype and iri in the graph.
+     * 
+     * @param e
+     * @return
+     */
+    protected HGHandle getOrFindOWLEntityHandleInGraph(OWLEntity e) {
+    	HGHandle eHandle = graph.getHandle(e);
+    	if (eHandle == null) {
+    		eHandle = hg.getOne(graph, hg.and(hg.type(e.getClass()), hg.eq("IRI", e.getIRI())));
+    	}
+    	return eHandle;
+    }
 
 }

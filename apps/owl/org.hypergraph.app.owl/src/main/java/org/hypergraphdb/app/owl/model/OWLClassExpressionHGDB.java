@@ -1,9 +1,6 @@
 package org.hypergraphdb.app.owl.model;
 
 import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
-import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLObjectVisitor;
-import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
 
 /**
  * OWLClassExpressionHGDB.

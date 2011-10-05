@@ -22,9 +22,9 @@ import org.hypergraphdb.app.owl.model.OWLAnnotationPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLClassHGDB;
 import org.hypergraphdb.app.owl.model.OWLDataPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLDatatypeHGDB;
-import org.hypergraphdb.app.owl.model.OWLDeclarationAxiomHGDB;
 import org.hypergraphdb.app.owl.model.OWLNamedIndividualHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectPropertyHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLDeclarationAxiomHGDB;
 import org.hypergraphdb.app.owl.type.link.ImportDeclarationLink;
 import org.hypergraphdb.handle.HGLiveHandle;
 import org.hypergraphdb.query.SubgraphMemberCondition;
@@ -200,7 +200,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB implements 
 	}
 
 	public Set<OWLAxiom> getReferencingAxioms(final OWLEntity owlEntity) {
-		//TODO use static type map instead of OWLENTITY.class
+		//TODO use static type map instead of OWLENTITY.class -> owlEntity.getClass() works.
 		//TODO create method to HGHandle getFindEntity(OWLEntity owlEntity);
 		//TODO shall we ensure that entity is in ontology?
 		//TODO this get;s called with null by one or more protege views!!
@@ -310,33 +310,19 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB implements 
 				if (containsImportDeclaration(importDeclaration))
 					return false;
 				else {
-					//DBG try this
-					//graph.getCache().remove(graph.getCache().get(importDeclaration));
-					//HGHandle importDeclarationHandle = graph.getHandle(importDeclaration);
-					// ------------------------------------------------------------------------------------------------------------------
-					//BIG PROBLEM: if we call graph.add(atom) without the type. looking up the type will actually fail.
-					//For some reason, on a protege redo, even after remove, HG sees a persistentlink for a removed object and fails on loading a type for it.
-					// might be a HG bug; or can I remove an object from cache? manually? I tried and didn't work.
-//					HGHandle typeHandle = graph.getTypeSystem().getTypeHandle(importDeclaration.getClass());
-//					HGHandle importDeclarationHandle = graph.add(importDeclaration, typeHandle);
 					HGHandle importDeclarationHandle = graph.add(importDeclaration);
-					//}					
 					ImportDeclarationLink link = new ImportDeclarationLink(ontoHandle,
 							importDeclarationHandle);
 					HGHandle linkHandle = graph.add(link);
-					// hilpold this.importsDeclarations.add(importDeclaration);
 					ontology.add(importDeclarationHandle);
 					ontology.add(linkHandle);
-					//So graph.getTransactionManager().commit();
-					//assert
 					return true;
 				}
 			}
 		});
 		ontology.printGraphStats("After  AddImp");
 		assert(ontology.findOne(hg.eq(importDeclaration)) != null);
-		assert(!ontology.findAll(hg.type(ImportDeclarationLink.class)).isEmpty());
-		
+		assert(!ontology.findAll(hg.type(ImportDeclarationLink.class)).isEmpty());		
 		return success;
 	}
 
@@ -372,19 +358,10 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB implements 
 					&& ontology.remove(importDeclarationHandle) 
 					&& graph.remove(link) 
 					&& graph.remove(importDeclarationHandle);
-				//DBG some HG test follows:
-				HGLiveHandle lh = graph.getCache().get(importDeclaration);
-				if (lh != null) {
-					System.out.println("Life handle but no more persistent.");	
-					graph.getCache().remove(lh);
-					HGLiveHandle lh2 = graph.getCache().get(importDeclaration);
-					System.out.println("lh2");	
-				}
-				// hilpold this.importsDeclarations.remove(importDeclaration);
 				return success;
 			}
 		});
-		ontology.printGraphStats("After  RemImp");
+		ontology.printGraphStats("After  Remove Import");
 		return success;
 	}
 
@@ -402,30 +379,44 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB implements 
 	}
 
 	public boolean containsAxiom(OWLAxiom axiom) {
-		Set<OWLAxiom> axioms = axiomsByType.get(axiom.getAxiomType());
-		return axioms != null && axioms.contains(axiom);
+		HGHandle axiomHandle = graph.getHandle(axiom);
+		//true iff found in graph and in ontology
+		return (axiomHandle == null)? false: ontology.get(axiomHandle) != null;		
+		//old Set<OWLAxiom> axioms = axiomsByType.get(axiom.getAxiomType());
+		//return axioms != null && axioms.contains(axiom);
 	}
 
 	public int getAxiomCount() {
-		int count = 0;
-		for (AxiomType<?> type : AXIOM_TYPES) {
-			Set<OWLAxiom> axiomSet = axiomsByType.get(type);
-			if (axiomSet != null) {
-				count += axiomSet.size();
-			}
+		long count = ontology.count(hg.typePlus(OWLAxiom.class));
+		if (count > Integer.MAX_VALUE) {
+			throw new ArithmeticException("Got long value to big for int");
 		}
-		return count;
+		return (int)count;
+		//old	int count = 0;
+		//		for (AxiomType<?> type : AXIOM_TYPES) {
+		//			Set<OWLAxiom> axiomSet = axiomsByType.get(type);
+		//			if (axiomSet != null) {
+		//				count += axiomSet.size();
+		//			}
+		//		}
+		//		return count;
 	}
 
 	public Set<OWLAxiom> getAxioms() {
+		List <HGHandle> allHandles = ontology.findAll(hg.typePlus(OWLAxiom.class));
 		Set<OWLAxiom> axioms = createSet();
-		for (AxiomType<?> type : AXIOM_TYPES) {
-			Set<OWLAxiom> owlAxiomSet = axiomsByType.get(type);
-			if (owlAxiomSet != null) {
-				axioms.addAll(owlAxiomSet);
-			}
+		for(HGHandle h: allHandles) {
+			axioms.add((OWLAxiom)graph.get(h));
 		}
 		return axioms;
+//		Set<OWLAxiom> axioms = createSet();
+//		for (AxiomType<?> type : AXIOM_TYPES) {
+//			Set<OWLAxiom> owlAxiomSet = axiomsByType.get(type);
+//			if (owlAxiomSet != null) {
+//				axioms.addAll(owlAxiomSet);
+//			}
+//		}
+//		return axioms;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -505,38 +496,49 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB implements 
 			System.out.print(e.getEntityType() + " ");
 		}
 		System.out.println();
-		if (type == AxiomType.DECLARATION) {
+		if (type == AxiomType.DECLARATION
+				|| type == AxiomType.SUBCLASS_OF) {
 			graph.getTransactionManager().transact(new Callable<Boolean>() {
 				public Boolean call() {
-					ontology.printGraphStats("Before AddDeclaration");
+					ontology.printGraphStats("Before AddAxiom");
 					// hyper hyper
 					HGHandle h = graph.getHandle(axiom);
 					ontology.add(h);
-					ontology.printGraphStats("After  AddDeclaration");
+					ontology.printGraphStats("After  AddAxiom");
 					return true;
 		}});
+		} else {
+			System.out.print("NOT YET IMPLEMENTED: " + axiom.getClass().getSimpleName());
+			addToIndexedSet(type, axiomsByType, axiom);
 		}
-		addToIndexedSet(type, axiomsByType, axiom);
 	}
 
 	public void removeAxiomsByType(AxiomType<?> type, final OWLAxiom axiom) {
 		//TODO implement more axiom types
-		if (type == AxiomType.DECLARATION) {
+		System.out.print("REMOVE Axiom: " + axiom.getClass().getSimpleName() + " E: ");
+		for(OWLEntity e : axiom.getSignature()) {
+			System.out.print(e + "  Etype: ");
+			System.out.print(e.getEntityType() + " ");
+		}
+		if (type == AxiomType.DECLARATION
+					|| type == AxiomType.SUBCLASS_OF) {
 			graph.getTransactionManager().transact(new Callable<Boolean>() {
 				public Boolean call() {
 					boolean removedSuccess;
-					ontology.printGraphStats("Before RemoveDeclaration");
+					ontology.printGraphStats("Before RemoveAxiom");
 					// hyper hyper
 					HGHandle h = graph.getHandle(axiom);
 					ontology.remove(h);
 					removedSuccess = graph.remove(h);
-					ontology.printGraphStats("After  RemoveDeclaration");
+					ontology.printGraphStats("After  RemoveAxiom");
 					// if it pointed to an entity, entity incidence is -1
 					return removedSuccess;
 				}
 			});
+		} else {
+			System.out.print("NOT YET IMPLEMENTED: " + axiom.getClass().getSimpleName());
+			removeAxiomFromSet(type, axiomsByType, axiom, true);
 		}
-		removeAxiomFromSet(type, axiomsByType, axiom, true);
 	}
 
 	public Map<OWLAxiom, Set<OWLAxiom>> getLogicalAxiom2AnnotatedAxiomMap() {

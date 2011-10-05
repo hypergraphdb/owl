@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 import org.hypergraphdb.HGException;
+import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HGGraphHolder;
@@ -184,7 +185,7 @@ public class OWLDataFactoryInternalsHGDB implements OWLDataFactoryInternals {
      * @return a loaded or created OwlEntityObject of type type.
      */
     @SuppressWarnings("unchecked")
-	private <V extends OWLEntity> V ensureCreateEntityInDatabase(Class<V> entityType, IRI iri, BuildableObjects buildable) {
+	private <V extends OWLEntity> OWLEntity ensureCreateEntityInDatabase(Class<V> entityType, IRI iri, BuildableObjects buildable) {
     	HyperGraph graph = factory.getHyperGraph();
     	V e = hg.getOne(graph, hg.and(hg.type(entityType), hg.eq("IRI", iri)));
     	if (e == null) {
@@ -196,4 +197,5 @@ public class OWLDataFactoryInternalsHGDB implements OWLDataFactoryInternals {
 		//Handle and graph guaranteed to be set on add or get. 
 		return e;
 	}
+    
 }

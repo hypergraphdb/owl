@@ -1,4 +1,4 @@
-package org.hypergraphdb.app.owl.model;
+package org.hypergraphdb.app.owl.model.axioms;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -7,17 +7,12 @@ import java.util.Set;
 import org.hypergraphdb.HGException;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
-import org.hypergraphdb.HGTypeSystem;
 import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
-import org.hypergraphdb.app.owl.type.TypeUtils;
-import org.hypergraphdb.type.HGAtomType;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLAxiomVisitor;
 import org.semanticweb.owlapi.model.OWLAxiomVisitorEx;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -37,7 +32,7 @@ public class OWLDeclarationAxiomHGDB extends OWLAxiomHGDB implements OWLDeclarat
 
     public OWLDeclarationAxiomHGDB(HGHandle...args)
     {
-    	this(args[0], (Collection)Collections.emptySet());
+    	this(args[0], Collections.<OWLAnnotation>emptySet());
     }
     
     public OWLDeclarationAxiomHGDB(HGHandle owlEntityHandle, Collection<? extends OWLAnnotation> annotations) {
