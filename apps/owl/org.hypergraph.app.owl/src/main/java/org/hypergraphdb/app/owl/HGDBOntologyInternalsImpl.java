@@ -540,7 +540,6 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 					HGHandle h = graph.add(axiom);
 					//TODO REMOVE 2nd add (just to see if HG complains and what handle we'd get ?)
 //					HGHandle h2 = graph.add(axiom); this leads to getting a second handle ???
-					
 					//HGHandle h = graph.getHandle(axiom);
 					ontology.add(h);
 					ontology.printGraphStats("After  AddAxiom");
