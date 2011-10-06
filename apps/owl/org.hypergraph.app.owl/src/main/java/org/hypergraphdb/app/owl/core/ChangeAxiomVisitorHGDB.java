@@ -111,33 +111,33 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
         if (addAxiom) {
         	oi.addAxiomsByType(SUBCLASS_OF, axiom);
             if (!axiom.getSubClass().isAnonymous()) {
-                OWLClass subClass = (OWLClass) axiom.getSubClass();
-                //TODO remove this
-                oi.addToIndexedSet(subClass, oi.getSubClassAxiomsByLHS(), axiom);
-                oi.addToIndexedSet(subClass, oi.getClassAxiomsByClass(), axiom);
+//2010.10.06 removed
+//                OWLClass subClass = (OWLClass) axiom.getSubClass();
+//                oi.addToIndexedSet(subClass, oi.getSubClassAxiomsByLHS(), axiom);
+//                oi.addToIndexedSet(subClass, oi.getClassAxiomsByClass(), axiom);
             }
             else { //anonymous
                 oi.addGeneralClassAxioms(axiom);
             }
             if (!axiom.getSuperClass().isAnonymous()) {
-                //TODO remove this           	
-                oi.addToIndexedSet((OWLClass) axiom.getSuperClass(), oi.getSubClassAxiomsByRHS(), axiom);
+                //2010.10.06 removed           	
+//                oi.addToIndexedSet((OWLClass) axiom.getSuperClass(), oi.getSubClassAxiomsByRHS(), axiom);
             }
         }
         else {
             oi.removeAxiomsByType(SUBCLASS_OF, axiom);
             if (!axiom.getSubClass().isAnonymous()) {            	
-                OWLClass subClass = (OWLClass) axiom.getSubClass();
-                //TODO remove this
-                oi.removeAxiomFromSet(subClass, oi.getSubClassAxiomsByLHS(), axiom, true);
-                oi.removeAxiomFromSet(subClass, oi.getClassAxiomsByClass(), axiom, true);
+//				  2010.10.06 removed
+//                OWLClass subClass = (OWLClass) axiom.getSubClass();
+//                oi.removeAxiomFromSet(subClass, oi.getSubClassAxiomsByLHS(), axiom, true);
+//                oi.removeAxiomFromSet(subClass, oi.getClassAxiomsByClass(), axiom, true);
             }
             else {
                 oi.removeGeneralClassAxioms(axiom);
             }
             if (!axiom.getSuperClass().isAnonymous()) {
-                //TODO remove this
-                oi.removeAxiomFromSet(axiom.getSuperClass().asOWLClass(), oi.getSubClassAxiomsByRHS(), axiom, true);
+//				2010.10.06 removd
+//                oi.removeAxiomFromSet(axiom.getSuperClass().asOWLClass(), oi.getSubClassAxiomsByRHS(), axiom, true);
             }
         }
     }
@@ -188,7 +188,7 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
                 if (!desc.isAnonymous()) {
                     OWLClass cls = (OWLClass) desc;
                     oi.addToIndexedSet(cls, oi.getDisjointClassesAxiomsByClass(), axiom);
-                    oi.addToIndexedSet(cls, oi.getClassAxiomsByClass(), axiom);
+//2010.10.06 removed                    oi.addToIndexedSet(cls, oi.getClassAxiomsByClass(), axiom);
                     allAnon = false;
                 }
             }
@@ -203,7 +203,7 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
                 if (!desc.isAnonymous()) {
                     OWLClass cls = (OWLClass) desc;
                     oi.removeAxiomFromSet(cls, oi.getDisjointClassesAxiomsByClass(), axiom, true);
-                    oi.removeAxiomFromSet(cls, oi.getClassAxiomsByClass(), axiom, true);
+//2010.10.06 removed                    oi.removeAxiomFromSet(cls, oi.getClassAxiomsByClass(), axiom, true);
                     allAnon = false;
                 }
             }
@@ -385,12 +385,12 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
         if (addAxiom) {
             oi.addAxiomsByType(DISJOINT_UNION, axiom);
             oi.addToIndexedSet(axiom.getOWLClass(), oi.getDisjointUnionAxiomsByClass(), axiom);
-            oi.addToIndexedSet(axiom.getOWLClass(), oi.getClassAxiomsByClass(), axiom);
+//2010.10.06 removed            oi.addToIndexedSet(axiom.getOWLClass(), oi.getClassAxiomsByClass(), axiom);
         }
         else {
             oi.removeAxiomsByType(DISJOINT_UNION, axiom);
             oi.removeAxiomFromSet(axiom.getOWLClass(), oi.getDisjointUnionAxiomsByClass(), axiom, true);
-            oi.removeAxiomFromSet(axiom.getOWLClass(), oi.getClassAxiomsByClass(), axiom, true);
+//2010.10.06 removed            oi.removeAxiomFromSet(axiom.getOWLClass(), oi.getClassAxiomsByClass(), axiom, true);
         }
     }
 
@@ -539,7 +539,7 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
             for (OWLClassExpression desc : axiom.getClassExpressions()) {
                 if (!desc.isAnonymous()) {
                     oi.addToIndexedSet((OWLClass) desc, oi.getEquivalentClassesAxiomsByClass(), axiom);
-                    oi.addToIndexedSet((OWLClass) desc, oi.getClassAxiomsByClass(), axiom);
+//2010.10.06                    oi.addToIndexedSet((OWLClass) desc, oi.getClassAxiomsByClass(), axiom);
                     allAnon = false;
                 }
             }
@@ -553,7 +553,7 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
             for (OWLClassExpression desc : axiom.getClassExpressions()) {
                 if (!desc.isAnonymous()) {
                     oi.removeAxiomFromSet((OWLClass) desc, oi.getEquivalentClassesAxiomsByClass(), axiom, true);
-                    oi.removeAxiomFromSet((OWLClass) desc, oi.getClassAxiomsByClass(), axiom, true);
+//2010.10.06 removed                    oi.removeAxiomFromSet((OWLClass) desc, oi.getClassAxiomsByClass(), axiom, true);
                     allAnon = false;
                 }
             }

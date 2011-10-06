@@ -226,11 +226,11 @@ public interface HGDBOntologyInternals  {
 
 	//boolean containsDeclarationsByEntity(OWLEntity c);
 
-	Map<OWLClass, Set<OWLClassAxiom>> getClassAxiomsByClass();
-
-	Map<OWLClass, Set<OWLSubClassOfAxiom>> getSubClassAxiomsByLHS();
-
-	Map<OWLClass, Set<OWLSubClassOfAxiom>> getSubClassAxiomsByRHS();
+//2011.10.06	Map<OWLClass, Set<OWLClassAxiom>> getClassAxiomsByClass();
+//
+//	Map<OWLClass, Set<OWLSubClassOfAxiom>> getSubClassAxiomsByLHS();
+//
+//	Map<OWLClass, Set<OWLSubClassOfAxiom>> getSubClassAxiomsByRHS();
 
 	Map<OWLClass, Set<OWLEquivalentClassesAxiom>> getEquivalentClassesAxiomsByClass();
 

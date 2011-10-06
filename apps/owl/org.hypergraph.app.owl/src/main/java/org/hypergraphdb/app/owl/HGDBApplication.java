@@ -11,6 +11,7 @@ import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.management.HGApplication;
 import org.hypergraphdb.app.management.HGManagement;
+import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.hypergraphdb.app.owl.model.OWLNamedIndividualHGDB;
 import org.hypergraphdb.app.owl.type.IRIType;
 import org.hypergraphdb.app.owl.type.OWLImportsDeclarationType;
@@ -22,6 +23,8 @@ import org.hypergraphdb.type.HGAtomType;
 import org.hypergraphdb.util.HGUtils;
 import org.semanticweb.owlapi.CreateValuePartition;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLOntologyID;
@@ -144,8 +147,25 @@ public class HGDBApplication extends HGApplication
 	public void install(HyperGraph graph)
 	{
 		registerAllAtomTypes(graph);
+		ensureBuiltInObjects(graph);
 		//registerAllLinkTypes(graph);
 		
+	}
+
+	/**
+	 * @param graph
+	 */
+	private void ensureBuiltInObjects(HyperGraph graph) {
+		OWLDataFactoryHGDB df = new OWLDataFactoryHGDB();
+		OWLClass thing = df.getOWLThing(); //this returns a constant 
+		OWLClass nothing = df.getOWLNothing(); //this returns a constant
+		//WARNING OWLDataProperty topData = df.getOWLTopDataProperty(); //this returns a different object each call		
+		if (graph.getHandle(thing) == null) {
+			graph.add(thing);
+			graph.add(nothing);
+		}
+		assert(graph.getHandle(nothing) != null);
+		assert(graph.getHandle(thing) != null);
 	}
 
 	/**

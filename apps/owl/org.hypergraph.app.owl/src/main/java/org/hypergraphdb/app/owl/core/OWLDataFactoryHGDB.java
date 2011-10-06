@@ -12,6 +12,7 @@ import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.app.owl.model.OWLClassHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDeclarationAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
 import org.semanticweb.owlapi.model.*;
@@ -114,9 +115,9 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
     private static OWLDataFactoryHGDB instance = new OWLDataFactoryHGDB();
 
-    private static OWLClass OWL_THING = new OWLClassImpl(instance, OWLRDFVocabulary.OWL_THING.getIRI());
+    private static OWLClass OWL_THING = new OWLClassHGDB(OWLRDFVocabulary.OWL_THING.getIRI());
 
-    private static OWLClass OWL_NOTHING = new OWLClassImpl(instance, OWLRDFVocabulary.OWL_NOTHING.getIRI());
+    private static OWLClass OWL_NOTHING = new OWLClassHGDB(OWLRDFVocabulary.OWL_NOTHING.getIRI());
 
     protected OWLDataFactoryInternals data;
 
@@ -830,22 +831,25 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
         OWLDeclarationAxiomHGDB axiom; 
         HGHandle owlEntityHandle = getOrFindOWLEntityHandleInGraph(owlEntity);
         if (owlEntityHandle == null) {
-        	//TODO FIX THIS :::: Need Ontology bootstrapping? with Top/Bottom Types?
+        	//TODO HGDBApplication.ensureBuiltInObjects should add all BUILTING Types
         	System.out.println("WARNING: Had to create NONHGDB DeclarationAxiom for :" + owlEntity);
-        	return new OWLDeclarationAxiomImpl(this, owlEntity, annotations); 
-        	//throw new IllegalStateException("Could not find owlEntity in Cache or store." + owlEntity);
+        	//2010.10.06 not acceptable anymore: return new OWLDeclarationAxiomImpl(this, owlEntity, annotations);
+        	throw new IllegalStateException("Could not find owlEntity in Cache or store." + owlEntity);
         }
-        //Check if OWLDeclarationAxiom already exists.
-        axiom = hg.getOne(graph, hg.and(
-        		hg.type(OWLDeclarationAxiomHGDB.class),
-        		hg.link(owlEntityHandle)
-        		));
-        if (axiom == null) {
-        	axiom = new OWLDeclarationAxiomHGDB(owlEntityHandle, annotations);
-        	//TODO maybe we shall not do this here, but wait for appliedChanges,
-        	//especially for axiom.
-            graph.add(axiom);
-        }
+//hilpold 2011.10.06 we do not care, whether it exists here. Just as the original implementation.
+//The axiom shall be added to the graph later, when the user emits a applychanges to the ontology.
+//        //Check if OWLDeclarationAxiom already exists.
+//        axiom = hg.getOne(graph, hg.and(
+//        		hg.type(OWLDeclarationAxiomHGDB.class),
+//        		hg.link(owlEntityHandle)
+//        		));
+//        if (axiom == null) {
+       	axiom = new OWLDeclarationAxiomHGDB(owlEntityHandle, annotations);
+       	axiom.setHyperGraph(graph);
+//        	//TODO maybe we shall not do this here, but wait for appliedChanges,
+//        	//especially for axiom.
+//            graph.add(axiom);
+//        }
         return axiom;
     }
 
@@ -1005,6 +1009,8 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 
     public OWLImportsDeclaration getOWLImportsDeclaration(IRI importedOntologyIRI) {
+    	//TODO create a HGDB type for it, even though it's not needed to have consistency
+    	//and get rid of all uk.ac types in the graph.
         return new OWLImportsDeclarationImpl(importedOntologyIRI);
     }
 
@@ -1167,17 +1173,21 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
         if (subClassHandle == null || superClassHandle == null ) {
         	throw new IllegalStateException("No Handle for subClass or superClass");
         }
-        //Check if OWLDeclarationAxiom already exists.
-        axiom = hg.getOne(graph, hg.and(
-        		hg.type(OWLSubClassOfAxiomHGDB.class),
-        		hg.link(subClassHandle, superClassHandle)
-        		));
-        if (axiom == null) {
+//hilpold 2011.10.06 we do not care, whether the axiom exists here. Just as the original implementation.
+//The axiom shall be added to the graph later, when the user emits a applychanges to the ontology.
+        
+//        //Check if OWLDeclarationAxiom already exists.
+//        axiom = hg.getOne(graph, hg.and(
+//        		hg.type(OWLSubClassOfAxiomHGDB.class),
+//        		hg.link(subClassHandle, superClassHandle)
+//        		));
+//        if (axiom == null) {
         	axiom = new OWLSubClassOfAxiomHGDB(subClassHandle, superClassHandle, annotations);
-        	//TODO maybe we shall not do this here, but wait for appliedChanges in cl,
-        	//especially for axiom.
-            graph.add(axiom);
-        }
+           	axiom.setHyperGraph(graph); //2011.10.06 needed now, that we don't add it to the graph right away.
+//        	//TODO maybe we shall not do this here, but wait for appliedChanges in cl,
+//        	//especially for axiom.
+//            graph.add(axiom);
+//        }
         return axiom;    	
         //return new OWLSubClassOfAxiomImpl(this, subClass, superClass, annotations);
     }

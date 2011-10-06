@@ -36,11 +36,21 @@ import static org.semanticweb.owlapi.util.CollectionFactory.createSet;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
+import org.hypergraphdb.HGGraphHolder;
+import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGHandleHolder;
+import org.hypergraphdb.HGLink;
+import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.HGQuery.hg;
+import org.hypergraphdb.app.owl.HGDBOntology;
+import org.hypergraphdb.app.owl.HGDBOntologyImpl;
 import org.hypergraphdb.app.owl.HGDBOntologyInternals;
+import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationSubject;
@@ -94,11 +104,16 @@ import uk.ac.manchester.cs.owl.owlapi.InitVisitorFactory;
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  * @created Sep 29, 2011
  */
-public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals {
+public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HGGraphHolder, HGHandleHolder {
 
-	protected volatile Map<OWLClass, Set<OWLClassAxiom>> classAxiomsByClass;
-	protected volatile Map<OWLClass, Set<OWLSubClassOfAxiom>> subClassAxiomsByLHS;
-	protected volatile Map<OWLClass, Set<OWLSubClassOfAxiom>> subClassAxiomsByRHS;
+	protected HGHandle handle;
+	protected HyperGraph graph;
+	protected HGDBOntologyImpl ontology; 
+	protected HGHandle ontoHandle; 
+
+	//2011.10.06 removed protected volatile Map<OWLClass, Set<OWLClassAxiom>> classAxiomsByClass;
+	//2011.10.06 protected volatile Map<OWLClass, Set<OWLSubClassOfAxiom>> subClassAxiomsByLHS;
+	//2011.10.06 protected volatile Map<OWLClass, Set<OWLSubClassOfAxiom>> subClassAxiomsByLHS;
 	protected volatile Map<OWLClass, Set<OWLEquivalentClassesAxiom>> equivalentClassesAxiomsByClass;
 	protected volatile Map<OWLClass, Set<OWLDisjointClassesAxiom>> disjointClassesAxiomsByClass;
 	protected volatile Map<OWLClass, Set<OWLDisjointUnionAxiom>> disjointUnionAxiomsByClass;
@@ -165,27 +180,27 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals {
 	}
 
 	protected enum Maps {
-		SubClassAxiomsByLHS {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-				// System.out
-				// .println("subclassaxiomsbylhs "+System.nanoTime());
-				// new Exception().printStackTrace(System.out);
-				if (impl.subClassAxiomsByLHS == null) {
-					impl.subClassAxiomsByLHS = impl.fill(impl.subClassAxiomsByLHS, SUBCLASS_OF,
-							classsubnamed);
-				}
-			}
-		},
-		SubClassAxiomsByRHS {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-				if (impl.subClassAxiomsByRHS == null) {
-					impl.subClassAxiomsByRHS = impl.fill(impl.subClassAxiomsByRHS, SUBCLASS_OF,
-							classsupernamed);
-				}
-			}
-		},
+//		SubClassAxiomsByLHS {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//				// System.out
+//				// .println("subclassaxiomsbylhs "+System.nanoTime());
+//				// new Exception().printStackTrace(System.out);
+//				if (impl.subClassAxiomsByLHS == null) {
+//					impl.subClassAxiomsByLHS = impl.fill(impl.subClassAxiomsByLHS, SUBCLASS_OF,
+//							classsubnamed);
+//				}
+//			}
+//		},
+//		SubClassAxiomsByRHS {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//				if (impl.subClassAxiomsByRHS == null) {
+//					impl.subClassAxiomsByRHS = impl.fill(impl.subClassAxiomsByRHS, SUBCLASS_OF,
+//							classsupernamed);
+//				}
+//			}
+//		},
 		EquivalentClassesAxiomsByClass {
 			@Override
 			public void initMap(AbstractInternalsHGDB impl) {
@@ -605,39 +620,40 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals {
 		ClassAxiomsByClass {
 			@Override
 			public void initMap(AbstractInternalsHGDB impl) {
-				if (impl.classAxiomsByClass == null) {
-					Map<OWLClass, Set<OWLClassAxiom>> classAxiomsByClass = impl.createMap(); // masks
-																								// member
-																								// declaration
+				if (impl.equivalentClassesAxiomsByClass == null) { //2011.10.06 triggers init of others.
+//					if (impl.classAxiomsByClass == null) {
+//					Map<OWLClass, Set<OWLClassAxiom>> classAxiomsByClass = impl.createMap(); // masks
+//																								// member
+//																								// declaration
 					Maps.EquivalentClassesAxiomsByClass.initMap(impl);
-					for (Map.Entry<OWLClass, Set<OWLEquivalentClassesAxiom>> e : impl.equivalentClassesAxiomsByClass
-							.entrySet()) {
-						for (OWLClassAxiom ax : e.getValue()) {
-							impl.addToIndexedSet(e.getKey(), classAxiomsByClass, ax);
-						}
-					}
-					Maps.SubClassAxiomsByLHS.initMap(impl);
-					for (Map.Entry<OWLClass, Set<OWLSubClassOfAxiom>> e : impl.subClassAxiomsByLHS
-							.entrySet()) {
-						for (OWLClassAxiom ax : e.getValue()) {
-							impl.addToIndexedSet(e.getKey(), classAxiomsByClass, ax);
-						}
-					}
+//					for (Map.Entry<OWLClass, Set<OWLEquivalentClassesAxiom>> e : impl.equivalentClassesAxiomsByClass
+//							.entrySet()) {
+//						for (OWLClassAxiom ax : e.getValue()) {
+//							impl.addToIndexedSet(e.getKey(), classAxiomsByClass, ax);
+//						}
+//					}
+//					Maps.SubClassAxiomsByLHS.initMap(impl);
+//					for (Map.Entry<OWLClass, Set<OWLSubClassOfAxiom>> e : impl.subClassAxiomsByLHS
+//							.entrySet()) {
+//						for (OWLClassAxiom ax : e.getValue()) {
+//							impl.addToIndexedSet(e.getKey(), classAxiomsByClass, ax);
+//						}
+//					}
 					Maps.DisjointClassesAxiomsByClass.initMap(impl);
-					for (Map.Entry<OWLClass, Set<OWLDisjointClassesAxiom>> e : impl.disjointClassesAxiomsByClass
-							.entrySet()) {
-						for (OWLClassAxiom ax : e.getValue()) {
-							impl.addToIndexedSet(e.getKey(), classAxiomsByClass, ax);
-						}
-					}
+//					for (Map.Entry<OWLClass, Set<OWLDisjointClassesAxiom>> e : impl.disjointClassesAxiomsByClass
+//							.entrySet()) {
+//						for (OWLClassAxiom ax : e.getValue()) {
+//							impl.addToIndexedSet(e.getKey(), classAxiomsByClass, ax);
+//						}
+//					}
 					Maps.DisjointUnionAxiomsByClass.initMap(impl);
-					for (Map.Entry<OWLClass, Set<OWLDisjointUnionAxiom>> e : impl.disjointUnionAxiomsByClass
-							.entrySet()) {
-						for (OWLClassAxiom ax : e.getValue()) {
-							impl.addToIndexedSet(e.getKey(), classAxiomsByClass, ax);
-						}
-					}
-					impl.classAxiomsByClass = classAxiomsByClass;
+//					for (Map.Entry<OWLClass, Set<OWLDisjointUnionAxiom>> e : impl.disjointUnionAxiomsByClass
+//							.entrySet()) {
+//						for (OWLClassAxiom ax : e.getValue()) {
+//							impl.addToIndexedSet(e.getKey(), classAxiomsByClass, ax);
+//						}
+//					}
+//					impl.classAxiomsByClass = classAxiomsByClass;
 				}
 			}
 		};
@@ -824,13 +840,25 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals {
 	}
 
 	public Set<OWLSubClassOfAxiom> getSubClassAxiomsForSubClass(OWLClass cls) {
-		Maps.SubClassAxiomsByLHS.initMap(this);
-		return getReturnSet(getAxioms(cls, subClassAxiomsByLHS));
+		HGHandle clsHandle = graph.getHandle(cls);
+		List<OWLSubClassOfAxiom> l = ontology.getAll(hg.and(
+					hg.type(OWLSubClassOfAxiomHGDB.class)
+					//subclass 0, superClass 1
+					,hg.link(clsHandle, hg.anyHandle())));
+		return getReturnSet(l);
+//		Maps.SubClassAxiomsByLHS.initMap(this);
+//		return getReturnSet(getAxioms(cls, subClassAxiomsByLHS));
 	}
 
 	public Set<OWLSubClassOfAxiom> getSubClassAxiomsForSuperClass(OWLClass cls) {
-		Maps.SubClassAxiomsByRHS.initMap(this);
-		return getReturnSet(getAxioms(cls, subClassAxiomsByRHS));
+		HGHandle clsHandle = graph.getHandle(cls);
+		List<OWLSubClassOfAxiom> l = ontology.getAll(hg.and(
+					hg.type(OWLSubClassOfAxiomHGDB.class)
+					//subclass 0, superClass 1
+					, hg.link(hg.anyHandle(), clsHandle)));
+		return getReturnSet(l);
+//		Maps.SubClassAxiomsByRHS.initMap(this);
+//		return getReturnSet(getAxioms(cls, subClassAxiomsByRHS));
 	}
 
 	public Set<OWLEquivalentClassesAxiom> getEquivalentClassesAxioms(OWLClass cls) {
@@ -1032,21 +1060,34 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals {
 	}
 
 	public Set<OWLClassAxiom> getAxioms(OWLClass cls) {
-		Maps.ClassAxiomsByClass.initMap(this);
-		return getReturnSet(getAxioms(cls, getClassAxiomsByClass()));
+		HGHandle clsHandle = graph.getHandle(cls);
+		List<OWLClassAxiom> l;
+		if (clsHandle != null) { 
+			l = ontology.getAll(hg.and(
+					hg.typePlus(OWLClassAxiom.class)
+					//links of any arity returned. 
+					,hg.incident(clsHandle)));
+		} else {
+			System.out.println("WARNING: graph.getHandle(" + cls + ") in getAxioms(OWLClass) returned null");
+			l = null;
+		}
+		return getReturnSet(l);
+
+//		Maps.ClassAxiomsByClass.initMap(this);
+//		return getReturnSet(getAxioms(cls, getClassAxiomsByClass()));
 	}
 
-	public Map<OWLClass, Set<OWLClassAxiom>> getClassAxiomsByClass() {
-		return this.classAxiomsByClass;
-	}
-
-	public Map<OWLClass, Set<OWLSubClassOfAxiom>> getSubClassAxiomsByLHS() {
-		return this.subClassAxiomsByLHS;
-	}
-
-	public Map<OWLClass, Set<OWLSubClassOfAxiom>> getSubClassAxiomsByRHS() {
-		return this.subClassAxiomsByRHS;
-	}
+//2011.10.06	public Map<OWLClass, Set<OWLClassAxiom>> getClassAxiomsByClass() {
+//		return this.classAxiomsByClass;
+//	}
+//
+//	public Map<OWLClass, Set<OWLSubClassOfAxiom>> getSubClassAxiomsByLHS() {
+//		return this.subClassAxiomsByLHS;
+//	}
+//
+//	public Map<OWLClass, Set<OWLSubClassOfAxiom>> getSubClassAxiomsByRHS() {
+//		return this.subClassAxiomsByRHS;
+//	}
 
 	public Map<OWLClass, Set<OWLEquivalentClassesAxiom>> getEquivalentClassesAxiomsByClass() {
 		return this.equivalentClassesAxiomsByClass;
@@ -1183,4 +1224,56 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals {
 	public Map<OWLAnnotationSubject, Set<OWLAnnotationAssertionAxiom>> getAnnotationAssertionAxiomsBySubject() {
 		return this.annotationAssertionAxiomsBySubject;
 	}
+	
+
+	// ----------------------------------------------------------------------
+	// HGGraphHolder HGHandleHolder Interfaces
+	//
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.hypergraphdb.HGHandleHolder#getAtomHandle()
+	 */
+	@Override
+	public HGHandle getAtomHandle() {
+		return handle;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.hypergraphdb.HGHandleHolder#setAtomHandle(org.hypergraphdb.HGHandle)
+	 */
+	@Override
+	public void setAtomHandle(HGHandle handle) {
+		this.handle = handle;
+	}
+
+	/**
+	 * Sets the graph and sets AtomHandle also, if graph non null.
+	 */
+	@Override
+	public void setHyperGraph(HyperGraph graph) {
+		this.graph = graph;
+		if (graph != null) {
+			setAtomHandle(graph.getHandle(this));
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#setOntologyHyperNode(org.hypergraphdb.app.owl.HGDBOntology)
+	 */
+	@Override
+	public void setOntologyHyperNode(HGDBOntology ontology) {
+		//TODO ugly, but we need it, because Hypernode Interface does not define convienient add)
+		this.ontology = (HGDBOntologyImpl) ontology;	
+		this.ontoHandle = graph.getHandle(ontology);
+	}
+
+	//
+	// END HGGraphHolder HGHandleHolder Interfaces
+	// ----------------------------------------------------------------------
+
 }

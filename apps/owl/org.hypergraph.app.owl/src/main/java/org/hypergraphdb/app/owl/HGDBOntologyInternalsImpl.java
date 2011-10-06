@@ -18,6 +18,8 @@ import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.core.AbstractInternalsHGDB;
+import org.hypergraphdb.app.owl.core.AxiomTypeToHGDBMap;
+import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
 import org.hypergraphdb.app.owl.model.OWLAnnotationPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLClassHGDB;
 import org.hypergraphdb.app.owl.model.OWLDataPropertyHGDB;
@@ -27,6 +29,9 @@ import org.hypergraphdb.app.owl.model.OWLObjectPropertyHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDeclarationAxiomHGDB;
 import org.hypergraphdb.app.owl.type.link.ImportDeclarationLink;
 import org.hypergraphdb.handle.HGLiveHandle;
+import org.hypergraphdb.query.AtomTypeCondition;
+import org.hypergraphdb.query.HGQueryCondition;
+import org.hypergraphdb.query.Or;
 import org.hypergraphdb.query.SubgraphMemberCondition;
 import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -59,7 +64,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
  * 
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  */
-public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB implements HGGraphHolder, HGHandleHolder{
+public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	   static {
 		   //TODO Disable force assertions before release.
 	        boolean assertsEnabled = false;
@@ -68,14 +73,10 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB implements 
 	            throw new RuntimeException("We need Asserts to be enabled. Use: java -ea:org.hypergraphdb.app.owl...");
 	        }
 	    } 
-	protected HGHandle handle;
-	protected HyperGraph graph;
-	protected HGDBOntologyImpl ontology; 
-	protected HGHandle ontoHandle; 
 
 	// hilpold protected Set<OWLImportsDeclaration> importsDeclarations;
 	protected Set<OWLAnnotation> ontologyAnnotations; // recursive??
-	protected Map<AxiomType<?>, Set<OWLAxiom>> axiomsByType;
+	// protected Map<AxiomType<?>, Set<OWLAxiom>> axiomsByType; removed 2011.10.06
 	protected Map<OWLAxiom, Set<OWLAxiom>> logicalAxiom2AnnotatedAxiomMap;
 	protected Set<OWLClassAxiom> generalClassAxioms;
 	protected Set<OWLSubPropertyChainOfAxiom> propertyChainSubPropertyAxioms;
@@ -97,7 +98,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB implements 
 	protected void initMaps() {
 		// hilpold this.importsDeclarations = createSet();
 		this.ontologyAnnotations = createSet();
-		this.axiomsByType = createMap();
+		//this.axiomsByType = createMap();
 		this.logicalAxiom2AnnotatedAxiomMap = createMap();
 		this.generalClassAxioms = createSet();
 		this.propertyChainSubPropertyAxioms = createSet();
@@ -137,12 +138,16 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB implements 
 	}
 
 	public boolean isEmpty() {
-		for (Set<OWLAxiom> axiomSet : axiomsByType.values()) {
-			if (!axiomSet.isEmpty()) {
-				return false;
-			}
-		}
-		return ontologyAnnotations.isEmpty();
+		boolean noAxioms = ontology.count(hg.typePlus(OWLAxiom.class)) == 0;
+		return noAxioms && ontologyAnnotations.isEmpty();
+		
+//Don't do this: ontology.isEmpty(); because Onto is considered empty despite imports.
+//		for (Set<OWLAxiom> axiomSet : axiomsByType.values()) {
+//			if (!axiomSet.isEmpty()) {
+//				return false;
+//			}
+//		}
+//		return ontologyAnnotations.isEmpty();
 	}
 
 	public Set<OWLDatatypeDefinitionAxiom> getDatatypeDefinitions(OWLDatatype datatype) {
@@ -190,9 +195,16 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB implements 
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	protected <T extends OWLAxiom> Set<T> getAxiomsInternal(AxiomType<T> axiomType) {
-		return (Set<T>) getAxioms(axiomType, axiomsByType, false);
+		List<T> axiomsOneType = null;
+		Class<? extends OWLAxiomHGDB> hgdbAxiomClass = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiomType);
+		if (hgdbAxiomClass == null) {
+			System.out.println("getAxiomsInternal Not yet implemented: " + axiomType);
+		} else {
+			axiomsOneType = ontology.getAll(hg.type(hgdbAxiomClass));
+		}
+		return getReturnSet(axiomsOneType);
+		//return (Set<T>) getAxioms(axiomType, axiomsByType, false);
 	}
 
 	public Set<OWLAxiom> getReferencingAxioms(OWLAnonymousIndividual individual) {
@@ -213,7 +225,8 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB implements 
 			System.out.println("BAD ! OWLENTITY TYPE IS : " + owlEntity.getClass().getSimpleName());
 			System.out.println("BAD ! Object IS : " + owlEntity);
 			System.out.println("BAD ! IRI IS : " + owlEntity.getIRI());
-			return Collections.emptySet();
+			//2010.10.06 not acceptable anymore. HGApp adds BUILTIN types. return Collections.emptySet();
+			throw new IllegalStateException("We were called with a uk.ac entity.");
 		}
 		List<OWLAxiom> axioms;
 		axioms = graph.getTransactionManager().transact(new Callable<List<OWLAxiom>>() {
@@ -419,9 +432,9 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB implements 
 //		return axioms;
 	}
 
-	@SuppressWarnings("unchecked")
 	public <T extends OWLAxiom> Set<T> getAxioms(AxiomType<T> axiomType) {
-		return (Set<T>) getAxioms(axiomType, axiomsByType, false);
+		return getAxiomsInternal(axiomType);
+		//WHY DIDN'T they refer to internal? return (Set<T>) getAxioms(axiomType, axiomsByType, false);
 	}
 
 	/**
@@ -453,39 +466,60 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB implements 
 	}
 
 	public <T extends OWLAxiom> int getAxiomCount(AxiomType<T> axiomType) {
-		Set<OWLAxiom> axioms = axiomsByType.get(axiomType);
-		if (axioms == null) {
-			return 0;
+		long axiomsOneTypeCount = 0;
+		Class<? extends OWLAxiomHGDB> hgdbAxiomClass = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiomType);
+		if (hgdbAxiomClass == null) {
+			System.out.println("getAxiomsInternal Not yet implemented: " + axiomType);
+		} else {
+			axiomsOneTypeCount = ontology.count(hg.type(hgdbAxiomClass));
 		}
-		return axioms.size();
+		if (axiomsOneTypeCount > Integer.MAX_VALUE) throw new ArithmeticException("long Count > int Max"); 
+		return (int)axiomsOneTypeCount;
+//		Set<OWLAxiom> axioms = axiomsByType.get(axiomType);
+//		if (axioms == null) {
+//			return 0;
+//		}
+//		return axioms.size();
 	}
 
 	public Set<OWLLogicalAxiom> getLogicalAxioms() {
-		Set<OWLLogicalAxiom> axioms = createSet();
-		for (AxiomType<?> type : AXIOM_TYPES) {
-			if (type.isLogical()) {
-				Set<OWLAxiom> axiomSet = axiomsByType.get(type);
-				if (axiomSet != null) {
-					for (OWLAxiom ax : axiomSet) {
-						axioms.add((OWLLogicalAxiom) ax);
-					}
-				}
-			}
-		}
-		return axioms;
+		List<OWLLogicalAxiom> axioms = ontology.getAll(getLogicalAxiomQuery());
+		return getReturnSet(axioms);
+//		for (AxiomType<?> type : AXIOM_TYPES) {
+//			if (type.isLogical()) {
+//				Set<OWLAxiom> axiomSet = axiomsByType.get(type);
+//				if (axiomSet != null) {
+//					for (OWLAxiom ax : axiomSet) {
+//						axioms.add((OWLLogicalAxiom) ax);
+//					}
+//				}
+//			}
+//		}
 	}
 
 	public int getLogicalAxiomCount() {
-		int count = 0;
-		for (AxiomType<?> type : AXIOM_TYPES) {
-			if (type.isLogical()) {
-				Set<OWLAxiom> axiomSet = axiomsByType.get(type);
-				if (axiomSet != null) {
-					count += axiomSet.size();
-				}
-			}
+		long count = ontology.count(getLogicalAxiomQuery());
+		if (count > Integer.MAX_VALUE) throw new ArithmeticException("count > int max");
+		return (int) count; 
+//		int count = 0;
+//		for (AxiomType<?> type : AXIOM_TYPES) {
+//			if (type.isLogical()) {
+//				Set<OWLAxiom> axiomSet = axiomsByType.get(type);
+//				if (axiomSet != null) {
+//					count += axiomSet.size();
+//				}
+//			}
+//		}
+//		return count;
+	}
+	
+	protected HGQueryCondition getLogicalAxiomQuery() {
+		Or logicalAxQuery = new Or();
+		Set<Class<? extends OWLAxiomHGDB>> classes = AxiomTypeToHGDBMap.getLogicalAxiomTypesHGDB();
+		for (Class<? extends OWLAxiomHGDB> c : classes) {
+			logicalAxQuery.add(new AtomTypeCondition(c));
 		}
-		return count;
+		return logicalAxQuery;
 	}
 
 	public void addAxiomsByType(AxiomType<?> type, final OWLAxiom axiom) {
@@ -502,14 +536,19 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB implements 
 				public Boolean call() {
 					ontology.printGraphStats("Before AddAxiom");
 					// hyper hyper
-					HGHandle h = graph.getHandle(axiom);
+					//hilpold 2011.10.06 adding to graph here instead of previously in Datafactory
+					HGHandle h = graph.add(axiom);
+					//TODO REMOVE 2nd add (just to see if HG complains and what handle we'd get ?)
+//					HGHandle h2 = graph.add(axiom); this leads to getting a second handle ???
+					
+					//HGHandle h = graph.getHandle(axiom);
 					ontology.add(h);
 					ontology.printGraphStats("After  AddAxiom");
 					return true;
 		}});
 		} else {
 			System.out.print("NOT YET IMPLEMENTED: " + axiom.getClass().getSimpleName());
-			addToIndexedSet(type, axiomsByType, axiom);
+			//addToIndexedSet(type, axiomsByType, axiom);
 		}
 	}
 
@@ -537,7 +576,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB implements 
 			});
 		} else {
 			System.out.print("NOT YET IMPLEMENTED: " + axiom.getClass().getSimpleName());
-			removeAxiomFromSet(type, axiomsByType, axiom, true);
+			//removeAxiomFromSet(type, axiomsByType, axiom, true);
 		}
 	}
 
@@ -874,55 +913,5 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB implements 
 //		// return this.declarationsByEntity.containsKey(c);
 //		return false;
 //	}
-
-	// ----------------------------------------------------------------------
-	// HGGraphHolder HGHandleHolder Interfaces
-	//
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.hypergraphdb.HGHandleHolder#getAtomHandle()
-	 */
-	@Override
-	public HGHandle getAtomHandle() {
-		return handle;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.hypergraphdb.HGHandleHolder#setAtomHandle(org.hypergraphdb.HGHandle)
-	 */
-	@Override
-	public void setAtomHandle(HGHandle handle) {
-		this.handle = handle;
-	}
-
-	/**
-	 * Sets the graph and sets AtomHandle also, if graph non null.
-	 */
-	@Override
-	public void setHyperGraph(HyperGraph graph) {
-		this.graph = graph;
-		if (graph != null) {
-			setAtomHandle(graph.getHandle(this));
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#setOntologyHyperNode(org.hypergraphdb.app.owl.HGDBOntology)
-	 */
-	@Override
-	public void setOntologyHyperNode(HGDBOntology ontology) {
-		//TODO ugly, but we need it, because Hypernode Interface does not define convienient add)
-		this.ontology = (HGDBOntologyImpl) ontology;	
-		this.ontoHandle = graph.getHandle(ontology);
-	}
-
-	//
-	// END HGGraphHolder HGHandleHolder Interfaces
-	// ----------------------------------------------------------------------
 
 }
