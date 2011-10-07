@@ -10,11 +10,9 @@ import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.util.CollectionFactory;
 import org.semanticweb.owlapi.util.NNF;
-import org.semanticweb.owlapi.util.OWLEntityCollector;
 
 public abstract class OWLAxiomHGDB extends OWLObjectHGDB implements OWLAxiom
 {
@@ -23,7 +21,7 @@ public abstract class OWLAxiomHGDB extends OWLObjectHGDB implements OWLAxiom
     private final Set<OWLAnnotation> annotations;
     
     public OWLAxiomHGDB() {
-    	this((Collection)Collections.emptySet());
+    	this(Collections.<OWLAnnotation>emptySet());
     }
     
     public OWLAxiomHGDB(Collection<? extends OWLAnnotation> annotations) {

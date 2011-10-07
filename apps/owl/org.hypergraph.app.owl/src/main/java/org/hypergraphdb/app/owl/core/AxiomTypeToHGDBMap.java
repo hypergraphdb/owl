@@ -5,6 +5,7 @@ import static org.semanticweb.owlapi.model.AxiomType.AXIOM_TYPES;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -12,6 +13,8 @@ import java.util.TreeSet;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.app.owl.model.axioms.OWLDeclarationAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLSubDataPropertyOfAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLSubObjectPropertyOfAxiomHGDB;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
@@ -26,7 +29,7 @@ public class AxiomTypeToHGDBMap {
 	static {
 		m = new HashMap<AxiomType<? extends OWLAxiom>, Class<? extends OWLAxiomHGDB>>(INITIAL_MAP_SIZE);
 		mReverse = new HashMap<Class<? extends OWLAxiomHGDB>, AxiomType<? extends OWLAxiom>>(INITIAL_MAP_SIZE);
-		logicalAxiomTypesHGDB = new TreeSet<Class<? extends OWLAxiomHGDB>>();
+		logicalAxiomTypesHGDB = new HashSet<Class<? extends OWLAxiomHGDB>>();
 		initializeMaps();
 		initializeLogicalAxiomSet();
 	}
@@ -91,7 +94,7 @@ public class AxiomTypeToHGDBMap {
         //11 addToMap(AxiomType.OBJECT_PROPERTY_DOMAIN, OWLAxiomHGDB.class);
         //12 addToMap(AxiomType.OBJECT_PROPERTY_RANGE, OWLAxiomHGDB.class);
         //13 addToMap(AxiomType.DISJOINT_OBJECT_PROPERTIES, OWLAxiomHGDB.class);
-        //14 addToMap(AxiomType.SUB_OBJECT_PROPERTY, OWLAxiomHGDB.class);
+        addToMap(AxiomType.SUB_OBJECT_PROPERTY, OWLSubObjectPropertyOfAxiomHGDB.class);
         //15 addToMap(AxiomType.EQUIVALENT_OBJECT_PROPERTIES, OWLAxiomHGDB.class);
         //16 addToMap(AxiomType.INVERSE_OBJECT_PROPERTIES, OWLAxiomHGDB.class);
         //17 addToMap(AxiomType.SUB_PROPERTY_CHAIN_OF, OWLAxiomHGDB.class);
@@ -105,7 +108,7 @@ public class AxiomTypeToHGDBMap {
         //25 addToMap(AxiomType.DATA_PROPERTY_DOMAIN, OWLAxiomHGDB.class);
         //26 addToMap(AxiomType.DATA_PROPERTY_RANGE, OWLAxiomHGDB.class);
         //27 addToMap(AxiomType.DISJOINT_DATA_PROPERTIES, OWLAxiomHGDB.class);
-        //28 addToMap(AxiomType.SUB_DATA_PROPERTY, OWLAxiomHGDB.class);
+        addToMap(AxiomType.SUB_DATA_PROPERTY, OWLSubDataPropertyOfAxiomHGDB.class);
         //29 addToMap(AxiomType.EQUIVALENT_DATA_PROPERTIES, OWLAxiomHGDB.class);
         //30 addToMap(AxiomType.FUNCTIONAL_DATA_PROPERTY, OWLAxiomHGDB.class);
         //31 addToMap(AxiomType.DATATYPE_DEFINITION, OWLAxiomHGDB.class);

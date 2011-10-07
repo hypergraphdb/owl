@@ -1,14 +1,9 @@
 package org.hypergraphdb.app.owl.core;
 
-import java.lang.ref.WeakReference;
-import java.util.Map;
-import java.util.WeakHashMap;
-
 import org.hypergraphdb.HGException;
-import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HGQuery.hg;
-import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.model.OWLAnnotationPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLClassHGDB;
@@ -26,13 +21,7 @@ import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 
-import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationPropertyImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLClassImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternals;
-import uk.ac.manchester.cs.owl.owlapi.OWLDataPropertyImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLDatatypeImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLNamedIndividualImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectPropertyImpl;
 
 /**
  * OWLDataFactoryInternalsHGDB.
@@ -46,6 +35,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLObjectPropertyImpl;
  * @created Sep 28, 2011
  */
 public class OWLDataFactoryInternalsHGDB implements OWLDataFactoryInternals {
+	public static boolean DBG = true;
 	
     //private WeakHashMap<IRI, WeakReference<? extends OWLEntity>> classesByURI;
     //private final WeakHashMap<IRI, WeakReference<? extends OWLEntity>> objectPropertiesByURI;
@@ -192,6 +182,7 @@ public class OWLDataFactoryInternalsHGDB implements OWLDataFactoryInternals {
     		e = (V)buildable.build(factory, iri);
     		if (!entityType.isAssignableFrom(e.getClass())) throw new HGException("Built object type must be same or subclass of type " + entityType);
     		if (!(e instanceof HGGraphHolder && e instanceof HGHandleHolder)) throw new HGException("Built entity must be Graphholder and Handleholder");
+    		if (DBG) System.out.println("FACTINTERN CREATED/ADDED ENTITY: " + e + " type: " + e.getClass().getSimpleName() );
     		graph.add(e);
     	}
 		//Handle and graph guaranteed to be set on add or get. 

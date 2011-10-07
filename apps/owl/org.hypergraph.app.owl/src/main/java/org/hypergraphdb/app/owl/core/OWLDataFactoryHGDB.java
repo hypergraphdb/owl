@@ -6,15 +6,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.naming.OperationNotSupportedException;
-
-import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.model.OWLClassHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDeclarationAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLSubDataPropertyOfAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLSubObjectPropertyOfAxiomHGDB;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.CollectionFactory;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
@@ -29,13 +28,10 @@ import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationPropertyRangeAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnonymousIndividualImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAsymmetricObjectPropertyAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLClassAssertionImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLClassImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataAllValuesFromImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataComplementOfImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataExactCardinalityImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternals;
-import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternalsImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataHasValueImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataIntersectionOfImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataMaxCardinalityImpl;
@@ -48,7 +44,6 @@ import uk.ac.manchester.cs.owl.owlapi.OWLDataSomeValuesFromImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataUnionOfImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDatatypeDefinitionAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDatatypeRestrictionImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLDeclarationAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDifferentIndividualsAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDisjointClassesAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDisjointDataPropertiesAxiomImpl;
@@ -86,7 +81,6 @@ import uk.ac.manchester.cs.owl.owlapi.OWLObjectUnionOfImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLReflexiveObjectPropertyAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLSameIndividualAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLSubAnnotationPropertyOfAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLSubClassOfAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLSubDataPropertyOfAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLSubObjectPropertyOfAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLSubPropertyChainAxiomImpl;
@@ -102,7 +96,6 @@ import uk.ac.manchester.cs.owl.owlapi.SWRLLiteralArgumentImpl;
 import uk.ac.manchester.cs.owl.owlapi.SWRLObjectPropertyAtomImpl;
 import uk.ac.manchester.cs.owl.owlapi.SWRLRuleImpl;
 import uk.ac.manchester.cs.owl.owlapi.SWRLSameIndividualAtomImpl;
-import uk.ac.manchester.cs.owl.owlapi.SWRLVariableImpl;
 
 /**
  * OWLDataFactortHGDB.
@@ -796,7 +789,21 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 
     public OWLSubDataPropertyOfAxiom getOWLSubDataPropertyOfAxiom(OWLDataPropertyExpression subProperty, OWLDataPropertyExpression superProperty, Set<? extends OWLAnnotation> annotations) {
-        return new OWLSubDataPropertyOfAxiomImpl(this, subProperty, superProperty, annotations);
+        if (subProperty == null) throw new IllegalArgumentException("subProperty null");
+        if (superProperty == null) throw new IllegalArgumentException("superProperty null");
+        if (annotations == null) throw new IllegalArgumentException("annotations null");
+        //subClass, superClass and annotations are in Graph, if created by this Datafactory
+        OWLSubDataPropertyOfAxiomHGDB axiom; 
+        //TODO Implement use of OWLObjectPropertyExpression 
+        HGHandle subPropertyHandle = getOrFindOWLEntityHandleInGraph((OWLDataProperty)subProperty);
+        HGHandle superPropertyHandle = getOrFindOWLEntityHandleInGraph((OWLDataProperty)superProperty);
+        if (subPropertyHandle == null || superPropertyHandle == null ) {
+        	throw new IllegalStateException("No Handle for subProperty or superProperty");
+        }
+    	axiom = new OWLSubDataPropertyOfAxiomHGDB(subPropertyHandle, superPropertyHandle, annotations);
+       	axiom.setHyperGraph(graph);
+       	return axiom;    	
+    	//return new OWLSubDataPropertyOfAxiomImpl(this, subProperty, superProperty, annotations);
     }
 
 
@@ -1130,7 +1137,21 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 
     public OWLSubObjectPropertyOfAxiom getOWLSubObjectPropertyOfAxiom(OWLObjectPropertyExpression subProperty, OWLObjectPropertyExpression superProperty, Set<? extends OWLAnnotation> annotations) {
-        return new OWLSubObjectPropertyOfAxiomImpl(this, subProperty, superProperty, annotations);
+        if (subProperty == null) throw new IllegalArgumentException("subProperty null");
+        if (superProperty == null) throw new IllegalArgumentException("superProperty null");
+        if (annotations == null) throw new IllegalArgumentException("annotations null");
+        //subClass, superClass and annotations are in Graph, if created by this Datafactory
+        OWLSubObjectPropertyOfAxiomHGDB axiom; 
+        //TODO Implement use of OWLObjectPropertyExpression 
+        HGHandle subPropertyHandle = getOrFindOWLEntityHandleInGraph((OWLObjectProperty)subProperty);
+        HGHandle superPropertyHandle = getOrFindOWLEntityHandleInGraph((OWLObjectProperty)superProperty);
+        if (subPropertyHandle == null || superPropertyHandle == null ) {
+        	throw new IllegalStateException("No Handle for subProperty or superProperty");
+        }
+    	axiom = new OWLSubObjectPropertyOfAxiomHGDB(subPropertyHandle, superPropertyHandle, annotations);
+       	axiom.setHyperGraph(graph);
+       	return axiom;    	
+        //return new OWLSubObjectPropertyOfAxiomImpl(this, subProperty, superProperty, annotations);
     }
 
 

@@ -41,7 +41,6 @@ import static org.semanticweb.owlapi.model.AxiomType.SYMMETRIC_OBJECT_PROPERTY;
 import static org.semanticweb.owlapi.model.AxiomType.TRANSITIVE_OBJECT_PROPERTY;
 
 import org.hypergraphdb.app.owl.HGDBOntologyInternals;
-import org.hypergraphdb.app.owl.HGDBOntologyInternalsImpl;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationPropertyDomainAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationPropertyRangeAxiom;
@@ -88,9 +87,6 @@ import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
 import org.semanticweb.owlapi.model.OWLSymmetricObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.SWRLRule;
-
-import uk.ac.manchester.cs.owl.owlapi.ChangeAxiomVisitor;
-import uk.ac.manchester.cs.owl.owlapi.Internals;
 
 /**
  * ChangeAxiomVisitorHGDB.
@@ -370,13 +366,13 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
     public void visit(OWLSubObjectPropertyOfAxiom axiom) {
         if (addAxiom) {
             oi.addAxiomsByType(SUB_OBJECT_PROPERTY, axiom);
-            oi.addToIndexedSet(axiom.getSubProperty(), oi.getObjectSubPropertyAxiomsByLHS(), axiom);
-            oi.addToIndexedSet(axiom.getSuperProperty(), oi.getObjectSubPropertyAxiomsByRHS(), axiom);
+            //2011.10.07 oi.addToIndexedSet(axiom.getSubProperty(), oi.getObjectSubPropertyAxiomsByLHS(), axiom);
+            //oi.addToIndexedSet(axiom.getSuperProperty(), oi.getObjectSubPropertyAxiomsByRHS(), axiom);
         }
         else {
             oi.removeAxiomsByType(SUB_OBJECT_PROPERTY, axiom);
-            oi.removeAxiomFromSet(axiom.getSubProperty(), oi.getObjectSubPropertyAxiomsByLHS(), axiom, true);
-            oi.removeAxiomFromSet(axiom.getSuperProperty(), oi.getObjectSubPropertyAxiomsByRHS(), axiom, true);
+            //oi.removeAxiomFromSet(axiom.getSubProperty(), oi.getObjectSubPropertyAxiomsByLHS(), axiom, true);
+            //oi.removeAxiomFromSet(axiom.getSuperProperty(), oi.getObjectSubPropertyAxiomsByRHS(), axiom, true);
         }
     }
 
@@ -603,13 +599,13 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
     public void visit(OWLSubDataPropertyOfAxiom axiom) {
         if (addAxiom) {
             oi.addAxiomsByType(SUB_DATA_PROPERTY, axiom);
-            oi.addToIndexedSet(axiom.getSubProperty(), oi.getDataSubPropertyAxiomsByLHS(), axiom);
-            oi.addToIndexedSet(axiom.getSuperProperty(), oi.getDataSubPropertyAxiomsByRHS(), axiom);
+            //2011.10.07 oi.addToIndexedSet(axiom.getSubProperty(), oi.getDataSubPropertyAxiomsByLHS(), axiom);
+            //oi.addToIndexedSet(axiom.getSuperProperty(), oi.getDataSubPropertyAxiomsByRHS(), axiom);
         }
         else {
             oi.removeAxiomsByType(SUB_DATA_PROPERTY, axiom);
-            oi.removeAxiomFromSet(axiom.getSubProperty(), oi.getDataSubPropertyAxiomsByLHS(), axiom, true);
-            oi.removeAxiomFromSet(axiom.getSuperProperty(), oi.getDataSubPropertyAxiomsByRHS(), axiom, true);
+            //oi.removeAxiomFromSet(axiom.getSubProperty(), oi.getDataSubPropertyAxiomsByLHS(), axiom, true);
+            //oi.removeAxiomFromSet(axiom.getSuperProperty(), oi.getDataSubPropertyAxiomsByRHS(), axiom, true);
         }
     }
 

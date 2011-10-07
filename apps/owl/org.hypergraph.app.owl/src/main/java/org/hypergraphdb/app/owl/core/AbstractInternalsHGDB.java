@@ -27,7 +27,6 @@ import static org.semanticweb.owlapi.model.AxiomType.OBJECT_PROPERTY_DOMAIN;
 import static org.semanticweb.owlapi.model.AxiomType.OBJECT_PROPERTY_RANGE;
 import static org.semanticweb.owlapi.model.AxiomType.REFLEXIVE_OBJECT_PROPERTY;
 import static org.semanticweb.owlapi.model.AxiomType.SAME_INDIVIDUAL;
-import static org.semanticweb.owlapi.model.AxiomType.SUBCLASS_OF;
 import static org.semanticweb.owlapi.model.AxiomType.SUB_DATA_PROPERTY;
 import static org.semanticweb.owlapi.model.AxiomType.SUB_OBJECT_PROPERTY;
 import static org.semanticweb.owlapi.model.AxiomType.SYMMETRIC_OBJECT_PROPERTY;
@@ -43,14 +42,14 @@ import java.util.concurrent.locks.Lock;
 
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.HGHandleHolder;
-import org.hypergraphdb.HGLink;
-import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.HGQuery.hg;
+import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyImpl;
 import org.hypergraphdb.app.owl.HGDBOntologyInternals;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLSubDataPropertyOfAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLSubObjectPropertyOfAxiomHGDB;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationSubject;
@@ -104,9 +103,8 @@ import uk.ac.manchester.cs.owl.owlapi.InitVisitorFactory;
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  * @created Sep 29, 2011
  */
-public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HGGraphHolder, HGHandleHolder {
+public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HGGraphHolder {
 
-	protected HGHandle handle;
 	protected HyperGraph graph;
 	protected HGDBOntologyImpl ontology; 
 	protected HGHandle ontoHandle; 
@@ -118,8 +116,8 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	protected volatile Map<OWLClass, Set<OWLDisjointClassesAxiom>> disjointClassesAxiomsByClass;
 	protected volatile Map<OWLClass, Set<OWLDisjointUnionAxiom>> disjointUnionAxiomsByClass;
 	protected volatile Map<OWLClass, Set<OWLHasKeyAxiom>> hasKeyAxiomsByClass;
-	protected volatile Map<OWLObjectPropertyExpression, Set<OWLSubObjectPropertyOfAxiom>> objectSubPropertyAxiomsByLHS;
-	protected volatile Map<OWLObjectPropertyExpression, Set<OWLSubObjectPropertyOfAxiom>> objectSubPropertyAxiomsByRHS;
+	//2011.10.07 protected volatile Map<OWLObjectPropertyExpression, Set<OWLSubObjectPropertyOfAxiom>> objectSubPropertyAxiomsByLHS;
+	//2011.10.07 	protected volatile Map<OWLObjectPropertyExpression, Set<OWLSubObjectPropertyOfAxiom>> objectSubPropertyAxiomsByRHS;
 	protected volatile Map<OWLObjectPropertyExpression, Set<OWLEquivalentObjectPropertiesAxiom>> equivalentObjectPropertyAxiomsByProperty;
 	protected volatile Map<OWLObjectPropertyExpression, Set<OWLDisjointObjectPropertiesAxiom>> disjointObjectPropertyAxiomsByProperty;
 	protected volatile Map<OWLObjectPropertyExpression, Set<OWLObjectPropertyDomainAxiom>> objectPropertyDomainAxiomsByProperty;
@@ -132,8 +130,8 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	protected volatile Map<OWLObjectPropertyExpression, Set<OWLIrreflexiveObjectPropertyAxiom>> irreflexivePropertyAxiomsByProperty;
 	protected volatile Map<OWLObjectPropertyExpression, Set<OWLTransitiveObjectPropertyAxiom>> transitivePropertyAxiomsByProperty;
 	protected volatile Map<OWLObjectPropertyExpression, Set<OWLInverseObjectPropertiesAxiom>> inversePropertyAxiomsByProperty;
-	protected volatile Map<OWLDataPropertyExpression, Set<OWLSubDataPropertyOfAxiom>> dataSubPropertyAxiomsByLHS;
-	protected volatile Map<OWLDataPropertyExpression, Set<OWLSubDataPropertyOfAxiom>> dataSubPropertyAxiomsByRHS;
+	//2011.10.07 	protected volatile Map<OWLDataPropertyExpression, Set<OWLSubDataPropertyOfAxiom>> dataSubPropertyAxiomsByLHS;
+	//2011.10.07 	protected volatile Map<OWLDataPropertyExpression, Set<OWLSubDataPropertyOfAxiom>> dataSubPropertyAxiomsByRHS;
 	protected volatile Map<OWLDataPropertyExpression, Set<OWLEquivalentDataPropertiesAxiom>> equivalentDataPropertyAxiomsByProperty;
 	protected volatile Map<OWLDataPropertyExpression, Set<OWLDisjointDataPropertiesAxiom>> disjointDataPropertyAxiomsByProperty;
 	protected volatile Map<OWLDataPropertyExpression, Set<OWLDataPropertyDomainAxiom>> dataPropertyDomainAxiomsByProperty;
@@ -238,24 +236,24 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 				}
 			}
 		},
-		ObjectSubPropertyAxiomsByLHS {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-				if (impl.objectSubPropertyAxiomsByLHS == null) {
-					impl.objectSubPropertyAxiomsByLHS = impl.fill(
-							impl.objectSubPropertyAxiomsByLHS, SUB_OBJECT_PROPERTY, opsubnamed);
-				}
-			}
-		},
-		ObjectSubPropertyAxiomsByRHS {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-				if (impl.objectSubPropertyAxiomsByRHS == null) {
-					impl.objectSubPropertyAxiomsByRHS = impl.fill(
-							impl.objectSubPropertyAxiomsByRHS, SUB_OBJECT_PROPERTY, opsupernamed);
-				}
-			}
-		},
+//		ObjectSubPropertyAxiomsByLHS {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//				if (impl.objectSubPropertyAxiomsByLHS == null) {
+//					impl.objectSubPropertyAxiomsByLHS = impl.fill(
+//							impl.objectSubPropertyAxiomsByLHS, SUB_OBJECT_PROPERTY, opsubnamed);
+//				}
+//			}
+//		},
+//		ObjectSubPropertyAxiomsByRHS {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//				if (impl.objectSubPropertyAxiomsByRHS == null) {
+//					impl.objectSubPropertyAxiomsByRHS = impl.fill(
+//							impl.objectSubPropertyAxiomsByRHS, SUB_OBJECT_PROPERTY, opsupernamed);
+//				}
+//			}
+//		},
 		EquivalentObjectPropertyAxiomsByProperty {
 			@Override
 			public void initMap(AbstractInternalsHGDB impl) {
@@ -376,24 +374,24 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 				}
 			}
 		},
-		DataSubPropertyAxiomsByLHS {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-				if (impl.dataSubPropertyAxiomsByLHS == null) {
-					impl.dataSubPropertyAxiomsByLHS = impl.fill(impl.dataSubPropertyAxiomsByLHS,
-							SUB_DATA_PROPERTY, dpsubnamed);
-				}
-			}
-		},
-		DataSubPropertyAxiomsByRHS {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-				if (impl.dataSubPropertyAxiomsByRHS == null) {
-					impl.dataSubPropertyAxiomsByRHS = impl.fill(impl.dataSubPropertyAxiomsByRHS,
-							SUB_DATA_PROPERTY, dpsupernamed);
-				}
-			}
-		},
+//		DataSubPropertyAxiomsByLHS {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//				if (impl.dataSubPropertyAxiomsByLHS == null) {
+//					impl.dataSubPropertyAxiomsByLHS = impl.fill(impl.dataSubPropertyAxiomsByLHS,
+//							SUB_DATA_PROPERTY, dpsubnamed);
+//				}
+//			}
+//		},
+//		DataSubPropertyAxiomsByRHS {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//				if (impl.dataSubPropertyAxiomsByRHS == null) {
+//					impl.dataSubPropertyAxiomsByRHS = impl.fill(impl.dataSubPropertyAxiomsByRHS,
+//							SUB_DATA_PROPERTY, dpsupernamed);
+//				}
+//			}
+//		},
 		EquivalentDataPropertyAxiomsByProperty {
 			@Override
 			public void initMap(AbstractInternalsHGDB impl) {
@@ -844,7 +842,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 		List<OWLSubClassOfAxiom> l = ontology.getAll(hg.and(
 					hg.type(OWLSubClassOfAxiomHGDB.class)
 					//subclass 0, superClass 1
-					,hg.link(clsHandle, hg.anyHandle())));
+					,hg.orderedLink(clsHandle, hg.anyHandle())));
 		return getReturnSet(l);
 //		Maps.SubClassAxiomsByLHS.initMap(this);
 //		return getReturnSet(getAxioms(cls, subClassAxiomsByLHS));
@@ -855,7 +853,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 		List<OWLSubClassOfAxiom> l = ontology.getAll(hg.and(
 					hg.type(OWLSubClassOfAxiomHGDB.class)
 					//subclass 0, superClass 1
-					, hg.link(hg.anyHandle(), clsHandle)));
+					, hg.orderedLink(hg.anyHandle(), clsHandle)));
 		return getReturnSet(l);
 //		Maps.SubClassAxiomsByRHS.initMap(this);
 //		return getReturnSet(getAxioms(cls, subClassAxiomsByRHS));
@@ -884,14 +882,26 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	// Object properties
 	public Set<OWLSubObjectPropertyOfAxiom> getObjectSubPropertyAxiomsForSubProperty(
 			OWLObjectPropertyExpression property) {
-		Maps.ObjectSubPropertyAxiomsByLHS.initMap(this);
-		return getReturnSet(getAxioms(property, getObjectSubPropertyAxiomsByLHS()));
+		HGHandle propertyHandle = graph.getHandle(property);
+		List<OWLSubObjectPropertyOfAxiom> l = ontology.getAll(hg.and(
+					hg.type(OWLSubObjectPropertyOfAxiomHGDB.class)
+					//subclass 0, superClass 1
+					,hg.orderedLink(propertyHandle, hg.anyHandle())));
+		return getReturnSet(l);
+		//Maps.ObjectSubPropertyAxiomsByLHS.initMap(this);
+		//return getReturnSet(getAxioms(property, getObjectSubPropertyAxiomsByLHS()));
 	}
 
 	public Set<OWLSubObjectPropertyOfAxiom> getObjectSubPropertyAxiomsForSuperProperty(
 			OWLObjectPropertyExpression property) {
-		Maps.ObjectSubPropertyAxiomsByRHS.initMap(this);
-		return getReturnSet(getAxioms(property, getObjectSubPropertyAxiomsByRHS()));
+		HGHandle propertyHandle = graph.getHandle(property);
+		List<OWLSubObjectPropertyOfAxiom> l = ontology.getAll(hg.and(
+					hg.type(OWLSubObjectPropertyOfAxiomHGDB.class)
+					//subclass 0, superClass 1
+					,hg.orderedLink(hg.anyHandle(), propertyHandle)));
+		return getReturnSet(l);
+		//Maps.ObjectSubPropertyAxiomsByRHS.initMap(this);
+		//return getReturnSet(getAxioms(property, getObjectSubPropertyAxiomsByRHS()));
 	}
 
 	public Set<OWLObjectPropertyDomainAxiom> getObjectPropertyDomainAxioms(
@@ -974,14 +984,26 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 
 	public Set<OWLSubDataPropertyOfAxiom> getDataSubPropertyAxiomsForSubProperty(
 			OWLDataProperty lhsProperty) {
-		Maps.DataSubPropertyAxiomsByLHS.initMap(this);
-		return getReturnSet(getAxioms(lhsProperty, getDataSubPropertyAxiomsByLHS()));
+		HGHandle lhsPropertyHandle = graph.getHandle(lhsProperty);
+		List<OWLSubDataPropertyOfAxiom> l = ontology.getAll(hg.and(
+					hg.type(OWLSubDataPropertyOfAxiomHGDB.class)
+					//subclass 0, superClass 1
+					,hg.orderedLink(lhsPropertyHandle, hg.anyHandle())));
+		return getReturnSet(l);
+		//Maps.DataSubPropertyAxiomsByLHS.initMap(this);
+		//return getReturnSet(getAxioms(lhsProperty, getDataSubPropertyAxiomsByLHS()));
 	}
 
 	public Set<OWLSubDataPropertyOfAxiom> getDataSubPropertyAxiomsForSuperProperty(
 			OWLDataPropertyExpression property) {
-		Maps.DataSubPropertyAxiomsByRHS.initMap(this);
-		return getReturnSet(getAxioms(property, getDataSubPropertyAxiomsByRHS()));
+		HGHandle propertyHandle = graph.getHandle(property);
+		List<OWLSubDataPropertyOfAxiom> l = ontology.getAll(hg.and(
+					hg.type(OWLSubDataPropertyOfAxiomHGDB.class)
+					//subclass 0, superClass 1
+					,hg.orderedLink(hg.anyHandle(), propertyHandle)));
+		return getReturnSet(l);
+		//Maps.DataSubPropertyAxiomsByRHS.initMap(this);
+		//return getReturnSet(getAxioms(property, getDataSubPropertyAxiomsByRHS()));
 	}
 
 	public Set<OWLDataPropertyDomainAxiom> getDataPropertyDomainAxioms(OWLDataProperty property) {
@@ -1105,13 +1127,13 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 		return this.hasKeyAxiomsByClass;
 	}
 
-	public Map<OWLObjectPropertyExpression, Set<OWLSubObjectPropertyOfAxiom>> getObjectSubPropertyAxiomsByLHS() {
-		return this.objectSubPropertyAxiomsByLHS;
-	}
-
-	public Map<OWLObjectPropertyExpression, Set<OWLSubObjectPropertyOfAxiom>> getObjectSubPropertyAxiomsByRHS() {
-		return this.objectSubPropertyAxiomsByRHS;
-	}
+//	public Map<OWLObjectPropertyExpression, Set<OWLSubObjectPropertyOfAxiom>> getObjectSubPropertyAxiomsByLHS() {
+//		return this.objectSubPropertyAxiomsByLHS;
+//	}
+//
+//	public Map<OWLObjectPropertyExpression, Set<OWLSubObjectPropertyOfAxiom>> getObjectSubPropertyAxiomsByRHS() {
+//		return this.objectSubPropertyAxiomsByRHS;
+//	}
 
 	public Map<OWLObjectPropertyExpression, Set<OWLEquivalentObjectPropertiesAxiom>> getEquivalentObjectPropertyAxiomsByProperty() {
 		return this.equivalentObjectPropertyAxiomsByProperty;
@@ -1161,13 +1183,13 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 		return this.inversePropertyAxiomsByProperty;
 	}
 
-	public Map<OWLDataPropertyExpression, Set<OWLSubDataPropertyOfAxiom>> getDataSubPropertyAxiomsByLHS() {
-		return this.dataSubPropertyAxiomsByLHS;
-	}
-
-	public Map<OWLDataPropertyExpression, Set<OWLSubDataPropertyOfAxiom>> getDataSubPropertyAxiomsByRHS() {
-		return this.dataSubPropertyAxiomsByRHS;
-	}
+//	public Map<OWLDataPropertyExpression, Set<OWLSubDataPropertyOfAxiom>> getDataSubPropertyAxiomsByLHS() {
+//		return this.dataSubPropertyAxiomsByLHS;
+//	}
+//
+//	public Map<OWLDataPropertyExpression, Set<OWLSubDataPropertyOfAxiom>> getDataSubPropertyAxiomsByRHS() {
+//		return this.dataSubPropertyAxiomsByRHS;
+//	}
 
 	public Map<OWLDataPropertyExpression, Set<OWLEquivalentDataPropertiesAxiom>> getEquivalentDataPropertyAxiomsByProperty() {
 		return this.equivalentDataPropertyAxiomsByProperty;
@@ -1230,26 +1252,6 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	// HGGraphHolder HGHandleHolder Interfaces
 	//
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.hypergraphdb.HGHandleHolder#getAtomHandle()
-	 */
-	@Override
-	public HGHandle getAtomHandle() {
-		return handle;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.hypergraphdb.HGHandleHolder#setAtomHandle(org.hypergraphdb.HGHandle)
-	 */
-	@Override
-	public void setAtomHandle(HGHandle handle) {
-		this.handle = handle;
-	}
 
 	/**
 	 * Sets the graph and sets AtomHandle also, if graph non null.
@@ -1257,9 +1259,6 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	@Override
 	public void setHyperGraph(HyperGraph graph) {
 		this.graph = graph;
-		if (graph != null) {
-			setAtomHandle(graph.getHandle(this));
-		}
 	}
 	
 	/* (non-Javadoc)
