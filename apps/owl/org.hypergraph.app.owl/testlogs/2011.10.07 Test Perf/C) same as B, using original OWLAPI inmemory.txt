@@ -1,0 +1,182 @@
+Fri Oct 07 12:45:33 EDT 2011
+-------------------------------------------------------
+Creating Classes : 10 	 00.04 secs
+o.getAxiomCount() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+Actual: AX: 19 	 EN: 10
+Get+Remove All Ax 00.00 secs
+o.isEmpty() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+o.getSignature().isEmpty() 00.00 secs
+o.getAxioms() 00.00 secs
+ o.getAxiomCount() 00.00 secs
+WHOLE CALL TOOK:  00.04 secs
+Fri Oct 07 12:45:33 EDT 2011
+-------------------------------------------------------
+Creating Classes : 20 	 00.00 secs
+o.getAxiomCount() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+Actual: AX: 39 	 EN: 20
+Get+Remove All Ax 00.00 secs
+o.isEmpty() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+o.getSignature().isEmpty() 00.00 secs
+o.getAxioms() 00.00 secs
+ o.getAxiomCount() 00.00 secs
+WHOLE CALL TOOK:  00.00 secs
+Fri Oct 07 12:45:33 EDT 2011
+-------------------------------------------------------
+Creating Classes : 40 	 00.00 secs
+o.getAxiomCount() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+Actual: AX: 79 	 EN: 40
+Get+Remove All Ax 00.00 secs
+o.isEmpty() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+o.getSignature().isEmpty() 00.00 secs
+o.getAxioms() 00.00 secs
+ o.getAxiomCount() 00.00 secs
+WHOLE CALL TOOK:  00.00 secs
+Fri Oct 07 12:45:33 EDT 2011
+-------------------------------------------------------
+Creating Classes : 80 	 00.00 secs
+o.getAxiomCount() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+Actual: AX: 159 	 EN: 80
+Get+Remove All Ax 00.00 secs
+o.isEmpty() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+o.getSignature().isEmpty() 00.00 secs
+o.getAxioms() 00.00 secs
+ o.getAxiomCount() 00.00 secs
+WHOLE CALL TOOK:  00.01 secs
+Fri Oct 07 12:45:33 EDT 2011
+-------------------------------------------------------
+Creating Classes : 160 	 00.01 secs
+o.getAxiomCount() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+Actual: AX: 319 	 EN: 160
+Get+Remove All Ax 00.00 secs
+o.isEmpty() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+o.getSignature().isEmpty() 00.00 secs
+o.getAxioms() 00.00 secs
+ o.getAxiomCount() 00.00 secs
+WHOLE CALL TOOK:  00.01 secs
+Fri Oct 07 12:45:33 EDT 2011
+-------------------------------------------------------
+Creating Classes : 320 	 00.01 secs
+o.getAxiomCount() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+Actual: AX: 639 	 EN: 320
+Get+Remove All Ax 00.00 secs
+o.isEmpty() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+o.getSignature().isEmpty() 00.00 secs
+o.getAxioms() 00.00 secs
+ o.getAxiomCount() 00.00 secs
+WHOLE CALL TOOK:  00.01 secs
+Fri Oct 07 12:45:33 EDT 2011
+-------------------------------------------------------
+Creating Classes : 640 	 00.01 secs
+o.getAxiomCount() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+Actual: AX: 1279 	 EN: 640
+Get+Remove All Ax 00.00 secs
+o.isEmpty() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+o.getSignature().isEmpty() 00.00 secs
+o.getAxioms() 00.00 secs
+ o.getAxiomCount() 00.00 secs
+WHOLE CALL TOOK:  00.01 secs
+Fri Oct 07 12:45:33 EDT 2011
+-------------------------------------------------------
+Creating Classes : 1280 	 00.01 secs
+o.getAxiomCount() 00.00 secs
+o.getClassesInSignature() 00.01 secs
+Actual: AX: 2559 	 EN: 1280
+Get+Remove All Ax 00.01 secs
+o.isEmpty() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+o.getSignature().isEmpty() 00.00 secs
+o.getAxioms() 00.00 secs
+ o.getAxiomCount() 00.00 secs
+WHOLE CALL TOOK:  00.03 secs
+Fri Oct 07 12:45:33 EDT 2011
+-------------------------------------------------------
+Creating Classes : 2560 	 00.02 secs
+o.getAxiomCount() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+Actual: AX: 5119 	 EN: 2560
+Get+Remove All Ax 00.02 secs
+o.isEmpty() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+o.getSignature().isEmpty() 00.00 secs
+o.getAxioms() 00.00 secs
+ o.getAxiomCount() 00.00 secs
+WHOLE CALL TOOK:  00.05 secs
+Fri Oct 07 12:45:33 EDT 2011
+-------------------------------------------------------
+Creating Classes : 5120 	 00.04 secs
+o.getAxiomCount() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+Actual: AX: 10239 	 EN: 5120
+Get+Remove All Ax 00.15 secs
+o.isEmpty() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+o.getSignature().isEmpty() 00.00 secs
+o.getAxioms() 00.00 secs
+ o.getAxiomCount() 00.00 secs
+WHOLE CALL TOOK:  00.20 secs
+Fri Oct 07 12:45:33 EDT 2011
+-------------------------------------------------------
+Creating Classes : 10240 	 00.12 secs
+o.getAxiomCount() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+Actual: AX: 20479 	 EN: 10240
+Get+Remove All Ax 00.05 secs
+o.isEmpty() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+o.getSignature().isEmpty() 00.00 secs
+o.getAxioms() 00.00 secs
+ o.getAxiomCount() 00.00 secs
+WHOLE CALL TOOK:  00.18 secs
+Fri Oct 07 12:45:33 EDT 2011
+-------------------------------------------------------
+Creating Classes : 20480 	 00.43 secs
+o.getAxiomCount() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+Actual: AX: 40959 	 EN: 20480
+Get+Remove All Ax 00.12 secs
+o.isEmpty() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+o.getSignature().isEmpty() 00.00 secs
+o.getAxioms() 00.00 secs
+ o.getAxiomCount() 00.00 secs
+WHOLE CALL TOOK:  00.56 secs
+Fri Oct 07 12:45:34 EDT 2011
+-------------------------------------------------------
+Creating Classes : 40960 	 00.74 secs
+o.getAxiomCount() 00.00 secs
+o.getClassesInSignature() 00.01 secs
+Actual: AX: 81919 	 EN: 40960
+Get+Remove All Ax 00.25 secs
+o.isEmpty() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+o.getSignature().isEmpty() 00.00 secs
+o.getAxioms() 00.00 secs
+ o.getAxiomCount() 00.00 secs
+WHOLE CALL TOOK:  01.00 secs
+Fri Oct 07 12:45:35 EDT 2011
+-------------------------------------------------------
+Creating Classes : 81920 	 01.35 secs
+o.getAxiomCount() 00.00 secs
+o.getClassesInSignature() 00.02 secs
+Actual: AX: 163839 	 EN: 81920
+Get+Remove All Ax 00.56 secs
+o.isEmpty() 00.00 secs
+o.getClassesInSignature() 00.00 secs
+o.getSignature().isEmpty() 00.00 secs
+o.getAxioms() 00.00 secs
+ o.getAxiomCount() 00.00 secs
+WHOLE CALL TOOK:  01.92 secs
