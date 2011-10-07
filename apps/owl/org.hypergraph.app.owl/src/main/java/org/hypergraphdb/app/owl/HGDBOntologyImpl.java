@@ -4,7 +4,6 @@ import static org.semanticweb.owlapi.util.CollectionFactory.createSet;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -13,17 +12,13 @@ import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HGLink;
-import org.hypergraphdb.HGSystemFlags;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.IncidenceSet;
 import org.hypergraphdb.annotation.HGIgnore;
 import org.hypergraphdb.app.owl.core.ChangeAxiomVisitorHGDB;
-import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
 import org.hypergraphdb.app.owl.core.OWLSubgraphObject;
-import org.hypergraphdb.app.owl.type.link.HGDBOntologyInternalsLink;
-import org.hypergraphdb.app.owl.type.link.ImportDeclarationLink;
-import org.hypergraphdb.atom.HGSubgraph;
+import org.hypergraphdb.query.HGQueryCondition;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
@@ -108,8 +103,6 @@ import org.semanticweb.owlapi.model.SetOntologyID;
 import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
 import org.semanticweb.owlapi.util.OWLEntityCollector;
 
-import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
-
 /**
  * HGDBOntology.
  * 
@@ -117,8 +110,10 @@ import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
  */
 public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology, HGGraphHolder,
 		HGHandleHolder {
+	
+	public static boolean DBG = true; //Switches LOG string creation on or off.
 
-	private Logger log = Logger.getLogger(this.getClass().getCanonicalName());
+	protected Logger log = Logger.getLogger(this.getClass().getCanonicalName());
 
 	protected HGHandle handle;
 	protected HyperGraph graph;
@@ -158,30 +153,30 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		// try to find it
 		if (graph == null || handle == null)
 			throw new IllegalStateException("Must have graph and handle");
-		@SuppressWarnings("deprecation")
-		List<HGDBOntologyInternalsImpl> l = hg.getAll(
-				graph,
-				hg.apply(
-						hg.targetAt(graph, 1),
-						hg.and(hg.type(HGDBOntologyInternalsLink.class),
-								hg.orderedLink(handle, hg.anyHandle()))));
-		if (l.size() > 1)
-			throw new IllegalStateException("Must not have more than one internals");
-		if (l.size() == 1) {
-			internals = l.get(0);
-		} else {
+//		List<HGDBOntologyInternalsImpl> l = hg.getAll(
+//				graph,
+//				hg.apply(
+//						hg.targetAt(graph, 1),
+//						hg.and(hg.type(HGDBOntologyInternalsLink.class),
+//								hg.orderedLink(handle, hg.anyHandle()))));
+//		if (l.size() > 1)
+//			throw new IllegalStateException("Must not have more than one internals");
+//		if (l.size() == 1) {
+//			internals = l.get(0);
+//		} else {
 			// create new
 			// save link to find it next time.
 			internals = new HGDBOntologyInternalsImpl();
 			//HGHandle iTypehandle = graph.getTypeSystem().getTypeHandle(internals.getClass());
-			HGHandle internalsHandle = graph.add(internals);
-			HGDBOntologyInternalsLink link = new HGDBOntologyInternalsLink(handle, internalsHandle);
-			HGHandle linkHandle = graph.add(link);
-			this.add(internalsHandle);
-			this.add(linkHandle);
+			//HGHandle internalsHandle = graph.add(internals);
+			//HGDBOntologyInternalsLink link = new HGDBOntologyInternalsLink(handle, internalsHandle);
+			//HGHandle linkHandle = graph.add(link);
+			//this.add(internalsHandle);
+			//this.add(linkHandle);
 			//graph.add(new HGDBOntologyInternalsLink(handle, iHandle));
 			// internals and link added.
-		}
+//		}
+		((HGGraphHolder)internals).setHyperGraph(graph);
 		internals.setOntologyHyperNode(this);
 		// internals must have handle.
 	}
@@ -1579,7 +1574,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	public synchronized List<OWLOntologyChange> applyChange(OWLOntologyChange change) {
 		List<OWLOntologyChange> appliedChanges = new ArrayList<OWLOntologyChange>(2);
 		OWLOntologyChangeFilter changeFilter = new OWLOntologyChangeFilter();
-		printChange(change);
+		if (DBG) printChange(change);
 		change.accept(changeFilter);
 		List<OWLOntologyChange> applied = changeFilter.getAppliedChanges();
 		if (applied.size() == 1) {
@@ -1594,7 +1589,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		List<OWLOntologyChange> appliedChanges = new ArrayList<OWLOntologyChange>();
 		OWLOntologyChangeFilter changeFilter = new OWLOntologyChangeFilter();
 		for (OWLOntologyChange change : changes) {
-			printChange(change);
+			if(DBG) printChange(change);
 			change.accept(changeFilter);
 			appliedChanges.addAll(changeFilter.getAppliedChanges());
 			changeFilter.reset();
@@ -1719,7 +1714,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		if (axiom.isAnnotated()) {
 			internals.addLogicalAxiom2AnnotatedAxiomMap(axiom);
 		}
-		printGraphStats("After HandleAxAdded");		
+		if (DBG) printGraphStats("After HandleAxAdded");		
 	}
 
 	// protected OWLNamedObjectReferenceAdder getReferenceAdder() {
@@ -1745,9 +1740,11 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 				if (this.isMember(objectHandle)) {
 					//Get onto incidence set of atoms that are members.
 					IncidenceSet is = this.getIncidenceSet(objectHandle);
-					printIncidenceSets(objectHandle);
+					if (DBG) printIncidenceSets(objectHandle);
 					if (is.size() == 0) {
 						this.remove(objectHandle);
+						//2011.10.07 REMOVE Entity without refs from graph.
+						graph.remove(objectHandle);
 					}
 				} else {
 					throw new IllegalStateException("Just removed an axiom that did refer to an entity outside our ontology:" + object);				
@@ -1764,7 +1761,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		if (axiom.isAnnotated()) {
 			internals.removeLogicalAxiom2AnnotatedAxiomMap(axiom);
 		}
-		printGraphStats("After HandleAxRemoved");
+		if (DBG) printGraphStats("After HandleAxRemoved");
 	}
 
 	// //////////////////////////////////////////////////////////////////////////////////////////////
@@ -1993,6 +1990,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 			ensureInternals();
 		}
 	}
+
 
 	//
 	// END HGGraphHolder, HGHandleHolder Interface

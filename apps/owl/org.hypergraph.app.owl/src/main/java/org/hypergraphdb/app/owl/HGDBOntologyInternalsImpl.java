@@ -1,6 +1,5 @@
 package org.hypergraphdb.app.owl;
 
-import static org.semanticweb.owlapi.model.AxiomType.AXIOM_TYPES;
 import static org.semanticweb.owlapi.util.CollectionFactory.createSet;
 
 import java.util.Collection;
@@ -11,12 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.logging.Logger;
 
-import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HGQuery.hg;
-import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.core.AbstractInternalsHGDB;
 import org.hypergraphdb.app.owl.core.AxiomTypeToHGDBMap;
 import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
@@ -28,7 +25,6 @@ import org.hypergraphdb.app.owl.model.OWLNamedIndividualHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectPropertyHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDeclarationAxiomHGDB;
 import org.hypergraphdb.app.owl.type.link.ImportDeclarationLink;
-import org.hypergraphdb.handle.HGLiveHandle;
 import org.hypergraphdb.query.AtomTypeCondition;
 import org.hypergraphdb.query.HGQueryCondition;
 import org.hypergraphdb.query.Or;
@@ -57,20 +53,24 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
 
-import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
-
 /**
  * HGDBOntologyInternalsImpl.
  * 
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  */
 public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
+	
+	public static boolean DBG = true; //Switches LOG string creation on or off.
+	
+	protected Logger log = Logger.getLogger(this.getClass().getCanonicalName());
+	
 	   static {
 		   //TODO Disable force assertions before release.
 	        boolean assertsEnabled = false;
 	        assert assertsEnabled = true; //force assertions.
 	        if (!assertsEnabled) {
-	            throw new RuntimeException("We need Asserts to be enabled. Use: java -ea:org.hypergraphdb.app.owl...");
+	        	Logger.getLogger(HGDBOntologyInternalsImpl.class.getCanonicalName()).severe("Asserts disabled for HGDBOntologyInternalsImpl");
+	            //throw new RuntimeException("We need Asserts to be enabled. Use: java -ea:org.hypergraphdb.app.owl...");
 	        }
 	    } 
 
@@ -199,7 +199,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		List<T> axiomsOneType = null;
 		Class<? extends OWLAxiomHGDB> hgdbAxiomClass = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiomType);
 		if (hgdbAxiomClass == null) {
-			System.out.println("getAxiomsInternal Not yet implemented: " + axiomType);
+			log.warning("getAxiomsInternal Not yet implemented: " + axiomType);
 		} else {
 			axiomsOneType = ontology.getAll(hg.type(hgdbAxiomClass));
 		}
@@ -217,14 +217,14 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		//TODO shall we ensure that entity is in ontology?
 		//TODO this get;s called with null by one or more protege views!!
 		if (owlEntity == null) {
-			System.out.println("BAD ? getReferencingAx(null) called");
+			log.warning("BAD ? getReferencingAx(null) called");
 			return Collections.emptySet();
 		}
 		String className = owlEntity.getClass().getCanonicalName();
 		if (className.startsWith("uk.ac")) { 
-			System.out.println("BAD ! OWLENTITY TYPE IS : " + owlEntity.getClass().getSimpleName());
-			System.out.println("BAD ! Object IS : " + owlEntity);
-			System.out.println("BAD ! IRI IS : " + owlEntity.getIRI());
+			log.warning("BAD ! OWLENTITY TYPE IS : " + owlEntity.getClass().getSimpleName());
+			log.warning("BAD ! Object IS : " + owlEntity);
+			log.warning("BAD ! IRI IS : " + owlEntity.getIRI());
 			//2010.10.06 not acceptable anymore. HGApp adds BUILTIN types. return Collections.emptySet();
 			throw new IllegalStateException("We were called with a uk.ac entity.");
 		}
@@ -296,6 +296,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		// get link by name and link(handle)
 		List<OWLImportsDeclaration> l;
 		l = graph.getTransactionManager().transact(new Callable <List<OWLImportsDeclaration>>() {
+			@SuppressWarnings("deprecation")
 			public List<OWLImportsDeclaration> call() {
 				return hg.getAll(graph, hg.apply(hg.targetAt(graph, 1), hg.and(hg
 						.type(ImportDeclarationLink.class), hg.orderedLink(ontoHandle,
@@ -469,7 +470,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		long axiomsOneTypeCount = 0;
 		Class<? extends OWLAxiomHGDB> hgdbAxiomClass = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiomType);
 		if (hgdbAxiomClass == null) {
-			System.out.println("getAxiomsInternal Not yet implemented: " + axiomType);
+			log.warning("getAxiomCount: Not yet implemented for HG: " + axiomType);
 		} else {
 			axiomsOneTypeCount = ontology.count(hg.type(hgdbAxiomClass));
 		}
@@ -524,17 +525,19 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 
 	public void addAxiomsByType(AxiomType<?> type, final OWLAxiom axiom) {
 		//TODO make all types work w hypergraph.
-		System.out.print("ADD Axiom: " + axiom.getClass().getSimpleName() + " E: ");
-		for(OWLEntity e : axiom.getSignature()) {
-			System.out.print(e + "  Etype: ");
-			System.out.print(e.getEntityType() + " ");
+		if (DBG) {
+			log.info("ADD Axiom: " + axiom.getClass().getSimpleName() + " Signature: ");
+			for(OWLEntity e : axiom.getSignature()) {
+				log.info(e + "  Etype: " + e.getEntityType() + " ");
+			}
 		}
-		System.out.println();
 		if (type == AxiomType.DECLARATION
-				|| type == AxiomType.SUBCLASS_OF) {
+				|| type == AxiomType.SUBCLASS_OF 
+				|| type == AxiomType.SUB_DATA_PROPERTY 
+				|| type == AxiomType.SUB_OBJECT_PROPERTY) {
 			graph.getTransactionManager().transact(new Callable<Boolean>() {
 				public Boolean call() {
-					ontology.printGraphStats("Before AddAxiom");
+					if (DBG) ontology.printGraphStats("Before AddAxiom");
 					// hyper hyper
 					//hilpold 2011.10.06 adding to graph here instead of previously in Datafactory
 					HGHandle h = graph.add(axiom);
@@ -542,39 +545,42 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 //					HGHandle h2 = graph.add(axiom); this leads to getting a second handle ???
 					//HGHandle h = graph.getHandle(axiom);
 					ontology.add(h);
-					ontology.printGraphStats("After  AddAxiom");
+					if (DBG) ontology.printGraphStats("After  AddAxiom");
 					return true;
 		}});
 		} else {
-			System.out.print("NOT YET IMPLEMENTED: " + axiom.getClass().getSimpleName());
+			log.warning("NOT YET IMPLEMENTED: " + axiom.getClass().getSimpleName());
 			//addToIndexedSet(type, axiomsByType, axiom);
 		}
 	}
 
 	public void removeAxiomsByType(AxiomType<?> type, final OWLAxiom axiom) {
 		//TODO implement more axiom types
-		System.out.print("REMOVE Axiom: " + axiom.getClass().getSimpleName() + " E: ");
-		for(OWLEntity e : axiom.getSignature()) {
-			System.out.print(e + "  Etype: ");
-			System.out.print(e.getEntityType() + " ");
+		if (DBG) { 
+			log.info("REMOVE Axiom: " + axiom.getClass().getSimpleName() + " E: ");
+			for(OWLEntity e : axiom.getSignature()) {
+				log.info(e + "  Etype: " + e.getEntityType() + " ");
+			}
 		}
 		if (type == AxiomType.DECLARATION
-					|| type == AxiomType.SUBCLASS_OF) {
+				|| type == AxiomType.SUBCLASS_OF 
+				|| type == AxiomType.SUB_DATA_PROPERTY 
+				|| type == AxiomType.SUB_OBJECT_PROPERTY) {
 			graph.getTransactionManager().transact(new Callable<Boolean>() {
 				public Boolean call() {
 					boolean removedSuccess;
-					ontology.printGraphStats("Before RemoveAxiom");
+					if (DBG) ontology.printGraphStats("Before RemoveAxiom");
 					// hyper hyper
 					HGHandle h = graph.getHandle(axiom);
 					ontology.remove(h);
 					removedSuccess = graph.remove(h);
-					ontology.printGraphStats("After  RemoveAxiom");
+					if (DBG) ontology.printGraphStats("After  RemoveAxiom");
 					// if it pointed to an entity, entity incidence is -1
 					return removedSuccess;
 				}
 			});
 		} else {
-			System.out.print("NOT YET IMPLEMENTED: " + axiom.getClass().getSimpleName());
+			log.warning("NOT YET IMPLEMENTED: " + axiom.getClass().getSimpleName());
 			//removeAxiomFromSet(type, axiomsByType, axiom, true);
 		}
 	}
@@ -912,5 +918,6 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 //		// return this.declarationsByEntity.containsKey(c);
 //		return false;
 //	}
+
 
 }

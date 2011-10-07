@@ -240,9 +240,9 @@ public interface HGDBOntologyInternals  {
 
 	Map<OWLClass, Set<OWLHasKeyAxiom>> getHasKeyAxiomsByClass();
 
-	Map<OWLObjectPropertyExpression, Set<OWLSubObjectPropertyOfAxiom>> getObjectSubPropertyAxiomsByLHS();
+	//2011.10.07 Map<OWLObjectPropertyExpression, Set<OWLSubObjectPropertyOfAxiom>> getObjectSubPropertyAxiomsByLHS();
 
-	Map<OWLObjectPropertyExpression, Set<OWLSubObjectPropertyOfAxiom>> getObjectSubPropertyAxiomsByRHS();
+	//2011.10.07 Map<OWLObjectPropertyExpression, Set<OWLSubObjectPropertyOfAxiom>> getObjectSubPropertyAxiomsByRHS();
 
 	Map<OWLObjectPropertyExpression, Set<OWLEquivalentObjectPropertiesAxiom>> getEquivalentObjectPropertyAxiomsByProperty();
 
@@ -268,9 +268,9 @@ public interface HGDBOntologyInternals  {
 
 	Map<OWLObjectPropertyExpression, Set<OWLInverseObjectPropertiesAxiom>> getInversePropertyAxiomsByProperty();
 
-	Map<OWLDataPropertyExpression, Set<OWLSubDataPropertyOfAxiom>> getDataSubPropertyAxiomsByLHS();
+	//2011.10.07 Map<OWLDataPropertyExpression, Set<OWLSubDataPropertyOfAxiom>> getDataSubPropertyAxiomsByLHS();
 
-	Map<OWLDataPropertyExpression, Set<OWLSubDataPropertyOfAxiom>> getDataSubPropertyAxiomsByRHS();
+	//2011.10.07 Map<OWLDataPropertyExpression, Set<OWLSubDataPropertyOfAxiom>> getDataSubPropertyAxiomsByRHS();
 
 	Map<OWLDataPropertyExpression, Set<OWLEquivalentDataPropertiesAxiom>> getEquivalentDataPropertyAxiomsByProperty();
 
@@ -490,5 +490,6 @@ public interface HGDBOntologyInternals  {
 	Set<OWLLogicalAxiom> getLogicalAxioms();
 
 	int getLogicalAxiomCount();
+
 
 }
