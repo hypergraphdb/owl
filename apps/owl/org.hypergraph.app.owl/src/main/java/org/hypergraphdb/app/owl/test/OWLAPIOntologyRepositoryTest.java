@@ -2,14 +2,21 @@ package org.hypergraphdb.app.owl.test;
 
 import static org.junit.Assert.assertTrue;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Date;
 
+import org.hypergraphdb.HGQuery.hg;
+import org.hypergraphdb.app.owl.HGDBOntology;
+import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
+import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -18,13 +25,15 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
+import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
+
 /**
  * HGDBOntologyRepositoryTest.
  * 
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  * @created Oct 6, 2011
  */
-public class HGDBOntologyRepositoryTest {
+public class OWLAPIOntologyRepositoryTest {
 	StopWatch s = new StopWatch();
 
 	OWLOntology o;
@@ -54,7 +63,7 @@ public class HGDBOntologyRepositoryTest {
 	public void setUp() throws Exception {
 		// r = new HGDBOntologyRepository();
 		// m = r.createOWLOntologyManager();
-		m = HGDBOntologyRepository.createOWLOntologyManager();
+		m = OWLManager.createOWLOntologyManager();
 		df = m.getOWLDataFactory();
 		IRI ontoIRI = IRI.create("hgdb://UNITTESTONTO 1");
 		o = m.createOntology(ontoIRI);
@@ -75,8 +84,8 @@ public class HGDBOntologyRepositoryTest {
 	 */
 	@Test
 	public void testHGDBOntologyRepository() {
-		int n = 100;
-		while (n < 1E5) {
+		int n = 81920;
+		while (n < 1E7) {
 			System.out.println(new Date());
 			long startT = System.nanoTime();
 			createClassAndSubclassAxioms(n);
