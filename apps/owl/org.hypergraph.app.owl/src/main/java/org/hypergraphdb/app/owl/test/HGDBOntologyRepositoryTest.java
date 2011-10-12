@@ -25,7 +25,7 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
  * @created Oct 6, 2011
  */
 public class HGDBOntologyRepositoryTest {
-	StopWatch s = new StopWatch();
+	private StopWatch s = new StopWatch();
 
 	OWLOntology o;
 	OWLOntologyManager m;

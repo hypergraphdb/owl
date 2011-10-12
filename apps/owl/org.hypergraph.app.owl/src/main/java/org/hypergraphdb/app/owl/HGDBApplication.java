@@ -2,6 +2,8 @@ package org.hypergraphdb.app.owl;
 
 import java.util.logging.Logger;
 
+import javax.sound.sampled.AudioFileFormat.Type;
+
 import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
@@ -12,12 +14,18 @@ import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.management.HGApplication;
 import org.hypergraphdb.app.management.HGManagement;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
+import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
+import org.hypergraphdb.app.owl.model.OWLClassHGDB;
+import org.hypergraphdb.app.owl.model.OWLDataPropertyHGDB;
+import org.hypergraphdb.app.owl.model.OWLDatatypeHGDB;
 import org.hypergraphdb.app.owl.model.OWLNamedIndividualHGDB;
+import org.hypergraphdb.app.owl.model.OWLObjectPropertyHGDB;
 import org.hypergraphdb.app.owl.type.IRIType;
 import org.hypergraphdb.app.owl.type.OWLImportsDeclarationType;
 import org.hypergraphdb.app.owl.type.OWLNamedIndividualHGDBType;
 import org.hypergraphdb.app.owl.type.OWLNamedObjectType;
 import org.hypergraphdb.app.owl.type.OntologyIDType;
+import org.hypergraphdb.app.owl.type.TypeUtils;
 import org.hypergraphdb.atom.HGRelType;
 import org.hypergraphdb.type.HGAtomType;
 import org.hypergraphdb.util.HGUtils;
@@ -25,6 +33,7 @@ import org.semanticweb.owlapi.CreateValuePartition;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataProperty;
+import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLOntologyID;
@@ -125,6 +134,8 @@ public class HGDBApplication extends HGApplication
 	@SuppressWarnings("deprecation")
 	private void registerTypeOWLNamedObjectTypesHGDB(HyperGraph graph) {
 		HGTypeSystem typeSystem = graph.getTypeSystem();
+		HGHandle oWLNamedObjectTypeHandle = graph.getTypeSystem().getTypeHandle(OWLNamedObject.class);
+		HGHandle owlEntityTypeHandle = graph.getTypeSystem().getTypeHandle(OWLEntity.class);
 		for (Class<? extends OWLNamedObject> c : OWLNamedObjectType.OWL_NAMED_OBJECT_TYPES_HGDB) {
 			if (typeSystem.getTypeHandleIfDefined(c) == null) {
 				//marker
@@ -133,10 +144,30 @@ public class HGDBApplication extends HGApplication
 				type.setHyperGraph(graph);
 				typeSystem.addPredefinedType(typeHandle,type, c);
 				log.info("OWLNamedObjectType registered: " + c.getSimpleName());
+				graph.getTypeSystem().assertSubtype(oWLNamedObjectTypeHandle, typeHandle);
+				graph.getTypeSystem().assertSubtype(owlEntityTypeHandle, typeHandle);
+				log.info("Supertype registered: " + c.getSimpleName());
 			} else {
 				log.warning("NOT registered, was defined: " + c.getSimpleName());				
 			}
 		}
+		graph.getTypeSystem().assertSubtype(oWLNamedObjectTypeHandle, owlEntityTypeHandle);		
+		//Assert OWLEntity subsumes OwlNamedObject
+		//graph.getTypeSystem().assertSubtype(oWLNamedObjectType, typeHandle);
+		System.out.println("PRINTING SUPERTYPES for just registered classes");
+		TypeUtils.printAllSupertypes(graph, graph.getTypeSystem().getAtomType(OWLClassHGDB.class));
+		TypeUtils.printAllSupertypes(graph, graph.getTypeSystem().getAtomType(OWLDatatypeHGDB.class));
+		TypeUtils.printAllSupertypes(graph, graph.getTypeSystem().getAtomType(OWLNamedIndividualHGDB.class));
+		TypeUtils.printAllSupertypes(graph, graph.getTypeSystem().getAtomType(OWLDataPropertyHGDB.class));
+		TypeUtils.printAllSupertypes(graph, graph.getTypeSystem().getAtomType(OWLObjectPropertyHGDB.class));
+		System.out.println("Higher level classes");
+		TypeUtils.printAllSupertypes(graph, graph.getTypeSystem().getAtomType(OWLClass.class));
+		System.out.println("SUBTYPES: FOR ");
+		TypeUtils.printAllSubtypes(graph, graph.getTypeSystem().getAtomType(OWLObjectHGDB.class));
+		TypeUtils.printAllSubtypes(graph, graph.getTypeSystem().getAtomType(OWLEntity.class));
+		TypeUtils.printAllSubtypes(graph, graph.getTypeSystem().getAtomType(OWLNamedObject.class));
+		
+		//assert(owlEntityType.subsumes(owlEntityType, oWLNamedObjectType));
 	}
 		
 

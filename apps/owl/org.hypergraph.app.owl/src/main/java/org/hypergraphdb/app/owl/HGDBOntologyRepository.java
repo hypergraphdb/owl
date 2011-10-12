@@ -17,12 +17,19 @@ import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.management.HGManagement;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
+import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
+import org.hypergraphdb.app.owl.query.OWLEntityIsBuiltIn;
 import org.hypergraphdb.app.owl.test.TestData;
 import org.hypergraphdb.app.owl.type.OntologyIDType;
+import org.hypergraphdb.app.owl.type.TypeUtils;
+import org.hypergraphdb.atom.HGSubsumes;
 import org.hypergraphdb.query.HGQueryCondition;
+import org.hypergraphdb.query.SubgraphMemberCondition;
+import org.hypergraphdb.type.HGAtomType;
 import org.hypergraphdb.util.HGUtils;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyFactory.OWLOntologyCreationHandler;
@@ -181,6 +188,37 @@ public class HGDBOntologyRepository {
 		printAllOntologies();
 		return graph.add(ontology);
 	}
+	
+	/**
+	 * Deletes all OWLEntities that are not referenced by any axioms (disconnected), 
+	 * and not built-in entities.
+	 * 
+	 * @return
+	 */
+	public int cleanUpOwlEntities() {
+		//TODO remove this expensive debug output
+		HGHandle typeHandle = graph.getTypeSystem().getTypeHandle(OWLEntity.class);
+		TypeUtils.printAllSubtypes(graph, graph.getTypeSystem().getType(typeHandle));
+		
+		int successRemoveCounter = 0;
+		List<HGHandle> handlesToRemove = hg.findAll(graph, hg.and(
+					hg.typePlus(OWLEntity.class),
+					hg.disconnected(),
+					hg.not(new OWLEntityIsBuiltIn()))
+				);
+		for (HGHandle h: handlesToRemove) {
+			if (graph.remove(h)) {
+				successRemoveCounter ++;
+			}
+		}
+		if (successRemoveCounter != handlesToRemove.size()) throw new IllegalStateException("successRemoveCounter != handles.size()");
+		return successRemoveCounter;
+	}
+
+//Boris idea:	    HGHandle th = graph.getTypeSystem().getTypeHandle(OWLEntity.class);
+//  List<HGAtomType> l = hg.getAll(graph, hg.apply(hg.targetAt(graph, 1), hg.and(hg.type(HGSubsumes.class), hg.orderedLink(th, hg.anyHandle()))));
+//	log.info("Removing " + l.size() + " disconnected non builtin OWLEntities from graph.");
+//	return l.size();
 
 	public void printAllOntologies() {
 		List<HGDBOntology> l = getOntologies();
@@ -245,5 +283,6 @@ public class HGDBOntologyRepository {
 
 		return ontologyManager;
 	}	
+	
 
 }

@@ -102,6 +102,7 @@ import org.semanticweb.owlapi.model.RemoveOntologyAnnotation;
 import org.semanticweb.owlapi.model.SetOntologyID;
 import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
 import org.semanticweb.owlapi.util.OWLEntityCollector;
+import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 /**
  * HGDBOntology.
@@ -1693,16 +1694,22 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		// OWLNamedObjectReferenceAdder referenceAdder = getReferenceAdder();
 		axiom.accept(entityCollector);
 		for (OWLEntity object : sig) {
-			//if it's not a member of our onto and we refer to it, add it.
-			HGHandle objectHandle = graph.getHandle(object);
-			if (objectHandle != null) {
-				if  (!this.isMember(objectHandle)) {
-					this.add(objectHandle);
-				} //else {
-					//Just added an axiom that refers to an entity that's already a member of our ontology
-				//}
+			// if it's not a member of our onto and we refer to it, add it,
+			// unless it's a builtin Entity.
+			if (!object.isBuiltIn()) {
+				HGHandle objectHandle = graph.getHandle(object);
+				if (objectHandle != null) {
+					if  (!this.isMember(objectHandle)) {
+						this.add(objectHandle);
+					} //else {
+					// Just added an axiom that refers to an entity that's already a member of our ontology. 
+					//}
+				} else {
+					throw new IllegalStateException("getHandle(entity) for entity in memory returned null. Implement find?");
+				}
 			} else {
-				throw new IllegalStateException("getHandle(entity) for entity in memory returned null. Implement find?");
+				//builtin not added to onto.
+				if (DBG) log.info("handleAxiomRemoved: found builtin entity in Axiom signature: " + object);
 			}
 		}
 		// hilpold referenceAdder.setAxiom(axiom);
@@ -1736,21 +1743,28 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		axiom.accept(entityCollector);
 		for (OWLEntity object : sig) {
 			HGHandle objectHandle = graph.getHandle(object);
-			if (objectHandle != null) {				
-				if (this.isMember(objectHandle)) {
-					//Get onto incidence set of atoms that are members.
-					IncidenceSet is = this.getIncidenceSet(objectHandle);
-					if (DBG) printIncidenceSets(objectHandle);
-					if (is.size() == 0) {
-						this.remove(objectHandle);
-						//2011.10.07 REMOVE Entity without refs from graph.
-						graph.remove(objectHandle);
+			if (!object.isBuiltIn()) {
+				if (objectHandle != null) {				
+					if (this.isMember(objectHandle)) {
+						// Here we know, that it is not a builtin entity, because they will never be added
+						// to an ontology.
+						// Get onto incidence set of atoms that are members.
+						IncidenceSet is = this.getIncidenceSet(objectHandle);
+						if (DBG) printIncidenceSets(objectHandle);
+						if (is.size() == 0) {
+							this.remove(objectHandle);
+							//2011.10.11 DO NOT REMOVE Entity without references from graph,
+							// because it change propagation might want to refer to it.
+							//graph.remove(objectHandle);
+						}
+					} else {
+							throw new IllegalStateException("Just removed an axiom that did refer to an entity outside our ontology:" + object);
 					}
 				} else {
-					throw new IllegalStateException("Just removed an axiom that did refer to an entity outside our ontology:" + object);				
+					throw new IllegalStateException("getHandle(entity) for entity in memory returned null. Implement find?");
 				}
 			} else {
-				throw new IllegalStateException("getHandle(entity) for entity in memory returned null. Implement find?");
+				if (DBG) log.info("handleAxiomRemoved: found builtin entity in Axiom signature: " + object);
 			}
 		//old referenceRemover.setAxiom(axiom);
 		//old object.accept(referenceRemover);
@@ -1778,10 +1792,15 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 
 	public void printGraphStats(String label) {
 		int nrObjects = hg.findAll(graph, hg.all()).size();
-		int nrLinks = hg.findAll(graph, hg.typePlus(HGLink.class)).size();
+		//int nrLinks = hg.findAll(graph, hg.typePlus(HGLink.class)).size();
 		int nrObjectsOnto = this.findAll(hg.all()).size();
 		int nrLinksOnto = this.findAll(hg.typePlus(HGLink.class)).size();
-		System.out.println(label + "Graph \t O: " + nrObjects + " L: " + nrLinks + "\t Onto O: " + nrObjectsOnto + " L: " + nrLinksOnto);
+		System.out.println(label  
+				+ "\t Ontology Atoms(non link): " + (nrObjectsOnto - nrLinksOnto) 
+				+ "\t Links : " + nrLinksOnto  
+				+ "\t Total : " + nrObjectsOnto  
+				+ "\t Graph Total : " + nrObjects
+				);
 		//printOntoOWLObjects();
 	}
 

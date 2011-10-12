@@ -526,10 +526,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	public void addAxiomsByType(AxiomType<?> type, final OWLAxiom axiom) {
 		//TODO make all types work w hypergraph.
 		if (DBG) {
-			log.info("ADD Axiom: " + axiom.getClass().getSimpleName() + " Signature: ");
-			for(OWLEntity e : axiom.getSignature()) {
-				log.info(e + "  Etype: " + e.getEntityType() + " ");
-			}
+			log.info("ADD Axiom: " + axiom.getClass().getSimpleName() + "Type: " + type);
 		}
 		if (type == AxiomType.DECLARATION
 				|| type == AxiomType.SUBCLASS_OF 
@@ -557,10 +554,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	public void removeAxiomsByType(AxiomType<?> type, final OWLAxiom axiom) {
 		//TODO implement more axiom types
 		if (DBG) { 
-			log.info("REMOVE Axiom: " + axiom.getClass().getSimpleName() + " E: ");
-			for(OWLEntity e : axiom.getSignature()) {
-				log.info(e + "  Etype: " + e.getEntityType() + " ");
-			}
+			log.info("REMOVE Axiom: " + axiom.getClass().getSimpleName() + " Type: " + type);
 		}
 		if (type == AxiomType.DECLARATION
 				|| type == AxiomType.SUBCLASS_OF 
