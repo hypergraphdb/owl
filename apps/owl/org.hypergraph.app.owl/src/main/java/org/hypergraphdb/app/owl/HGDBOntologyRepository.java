@@ -1,8 +1,6 @@
 package org.hypergraphdb.app.owl;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Logger;
 
 import org.coode.owlapi.functionalrenderer.OWLFunctionalSyntaxOntologyStorer;
@@ -13,34 +11,24 @@ import org.coode.owlapi.rdf.rdfxml.RDFXMLOntologyStorer;
 import org.coode.owlapi.turtle.TurtleOntologyStorer;
 import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.HGQuery.hg;
+import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.management.HGManagement;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
-import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
 import org.hypergraphdb.app.owl.query.OWLEntityIsBuiltIn;
 import org.hypergraphdb.app.owl.test.TestData;
-import org.hypergraphdb.app.owl.type.OntologyIDType;
 import org.hypergraphdb.app.owl.type.TypeUtils;
-import org.hypergraphdb.atom.HGSubsumes;
 import org.hypergraphdb.query.HGQueryCondition;
-import org.hypergraphdb.query.SubgraphMemberCondition;
-import org.hypergraphdb.type.HGAtomType;
 import org.hypergraphdb.util.HGUtils;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEntity;
-import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyID;
-import org.semanticweb.owlapi.model.OWLOntologyFactory.OWLOntologyCreationHandler;
 import org.semanticweb.owlapi.util.NonMappingOntologyIRIMapper;
 
-import de.uulm.ecs.ai.owlapi.krssrenderer.KRSS2OWLSyntaxOntologyStorer;
-
 import uk.ac.manchester.cs.owl.owlapi.EmptyInMemOWLOntologyFactory;
-import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 import uk.ac.manchester.cs.owl.owlapi.ParsableOWLOntologyFactory;
 import uk.ac.manchester.cs.owl.owlapi.mansyntaxrenderer.ManchesterOWLSyntaxOntologyStorer;
+import de.uulm.ecs.ai.owlapi.krssrenderer.KRSS2OWLSyntaxOntologyStorer;
 
 /**
  * HGDBOntologyRepository.
@@ -48,6 +36,8 @@ import uk.ac.manchester.cs.owl.owlapi.mansyntaxrenderer.ManchesterOWLSyntaxOntol
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  */
 public class HGDBOntologyRepository {	
+	
+	public static boolean DBG = true; //trigger log string creation.
 	
 	private Logger log = Logger.getLogger(HGDBOntologyRepository.class.getName());
 
@@ -207,6 +197,10 @@ public class HGDBOntologyRepository {
 					hg.not(new OWLEntityIsBuiltIn()))
 				);
 		for (HGHandle h: handlesToRemove) {
+			if (DBG) {
+				Object o = graph.get(h);
+				log.info("Removing: " + o + " : " + o.getClass().getSimpleName());
+			}
 			if (graph.remove(h)) {
 				successRemoveCounter ++;
 			}
