@@ -11,6 +11,7 @@ import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.model.OWLClassHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDeclarationAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLSubAnnotationPropertyOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubDataPropertyOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubObjectPropertyOfAxiomHGDB;
@@ -1304,11 +1305,21 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
     }
 
     public OWLSubAnnotationPropertyOfAxiom getOWLSubAnnotationPropertyOfAxiom(OWLAnnotationProperty sub, OWLAnnotationProperty sup, Set<? extends OWLAnnotation> annotations) {
-        return new OWLSubAnnotationPropertyOfAxiomImpl(this, sub, sup, annotations);
+        if (sub == null) throw new IllegalArgumentException("subClass null");
+        if (sup == null) throw new IllegalArgumentException("superClass null");
+        if (annotations == null) throw new IllegalArgumentException("annotations null");
+        OWLSubAnnotationPropertyOfAxiomHGDB axiom; 
+        HGHandle subHandle = getOrFindOWLEntityHandleInGraph(sub);
+        HGHandle supHandle = getOrFindOWLEntityHandleInGraph(sup);
+        if (subHandle == null || supHandle == null ) {
+        	throw new IllegalStateException("No Handle for subProperty or superProperty");
+        }
+       	axiom = new OWLSubAnnotationPropertyOfAxiomHGDB(subHandle, supHandle, annotations);
+       	axiom.setHyperGraph(graph);
+        return axiom;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
-
     // Annotations
 
 
