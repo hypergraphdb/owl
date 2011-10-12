@@ -720,10 +720,13 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	}
 
 	public boolean containsAnnotationPropertyInSignature(IRI propIRI) {
+		//TODO Check, if we actually refer to it; for now:
+		if (OWLRDFVocabulary.BUILT_IN_ANNOTATION_PROPERTY_IRIS.contains(propIRI)) {
+			System.out.println("containsAnnotationPropertyInSignature: BUILTIN " + propIRI);
+			return true;
+		}
 		boolean b = internals.containsOwlAnnotationProperty(getOWLDataFactory()
 				.getOWLAnnotationProperty(propIRI));
-//		boolean b = internals.containsOwlAnnotationPropertyReferences(getOWLDataFactory()
-//				.getOWLAnnotationProperty(propIRI));
 		if (b) {
 			return true;
 		} else {
@@ -862,6 +865,11 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	}
 
 	public boolean containsReference(OWLAnnotationProperty property) {
+		//TODO Check, if we actually refer to it; for now:
+		if (OWLRDFVocabulary.BUILT_IN_ANNOTATION_PROPERTY_IRIS.contains(property.getIRI())) {
+			System.out.println("containsAnnotationPropertyInSignature: BUILTIN " + property.getIRI());
+			return true;
+		}
 		return internals.containsOwlAnnotationProperty(property);
 //		return internals.containsOwlAnnotationPropertyReferences(property);
 	}
@@ -1696,7 +1704,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		for (OWLEntity object : sig) {
 			// if it's not a member of our onto and we refer to it, add it,
 			// unless it's a builtin Entity.
-			if (!object.isBuiltIn()) {
+			//2010.10.12 if (!object.isBuiltIn()) {
 				HGHandle objectHandle = graph.getHandle(object);
 				if (objectHandle != null) {
 					if  (!this.isMember(objectHandle)) {
@@ -1707,10 +1715,10 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 				} else {
 					throw new IllegalStateException("getHandle(entity) for entity in memory returned null. Implement find?");
 				}
-			} else {
-				//builtin not added to onto.
-				if (DBG) log.info("handleAxiomRemoved: found builtin entity in Axiom signature: " + object);
-			}
+//			} else {
+//				//builtin not added to onto.
+//				if (DBG) log.info("handleAxiomAdded: found builtin entity in Axiom signature: " + object);
+//			}
 		}
 		// hilpold referenceAdder.setAxiom(axiom);
 		// object.accept(referenceAdder);
@@ -1743,7 +1751,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		axiom.accept(entityCollector);
 		for (OWLEntity object : sig) {
 			HGHandle objectHandle = graph.getHandle(object);
-			if (!object.isBuiltIn()) {
+//2010.10.12			if (!object.isBuiltIn()) {
 				if (objectHandle != null) {				
 					if (this.isMember(objectHandle)) {
 						// Here we know, that it is not a builtin entity, because they will never be added
@@ -1755,7 +1763,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 							this.remove(objectHandle);
 							//2011.10.11 DO NOT REMOVE Entity without references from graph,
 							// because it change propagation might want to refer to it.
-							//graph.remove(objectHandle);
+							//graph.remove(objectHandle);							
 						}
 					} else {
 							throw new IllegalStateException("Just removed an axiom that did refer to an entity outside our ontology:" + object);
@@ -1763,9 +1771,9 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 				} else {
 					throw new IllegalStateException("getHandle(entity) for entity in memory returned null. Implement find?");
 				}
-			} else {
-				if (DBG) log.info("handleAxiomRemoved: found builtin entity in Axiom signature: " + object);
-			}
+//			} else {
+//				if (DBG) log.info("handleAxiomRemoved: found builtin entity in Axiom signature: " + object);
+//			}
 		//old referenceRemover.setAxiom(axiom);
 		//old object.accept(referenceRemover);
 		}
