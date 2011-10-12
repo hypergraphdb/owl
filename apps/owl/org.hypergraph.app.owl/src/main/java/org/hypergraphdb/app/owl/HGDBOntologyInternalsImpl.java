@@ -17,6 +17,7 @@ import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.core.AbstractInternalsHGDB;
 import org.hypergraphdb.app.owl.core.AxiomTypeToHGDBMap;
 import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
+import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
 import org.hypergraphdb.app.owl.model.OWLAnnotationPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLClassHGDB;
 import org.hypergraphdb.app.owl.model.OWLDataPropertyHGDB;
@@ -59,34 +60,40 @@ import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  */
 public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
-	
-	public static boolean DBG = true; //Switches LOG string creation on or off.
-	
+
+	public static boolean DBG = true; // Switches LOG string creation on or off.
+
 	protected Logger log = Logger.getLogger(this.getClass().getCanonicalName());
-	
-	   static {
-		   //TODO Disable force assertions before release.
-	        boolean assertsEnabled = false;
-	        assert assertsEnabled = true; //force assertions.
-	        if (!assertsEnabled) {
-	        	Logger.getLogger(HGDBOntologyInternalsImpl.class.getCanonicalName()).severe("Asserts disabled for HGDBOntologyInternalsImpl");
-	            //throw new RuntimeException("We need Asserts to be enabled. Use: java -ea:org.hypergraphdb.app.owl...");
-	        }
-	    } 
+
+	static {
+		// TODO Disable force assertions before release.
+		boolean assertsEnabled = false;
+		assert assertsEnabled = true; // force assertions.
+		if (!assertsEnabled) {
+			Logger.getLogger(HGDBOntologyInternalsImpl.class.getCanonicalName()).severe(
+					"Asserts disabled for HGDBOntologyInternalsImpl");
+			// throw new
+			// RuntimeException("We need Asserts to be enabled. Use: java -ea:org.hypergraphdb.app.owl...");
+		}
+	}
 
 	// hilpold protected Set<OWLImportsDeclaration> importsDeclarations;
 	protected Set<OWLAnnotation> ontologyAnnotations; // recursive??
-	// protected Map<AxiomType<?>, Set<OWLAxiom>> axiomsByType; removed 2011.10.06
+	// protected Map<AxiomType<?>, Set<OWLAxiom>> axiomsByType; removed
+	// 2011.10.06
 	protected Map<OWLAxiom, Set<OWLAxiom>> logicalAxiom2AnnotatedAxiomMap;
 	protected Set<OWLClassAxiom> generalClassAxioms;
 	protected Set<OWLSubPropertyChainOfAxiom> propertyChainSubPropertyAxioms;
-	//protected Map<OWLClass, Set<OWLAxiom>> owlClassReferences;
-	//protected Map<OWLObjectProperty, Set<OWLAxiom>> owlObjectPropertyReferences;
-	//protected Map<OWLDataProperty, Set<OWLAxiom>> owlDataPropertyReferences;
-	//protected Map<OWLNamedIndividual, Set<OWLAxiom>> owlIndividualReferences;
+	// protected Map<OWLClass, Set<OWLAxiom>> owlClassReferences;
+	// protected Map<OWLObjectProperty, Set<OWLAxiom>>
+	// owlObjectPropertyReferences;
+	// protected Map<OWLDataProperty, Set<OWLAxiom>> owlDataPropertyReferences;
+	// protected Map<OWLNamedIndividual, Set<OWLAxiom>> owlIndividualReferences;
 	protected Map<OWLAnonymousIndividual, Set<OWLAxiom>> owlAnonymousIndividualReferences;
-	//protected Map<OWLDatatype, Set<OWLAxiom>> owlDatatypeReferences;
-	//protected Map<OWLAnnotationProperty, Set<OWLAxiom>> owlAnnotationPropertyReferences;
+
+	// protected Map<OWLDatatype, Set<OWLAxiom>> owlDatatypeReferences;
+	// protected Map<OWLAnnotationProperty, Set<OWLAxiom>>
+	// owlAnnotationPropertyReferences;
 
 	// hilpold 2011.09.27 eliminating protected Map<OWLEntity,
 	// Set<OWLDeclarationAxiom>> declarationsByEntity;
@@ -98,17 +105,17 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	protected void initMaps() {
 		// hilpold this.importsDeclarations = createSet();
 		this.ontologyAnnotations = createSet();
-		//this.axiomsByType = createMap();
+		// this.axiomsByType = createMap();
 		this.logicalAxiom2AnnotatedAxiomMap = createMap();
 		this.generalClassAxioms = createSet();
 		this.propertyChainSubPropertyAxioms = createSet();
-		//this.owlClassReferences = createMap();
-		//this.owlObjectPropertyReferences = createMap();
-		//this.owlDataPropertyReferences = createMap();
-		//this.owlIndividualReferences = createMap();
+		// this.owlClassReferences = createMap();
+		// this.owlObjectPropertyReferences = createMap();
+		// this.owlDataPropertyReferences = createMap();
+		// this.owlIndividualReferences = createMap();
 		this.owlAnonymousIndividualReferences = createMap();
-		//this.owlDatatypeReferences = createMap();
-		//this.owlAnnotationPropertyReferences = createMap();
+		// this.owlDatatypeReferences = createMap();
+		// this.owlAnnotationPropertyReferences = createMap();
 		// this.declarationsByEntity = createMap();
 	}
 
@@ -122,32 +129,31 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	// }
 
 	/**
-	 * Entity of OWLDeclarationAxiom declared?
-	 * iff we have Entity with incidenceset count > 0.
-	 * We should remove such entities.
-	 * hilpold
+	 * Entity of OWLDeclarationAxiom declared? iff we have Entity with
+	 * incidenceset count > 0. We should remove such entities. hilpold
 	 */
 	public boolean isDeclared(OWLDeclarationAxiom ax) {
 		HGHandle entityHandle = graph.getHandle(ax.getEntity());
 		if (entityHandle != null) {
 			return graph.getIncidenceSet(entityHandle).size() > 0;
-		} else { 
+		} else {
 			return (graph.getHandle(ax) != null);
 		}
-		//old return declarationsByEntity.containsKey(ax.getEntity());
+		// old return declarationsByEntity.containsKey(ax.getEntity());
 	}
 
 	public boolean isEmpty() {
 		boolean noAxioms = ontology.count(hg.typePlus(OWLAxiom.class)) == 0;
 		return noAxioms && ontologyAnnotations.isEmpty();
-		
-//Don't do this: ontology.isEmpty(); because Onto is considered empty despite imports.
-//		for (Set<OWLAxiom> axiomSet : axiomsByType.values()) {
-//			if (!axiomSet.isEmpty()) {
-//				return false;
-//			}
-//		}
-//		return ontologyAnnotations.isEmpty();
+
+		// Don't do this: ontology.isEmpty(); because Onto is considered empty
+		// despite imports.
+		// for (Set<OWLAxiom> axiomSet : axiomsByType.values()) {
+		// if (!axiomSet.isEmpty()) {
+		// return false;
+		// }
+		// }
+		// return ontologyAnnotations.isEmpty();
 	}
 
 	public Set<OWLDatatypeDefinitionAxiom> getDatatypeDefinitions(OWLDatatype datatype) {
@@ -197,14 +203,15 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	@Override
 	protected <T extends OWLAxiom> Set<T> getAxiomsInternal(AxiomType<T> axiomType) {
 		List<T> axiomsOneType = null;
-		Class<? extends OWLAxiomHGDB> hgdbAxiomClass = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiomType);
+		Class<? extends OWLAxiomHGDB> hgdbAxiomClass = AxiomTypeToHGDBMap
+				.getAxiomClassHGDB(axiomType);
 		if (hgdbAxiomClass == null) {
 			log.warning("getAxiomsInternal Not yet implemented: " + axiomType);
 		} else {
 			axiomsOneType = ontology.getAll(hg.type(hgdbAxiomClass));
 		}
 		return getReturnSet(axiomsOneType);
-		//return (Set<T>) getAxioms(axiomType, axiomsByType, false);
+		// return (Set<T>) getAxioms(axiomType, axiomsByType, false);
 	}
 
 	public Set<OWLAxiom> getReferencingAxioms(OWLAnonymousIndividual individual) {
@@ -212,20 +219,22 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	public Set<OWLAxiom> getReferencingAxioms(final OWLEntity owlEntity) {
-		//TODO use static type map instead of OWLENTITY.class -> owlEntity.getClass() works.
-		//TODO create method to HGHandle getFindEntity(OWLEntity owlEntity);
-		//TODO shall we ensure that entity is in ontology?
-		//TODO this get;s called with null by one or more protege views!!
+		// TODO use static type map instead of OWLENTITY.class ->
+		// owlEntity.getClass() works.
+		// TODO create method to HGHandle getFindEntity(OWLEntity owlEntity);
+		// TODO shall we ensure that entity is in ontology?
+		// TODO this get;s called with null by one or more protege views!!
 		if (owlEntity == null) {
 			log.warning("BAD ? getReferencingAx(null) called");
 			return Collections.emptySet();
 		}
 		String className = owlEntity.getClass().getCanonicalName();
-		if (className.startsWith("uk.ac")) { 
+		if (className.startsWith("uk.ac")) {
 			log.warning("BAD ! OWLENTITY TYPE IS : " + owlEntity.getClass().getSimpleName());
 			log.warning("BAD ! Object IS : " + owlEntity);
 			log.warning("BAD ! IRI IS : " + owlEntity.getIRI());
-			//2010.10.06 not acceptable anymore. HGApp adds BUILTIN types. return Collections.emptySet();
+			// 2010.10.06 not acceptable anymore. HGApp adds BUILTIN types.
+			// return Collections.emptySet();
 			throw new IllegalStateException("We were called with a uk.ac entity.");
 		}
 		List<OWLAxiom> axioms;
@@ -234,7 +243,8 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 				List<OWLAxiom> l;
 				HGHandle owlEntityHandle = graph.getHandle(owlEntity);
 				if (owlEntityHandle == null) {
-					// TODO might not find what we need, because owlEntity.getClass must match our 
+					// TODO might not find what we need, because
+					// owlEntity.getClass must match our
 					// *HGDB implementation types.
 					owlEntityHandle = hg.findOne(graph,
 							hg.and(hg.type(owlEntity.getClass()), hg.eq("IRI", owlEntity.getIRI())));
@@ -248,54 +258,60 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 				return l;
 			}
 		}, HGTransactionConfig.READONLY);
-//		if (owlEntity instanceof OWLClass) {
-//			axioms = getAxioms(owlEntity.asOWLClass(), owlClassReferences, false);
-//		} else if (owlEntity instanceof OWLObjectProperty) {
-//			axioms = getAxioms(owlEntity.asOWLObjectProperty(), owlObjectPropertyReferences, false);
-//		} else if (owlEntity instanceof OWLDataProperty) {
-//			axioms = getAxioms(owlEntity.asOWLDataProperty(), owlDataPropertyReferences, false);
-//		} else if (owlEntity instanceof OWLNamedIndividual) {
-//			axioms = getAxioms(owlEntity.asOWLNamedIndividual(), owlIndividualReferences, false);
-//		} else if (owlEntity instanceof OWLDatatype) {
-//			axioms = getAxioms(owlEntity.asOWLDatatype(), owlDatatypeReferences, false);
-//		} else if (owlEntity instanceof OWLAnnotationProperty) {
-//			axioms = getAxioms(owlEntity.asOWLAnnotationProperty(),
-//					owlAnnotationPropertyReferences, false);
-//		} else {
-//			axioms = Collections.emptySet();
-//		}
+		// if (owlEntity instanceof OWLClass) {
+		// axioms = getAxioms(owlEntity.asOWLClass(), owlClassReferences,
+		// false);
+		// } else if (owlEntity instanceof OWLObjectProperty) {
+		// axioms = getAxioms(owlEntity.asOWLObjectProperty(),
+		// owlObjectPropertyReferences, false);
+		// } else if (owlEntity instanceof OWLDataProperty) {
+		// axioms = getAxioms(owlEntity.asOWLDataProperty(),
+		// owlDataPropertyReferences, false);
+		// } else if (owlEntity instanceof OWLNamedIndividual) {
+		// axioms = getAxioms(owlEntity.asOWLNamedIndividual(),
+		// owlIndividualReferences, false);
+		// } else if (owlEntity instanceof OWLDatatype) {
+		// axioms = getAxioms(owlEntity.asOWLDatatype(), owlDatatypeReferences,
+		// false);
+		// } else if (owlEntity instanceof OWLAnnotationProperty) {
+		// axioms = getAxioms(owlEntity.asOWLAnnotationProperty(),
+		// owlAnnotationPropertyReferences, false);
+		// } else {
+		// axioms = Collections.emptySet();
+		// }
 		return getReturnSet(axioms);
 	}
-	
-	//hilpold
+
+	// hilpold
 	public Set<OWLDeclarationAxiom> getDeclarationAxioms(OWLEntity entity) {
-		//is entity in graph, fail if not?
+		// is entity in graph, fail if not?
 		final HGHandle entityHandle = graph.getHandle(entity);
 		List<OWLDeclarationAxiom> l;
-		//All links of type OWLDeclarationAxiom in the incidence set of OWLEntity.
-		l = graph.getTransactionManager().transact(new Callable <List<OWLDeclarationAxiom>>() {
+		// All links of type OWLDeclarationAxiom in the incidence set of
+		// OWLEntity.
+		l = graph.getTransactionManager().transact(new Callable<List<OWLDeclarationAxiom>>() {
 			public List<OWLDeclarationAxiom> call() {
 				return hg.getAll(graph,
-						  hg.and(hg.type(OWLDeclarationAxiomHGDB.class), hg.incident(entityHandle))
-						);
-			}}, HGTransactionConfig.READONLY);		
+						hg.and(hg.type(OWLDeclarationAxiomHGDB.class), hg.incident(entityHandle)));
+			}
+		}, HGTransactionConfig.READONLY);
 		return getReturnSet(l);
 	}
 
-
-	//	l = hg.getAll(graph,
-	//	  hg.and(
-	//	    hg.apply(hg.targetAt(graph, 0) 
-	//		 ,hg.and(hg.orderedLink(hg.anyHandle(), entityHandle), hg.type(AxiomToEntityLink.class))
-	//	    ) 
-	//	  )
-	//	);
+	// l = hg.getAll(graph,
+	// hg.and(
+	// hg.apply(hg.targetAt(graph, 0)
+	// ,hg.and(hg.orderedLink(hg.anyHandle(), entityHandle),
+	// hg.type(AxiomToEntityLink.class))
+	// )
+	// )
+	// );
 	// return getReturnSet(getAxioms(entity, declarationsByEntity, false));
 
 	public Set<OWLImportsDeclaration> getImportsDeclarations() {
 		// get link by name and link(handle)
 		List<OWLImportsDeclaration> l;
-		l = graph.getTransactionManager().transact(new Callable <List<OWLImportsDeclaration>>() {
+		l = graph.getTransactionManager().transact(new Callable<List<OWLImportsDeclaration>>() {
 			@SuppressWarnings("deprecation")
 			public List<OWLImportsDeclaration> call() {
 				return hg.getAll(graph, hg.apply(hg.targetAt(graph, 1), hg.and(hg
@@ -303,7 +319,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 						hg.anyHandle()), new SubgraphMemberCondition(ontoHandle))));
 			}
 		}, HGTransactionConfig.READONLY);
-		
+
 		// List<IRI> imports = hg.getAll(getHyperGraph(),
 		// hg.apply(hg.targetAt(getHyperGraph(), 1),
 		// hg.and(hg.eq("importsLink"), hg.orderedLink(
@@ -335,8 +351,8 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 			}
 		});
 		ontology.printGraphStats("After  AddImp");
-		assert(ontology.findOne(hg.eq(importDeclaration)) != null);
-		assert(!ontology.findAll(hg.type(ImportDeclarationLink.class)).isEmpty());		
+		assert (ontology.findOne(hg.eq(importDeclaration)) != null);
+		assert (!ontology.findAll(hg.type(ImportDeclarationLink.class)).isEmpty());
 		return success;
 	}
 
@@ -351,7 +367,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 				boolean success;
 				HGHandle importDeclarationHandle;
 				HGHandle link;
-				//graph.getTransactionManager().beginTransaction();
+				// graph.getTransactionManager().beginTransaction();
 				if (!containsImportDeclaration(importDeclaration)) {
 					return false;
 				}
@@ -359,19 +375,15 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 				if (importDeclarationHandle == null) {
 					throw new IllegalStateException("Contains said fine, but can't get handle.");
 				}
-				link = hg.findOne(
-						graph,
-						hg.and(hg.type(ImportDeclarationLink.class),
-								hg.orderedLink(ontoHandle, importDeclarationHandle), 
-								new SubgraphMemberCondition(ontoHandle)));
+				link = hg.findOne(graph, hg.and(hg.type(ImportDeclarationLink.class),
+						hg.orderedLink(ontoHandle, importDeclarationHandle),
+						new SubgraphMemberCondition(ontoHandle)));
 				if (link == null) {
 					throw new IllegalStateException(
 							"Found importDeclaration, but no link. Each Importdeclaration must have exactly one link.");
 				}
-				success = ontology.remove(link) 
-					&& ontology.remove(importDeclarationHandle) 
-					&& graph.remove(link) 
-					&& graph.remove(importDeclarationHandle);
+				success = ontology.remove(link) && ontology.remove(importDeclarationHandle)
+						&& graph.remove(link) && graph.remove(importDeclarationHandle);
 				return success;
 			}
 		});
@@ -394,10 +406,10 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 
 	public boolean containsAxiom(OWLAxiom axiom) {
 		HGHandle axiomHandle = graph.getHandle(axiom);
-		//true iff found in graph and in ontology
-		return (axiomHandle == null)? false: ontology.get(axiomHandle) != null;		
-		//old Set<OWLAxiom> axioms = axiomsByType.get(axiom.getAxiomType());
-		//return axioms != null && axioms.contains(axiom);
+		// true iff found in graph and in ontology
+		return (axiomHandle == null) ? false : ontology.get(axiomHandle) != null;
+		// old Set<OWLAxiom> axioms = axiomsByType.get(axiom.getAxiomType());
+		// return axioms != null && axioms.contains(axiom);
 	}
 
 	public int getAxiomCount() {
@@ -405,37 +417,38 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		if (count > Integer.MAX_VALUE) {
 			throw new ArithmeticException("Got long value to big for int");
 		}
-		return (int)count;
-		//old	int count = 0;
-		//		for (AxiomType<?> type : AXIOM_TYPES) {
-		//			Set<OWLAxiom> axiomSet = axiomsByType.get(type);
-		//			if (axiomSet != null) {
-		//				count += axiomSet.size();
-		//			}
-		//		}
-		//		return count;
+		return (int) count;
+		// old int count = 0;
+		// for (AxiomType<?> type : AXIOM_TYPES) {
+		// Set<OWLAxiom> axiomSet = axiomsByType.get(type);
+		// if (axiomSet != null) {
+		// count += axiomSet.size();
+		// }
+		// }
+		// return count;
 	}
 
 	public Set<OWLAxiom> getAxioms() {
-		List <HGHandle> allHandles = ontology.findAll(hg.typePlus(OWLAxiom.class));
+		List<HGHandle> allHandles = ontology.findAll(hg.typePlus(OWLAxiom.class));
 		Set<OWLAxiom> axioms = createSet();
-		for(HGHandle h: allHandles) {
-			axioms.add((OWLAxiom)graph.get(h));
+		for (HGHandle h : allHandles) {
+			axioms.add((OWLAxiom) graph.get(h));
 		}
 		return axioms;
-//		Set<OWLAxiom> axioms = createSet();
-//		for (AxiomType<?> type : AXIOM_TYPES) {
-//			Set<OWLAxiom> owlAxiomSet = axiomsByType.get(type);
-//			if (owlAxiomSet != null) {
-//				axioms.addAll(owlAxiomSet);
-//			}
-//		}
-//		return axioms;
+		// Set<OWLAxiom> axioms = createSet();
+		// for (AxiomType<?> type : AXIOM_TYPES) {
+		// Set<OWLAxiom> owlAxiomSet = axiomsByType.get(type);
+		// if (owlAxiomSet != null) {
+		// axioms.addAll(owlAxiomSet);
+		// }
+		// }
+		// return axioms;
 	}
 
 	public <T extends OWLAxiom> Set<T> getAxioms(AxiomType<T> axiomType) {
 		return getAxiomsInternal(axiomType);
-		//WHY DIDN'T they refer to internal? return (Set<T>) getAxioms(axiomType, axiomsByType, false);
+		// WHY DIDN'T they refer to internal? return (Set<T>)
+		// getAxioms(axiomType, axiomsByType, false);
 	}
 
 	/**
@@ -468,52 +481,55 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 
 	public <T extends OWLAxiom> int getAxiomCount(AxiomType<T> axiomType) {
 		long axiomsOneTypeCount = 0;
-		Class<? extends OWLAxiomHGDB> hgdbAxiomClass = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiomType);
+		Class<? extends OWLAxiomHGDB> hgdbAxiomClass = AxiomTypeToHGDBMap
+				.getAxiomClassHGDB(axiomType);
 		if (hgdbAxiomClass == null) {
 			log.warning("getAxiomCount: Not yet implemented for HG: " + axiomType);
 		} else {
 			axiomsOneTypeCount = ontology.count(hg.type(hgdbAxiomClass));
 		}
-		if (axiomsOneTypeCount > Integer.MAX_VALUE) throw new ArithmeticException("long Count > int Max"); 
-		return (int)axiomsOneTypeCount;
-//		Set<OWLAxiom> axioms = axiomsByType.get(axiomType);
-//		if (axioms == null) {
-//			return 0;
-//		}
-//		return axioms.size();
+		if (axiomsOneTypeCount > Integer.MAX_VALUE)
+			throw new ArithmeticException("long Count > int Max");
+		return (int) axiomsOneTypeCount;
+		// Set<OWLAxiom> axioms = axiomsByType.get(axiomType);
+		// if (axioms == null) {
+		// return 0;
+		// }
+		// return axioms.size();
 	}
 
 	public Set<OWLLogicalAxiom> getLogicalAxioms() {
 		List<OWLLogicalAxiom> axioms = ontology.getAll(getLogicalAxiomQuery());
 		return getReturnSet(axioms);
-//		for (AxiomType<?> type : AXIOM_TYPES) {
-//			if (type.isLogical()) {
-//				Set<OWLAxiom> axiomSet = axiomsByType.get(type);
-//				if (axiomSet != null) {
-//					for (OWLAxiom ax : axiomSet) {
-//						axioms.add((OWLLogicalAxiom) ax);
-//					}
-//				}
-//			}
-//		}
+		// for (AxiomType<?> type : AXIOM_TYPES) {
+		// if (type.isLogical()) {
+		// Set<OWLAxiom> axiomSet = axiomsByType.get(type);
+		// if (axiomSet != null) {
+		// for (OWLAxiom ax : axiomSet) {
+		// axioms.add((OWLLogicalAxiom) ax);
+		// }
+		// }
+		// }
+		// }
 	}
 
 	public int getLogicalAxiomCount() {
 		long count = ontology.count(getLogicalAxiomQuery());
-		if (count > Integer.MAX_VALUE) throw new ArithmeticException("count > int max");
-		return (int) count; 
-//		int count = 0;
-//		for (AxiomType<?> type : AXIOM_TYPES) {
-//			if (type.isLogical()) {
-//				Set<OWLAxiom> axiomSet = axiomsByType.get(type);
-//				if (axiomSet != null) {
-//					count += axiomSet.size();
-//				}
-//			}
-//		}
-//		return count;
+		if (count > Integer.MAX_VALUE)
+			throw new ArithmeticException("count > int max");
+		return (int) count;
+		// int count = 0;
+		// for (AxiomType<?> type : AXIOM_TYPES) {
+		// if (type.isLogical()) {
+		// Set<OWLAxiom> axiomSet = axiomsByType.get(type);
+		// if (axiomSet != null) {
+		// count += axiomSet.size();
+		// }
+		// }
+		// }
+		// return count;
 	}
-	
+
 	protected HGQueryCondition getLogicalAxiomQuery() {
 		Or logicalAxQuery = new Or();
 		Set<Class<? extends OWLAxiomHGDB>> classes = AxiomTypeToHGDBMap.getLogicalAxiomTypesHGDB();
@@ -524,58 +540,64 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	public void addAxiomsByType(AxiomType<?> type, final OWLAxiom axiom) {
-		//TODO make all types work w hypergraph.
+		// TODO make all types work w hypergraph.
 		if (DBG) {
 			log.info("ADD Axiom: " + axiom.getClass().getSimpleName() + "Type: " + type);
 		}
-		if (type == AxiomType.DECLARATION
-				|| type == AxiomType.SUBCLASS_OF 
-				|| type == AxiomType.SUB_DATA_PROPERTY 
-				|| type == AxiomType.SUB_OBJECT_PROPERTY) {
+		if (type == AxiomType.DECLARATION || type == AxiomType.SUBCLASS_OF
+				|| type == AxiomType.SUB_DATA_PROPERTY || type == AxiomType.SUB_OBJECT_PROPERTY
+				|| type == AxiomType.SUB_ANNOTATION_PROPERTY_OF) {
 			graph.getTransactionManager().transact(new Callable<Boolean>() {
 				public Boolean call() {
-					if (DBG) ontology.printGraphStats("Before AddAxiom");
+					if (DBG)
+						ontology.printGraphStats("Before AddAxiom");
 					// hyper hyper
-					//hilpold 2011.10.06 adding to graph here instead of previously in Datafactory
+					// hilpold 2011.10.06 adding to graph here instead of
+					// previously in Datafactory
 					HGHandle h = graph.add(axiom);
-					//TODO REMOVE 2nd add (just to see if HG complains and what handle we'd get ?)
-//					HGHandle h2 = graph.add(axiom); this leads to getting a second handle ???
-					//HGHandle h = graph.getHandle(axiom);
+					// TODO REMOVE 2nd add (just to see if HG complains and what
+					// handle we'd get ?)
+					// HGHandle h2 = graph.add(axiom); this leads to getting a
+					// second handle ???
+					// HGHandle h = graph.getHandle(axiom);
 					ontology.add(h);
-					if (DBG) ontology.printGraphStats("After  AddAxiom");
+					if (DBG)
+						ontology.printGraphStats("After  AddAxiom");
 					return true;
-		}});
+				}
+			});
 		} else {
 			log.warning("NOT YET IMPLEMENTED: " + axiom.getClass().getSimpleName());
-			//addToIndexedSet(type, axiomsByType, axiom);
+			// addToIndexedSet(type, axiomsByType, axiom);
 		}
 	}
 
 	public void removeAxiomsByType(AxiomType<?> type, final OWLAxiom axiom) {
-		//TODO implement more axiom types
-		if (DBG) { 
+		// TODO implement more axiom types
+		if (DBG) {
 			log.info("REMOVE Axiom: " + axiom.getClass().getSimpleName() + " Type: " + type);
 		}
-		if (type == AxiomType.DECLARATION
-				|| type == AxiomType.SUBCLASS_OF 
-				|| type == AxiomType.SUB_DATA_PROPERTY 
-				|| type == AxiomType.SUB_OBJECT_PROPERTY) {
+		if (type == AxiomType.DECLARATION || type == AxiomType.SUBCLASS_OF
+				|| type == AxiomType.SUB_DATA_PROPERTY || type == AxiomType.SUB_OBJECT_PROPERTY
+				|| type == AxiomType.SUB_ANNOTATION_PROPERTY_OF) {
 			graph.getTransactionManager().transact(new Callable<Boolean>() {
 				public Boolean call() {
 					boolean removedSuccess;
-					if (DBG) ontology.printGraphStats("Before RemoveAxiom");
+					if (DBG)
+						ontology.printGraphStats("Before RemoveAxiom");
 					// hyper hyper
 					HGHandle h = graph.getHandle(axiom);
 					ontology.remove(h);
 					removedSuccess = graph.remove(h);
-					if (DBG) ontology.printGraphStats("After  RemoveAxiom");
+					if (DBG)
+						ontology.printGraphStats("After  RemoveAxiom");
 					// if it pointed to an entity, entity incidence is -1
 					return removedSuccess;
 				}
 			});
 		} else {
 			log.warning("NOT YET IMPLEMENTED: " + axiom.getClass().getSimpleName());
-			//removeAxiomFromSet(type, axiomsByType, axiom, true);
+			// removeAxiomFromSet(type, axiomsByType, axiom, true);
 		}
 	}
 
@@ -624,74 +646,91 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		this.propertyChainSubPropertyAxioms.remove(ax);
 	}
 
-//	public Map<OWLClass, Set<OWLAxiom>> getOwlClassReferences() {
-//		return new HashMap<OWLClass, Set<OWLAxiom>>(this.owlClassReferences);
-//	}
+	// public Map<OWLClass, Set<OWLAxiom>> getOwlClassReferences() {
+	// return new HashMap<OWLClass, Set<OWLAxiom>>(this.owlClassReferences);
+	// }
 
-//	public void removeOwlClassReferences(OWLClass c, OWLAxiom ax) {
-//		removeAxiomFromSet(c, owlClassReferences, ax, true);
-//	}
-//
-//	public void addOwlClassReferences(OWLClass c, OWLAxiom ax) {
-//		addToIndexedSet(c, owlClassReferences, ax);
-//	}
+	// public void removeOwlClassReferences(OWLClass c, OWLAxiom ax) {
+	// removeAxiomFromSet(c, owlClassReferences, ax, true);
+	// }
+	//
+	// public void addOwlClassReferences(OWLClass c, OWLAxiom ax) {
+	// addToIndexedSet(c, owlClassReferences, ax);
+	// }
 
-//	public boolean containsOwlClassReferences(OWLClass c) {
-////		return this.owlClassReferences.containsKey(c);
-//	}
-	
+	// public boolean containsOwlClassReferences(OWLClass c) {
+	// // return this.owlClassReferences.containsKey(c);
+	// }
 
-//	public Map<OWLObjectProperty, Set<OWLAxiom>> getOwlObjectPropertyReferences() {
-//		return new HashMap<OWLObjectProperty, Set<OWLAxiom>>(this.owlObjectPropertyReferences);
-//	}
+	// public Map<OWLObjectProperty, Set<OWLAxiom>>
+	// getOwlObjectPropertyReferences() {
+	// return new HashMap<OWLObjectProperty,
+	// Set<OWLAxiom>>(this.owlObjectPropertyReferences);
+	// }
 
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#containsOwlClass(org.semanticweb.owlapi.model.OWLClass)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#containsOwlClass(org.
+	 * semanticweb.owlapi.model.OWLClass)
 	 */
 	@Override
 	public boolean containsOwlClass(final OWLClass c) {
 		return containsOWLEntityOntology(c.getIRI(), OWLClassHGDB.class);
 	}
 
-//	public void removeOwlObjectPropertyReferences(OWLObjectProperty p, OWLAxiom ax) {
-//		removeAxiomFromSet(p, owlObjectPropertyReferences, ax, true);
-//	}
-//
-//	public void addOwlObjectPropertyReferences(OWLObjectProperty p, OWLAxiom ax) {
-//		addToIndexedSet(p, owlObjectPropertyReferences, ax);
-//	}
+	// public void removeOwlObjectPropertyReferences(OWLObjectProperty p,
+	// OWLAxiom ax) {
+	// removeAxiomFromSet(p, owlObjectPropertyReferences, ax, true);
+	// }
+	//
+	// public void addOwlObjectPropertyReferences(OWLObjectProperty p, OWLAxiom
+	// ax) {
+	// addToIndexedSet(p, owlObjectPropertyReferences, ax);
+	// }
 
-//	public boolean containsOwlObjectPropertyReferences(OWLObjectProperty c) {
-////		return this.owlObjectPropertyReferences.containsKey(c);
-//	}
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#containsOwlObjectProperty(org.semanticweb.owlapi.model.OWLObjectProperty)
+	// public boolean containsOwlObjectPropertyReferences(OWLObjectProperty c) {
+	// // return this.owlObjectPropertyReferences.containsKey(c);
+	// }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.hypergraphdb.app.owl.HGDBOntologyInternals#containsOwlObjectProperty
+	 * (org.semanticweb.owlapi.model.OWLObjectProperty)
 	 */
 	@Override
 	public boolean containsOwlObjectProperty(final OWLObjectProperty c) {
 		return containsOWLEntityOntology(c.getIRI(), OWLObjectPropertyHGDB.class);
 	}
 
-	
-//	public Map<OWLDataProperty, Set<OWLAxiom>> getOwlDataPropertyReferences() {
-//		return new HashMap<OWLDataProperty, Set<OWLAxiom>>(this.owlDataPropertyReferences);
-//	}
+	// public Map<OWLDataProperty, Set<OWLAxiom>> getOwlDataPropertyReferences()
+	// {
+	// return new HashMap<OWLDataProperty,
+	// Set<OWLAxiom>>(this.owlDataPropertyReferences);
+	// }
 
-//	public void removeOwlDataPropertyReferences(OWLDataProperty c, OWLAxiom ax) {
-//		removeAxiomFromSet(c, owlDataPropertyReferences, ax, true);
-//	}
-//
-//
-//	public void addOwlDataPropertyReferences(OWLDataProperty c, OWLAxiom ax) {
-//		addToIndexedSet(c, owlDataPropertyReferences, ax);
-//	}
+	// public void removeOwlDataPropertyReferences(OWLDataProperty c, OWLAxiom
+	// ax) {
+	// removeAxiomFromSet(c, owlDataPropertyReferences, ax, true);
+	// }
+	//
+	//
+	// public void addOwlDataPropertyReferences(OWLDataProperty c, OWLAxiom ax)
+	// {
+	// addToIndexedSet(c, owlDataPropertyReferences, ax);
+	// }
 
-//	public boolean containsOwlDataPropertyReferences(OWLDataProperty c) {
-////		return this.owlDataPropertyReferences.containsKey(c);
-//	}
+	// public boolean containsOwlDataPropertyReferences(OWLDataProperty c) {
+	// // return this.owlDataPropertyReferences.containsKey(c);
+	// }
 
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#containsOwlDataProperty(org.semanticweb.owlapi.model.OWLDataProperty)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.hypergraphdb.app.owl.HGDBOntologyInternals#containsOwlDataProperty
+	 * (org.semanticweb.owlapi.model.OWLDataProperty)
 	 */
 	@Override
 	public boolean containsOwlDataProperty(final OWLDataProperty c) {
@@ -701,47 +740,50 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	/**
 	 * Contains by IRI and exact type (HGDB class).
 	 * 
-	 * @param iri an IRI of the Entity
-	 * @param hgdbType an exact storage (HGDB) class type. 
+	 * @param iri
+	 *            an IRI of the Entity
+	 * @param hgdbType
+	 *            an exact storage (HGDB) class type.
 	 * @return
 	 */
 	boolean containsOWLEntityOntology(final IRI iri, final Class<?> hgdbType) {
+		if (!OWLObjectHGDB.class.isAssignableFrom(hgdbType)) throw new IllegalArgumentException("Only subclasses of OWLObjectHGDB allowed! Was:" + hgdbType);
 		return graph.getTransactionManager().transact(new Callable<Boolean>() {
 			public Boolean call() {
-				return hg.findOne(graph, hg.and(hg.type(hgdbType),
-						hg.eq("IRI", iri),
+				return hg.findOne(graph, hg.and(hg.type(hgdbType), hg.eq("IRI", iri),
 						new SubgraphMemberCondition(ontoHandle))) != null;
 			}
 		}, HGTransactionConfig.READONLY);
-		
+
 	}
-	
-	
-//	public Map<OWLNamedIndividual, Set<OWLAxiom>> getOwlIndividualReferences() {
-//		return this.owlIndividualReferences;
-//	}
 
-//	public void removeOwlIndividualReferences(OWLNamedIndividual c, OWLAxiom ax) {
-//		removeAxiomFromSet(c, owlIndividualReferences, ax, true);
-//	}
+	// public Map<OWLNamedIndividual, Set<OWLAxiom>>
+	// getOwlIndividualReferences() {
+	// return this.owlIndividualReferences;
+	// }
 
-//	public void addOwlIndividualReferences(OWLNamedIndividual c, OWLAxiom ax) {
-//		addToIndexedSet(c, owlIndividualReferences, ax);
-//	}
+	// public void removeOwlIndividualReferences(OWLNamedIndividual c, OWLAxiom
+	// ax) {
+	// removeAxiomFromSet(c, owlIndividualReferences, ax, true);
+	// }
 
-//hilpold	public boolean containsOwlIndividualReferences(OWLNamedIndividual c) {
-//		return this.owlIndividualReferences.containsKey(c);
-//	}
+	// public void addOwlIndividualReferences(OWLNamedIndividual c, OWLAxiom ax)
+	// {
+	// addToIndexedSet(c, owlIndividualReferences, ax);
+	// }
+
+	// hilpold public boolean containsOwlIndividualReferences(OWLNamedIndividual
+	// c) {
+	// return this.owlIndividualReferences.containsKey(c);
+	// }
 
 	public boolean containsOwlNamedIndividual(final IRI individualIRI) {
 		return containsOWLEntityOntology(individualIRI, OWLNamedIndividualHGDB.class);
 	}
-	
 
-	//------------------------------------------------------------------------------------
-	// OWL_ENTITY BASIC QUERIES 
+	// ------------------------------------------------------------------------------------
+	// OWL_ENTITY BASIC QUERIES
 	//
-	
 
 	public Set<OWLAnnotationProperty> getOwlAnnotationProperties() {
 		List<OWLAnnotationProperty> l;
@@ -776,7 +818,9 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		return getReturnSet(l);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#getOwlIndividuals()
 	 */
 	@Override
@@ -801,7 +845,6 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		}, HGTransactionConfig.READONLY);
 		return getReturnSet(l);
 	}
-	
 
 	public Set<OWLObjectProperty> getOwlObjectProperties() {
 		List<OWLObjectProperty> l;
@@ -815,8 +858,8 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	//
-	// END OWL_ENTITY BASIC QUERIES 
-	//------------------------------------------------------------------------------------
+	// END OWL_ENTITY BASIC QUERIES
+	// ------------------------------------------------------------------------------------
 
 	public Map<OWLAnonymousIndividual, Set<OWLAxiom>> getOwlAnonymousIndividualReferences() {
 		return new HashMap<OWLAnonymousIndividual, Set<OWLAxiom>>(
@@ -835,56 +878,66 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		return this.owlAnonymousIndividualReferences.containsKey(c);
 	}
 
-//	public Map<OWLDatatype, Set<OWLAxiom>> getOwlDatatypeReferences() {
-//		return new HashMap<OWLDatatype, Set<OWLAxiom>>(this.owlDatatypeReferences);
-//	}
+	// public Map<OWLDatatype, Set<OWLAxiom>> getOwlDatatypeReferences() {
+	// return new HashMap<OWLDatatype,
+	// Set<OWLAxiom>>(this.owlDatatypeReferences);
+	// }
 
-//	public void removeOwlDatatypeReferences(OWLDatatype c, OWLAxiom ax) {
-//		removeAxiomFromSet(c, owlDatatypeReferences, ax, true);
-//	}
-//
-//	public void addOwlDatatypeReferences(OWLDatatype c, OWLAxiom ax) {
-//		addToIndexedSet(c, owlDatatypeReferences, ax);
-//	}
+	// public void removeOwlDatatypeReferences(OWLDatatype c, OWLAxiom ax) {
+	// removeAxiomFromSet(c, owlDatatypeReferences, ax, true);
+	// }
+	//
+	// public void addOwlDatatypeReferences(OWLDatatype c, OWLAxiom ax) {
+	// addToIndexedSet(c, owlDatatypeReferences, ax);
+	// }
 
-//	public boolean containsOwlDatatypeReferences(OWLDatatype c) {
-//		return this.owlDatatypeReferences.containsKey(c);
-//	}
+	// public boolean containsOwlDatatypeReferences(OWLDatatype c) {
+	// return this.owlDatatypeReferences.containsKey(c);
+	// }
 
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#containsOwlDatatype(org.semanticweb.owlapi.model.OWLDatatype)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.hypergraphdb.app.owl.HGDBOntologyInternals#containsOwlDatatype(org
+	 * .semanticweb.owlapi.model.OWLDatatype)
 	 */
 	@Override
 	public boolean containsOwlDatatype(OWLDatatype c) {
 		return containsOWLEntityOntology(c.getIRI(), OWLDatatypeHGDB.class);
 	}
-	
-	
-//	public Map<OWLAnnotationProperty, Set<OWLAxiom>> getOwlAnnotationPropertyReferences() {
-//		return new HashMap<OWLAnnotationProperty, Set<OWLAxiom>>(
-//				this.owlAnnotationPropertyReferences);
-//	}
 
+	// public Map<OWLAnnotationProperty, Set<OWLAxiom>>
+	// getOwlAnnotationPropertyReferences() {
+	// return new HashMap<OWLAnnotationProperty, Set<OWLAxiom>>(
+	// this.owlAnnotationPropertyReferences);
+	// }
 
+	// public void removeOwlAnnotationPropertyReferences(OWLAnnotationProperty
+	// c, OWLAxiom ax) {
+	// removeAxiomFromSet(c, owlAnnotationPropertyReferences, ax, true);
+	// }
+	//
+	// public void addOwlAnnotationPropertyReferences(OWLAnnotationProperty c,
+	// OWLAxiom ax) {
+	// addToIndexedSet(c, owlAnnotationPropertyReferences, ax);
+	// }
 
-//	public void removeOwlAnnotationPropertyReferences(OWLAnnotationProperty c, OWLAxiom ax) {
-//		removeAxiomFromSet(c, owlAnnotationPropertyReferences, ax, true);
-//	}
-//
-//	public void addOwlAnnotationPropertyReferences(OWLAnnotationProperty c, OWLAxiom ax) {
-//		addToIndexedSet(c, owlAnnotationPropertyReferences, ax);
-//	}
+	// public boolean
+	// containsOwlAnnotationPropertyReferences(OWLAnnotationProperty c) {
+	// return this.owlAnnotationPropertyReferences.containsKey(c);
+	// }
 
-//	public boolean containsOwlAnnotationPropertyReferences(OWLAnnotationProperty c) {
-//		return this.owlAnnotationPropertyReferences.containsKey(c);
-//	}
-		
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#containsOwlAnnotationProperty(org.semanticweb.owlapi.model.OWLAnnotationProperty)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.hypergraphdb.app.owl.HGDBOntologyInternals#containsOwlAnnotationProperty
+	 * (org.semanticweb.owlapi.model.OWLAnnotationProperty)
 	 */
 	@Override
 	public boolean containsOwlAnnotationProperty(OWLAnnotationProperty c) {
-		return containsOWLEntityOntology(c.getIRI(), OWLAnnotationProperty.class);
+		return containsOWLEntityOntology(c.getIRI(), OWLAnnotationPropertyHGDB.class);
 	}
 
 	/**
@@ -899,19 +952,21 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		return null;
 	}
 
-//	public void removeDeclarationsByEntity(OWLEntity c, OWLDeclarationAxiom ax) {
-		// removeAxiomFromSet(c, declarationsByEntity, ax, true);
-//	}
+	// public void removeDeclarationsByEntity(OWLEntity c, OWLDeclarationAxiom
+	// ax) {
+	// removeAxiomFromSet(c, declarationsByEntity, ax, true);
+	// }
 
-//	public void addDeclarationsByEntity(OWLEntity c, OWLDeclarationAxiom ax) {
-//		throw new IllegalArgumentException("Operation no longer supported; Interface will be changed.");
-//		//addToIndexedSet(c, declarationsByEntity, ax);
-//	}
+	// public void addDeclarationsByEntity(OWLEntity c, OWLDeclarationAxiom ax)
+	// {
+	// throw new
+	// IllegalArgumentException("Operation no longer supported; Interface will be changed.");
+	// //addToIndexedSet(c, declarationsByEntity, ax);
+	// }
 
-//	public boolean containsDeclarationsByEntity(OWLEntity c) {
-//		// return this.declarationsByEntity.containsKey(c);
-//		return false;
-//	}
-
+	// public boolean containsDeclarationsByEntity(OWLEntity c) {
+	// // return this.declarationsByEntity.containsKey(c);
+	// return false;
+	// }
 
 }
