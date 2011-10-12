@@ -12,6 +12,7 @@ import java.util.TreeSet;
 
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.app.owl.model.axioms.OWLDeclarationAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLSubAnnotationPropertyOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubDataPropertyOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubObjectPropertyOfAxiomHGDB;
@@ -116,7 +117,7 @@ public class AxiomTypeToHGDBMap {
         addToMap(AxiomType.DECLARATION, OWLDeclarationAxiomHGDB.class);
         //34 addToMap(AxiomType.SWRL_RULE, OWLAxiomHGDB.class);
         //35 addToMap(AxiomType.ANNOTATION_ASSERTION, OWLAxiomHGDB.class);
-        //36 addToMap(AxiomType.SUB_ANNOTATION_PROPERTY_OF, OWLAxiomHGDB.class);
+        addToMap(AxiomType.SUB_ANNOTATION_PROPERTY_OF, OWLSubAnnotationPropertyOfAxiomHGDB.class);
         //37 addToMap(AxiomType.ANNOTATION_PROPERTY_DOMAIN, OWLAxiomHGDB.class);
         //38 addToMap(AxiomType.ANNOTATION_PROPERTY_RANGE, OWLAxiomHGDB.class);
         //39 addToMap(AxiomType.HAS_KEY, OWLAxiomHGDB.class);
