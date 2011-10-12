@@ -80,11 +80,6 @@ public class OWLSubClassOfAxiomHGDB extends OWLClassAxiomHGDB implements OWLSubC
     }
 
     public OWLClassExpression getSubClass() {
-    	OWLClassExpression e = getHyperGraph().get(subClassHandle);
-    	if (e == null) {
-    		//TODO remove this.
-    		System.out.println("subclass null!!");
-    	}
         return getHyperGraph().get(subClassHandle);
     }
 
