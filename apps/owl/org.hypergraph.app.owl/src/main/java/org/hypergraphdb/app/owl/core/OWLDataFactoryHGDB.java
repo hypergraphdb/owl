@@ -5,12 +5,16 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.model.OWLClassHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDeclarationAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLDisjointClassesAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLDisjointUnionAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLEquivalentClassesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubAnnotationPropertyOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubDataPropertyOfAxiomHGDB;
@@ -46,11 +50,8 @@ import uk.ac.manchester.cs.owl.owlapi.OWLDataUnionOfImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDatatypeDefinitionAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDatatypeRestrictionImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDifferentIndividualsAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLDisjointClassesAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDisjointDataPropertiesAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDisjointObjectPropertiesAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLDisjointUnionAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentClassesAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentDataPropertiesAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentObjectPropertiesAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLFacetRestrictionImpl;
@@ -81,9 +82,6 @@ import uk.ac.manchester.cs.owl.owlapi.OWLObjectSomeValuesFromImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLObjectUnionOfImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLReflexiveObjectPropertyAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLSameIndividualAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLSubAnnotationPropertyOfAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLSubDataPropertyOfAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLSubObjectPropertyOfAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLSubPropertyChainAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLSymmetricObjectPropertyAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLTransitiveObjectPropertyAxiomImpl;
@@ -878,7 +876,15 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 
     public OWLDisjointClassesAxiom getOWLDisjointClassesAxiom(Set<? extends OWLClassExpression> classExpressions, Set<? extends OWLAnnotation> annotations) {
-        return new OWLDisjointClassesAxiomImpl(this, classExpressions, annotations);
+        if (classExpressions == null) throw new IllegalArgumentException("classExpressions null");
+        if (annotations == null) throw new IllegalArgumentException("annotations null");
+        //classExpressions and annotations are in Graph, if created by this Datafactory
+        OWLDisjointClassesAxiomHGDB axiom; 
+        Set<HGHandle> classExpressionsHandles = getHandlesSetFor(classExpressions);
+      	axiom = new OWLDisjointClassesAxiomHGDB(classExpressionsHandles, annotations);
+       	axiom.setHyperGraph(graph);
+        return axiom;    	
+    	//return new OWLDisjointClassesAxiomImpl(this, classExpressions, annotations);
     }
 
 
@@ -923,9 +929,36 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
         return new OWLDisjointObjectPropertiesAxiomImpl(this, properties, annotations);
     }
 
+    /**
+     * Gets handles for each element from Hypergraph and 
+     * @param s a set of atoms implementing OWLObject and stored in HG.
+     * @return a set of handles (no null, same size as s) 
+     */
+    private Set<HGHandle> getHandlesSetFor(Set<? extends OWLObject> s) {
+    	Set<HGHandle> sHandles = new TreeSet<HGHandle>();
+    	HGHandle h;
+    	for (OWLObject o : s) {
+    		 h = graph.getHandle(o);
+    		 if (h == null) {
+    			 throw new IllegalArgumentException("s contained an object that we could not get a handle for: " + o);
+    		 } else {
+    			 if (!sHandles.add(h)) throw new IllegalStateException("we got a duplicate handle");
+    		 }
+    	}
+    	assert(s.size() == sHandles.size());
+    	return sHandles;
+    }
 
     public OWLEquivalentClassesAxiom getOWLEquivalentClassesAxiom(Set<? extends OWLClassExpression> classExpressions, Set<? extends OWLAnnotation> annotations) {
-        return new OWLEquivalentClassesAxiomImpl(this, classExpressions, annotations);
+        if (classExpressions == null) throw new IllegalArgumentException("classExpressions null");
+        if (annotations == null) throw new IllegalArgumentException("annotations null");
+        //classExpressions and annotations are in Graph, if created by this Datafactory
+        OWLEquivalentClassesAxiomHGDB axiom; 
+        Set<HGHandle> classExpressionsHandles = getHandlesSetFor(classExpressions);
+      	axiom = new OWLEquivalentClassesAxiomHGDB(classExpressionsHandles, annotations);
+       	axiom.setHyperGraph(graph); //2011.10.06 needed now, that we don't add it to the graph right away.
+        return axiom;    	
+        //return new OWLEquivalentClassesAxiomImpl(this, classExpressions, annotations);
     }
 
 
@@ -941,7 +974,7 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
     public OWLEquivalentClassesAxiom getOWLEquivalentClassesAxiom(OWLClassExpression... classExpressions) {
         Set<OWLClassExpression> clses = new HashSet<OWLClassExpression>();
-        clses.addAll(Arrays.asList(classExpressions));
+        clses.addAll(Arrays.asList(classExpressions));        
         return getOWLEquivalentClassesAxiom(clses);
     }
 
@@ -1281,7 +1314,17 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 
     public OWLDisjointUnionAxiom getOWLDisjointUnionAxiom(OWLClass owlClass, Set<? extends OWLClassExpression> classExpressions, Set<? extends OWLAnnotation> annotations) {
-        return new OWLDisjointUnionAxiomImpl(this, owlClass, classExpressions, annotations);
+        if (owlClass == null) throw new IllegalArgumentException("owlClass null");
+        if (classExpressions == null) throw new IllegalArgumentException("classExpressions null");
+        if (annotations == null) throw new IllegalArgumentException("annotations null");
+        //owlClass, classExpressions and annotations are in Graph, if created by this Datafactory
+        OWLDisjointUnionAxiomHGDB axiom; 
+        Set<HGHandle> classExpressionsHandles = getHandlesSetFor(classExpressions);
+        HGHandle owlClassHandle = graph.getHandle(owlClass);
+      	axiom = new OWLDisjointUnionAxiomHGDB(owlClassHandle, classExpressionsHandles, annotations);
+       	axiom.setHyperGraph(graph);
+        return axiom;
+        //return new OWLDisjointUnionAxiomImpl(this, owlClass, classExpressions, annotations);
     }
 
 

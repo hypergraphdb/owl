@@ -167,8 +167,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		return result;
 	}
 
-	public Set<OWLSubAnnotationPropertyOfAxiom> getSubAnnotationPropertyOfAxioms(
-			OWLAnnotationProperty subProperty) {
+	public Set<OWLSubAnnotationPropertyOfAxiom> getSubAnnotationPropertyOfAxioms(OWLAnnotationProperty subProperty) {
 		Set<OWLSubAnnotationPropertyOfAxiom> result = createSet();
 		for (OWLSubAnnotationPropertyOfAxiom ax : getAxiomsInternal(AxiomType.SUB_ANNOTATION_PROPERTY_OF)) {
 			if (ax.getSubProperty().equals(subProperty)) {
@@ -178,8 +177,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		return result;
 	}
 
-	public Set<OWLAnnotationPropertyDomainAxiom> getAnnotationPropertyDomainAxioms(
-			OWLAnnotationProperty property) {
+	public Set<OWLAnnotationPropertyDomainAxiom> getAnnotationPropertyDomainAxioms(OWLAnnotationProperty property) {
 		Set<OWLAnnotationPropertyDomainAxiom> result = createSet();
 		for (OWLAnnotationPropertyDomainAxiom ax : getAxiomsInternal(AxiomType.ANNOTATION_PROPERTY_DOMAIN)) {
 			if (ax.getProperty().equals(property)) {
@@ -189,8 +187,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		return result;
 	}
 
-	public Set<OWLAnnotationPropertyRangeAxiom> getAnnotationPropertyRangeAxioms(
-			OWLAnnotationProperty property) {
+	public Set<OWLAnnotationPropertyRangeAxiom> getAnnotationPropertyRangeAxioms(OWLAnnotationProperty property) {
 		Set<OWLAnnotationPropertyRangeAxiom> result = createSet();
 		for (OWLAnnotationPropertyRangeAxiom ax : getAxiomsInternal(AxiomType.ANNOTATION_PROPERTY_RANGE)) {
 			if (ax.getProperty().equals(property)) {
@@ -203,8 +200,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	@Override
 	protected <T extends OWLAxiom> Set<T> getAxiomsInternal(AxiomType<T> axiomType) {
 		List<T> axiomsOneType = null;
-		Class<? extends OWLAxiomHGDB> hgdbAxiomClass = AxiomTypeToHGDBMap
-				.getAxiomClassHGDB(axiomType);
+		Class<? extends OWLAxiomHGDB> hgdbAxiomClass = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiomType);
 		if (hgdbAxiomClass == null) {
 			log.warning("getAxiomsInternal Not yet implemented: " + axiomType);
 		} else {
@@ -252,8 +248,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 				if (owlEntityHandle == null) {
 					l = Collections.emptyList();
 				} else {
-					l = hg.getAll(graph,
-							hg.and(hg.typePlus(OWLAxiom.class), hg.incident(owlEntityHandle)));
+					l = hg.getAll(graph, hg.and(hg.typePlus(OWLAxiom.class), hg.incident(owlEntityHandle)));
 				}
 				return l;
 			}
@@ -291,8 +286,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		// OWLEntity.
 		l = graph.getTransactionManager().transact(new Callable<List<OWLDeclarationAxiom>>() {
 			public List<OWLDeclarationAxiom> call() {
-				return hg.getAll(graph,
-						hg.and(hg.type(OWLDeclarationAxiomHGDB.class), hg.incident(entityHandle)));
+				return hg.getAll(graph, hg.and(hg.type(OWLDeclarationAxiomHGDB.class), hg.incident(entityHandle)));
 			}
 		}, HGTransactionConfig.READONLY);
 		return getReturnSet(l);
@@ -314,9 +308,10 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		l = graph.getTransactionManager().transact(new Callable<List<OWLImportsDeclaration>>() {
 			@SuppressWarnings("deprecation")
 			public List<OWLImportsDeclaration> call() {
-				return hg.getAll(graph, hg.apply(hg.targetAt(graph, 1), hg.and(hg
-						.type(ImportDeclarationLink.class), hg.orderedLink(ontoHandle,
-						hg.anyHandle()), new SubgraphMemberCondition(ontoHandle))));
+				return hg.getAll(
+						graph,
+						hg.apply(hg.targetAt(graph, 1), hg.and(hg.type(ImportDeclarationLink.class),
+								hg.orderedLink(ontoHandle, hg.anyHandle()), new SubgraphMemberCondition(ontoHandle))));
 			}
 		}, HGTransactionConfig.READONLY);
 
@@ -341,8 +336,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 					return false;
 				else {
 					HGHandle importDeclarationHandle = graph.add(importDeclaration);
-					ImportDeclarationLink link = new ImportDeclarationLink(ontoHandle,
-							importDeclarationHandle);
+					ImportDeclarationLink link = new ImportDeclarationLink(ontoHandle, importDeclarationHandle);
 					HGHandle linkHandle = graph.add(link);
 					ontology.add(importDeclarationHandle);
 					ontology.add(linkHandle);
@@ -376,14 +370,13 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 					throw new IllegalStateException("Contains said fine, but can't get handle.");
 				}
 				link = hg.findOne(graph, hg.and(hg.type(ImportDeclarationLink.class),
-						hg.orderedLink(ontoHandle, importDeclarationHandle),
-						new SubgraphMemberCondition(ontoHandle)));
+						hg.orderedLink(ontoHandle, importDeclarationHandle), new SubgraphMemberCondition(ontoHandle)));
 				if (link == null) {
 					throw new IllegalStateException(
 							"Found importDeclaration, but no link. Each Importdeclaration must have exactly one link.");
 				}
-				success = ontology.remove(link) && ontology.remove(importDeclarationHandle)
-						&& graph.remove(link) && graph.remove(importDeclarationHandle);
+				success = ontology.remove(link) && ontology.remove(importDeclarationHandle) && graph.remove(link)
+						&& graph.remove(importDeclarationHandle);
 				return success;
 			}
 		});
@@ -467,8 +460,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	 *         its imports closure) - it will not be updated if the ontology
 	 *         changes.
 	 */
-	public <T extends OWLAxiom> Set<T> getAxioms(AxiomType<T> axiomType,
-			Collection<OWLOntology> importsClosure) {
+	public <T extends OWLAxiom> Set<T> getAxioms(AxiomType<T> axiomType, Collection<OWLOntology> importsClosure) {
 		if (importsClosure == null || importsClosure.size() == 0) {
 			return getAxioms(axiomType);
 		}
@@ -481,8 +473,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 
 	public <T extends OWLAxiom> int getAxiomCount(AxiomType<T> axiomType) {
 		long axiomsOneTypeCount = 0;
-		Class<? extends OWLAxiomHGDB> hgdbAxiomClass = AxiomTypeToHGDBMap
-				.getAxiomClassHGDB(axiomType);
+		Class<? extends OWLAxiomHGDB> hgdbAxiomClass = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiomType);
 		if (hgdbAxiomClass == null) {
 			log.warning("getAxiomCount: Not yet implemented for HG: " + axiomType);
 		} else {
@@ -540,13 +531,11 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	public void addAxiomsByType(AxiomType<?> type, final OWLAxiom axiom) {
-		// TODO make all types work w hypergraph.
+		// TODO implement more axiom types and remove check when done
 		if (DBG) {
 			log.info("ADD Axiom: " + axiom.getClass().getSimpleName() + "Type: " + type);
 		}
-		if (type == AxiomType.DECLARATION || type == AxiomType.SUBCLASS_OF
-				|| type == AxiomType.SUB_DATA_PROPERTY || type == AxiomType.SUB_OBJECT_PROPERTY
-				|| type == AxiomType.SUB_ANNOTATION_PROPERTY_OF) {
+		if (AxiomTypeToHGDBMap.getAxiomClassHGDB(type) != null) {
 			graph.getTransactionManager().transact(new Callable<Boolean>() {
 				public Boolean call() {
 					if (DBG)
@@ -573,13 +562,11 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	public void removeAxiomsByType(AxiomType<?> type, final OWLAxiom axiom) {
-		// TODO implement more axiom types
+		// TODO implement more axiom types and remove check when done
 		if (DBG) {
 			log.info("REMOVE Axiom: " + axiom.getClass().getSimpleName() + " Type: " + type);
 		}
-		if (type == AxiomType.DECLARATION || type == AxiomType.SUBCLASS_OF
-				|| type == AxiomType.SUB_DATA_PROPERTY || type == AxiomType.SUB_OBJECT_PROPERTY
-				|| type == AxiomType.SUB_ANNOTATION_PROPERTY_OF) {
+		if (AxiomTypeToHGDBMap.getAxiomClassHGDB(type) != null) {
 			graph.getTransactionManager().transact(new Callable<Boolean>() {
 				public Boolean call() {
 					boolean removedSuccess;
@@ -614,8 +601,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	public void removeLogicalAxiom2AnnotatedAxiomMap(OWLAxiom ax) {
-		removeAxiomFromSet(ax.getAxiomWithoutAnnotations(), logicalAxiom2AnnotatedAxiomMap, ax,
-				true);
+		removeAxiomFromSet(ax.getAxiomWithoutAnnotations(), logicalAxiom2AnnotatedAxiomMap, ax, true);
 	}
 
 	public boolean containsLogicalAxiom2AnnotatedAxiomMap(OWLAxiom ax) {
@@ -747,11 +733,12 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	 * @return
 	 */
 	boolean containsOWLEntityOntology(final IRI iri, final Class<?> hgdbType) {
-		if (!OWLObjectHGDB.class.isAssignableFrom(hgdbType)) throw new IllegalArgumentException("Only subclasses of OWLObjectHGDB allowed! Was:" + hgdbType);
+		if (!OWLObjectHGDB.class.isAssignableFrom(hgdbType))
+			throw new IllegalArgumentException("Only subclasses of OWLObjectHGDB allowed! Was:" + hgdbType);
 		return graph.getTransactionManager().transact(new Callable<Boolean>() {
 			public Boolean call() {
-				return hg.findOne(graph, hg.and(hg.type(hgdbType), hg.eq("IRI", iri),
-						new SubgraphMemberCondition(ontoHandle))) != null;
+				return hg.findOne(graph,
+						hg.and(hg.type(hgdbType), hg.eq("IRI", iri), new SubgraphMemberCondition(ontoHandle))) != null;
 			}
 		}, HGTransactionConfig.READONLY);
 
@@ -789,8 +776,8 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		List<OWLAnnotationProperty> l;
 		l = graph.getTransactionManager().transact(new Callable<List<OWLAnnotationProperty>>() {
 			public List<OWLAnnotationProperty> call() {
-				return hg.getAll(graph, hg.and(hg.type(OWLAnnotationPropertyHGDB.class),
-						new SubgraphMemberCondition(ontoHandle)));
+				return hg.getAll(graph,
+						hg.and(hg.type(OWLAnnotationPropertyHGDB.class), new SubgraphMemberCondition(ontoHandle)));
 			}
 		}, HGTransactionConfig.READONLY);
 		return getReturnSet(l);
@@ -800,8 +787,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		List<OWLClass> l;
 		l = graph.getTransactionManager().transact(new Callable<List<OWLClass>>() {
 			public List<OWLClass> call() {
-				return hg.getAll(graph, hg.and(hg.type(OWLClassHGDB.class),
-						new SubgraphMemberCondition(ontoHandle)));
+				return hg.getAll(graph, hg.and(hg.type(OWLClassHGDB.class), new SubgraphMemberCondition(ontoHandle)));
 			}
 		}, HGTransactionConfig.READONLY);
 		return getReturnSet(l);
@@ -811,8 +797,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		List<OWLDatatype> l;
 		l = graph.getTransactionManager().transact(new Callable<List<OWLDatatype>>() {
 			public List<OWLDatatype> call() {
-				return hg.getAll(graph, hg.and(hg.type(OWLDatatypeHGDB.class),
-						new SubgraphMemberCondition(ontoHandle)));
+				return hg.getAll(graph, hg.and(hg.type(OWLDatatypeHGDB.class), new SubgraphMemberCondition(ontoHandle)));
 			}
 		}, HGTransactionConfig.READONLY);
 		return getReturnSet(l);
@@ -828,8 +813,8 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		List<OWLNamedIndividual> l;
 		l = graph.getTransactionManager().transact(new Callable<List<OWLNamedIndividual>>() {
 			public List<OWLNamedIndividual> call() {
-				return hg.getAll(graph, hg.and(hg.type(OWLNamedIndividualHGDB.class),
-						new SubgraphMemberCondition(ontoHandle)));
+				return hg.getAll(graph,
+						hg.and(hg.type(OWLNamedIndividualHGDB.class), new SubgraphMemberCondition(ontoHandle)));
 			}
 		}, HGTransactionConfig.READONLY);
 		return getReturnSet(l);
@@ -839,8 +824,8 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		List<OWLDataProperty> l;
 		l = graph.getTransactionManager().transact(new Callable<List<OWLDataProperty>>() {
 			public List<OWLDataProperty> call() {
-				return hg.getAll(graph, hg.and(hg.type(OWLDataPropertyHGDB.class),
-						new SubgraphMemberCondition(ontoHandle)));
+				return hg.getAll(graph,
+						hg.and(hg.type(OWLDataPropertyHGDB.class), new SubgraphMemberCondition(ontoHandle)));
 			}
 		}, HGTransactionConfig.READONLY);
 		return getReturnSet(l);
@@ -850,8 +835,8 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		List<OWLObjectProperty> l;
 		l = graph.getTransactionManager().transact(new Callable<List<OWLObjectProperty>>() {
 			public List<OWLObjectProperty> call() {
-				return hg.getAll(graph, hg.and(hg.type(OWLObjectPropertyHGDB.class),
-						new SubgraphMemberCondition(ontoHandle)));
+				return hg.getAll(graph,
+						hg.and(hg.type(OWLObjectPropertyHGDB.class), new SubgraphMemberCondition(ontoHandle)));
 			}
 		}, HGTransactionConfig.READONLY);
 		return getReturnSet(l);
@@ -862,8 +847,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	// ------------------------------------------------------------------------------------
 
 	public Map<OWLAnonymousIndividual, Set<OWLAxiom>> getOwlAnonymousIndividualReferences() {
-		return new HashMap<OWLAnonymousIndividual, Set<OWLAxiom>>(
-				this.owlAnonymousIndividualReferences);
+		return new HashMap<OWLAnonymousIndividual, Set<OWLAxiom>>(this.owlAnonymousIndividualReferences);
 	}
 
 	public void removeOwlAnonymousIndividualReferences(OWLAnonymousIndividual c, OWLAxiom ax) {

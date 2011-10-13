@@ -7,11 +7,8 @@ import static org.semanticweb.owlapi.model.AxiomType.DATA_PROPERTY_ASSERTION;
 import static org.semanticweb.owlapi.model.AxiomType.DATA_PROPERTY_DOMAIN;
 import static org.semanticweb.owlapi.model.AxiomType.DATA_PROPERTY_RANGE;
 import static org.semanticweb.owlapi.model.AxiomType.DIFFERENT_INDIVIDUALS;
-import static org.semanticweb.owlapi.model.AxiomType.DISJOINT_CLASSES;
 import static org.semanticweb.owlapi.model.AxiomType.DISJOINT_DATA_PROPERTIES;
 import static org.semanticweb.owlapi.model.AxiomType.DISJOINT_OBJECT_PROPERTIES;
-import static org.semanticweb.owlapi.model.AxiomType.DISJOINT_UNION;
-import static org.semanticweb.owlapi.model.AxiomType.EQUIVALENT_CLASSES;
 import static org.semanticweb.owlapi.model.AxiomType.EQUIVALENT_DATA_PROPERTIES;
 import static org.semanticweb.owlapi.model.AxiomType.EQUIVALENT_OBJECT_PROPERTIES;
 import static org.semanticweb.owlapi.model.AxiomType.FUNCTIONAL_DATA_PROPERTY;
@@ -27,8 +24,6 @@ import static org.semanticweb.owlapi.model.AxiomType.OBJECT_PROPERTY_DOMAIN;
 import static org.semanticweb.owlapi.model.AxiomType.OBJECT_PROPERTY_RANGE;
 import static org.semanticweb.owlapi.model.AxiomType.REFLEXIVE_OBJECT_PROPERTY;
 import static org.semanticweb.owlapi.model.AxiomType.SAME_INDIVIDUAL;
-import static org.semanticweb.owlapi.model.AxiomType.SUB_DATA_PROPERTY;
-import static org.semanticweb.owlapi.model.AxiomType.SUB_OBJECT_PROPERTY;
 import static org.semanticweb.owlapi.model.AxiomType.SYMMETRIC_OBJECT_PROPERTY;
 import static org.semanticweb.owlapi.model.AxiomType.TRANSITIVE_OBJECT_PROPERTY;
 import static org.semanticweb.owlapi.util.CollectionFactory.createSet;
@@ -47,6 +42,9 @@ import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyImpl;
 import org.hypergraphdb.app.owl.HGDBOntologyInternals;
+import org.hypergraphdb.app.owl.model.axioms.OWLDisjointClassesAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLDisjointUnionAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLEquivalentClassesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubDataPropertyOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubObjectPropertyOfAxiomHGDB;
@@ -112,9 +110,9 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	//2011.10.06 removed protected volatile Map<OWLClass, Set<OWLClassAxiom>> classAxiomsByClass;
 	//2011.10.06 protected volatile Map<OWLClass, Set<OWLSubClassOfAxiom>> subClassAxiomsByLHS;
 	//2011.10.06 protected volatile Map<OWLClass, Set<OWLSubClassOfAxiom>> subClassAxiomsByLHS;
-	protected volatile Map<OWLClass, Set<OWLEquivalentClassesAxiom>> equivalentClassesAxiomsByClass;
-	protected volatile Map<OWLClass, Set<OWLDisjointClassesAxiom>> disjointClassesAxiomsByClass;
-	protected volatile Map<OWLClass, Set<OWLDisjointUnionAxiom>> disjointUnionAxiomsByClass;
+	//2011.10.13 protected volatile Map<OWLClass, Set<OWLEquivalentClassesAxiom>> equivalentClassesAxiomsByClass;
+	//2011.10.13 protected volatile Map<OWLClass, Set<OWLDisjointClassesAxiom>> disjointClassesAxiomsByClass;
+	//2011.10.13 protected volatile Map<OWLClass, Set<OWLDisjointUnionAxiom>> disjointUnionAxiomsByClass;
 	protected volatile Map<OWLClass, Set<OWLHasKeyAxiom>> hasKeyAxiomsByClass;
 	//2011.10.07 protected volatile Map<OWLObjectPropertyExpression, Set<OWLSubObjectPropertyOfAxiom>> objectSubPropertyAxiomsByLHS;
 	//2011.10.07 	protected volatile Map<OWLObjectPropertyExpression, Set<OWLSubObjectPropertyOfAxiom>> objectSubPropertyAxiomsByRHS;
@@ -199,34 +197,34 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 //				}
 //			}
 //		},
-		EquivalentClassesAxiomsByClass {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-				if (impl.equivalentClassesAxiomsByClass == null) {
-					impl.equivalentClassesAxiomsByClass = impl.fill(
-							impl.equivalentClassesAxiomsByClass, EQUIVALENT_CLASSES,
-							classcollections);
-				}
-			}
-		},
-		DisjointClassesAxiomsByClass {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-				if (impl.disjointClassesAxiomsByClass == null) {
-					impl.disjointClassesAxiomsByClass = impl.fill(
-							impl.disjointClassesAxiomsByClass, DISJOINT_CLASSES, classcollections);
-				}
-			}
-		},
-		DisjointUnionAxiomsByClass {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-				if (impl.disjointUnionAxiomsByClass == null) {
-					impl.disjointUnionAxiomsByClass = impl.fill(impl.disjointUnionAxiomsByClass,
-							DISJOINT_UNION, classcollections);
-				}
-			}
-		},
+//		EquivalentClassesAxiomsByClass {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//				if (impl.equivalentClassesAxiomsByClass == null) {
+//					impl.equivalentClassesAxiomsByClass = impl.fill(
+//							impl.equivalentClassesAxiomsByClass, EQUIVALENT_CLASSES,
+//							classcollections);
+//				}
+//			}
+//		},
+//		DisjointClassesAxiomsByClass {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//				if (impl.disjointClassesAxiomsByClass == null) {
+//					impl.disjointClassesAxiomsByClass = impl.fill(
+//							impl.disjointClassesAxiomsByClass, DISJOINT_CLASSES, classcollections);
+//				}
+//			}
+//		},
+//		DisjointUnionAxiomsByClass {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//				if (impl.disjointUnionAxiomsByClass == null) {
+//					impl.disjointUnionAxiomsByClass = impl.fill(impl.disjointUnionAxiomsByClass,
+//							DISJOINT_UNION, classcollections);
+//				}
+//			}
+//		},
 		HasKeyAxiomsByClass {
 			@Override
 			public void initMap(AbstractInternalsHGDB impl) {
@@ -613,48 +611,48 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 			@SuppressWarnings("unused")
 			public void initMap(AbstractInternalsHGDB impl) {
 			}
-		},
+		}; //,
 		// lazy init
-		ClassAxiomsByClass {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-				if (impl.equivalentClassesAxiomsByClass == null) { //2011.10.06 triggers init of others.
-//					if (impl.classAxiomsByClass == null) {
-//					Map<OWLClass, Set<OWLClassAxiom>> classAxiomsByClass = impl.createMap(); // masks
-//																								// member
-//																								// declaration
-					Maps.EquivalentClassesAxiomsByClass.initMap(impl);
-//					for (Map.Entry<OWLClass, Set<OWLEquivalentClassesAxiom>> e : impl.equivalentClassesAxiomsByClass
-//							.entrySet()) {
-//						for (OWLClassAxiom ax : e.getValue()) {
-//							impl.addToIndexedSet(e.getKey(), classAxiomsByClass, ax);
-//						}
-//					}
-//					Maps.SubClassAxiomsByLHS.initMap(impl);
-//					for (Map.Entry<OWLClass, Set<OWLSubClassOfAxiom>> e : impl.subClassAxiomsByLHS
-//							.entrySet()) {
-//						for (OWLClassAxiom ax : e.getValue()) {
-//							impl.addToIndexedSet(e.getKey(), classAxiomsByClass, ax);
-//						}
-//					}
-					Maps.DisjointClassesAxiomsByClass.initMap(impl);
-//					for (Map.Entry<OWLClass, Set<OWLDisjointClassesAxiom>> e : impl.disjointClassesAxiomsByClass
-//							.entrySet()) {
-//						for (OWLClassAxiom ax : e.getValue()) {
-//							impl.addToIndexedSet(e.getKey(), classAxiomsByClass, ax);
-//						}
-//					}
-					Maps.DisjointUnionAxiomsByClass.initMap(impl);
-//					for (Map.Entry<OWLClass, Set<OWLDisjointUnionAxiom>> e : impl.disjointUnionAxiomsByClass
-//							.entrySet()) {
-//						for (OWLClassAxiom ax : e.getValue()) {
-//							impl.addToIndexedSet(e.getKey(), classAxiomsByClass, ax);
-//						}
-//					}
+//		ClassAxiomsByClass {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//				if (impl.dataPropertyDomainAxiomsByProperty == null) { //2011.10.06 triggers init of others.
+////					if (impl.classAxiomsByClass == null) {
+////					Map<OWLClass, Set<OWLClassAxiom>> classAxiomsByClass = impl.createMap(); // masks
+////																								// member
+////																								// declaration
+//					Maps.EquivalentClassesAxiomsByClass.initMap(impl);
+////					for (Map.Entry<OWLClass, Set<OWLEquivalentClassesAxiom>> e : impl.equivalentClassesAxiomsByClass
+////							.entrySet()) {
+////						for (OWLClassAxiom ax : e.getValue()) {
+////							impl.addToIndexedSet(e.getKey(), classAxiomsByClass, ax);
+////						}
+////					}
+////					Maps.SubClassAxiomsByLHS.initMap(impl);
+////					for (Map.Entry<OWLClass, Set<OWLSubClassOfAxiom>> e : impl.subClassAxiomsByLHS
+////							.entrySet()) {
+////						for (OWLClassAxiom ax : e.getValue()) {
+////							impl.addToIndexedSet(e.getKey(), classAxiomsByClass, ax);
+////						}
+////					}
+//					Maps.DisjointClassesAxiomsByClass.initMap(impl);
+////					for (Map.Entry<OWLClass, Set<OWLDisjointClassesAxiom>> e : impl.disjointClassesAxiomsByClass
+////							.entrySet()) {
+////						for (OWLClassAxiom ax : e.getValue()) {
+////							impl.addToIndexedSet(e.getKey(), classAxiomsByClass, ax);
+////						}
+////					}
+//					Maps.DisjointUnionAxiomsByClass.initMap(impl);
+////					for (Map.Entry<OWLClass, Set<OWLDisjointUnionAxiom>> e : impl.disjointUnionAxiomsByClass
+////							.entrySet()) {
+////						for (OWLClassAxiom ax : e.getValue()) {
+////							impl.addToIndexedSet(e.getKey(), classAxiomsByClass, ax);
+////						}
+////					}
 //					impl.classAxiomsByClass = classAxiomsByClass;
-				}
-			}
-		};
+//				}
+//			}
+//		};
 		public abstract void initMap(AbstractInternalsHGDB impl);
 
 		/**
@@ -860,18 +858,30 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	}
 
 	public Set<OWLEquivalentClassesAxiom> getEquivalentClassesAxioms(OWLClass cls) {
-		Maps.EquivalentClassesAxiomsByClass.initMap(this);
-		return getReturnSet(getAxioms(cls, equivalentClassesAxiomsByClass));
+		HGHandle clsHandle = graph.getHandle(cls);
+		List<OWLEquivalentClassesAxiom> l = ontology.getAll(hg.and(
+					hg.type(OWLEquivalentClassesAxiomHGDB.class), hg.incident(clsHandle)));
+		return getReturnSet(l);
+//		Maps.EquivalentClassesAxiomsByClass.initMap(this);
+//		return getReturnSet(getAxioms(cls, equivalentClassesAxiomsByClass));
 	}
 
 	public Set<OWLDisjointClassesAxiom> getDisjointClassesAxioms(OWLClass cls) {
-		Maps.DisjointClassesAxiomsByClass.initMap(this);
-		return getReturnSet(getAxioms(cls, disjointClassesAxiomsByClass));
+		HGHandle clsHandle = graph.getHandle(cls);
+		List<OWLDisjointClassesAxiom> l = ontology.getAll(hg.and(
+					hg.type(OWLDisjointClassesAxiomHGDB.class), hg.incident(clsHandle)));
+		return getReturnSet(l);
+//		Maps.DisjointClassesAxiomsByClass.initMap(this);
+//		return getReturnSet(getAxioms(cls, disjointClassesAxiomsByClass));
 	}
 
-	public Set<OWLDisjointUnionAxiom> getDisjointUnionAxioms(OWLClass owlClass) {
-		Maps.DisjointUnionAxiomsByClass.initMap(this);
-		return getReturnSet(getAxioms(owlClass, getDisjointUnionAxiomsByClass()));
+	public Set<OWLDisjointUnionAxiom> getDisjointUnionAxioms(OWLClass cls) {
+		HGHandle clsHandle = graph.getHandle(cls);
+		List<OWLDisjointUnionAxiom> l = ontology.getAll(hg.and(
+					hg.type(OWLDisjointUnionAxiomHGDB.class), hg.incident(clsHandle)));
+		return getReturnSet(l);
+//		Maps.DisjointUnionAxiomsByClass.initMap(this);
+//		return getReturnSet(getAxioms(owlClass, getDisjointUnionAxiomsByClass()));
 	}
 
 	public Set<OWLHasKeyAxiom> getHasKeyAxioms(OWLClass cls) {
@@ -1111,17 +1121,17 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 //		return this.subClassAxiomsByRHS;
 //	}
 
-	public Map<OWLClass, Set<OWLEquivalentClassesAxiom>> getEquivalentClassesAxiomsByClass() {
-		return this.equivalentClassesAxiomsByClass;
-	}
+//	public Map<OWLClass, Set<OWLEquivalentClassesAxiom>> getEquivalentClassesAxiomsByClass() {
+//		return this.equivalentClassesAxiomsByClass;
+//	}
 
-	public Map<OWLClass, Set<OWLDisjointClassesAxiom>> getDisjointClassesAxiomsByClass() {
-		return this.disjointClassesAxiomsByClass;
-	}
+//	public Map<OWLClass, Set<OWLDisjointClassesAxiom>> getDisjointClassesAxiomsByClass() {
+//		return this.disjointClassesAxiomsByClass;
+//	}
 
-	public Map<OWLClass, Set<OWLDisjointUnionAxiom>> getDisjointUnionAxiomsByClass() {
-		return this.disjointUnionAxiomsByClass;
-	}
+//	public Map<OWLClass, Set<OWLDisjointUnionAxiom>> getDisjointUnionAxiomsByClass() {
+//		return this.disjointUnionAxiomsByClass;
+//	}
 
 	public Map<OWLClass, Set<OWLHasKeyAxiom>> getHasKeyAxiomsByClass() {
 		return this.hasKeyAxiomsByClass;

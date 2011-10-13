@@ -36,5 +36,10 @@
 			<type>2</type>
 			<location>C:/_CiRM/workspaceMD/hypergraphdb/core/src/java</location>
 		</link>
+		<link>
+			<name>src-2</name>
+			<type>2</type>
+			<location>C:/_CiRM/workspaceMD/hypergraphdb/core/src/config</location>
+		</link>
 	</linkedResources>
 </projectDescription>

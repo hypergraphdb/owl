@@ -232,11 +232,11 @@ public interface HGDBOntologyInternals  {
 //
 //	Map<OWLClass, Set<OWLSubClassOfAxiom>> getSubClassAxiomsByRHS();
 
-	Map<OWLClass, Set<OWLEquivalentClassesAxiom>> getEquivalentClassesAxiomsByClass();
+	//2011.10.13 Map<OWLClass, Set<OWLEquivalentClassesAxiom>> getEquivalentClassesAxiomsByClass();
 
-	Map<OWLClass, Set<OWLDisjointClassesAxiom>> getDisjointClassesAxiomsByClass();
+	//2011.10.13 Map<OWLClass, Set<OWLDisjointClassesAxiom>> getDisjointClassesAxiomsByClass();
 
-	Map<OWLClass, Set<OWLDisjointUnionAxiom>> getDisjointUnionAxiomsByClass();
+	//2011.10.13 Map<OWLClass, Set<OWLDisjointUnionAxiom>> getDisjointUnionAxiomsByClass();
 
 	Map<OWLClass, Set<OWLHasKeyAxiom>> getHasKeyAxiomsByClass();
 

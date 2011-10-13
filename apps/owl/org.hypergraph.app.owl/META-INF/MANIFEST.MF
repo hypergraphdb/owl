@@ -124,8 +124,7 @@ Export-Package:
  org.hypergraphdb.util;uses:="new org.hypergraphdb.util,org.hypergraphdb,javax.management"
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.semanticweb.owl.owlapi;bundle-version="3.2.3"
-Bundle-Vendor: Miami Dade GIC/eSolutions
+Bundle-Vendor: Miami-Dade CIAO/eSolutions
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: org.hypergraphdb.app.owl,
- org.junit,
  org.protege.owlapi.model
