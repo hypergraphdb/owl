@@ -3,7 +3,6 @@ package org.hypergraphdb.app.owl.model.axioms;
 import java.util.Collection;
 
 import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLPropertyAxiom;
 
 /**

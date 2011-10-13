@@ -4,7 +4,6 @@ import java.util.Collection;
 
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClassAxiom;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 
 /**
  * OWLClassAxiomHGDB.

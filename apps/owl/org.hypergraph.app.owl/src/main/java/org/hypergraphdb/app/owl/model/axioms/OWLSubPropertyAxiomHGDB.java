@@ -2,19 +2,11 @@ package org.hypergraphdb.app.owl.model.axioms;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
-import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLAxiomVisitor;
-import org.semanticweb.owlapi.model.OWLAxiomVisitorEx;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLObjectVisitor;
-import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import org.semanticweb.owlapi.model.OWLSubPropertyAxiom;
 
