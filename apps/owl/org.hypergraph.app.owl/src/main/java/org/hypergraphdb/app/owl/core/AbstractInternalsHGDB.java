@@ -1090,15 +1090,33 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 		Maps.AnnotationAssertionAxiomsBySubject.initMap(this);
 		return getReturnSet(getAxioms(subject, annotationAssertionAxiomsBySubject, false));
 	}
-
+	
+	/**
+	 * See OWLOntology interface documentation.
+	 */
 	public Set<OWLClassAxiom> getAxioms(OWLClass cls) {
 		HGHandle clsHandle = graph.getHandle(cls);
 		List<OWLClassAxiom> l;
 		if (clsHandle != null) { 
-			l = ontology.getAll(hg.and(
-					hg.typePlus(OWLClassAxiom.class)
-					//links of any arity returned. 
-					,hg.incident(clsHandle)));
+		l = ontology.getAll(hg.or(
+				hg.and(
+						hg.type(OWLSubClassOfAxiomHGDB.class)
+						,hg.orderedLink(clsHandle, hg.anyHandle()))
+				, hg.and(
+						hg.or(
+								hg.type(OWLEquivalentClassesAxiomHGDB.class),
+								hg.type(OWLDisjointClassesAxiomHGDB.class),
+								hg.type(OWLDisjointUnionAxiomHGDB.class)
+								),
+						hg.incident(clsHandle)
+					 )
+		));
+		
+//		if (clsHandle != null) { 
+//			l = ontology.getAll(hg.and(
+//					hg.typePlus(OWLClassAxiom.class)
+//					//links of any arity returned. 
+//					,hg.incident(clsHandle)));
 		} else {
 			System.out.println("WARNING: graph.getHandle(" + cls + ") in getAxioms(OWLClass) returned null");
 			l = null;
