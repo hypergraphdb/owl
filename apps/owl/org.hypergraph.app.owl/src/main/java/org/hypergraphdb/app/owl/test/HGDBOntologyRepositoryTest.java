@@ -4,6 +4,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 
+import junit.framework.TestCase;
+
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -24,7 +26,7 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  * @created Oct 6, 2011
  */
-public class HGDBOntologyRepositoryTest {
+public class HGDBOntologyRepositoryTest extends TestCase {
 	private StopWatch s = new StopWatch();
 
 	OWLOntology o;
