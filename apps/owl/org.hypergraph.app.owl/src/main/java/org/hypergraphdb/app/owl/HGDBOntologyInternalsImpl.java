@@ -133,12 +133,13 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	 * incidenceset count > 0. We should remove such entities. hilpold
 	 */
 	public boolean isDeclared(OWLDeclarationAxiom ax) {
-		HGHandle entityHandle = graph.getHandle(ax.getEntity());
-		if (entityHandle != null) {
-			return graph.getIncidenceSet(entityHandle).size() > 0;
-		} else {
-			return (graph.getHandle(ax) != null);
-		}
+		return containsAxiom(ax);
+//		HGHandle entityHandle = graph.getHandle(ax.getEntity());
+//		if (entityHandle != null) {
+//			return graph.getIncidenceSet(entityHandle).size() > 0;
+//		} else {
+//			return (graph.getHandle(ax) != null);
+//		}
 		// old return declarationsByEntity.containsKey(ax.getEntity());
 	}
 
@@ -214,6 +215,9 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		return getReturnSet(getAxioms(individual, owlAnonymousIndividualReferences, false));
 	}
 
+	/**
+	 * 2011.10.13: return only axioms in Ontology!
+	 */
 	public Set<OWLAxiom> getReferencingAxioms(final OWLEntity owlEntity) {
 		// TODO use static type map instead of OWLENTITY.class ->
 		// owlEntity.getClass() works.
@@ -248,7 +252,8 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 				if (owlEntityHandle == null) {
 					l = Collections.emptyList();
 				} else {
-					l = hg.getAll(graph, hg.and(hg.typePlus(OWLAxiom.class), hg.incident(owlEntityHandle)));
+					l = ontology.getAll(hg.and(hg.typePlus(OWLAxiom.class), hg.incident(owlEntityHandle)));
+					//l = hg.getAll(graph, hg.and(hg.typePlus(OWLAxiom.class), hg.incident(owlEntityHandle)));
 				}
 				return l;
 			}
@@ -398,11 +403,18 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	public boolean containsAxiom(OWLAxiom axiom) {
-		HGHandle axiomHandle = graph.getHandle(axiom);
-		// true iff found in graph and in ontology
-		return (axiomHandle == null) ? false : ontology.get(axiomHandle) != null;
-		// old Set<OWLAxiom> axioms = axiomsByType.get(axiom.getAxiomType());
-		// return axioms != null && axioms.contains(axiom);
+		//TODO this is expensive !! Maybe implement a complex search condition based on equals in each axiom type.
+		//Called by OWLCellrenderer true will render an entity in bold font.
+		Class<?> hgdbType = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiom.getAxiomType());
+		List<?> axiomsOneTypeInOnto = ontology.getAll(hg.type(hgdbType));
+		return axiomsOneTypeInOnto.contains(axiom);
+		
+//		//TODO will not work 2011.10.13; must rely on equals code in axiom 
+//		HGHandle axiomHandle = graph.getHandle(axiom);
+//		// true iff found in graph and in ontology
+//		return (axiomHandle == null) ? false : ontology.get(axiomHandle) != null;
+//		// old Set<OWLAxiom> axioms = axiomsByType.get(axiom.getAxiomType());
+//		// return axioms != null && axioms.contains(axiom);
 	}
 
 	public int getAxiomCount() {
@@ -534,6 +546,10 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		// TODO implement more axiom types and remove check when done
 		if (DBG) {
 			log.info("ADD Axiom: " + axiom.getClass().getSimpleName() + "Type: " + type);
+		}
+		if (containsAxiom(axiom)) {
+			log.severe("DUPLICATE AXIOM WILL BE ADDED TO ONTOLOGY");
+			//A graph may contain duplicates, an ontology not.
 		}
 		if (AxiomTypeToHGDBMap.getAxiomClassHGDB(type) != null) {
 			graph.getTransactionManager().transact(new Callable<Boolean>() {
@@ -924,17 +940,17 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		return containsOWLEntityOntology(c.getIRI(), OWLAnnotationPropertyHGDB.class);
 	}
 
-	/**
-	 * This is an expensive operation, because the hashmap has to be created.
-	 * Maybe the hashmap should be lazy and backed by HG? (Protege never calls
-	 * this.)
-	 */
-	public Map<OWLEntity, Set<OWLDeclarationAxiom>> getDeclarationsByEntity() {
-		// return new HashMap<OWLEntity, Set<OWLDeclarationAxiom>>(
-		// this.declarationsByEntity);
-		// hilpold - for now.
-		return null;
-	}
+//	/**
+//	 * This is an expensive operation, because the hashmap has to be created.
+//	 * Maybe the hashmap should be lazy and backed by HG? (Protege never calls
+//	 * this.)
+//	 */
+//	public Map<OWLEntity, Set<OWLDeclarationAxiom>> getDeclarationsByEntity() {
+//		// return new HashMap<OWLEntity, Set<OWLDeclarationAxiom>>(
+//		// this.declarationsByEntity);
+//		// hilpold - for now.
+//		return null;
+//	}
 
 	// public void removeDeclarationsByEntity(OWLEntity c, OWLDeclarationAxiom
 	// ax) {

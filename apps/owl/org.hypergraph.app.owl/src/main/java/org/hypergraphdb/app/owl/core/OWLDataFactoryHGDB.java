@@ -842,20 +842,13 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
         	//2010.10.06 not acceptable anymore: return new OWLDeclarationAxiomImpl(this, owlEntity, annotations);
         	throw new IllegalStateException("Could not find owlEntity in Cache or store." + owlEntity);
         }
-//hilpold 2011.10.06 we do not care, whether it exists here. Just as the original implementation.
-//The axiom shall be added to the graph later, when the user emits a applychanges to the ontology.
-//        //Check if OWLDeclarationAxiom already exists.
-//        axiom = hg.getOne(graph, hg.and(
-//        		hg.type(OWLDeclarationAxiomHGDB.class),
-//        		hg.link(owlEntityHandle)
-//        		));
-//        if (axiom == null) {
+//hilpold 2011.10.13 
+// An equal (see equals()) one might exist, so we must not add a duplicate to the graph here.
+// But we also do not check, if an equal one exists, just as the original implementation.         
+// The axiom shall be added to the graph later, when the user emits a applychanges to the ontology.
+// We do not check, whether the axiom already exists here because the actual equals method is complex and also considers annotations.       
        	axiom = new OWLDeclarationAxiomHGDB(owlEntityHandle, annotations);
        	axiom.setHyperGraph(graph);
-//        	//TODO maybe we shall not do this here, but wait for appliedChanges,
-//        	//especially for axiom.
-//            graph.add(axiom);
-//        }
         return axiom;
     }
 
