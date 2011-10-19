@@ -23,6 +23,11 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 public class OWLDisjointClassesAxiomHGDB extends OWLNaryClassAxiomHGDB implements
 		OWLDisjointClassesAxiom {
 
+	
+    public OWLDisjointClassesAxiomHGDB(HGHandle...args) {    	
+    	super(args);
+    } 
+
     public OWLDisjointClassesAxiomHGDB(Set<? extends HGHandle> classExpressions, Set<? extends OWLAnnotation> annotations) {
     	//TODO assert HGHandle atom type extends OWLClassExpression
         super(classExpressions, annotations);
