@@ -1,5 +1,6 @@
 package org.hypergraphdb.app.owl.model.classexpr.restrict;
 
+import org.hypergraphdb.HGException;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.app.owl.model.classexpr.OWLAnonymousClassExpressionHGDB;
@@ -22,9 +23,9 @@ public abstract class OWLRestrictionHGDB<R extends OWLPropertyRange, P extends O
     //private P property;
 
     public OWLRestrictionHGDB(HGHandle property) {
+    	if (property == null) throw new IllegalArgumentException("Property was null");
         propertyHandle = property;
     }
-
 
     public boolean isClassExpressionLiteral() {
         return false;
@@ -47,4 +48,44 @@ public abstract class OWLRestrictionHGDB<R extends OWLPropertyRange, P extends O
         }
         return false;
     }
+    
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.HGLink#getArity()
+	 * This will be overridden in subclasses.
+	 */
+	@Override
+	public int getArity() {
+		return 1;
+	}
+
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.HGLink#getTargetAt(int)
+	 */
+	@Override
+	public HGHandle getTargetAt(int i) {
+		if (i < 0 || i >= getArity()) throw new HGException("Index i must be within [0..getArity()-1]. Was : " + i);
+		return propertyHandle;
+	}
+
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int, org.hypergraphdb.HGHandle)
+	 */
+	@Override
+	public void notifyTargetHandleUpdate(int i, HGHandle handle) {
+		if (i < 0 || i >= getArity()) throw new HGException("Index i must be within [0..getArity()-1]. Was : " + i);
+		propertyHandle = handle;		
+	}
+
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.HGLink#notifyTargetRemoved(int)
+	 */
+	@Override
+	public void notifyTargetRemoved(int i) {
+		if (i < 0 || i >= getArity()) throw new HGException("Index i must be within [0..getArity()-1]. Was : " + i);
+		propertyHandle = null;
+	}
 }
