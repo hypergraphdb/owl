@@ -2,47 +2,52 @@ package org.hypergraphdb.app.owl.model.classexpr.restrict;
 
 import org.hypergraphdb.HGHandle;
 import org.semanticweb.owlapi.model.ClassExpressionType;
-import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLClassExpressionVisitor;
 import org.semanticweb.owlapi.model.OWLClassExpressionVisitorEx;
-import org.semanticweb.owlapi.model.OWLDataExactCardinality;
+import org.semanticweb.owlapi.model.OWLObjectAllValuesFrom;
 import org.semanticweb.owlapi.model.OWLObjectVisitor;
 import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
 
 /**
- * OWLDataExactCardinalityHGDB.
+ * OWLObjectAllValuesFromHGDB.
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
- * @created Oct 18, 2011
+ * @created Oct 19, 2011
  */
-public class OWLDataExactCardinalityHGDB extends OWLDataCardinalityRestrictionHGDB implements OWLDataExactCardinality {
-
+public class OWLObjectAllValuesFromHGDB extends OWLQuantifiedObjectRestrictionHGDB implements OWLObjectAllValuesFrom {
+    
 	/**
 	 * @param args [0]...property, [1]...filler
 	 */
-    public OWLDataExactCardinalityHGDB(HGHandle... args) {
-    	super(args[0], 0, args[1]);
-    	//TODO we call with 0 cardinality here, test that HG sets it later.
+    public OWLObjectAllValuesFromHGDB(HGHandle... args) {
+    	super(args[0], args[1]);
     	if (args.length != 2) throw new IllegalArgumentException("Must be exactly 2 handles.");
     }
-
-	public OWLDataExactCardinalityHGDB(HGHandle property, int cardinality, HGHandle filler) {
-        super(property, cardinality, filler);
+	
+    public OWLObjectAllValuesFromHGDB(HGHandle property, int cardinality, HGHandle filler) {
+    	//TODO check types: OWLObjectPropertyExpression property, OWLClassExpression filler
+        super(property, filler);
     }
-
 
     /**
      * Gets the class expression type for this class expression
      * @return The class expression type
      */
     public ClassExpressionType getClassExpressionType() {
-        return ClassExpressionType.DATA_EXACT_CARDINALITY;
+        return ClassExpressionType.OBJECT_ALL_VALUES_FROM;
     }
 
+    public boolean isObjectRestriction() {
+        return true;
+    }
+
+    public boolean isDataRestriction() {
+        return false;
+    }
 
     @Override
 	public boolean equals(Object obj) {
         if (super.equals(obj)) {
-            return obj instanceof OWLDataExactCardinality;
+            return obj instanceof OWLObjectAllValuesFrom;
         }
         return false;
     }
@@ -62,11 +67,6 @@ public class OWLDataExactCardinalityHGDB extends OWLDataCardinalityRestrictionHG
 
     public <O> O accept(OWLObjectVisitorEx<O> visitor) {
         return visitor.visit(this);
-    }
-
-
-    public OWLClassExpression asIntersectionOfMinMax() {
-        return getOWLDataFactory().getOWLObjectIntersectionOf(getOWLDataFactory().getOWLDataMinCardinality(getCardinality(), getProperty(), getFiller()), getOWLDataFactory().getOWLDataMaxCardinality(getCardinality(), getProperty(), getFiller()));
     }
 
 }

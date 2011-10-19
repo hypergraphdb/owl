@@ -2,49 +2,46 @@ package org.hypergraphdb.app.owl.model.classexpr.restrict;
 
 import org.hypergraphdb.HGException;
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.HGLink;
-import org.hypergraphdb.app.owl.model.classexpr.OWLAnonymousClassExpressionHGDB;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import org.semanticweb.owlapi.model.OWLPropertyRange;
-import org.semanticweb.owlapi.model.OWLRestriction;
+import org.semanticweb.owlapi.model.OWLQuantifiedRestriction;
+
 
 /**
- * OWLRestrictionHGDB.
+ * OWLQuantifiedRestrictionHGDB.
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
- * @created Oct 18, 2011
+ * @created Oct 19, 2011
  */
-public abstract class OWLRestrictionHGDB<R extends OWLPropertyRange, P extends OWLPropertyExpression<R, P>, F> extends OWLAnonymousClassExpressionHGDB implements HGLink, OWLRestriction<R, P, F> {
+public abstract class OWLQuantifiedRestrictionHGDB <R extends OWLPropertyRange, P extends OWLPropertyExpression<R, P>, F extends OWLPropertyRange> extends OWLRestrictionHGDB<R, P, F> 
+		implements OWLQuantifiedRestriction<R, P, F>  {
+	
+	
+    //private F filler;
+	private HGHandle fillerHandle;
 
-    private HGHandle propertyHandle;
-    //private P property;
 
-    public OWLRestrictionHGDB(HGHandle property) {
-    	if (property == null) throw new IllegalArgumentException("Property was null");
-        propertyHandle = property;
+    public OWLQuantifiedRestrictionHGDB(HGHandle property, HGHandle filler) {
+    	///TODO check type P property, F filler
+        super(property);
+        fillerHandle = filler;
     }
 
-    public boolean isClassExpressionLiteral() {
-        return false;
-    }
 
-
-    public P getProperty() {
-    	return getHyperGraph().get(propertyHandle);
-        //return property;
+    public F getFiller() {
+        return getHyperGraph().get(fillerHandle);
     }
 
 
     @Override
 	public boolean equals(Object obj) {
         if (super.equals(obj)) {
-            if (!(obj instanceof OWLRestriction)) {
-                return false;
+            if (obj instanceof OWLQuantifiedRestriction) {
+                return ((OWLQuantifiedRestriction<?,?,?>) obj).getFiller().equals(getFiller());
             }
-            return ((OWLRestriction<?,?,?>) obj).getProperty().equals(getProperty());
         }
         return false;
     }
-    
+
 
 	/* (non-Javadoc)
 	 * @see org.hypergraphdb.HGLink#getArity()
@@ -52,9 +49,8 @@ public abstract class OWLRestrictionHGDB<R extends OWLPropertyRange, P extends O
 	 */
 	@Override
 	public int getArity() {
-		return 1;
+		return 2;
 	}
-
 
 	/* (non-Javadoc)
 	 * @see org.hypergraphdb.HGLink#getTargetAt(int)
@@ -62,9 +58,12 @@ public abstract class OWLRestrictionHGDB<R extends OWLPropertyRange, P extends O
 	@Override
 	public HGHandle getTargetAt(int i) {
 		if (i < 0 || i >= getArity()) throw new HGException("Index i must be within [0..getArity()-1]. Was : " + i);
-		return propertyHandle;
+		if (i == 0) {
+			return super.getTargetAt(i);
+		} else { // i == 1
+			return fillerHandle;
+		}
 	}
-
 
 	/* (non-Javadoc)
 	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int, org.hypergraphdb.HGHandle)
@@ -72,9 +71,12 @@ public abstract class OWLRestrictionHGDB<R extends OWLPropertyRange, P extends O
 	@Override
 	public void notifyTargetHandleUpdate(int i, HGHandle handle) {
 		if (i < 0 || i >= getArity()) throw new HGException("Index i must be within [0..getArity()-1]. Was : " + i);
-		propertyHandle = handle;		
+		if (i == 0) {
+			super.notifyTargetHandleUpdate(i, handle);
+		} else { // i == 1
+			fillerHandle = handle;
+		}
 	}
-
 
 	/* (non-Javadoc)
 	 * @see org.hypergraphdb.HGLink#notifyTargetRemoved(int)
@@ -82,6 +84,10 @@ public abstract class OWLRestrictionHGDB<R extends OWLPropertyRange, P extends O
 	@Override
 	public void notifyTargetRemoved(int i) {
 		if (i < 0 || i >= getArity()) throw new HGException("Index i must be within [0..getArity()-1]. Was : " + i);
-		propertyHandle = null;
+		if (i == 0) {
+			super.notifyTargetRemoved(i);
+		} else { // i == 1
+			fillerHandle = null;
+		}
 	}
 }
