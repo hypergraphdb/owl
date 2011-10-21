@@ -18,7 +18,6 @@ import org.hypergraphdb.IncidenceSet;
 import org.hypergraphdb.annotation.HGIgnore;
 import org.hypergraphdb.app.owl.core.ChangeAxiomVisitorHGDB;
 import org.hypergraphdb.app.owl.core.OWLSubgraphObject;
-import org.hypergraphdb.query.HGQueryCondition;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
@@ -1703,7 +1702,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		axiom.accept(entityCollector);
 		for (OWLEntity object : sig) {
 			// if it's not a member of our onto and we refer to it, add it,
-			// unless it's a builtin Entity.
+			// including builtin Entities, as they can be in many ontologies.
 			//2010.10.12 if (!object.isBuiltIn()) {
 				HGHandle objectHandle = graph.getHandle(object);
 				if (objectHandle != null) {
@@ -1716,7 +1715,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 					throw new IllegalStateException("getHandle(entity) for entity in memory returned null. Implement find?");
 				}
 //			} else {
-//				//builtin not added to onto.
+//				// builtin not added to onto.
 //				if (DBG) log.info("handleAxiomAdded: found builtin entity in Axiom signature: " + object);
 //			}
 		}
@@ -1759,11 +1758,13 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 						// Get onto incidence set of atoms that are members.
 						IncidenceSet is = this.getIncidenceSet(objectHandle);
 						if (DBG) printIncidenceSets(objectHandle);
+						// REMOVE IF NO MORE AXIOM IN THE ONTO POINTS TO IT DIRECTLY OR INDIRECTLY
+						//TODO need to check far more here: size is not an indicator for removal if we have dangling ClassExpressions in the graph that are not in any axiom.
 						if (is.size() == 0) {
 							this.remove(objectHandle);
-							//2011.10.11 DO NOT REMOVE Entity without references from graph,
+							// 2011.10.11 DO NOT REMOVE Entity without references from graph,
 							// because it change propagation might want to refer to it.
-							//graph.remove(objectHandle);							
+							// graph.remove(objectHandle);							
 						}
 					} else {
 							throw new IllegalStateException("Just removed an axiom that did refer to an entity outside our ontology:" + object);

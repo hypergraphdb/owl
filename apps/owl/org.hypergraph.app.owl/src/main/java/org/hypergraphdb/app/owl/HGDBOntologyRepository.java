@@ -46,7 +46,7 @@ public class HGDBOntologyRepository {
 	/**
 	 * Set this to >0 to create Test Ontologies Data on startup.
 	 */
-	public static final int ENSURE_TEST_ONTOLOGY_COUNT = 10; 
+	public static final int ENSURE_TEST_ONTOLOGY_COUNT = 3; 
 	
 	/**
 	 * Preliminary fixed location of a hypergraph instance. 

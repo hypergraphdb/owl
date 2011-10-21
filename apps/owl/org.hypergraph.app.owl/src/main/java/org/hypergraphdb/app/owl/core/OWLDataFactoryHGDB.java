@@ -19,13 +19,30 @@ import org.hypergraphdb.app.owl.model.axioms.OWLSubAnnotationPropertyOfAxiomHGDB
 import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubDataPropertyOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubObjectPropertyOfAxiomHGDB;
+import org.hypergraphdb.app.owl.model.classexpr.OWLObjectComplementOfHGDB;
+import org.hypergraphdb.app.owl.model.classexpr.OWLObjectIntersectionOfHGDB;
+import org.hypergraphdb.app.owl.model.classexpr.OWLObjectOneOfHGDB;
+import org.hypergraphdb.app.owl.model.classexpr.OWLObjectUnionOfHGDB;
+import org.hypergraphdb.app.owl.model.classexpr.restrict.OWLDataAllValuesFromHGDB;
+import org.hypergraphdb.app.owl.model.classexpr.restrict.OWLDataExactCardinalityHGDB;
+import org.hypergraphdb.app.owl.model.classexpr.restrict.OWLDataHasValueHGDB;
+import org.hypergraphdb.app.owl.model.classexpr.restrict.OWLDataMaxCardinalityHGDB;
+import org.hypergraphdb.app.owl.model.classexpr.restrict.OWLDataMinCardinalityHGDB;
+import org.hypergraphdb.app.owl.model.classexpr.restrict.OWLDataSomeValuesFromHGDB;
+import org.hypergraphdb.app.owl.model.classexpr.restrict.OWLObjectAllValuesFromHGDB;
+import org.hypergraphdb.app.owl.model.classexpr.restrict.OWLObjectExactCardinalityHGDB;
+import org.hypergraphdb.app.owl.model.classexpr.restrict.OWLObjectHasSelfHGDB;
+import org.hypergraphdb.app.owl.model.classexpr.restrict.OWLObjectHasValueHGDB;
+import org.hypergraphdb.app.owl.model.classexpr.restrict.OWLObjectMaxCardinalityHGDB;
+import org.hypergraphdb.app.owl.model.classexpr.restrict.OWLObjectMinCardinalityHGDB;
+import org.hypergraphdb.app.owl.model.classexpr.restrict.OWLObjectSomeValuesFromHGDB;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.CollectionFactory;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import org.semanticweb.owlapi.vocab.XSDVocabulary;
-
+//51 to go
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationAssertionAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationPropertyDomainAxiomImpl;
@@ -33,19 +50,13 @@ import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationPropertyRangeAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnonymousIndividualImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAsymmetricObjectPropertyAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLClassAssertionImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLDataAllValuesFromImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataComplementOfImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLDataExactCardinalityImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternals;
-import uk.ac.manchester.cs.owl.owlapi.OWLDataHasValueImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataIntersectionOfImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLDataMaxCardinalityImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLDataMinCardinalityImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataOneOfImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataPropertyAssertionAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataPropertyDomainAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataPropertyRangeAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLDataSomeValuesFromImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataUnionOfImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDatatypeDefinitionAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDatatypeRestrictionImpl;
@@ -65,21 +76,10 @@ import uk.ac.manchester.cs.owl.owlapi.OWLIrreflexiveObjectPropertyAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLLiteralImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLNegativeDataPropertyAssertionImplAxiom;
 import uk.ac.manchester.cs.owl.owlapi.OWLNegativeObjectPropertyAssertionAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectAllValuesFromImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectComplementOfImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectExactCardinalityImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectHasSelfImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectHasValueImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectIntersectionOfImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLObjectInverseOfImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectMaxCardinalityImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectMinCardinalityImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectOneOfImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLObjectPropertyAssertionAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLObjectPropertyDomainAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLObjectPropertyRangeAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectSomeValuesFromImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectUnionOfImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLReflexiveObjectPropertyAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLSameIndividualAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLSubPropertyChainAxiomImpl;
@@ -598,25 +598,38 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 
     public OWLObjectIntersectionOf getOWLObjectIntersectionOf(Set<? extends OWLClassExpression> operands) {
-        return new OWLObjectIntersectionOfImpl(this, operands);
+    	Set<HGHandle> operandHandles = getHandlesSetFor(operands);
+    	OWLObjectIntersectionOfHGDB o = new OWLObjectIntersectionOfHGDB(operandHandles);
+    	graph.add(o);
+    	return o;    	
+        //return new OWLObjectIntersectionOfImpl(this, operands);
     }
 
 
     public OWLObjectIntersectionOf getOWLObjectIntersectionOf(OWLClassExpression... operands) {
         return getOWLObjectIntersectionOf(CollectionFactory.createSet(operands));
     }
-
-
+    
     public OWLDataAllValuesFrom getOWLDataAllValuesFrom(OWLDataPropertyExpression property, OWLDataRange dataRange) {
         if(dataRange == null) {
             throw new NullPointerException("The filler of the restriction (dataRange) must not be null");
         }
-        return new OWLDataAllValuesFromImpl(this, property, dataRange);
+    	HGHandle dataRangeHandle = graph.getHandle(dataRange);
+    	HGHandle propertyHandle = graph.getHandle(property);
+    	OWLDataAllValuesFrom o = new OWLDataAllValuesFromHGDB(propertyHandle, dataRangeHandle);
+    	graph.add(o);
+    	return o;
+        //return new OWLDataAllValuesFromImpl(this, property, dataRange);
     }
 
 
     public OWLDataExactCardinality getOWLDataExactCardinality(int cardinality, OWLDataPropertyExpression property) {
-        return new OWLDataExactCardinalityImpl(this, property, cardinality, getTopDatatype());
+    	HGHandle topDataTypeHandle = graph.getHandle(getTopDatatype());
+    	HGHandle propertyHandle = graph.getHandle(property);
+    	OWLDataExactCardinality o = new OWLDataExactCardinalityHGDB(propertyHandle, cardinality, topDataTypeHandle);
+    	graph.add(o);
+    	return o;
+        //return new OWLDataExactCardinalityImpl(this, property, cardinality, getTopDatatype());
     }
 
 
@@ -624,12 +637,22 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
         if(dataRange == null) {
             throw new NullPointerException("The filler of the restriction (dataRange) must not be null");
         }
-        return new OWLDataExactCardinalityImpl(this, property, cardinality, dataRange);
+    	HGHandle dataRangeHandle = graph.getHandle(dataRange);
+    	HGHandle propertyHandle = graph.getHandle(property);
+    	OWLDataExactCardinality o = new OWLDataExactCardinalityHGDB(propertyHandle, cardinality, dataRangeHandle);
+    	graph.add(o);
+    	return o;
+    	//return new OWLDataExactCardinalityImpl(this, property, cardinality, dataRange);
     }
 
 
     public OWLDataMaxCardinality getOWLDataMaxCardinality(int cardinality, OWLDataPropertyExpression property) {
-        return new OWLDataMaxCardinalityImpl(this, property, cardinality, getTopDatatype());
+    	HGHandle topDataTypeHandle = graph.getHandle(getTopDatatype());
+    	HGHandle propertyHandle = graph.getHandle(property);
+    	OWLDataMaxCardinality o = new OWLDataMaxCardinalityHGDB(propertyHandle, cardinality, topDataTypeHandle);
+    	graph.add(o);
+    	return o;
+//        return new OWLDataMaxCardinalityImpl(this, property, cardinality, getTopDatatype());
     }
 
 
@@ -637,12 +660,22 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
         if(dataRange == null) {
             throw new NullPointerException("The filler of the restriction (dataRange) must not be null");
         }
-        return new OWLDataMaxCardinalityImpl(this, property, cardinality, dataRange);
+    	HGHandle dataRangeHandle = graph.getHandle(dataRange);
+    	HGHandle propertyHandle = graph.getHandle(property);
+    	OWLDataMaxCardinality o = new OWLDataMaxCardinalityHGDB(propertyHandle, cardinality, dataRangeHandle);
+    	graph.add(o);
+    	return o;
+//        return new OWLDataMaxCardinalityImpl(this, property, cardinality, dataRange);
     }
 
 
     public OWLDataMinCardinality getOWLDataMinCardinality(int cardinality, OWLDataPropertyExpression property) {
-        return new OWLDataMinCardinalityImpl(this, property, cardinality, getTopDatatype());
+    	HGHandle topDataTypeHandle = graph.getHandle(getTopDatatype());
+    	HGHandle propertyHandle = graph.getHandle(property);
+    	OWLDataMinCardinality o = new OWLDataMinCardinalityHGDB(propertyHandle, cardinality, topDataTypeHandle);
+    	graph.add(o);
+    	return o;
+//        return new OWLDataMinCardinalityImpl(this, property, cardinality, getTopDatatype());
     }
 
 
@@ -650,7 +683,12 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
         if(dataRange == null) {
             throw new NullPointerException("The filler of the restriction (dataRange) must not be null");
         }
-        return new OWLDataMinCardinalityImpl(this, property, cardinality, dataRange);
+    	HGHandle dataRangeHandle = graph.getHandle(dataRange);
+    	HGHandle propertyHandle = graph.getHandle(property);
+    	OWLDataMinCardinality o = new OWLDataMinCardinalityHGDB(propertyHandle, cardinality, dataRangeHandle);
+    	graph.add(o);
+    	return o;
+//        return new OWLDataMinCardinalityImpl(this, property, cardinality, dataRange);
     }
 
 
@@ -658,17 +696,33 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
         if(dataRange == null) {
             throw new NullPointerException("The filler of the restriction (dataRange) must not be null");
         }
-        return new OWLDataSomeValuesFromImpl(this, property, dataRange);
+    	HGHandle dataRangeHandle = graph.getHandle(dataRange);
+    	HGHandle propertyHandle = graph.getHandle(property);
+    	OWLDataSomeValuesFrom o = new OWLDataSomeValuesFromHGDB(propertyHandle, dataRangeHandle);
+    	graph.add(o);
+    	return o;
+//        return new OWLDataSomeValuesFromImpl(this, property, dataRange);
     }
 
 
     public OWLDataHasValue getOWLDataHasValue(OWLDataPropertyExpression property, OWLLiteral value) {
-        return new OWLDataHasValueImpl(this, property, value);
+    	HGHandle propertyHandle = graph.getHandle(property);
+    	HGHandle valueHandle = graph.getHandle(value);
+    	OWLDataHasValue o = new OWLDataHasValueHGDB(propertyHandle, valueHandle);
+    	graph.add(o);
+    	return o;
+        //return new OWLDataHasValueImpl(this, property, value);
     }
 
 
     public OWLObjectComplementOf getOWLObjectComplementOf(OWLClassExpression operand) {
-        return new OWLObjectComplementOfImpl(this, operand);
+    	HGHandle operandHandle = graph.getHandle(operand);
+    	OWLObjectComplementOfHGDB o = new OWLObjectComplementOfHGDB(operandHandle);
+    	graph.add(o);
+    	return o;
+    	//TODO consider: shall this ever become part of an ontology? Flyweight?
+    	// existency dependent on Axiom?
+        // return new OWLObjectComplementOfImpl(this, operand);
     }
 
 
@@ -676,22 +730,37 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
         if(classExpression == null) {
             throw new NullPointerException("The filler of the restriction (classExpression) must not be null");
         }
-        return new OWLObjectAllValuesFromImpl(this, property, classExpression);
+    	HGHandle classExpressionHandle = graph.getHandle(classExpression);
+    	HGHandle propertyHandle = graph.getHandle(property);
+    	OWLObjectAllValuesFrom o = new OWLObjectAllValuesFromHGDB(propertyHandle, classExpressionHandle);
+    	graph.add(o);
+    	return o;
+        //return new OWLObjectAllValuesFromImpl(this, property, classExpression);
     }
 
 
     public OWLObjectOneOf getOWLObjectOneOf(Set<? extends OWLIndividual> values) {
-        return new OWLObjectOneOfImpl(this, values);
+    	Set<HGHandle> individualHandles = getHandlesSetFor(values);
+    	OWLObjectOneOfHGDB o = new OWLObjectOneOfHGDB(individualHandles);
+    	graph.add(o);
+    	return o;
+        //return new OWLObjectOneOfImpl(this, values);
     }
 
 
     public OWLObjectOneOf getOWLObjectOneOf(OWLIndividual... individuals) {
-        return getOWLObjectOneOf(CollectionFactory.createSet(individuals));
+    	Set<OWLIndividual> individualsSet = CollectionFactory.createSet(individuals);    	
+        return getOWLObjectOneOf(individualsSet);
     }
 
 
     public OWLObjectExactCardinality getOWLObjectExactCardinality(int cardinality, OWLObjectPropertyExpression property) {
-        return new OWLObjectExactCardinalityImpl(this, property, cardinality, OWL_THING);
+    	HGHandle OWL_THING_Handle = graph.getHandle(OWL_THING);
+    	HGHandle propertyHandle = graph.getHandle(property);
+    	OWLObjectExactCardinality o = new OWLObjectExactCardinalityHGDB(propertyHandle, cardinality, OWL_THING_Handle);
+    	graph.add(o);
+    	return o;
+    	//return new OWLObjectExactCardinalityImpl(this, property, cardinality, OWL_THING);
     }
 
 
@@ -699,12 +768,22 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
         if(classExpression == null) {
             throw new NullPointerException("The filler of the restriction (classExpression) must not be null");
         }
-        return new OWLObjectExactCardinalityImpl(this, property, cardinality, classExpression);
+    	HGHandle propertyHandle = graph.getHandle(property);
+    	HGHandle classExpressionHandle = graph.getHandle(classExpression);
+    	OWLObjectExactCardinality o = new OWLObjectExactCardinalityHGDB(propertyHandle, cardinality, classExpressionHandle);
+    	graph.add(o);
+    	return o;
+        //return new OWLObjectExactCardinalityImpl(this, property, cardinality, classExpression);
     }
 
 
     public OWLObjectMinCardinality getOWLObjectMinCardinality(int cardinality, OWLObjectPropertyExpression property) {
-        return new OWLObjectMinCardinalityImpl(this, property, cardinality, OWL_THING);
+    	HGHandle OWL_THING_Handle = graph.getHandle(OWL_THING);
+    	HGHandle propertyHandle = graph.getHandle(property);
+    	OWLObjectMinCardinality o = new OWLObjectMinCardinalityHGDB(propertyHandle, cardinality, OWL_THING_Handle);
+    	graph.add(o);
+    	return o;
+//        return new OWLObjectMinCardinalityImpl(this, property, cardinality, OWL_THING);
     }
 
 
@@ -712,12 +791,22 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
         if(classExpression == null) {
             throw new NullPointerException("The filler of the restriction (classExpression) must not be null");
         }
-        return new OWLObjectMinCardinalityImpl(this, property, cardinality, classExpression);
+    	HGHandle propertyHandle = graph.getHandle(property);
+    	HGHandle classExpressionHandle = graph.getHandle(classExpression);
+    	OWLObjectMinCardinality o = new OWLObjectMinCardinalityHGDB(propertyHandle, cardinality, classExpressionHandle);
+    	graph.add(o);
+    	return o;
+        //return new OWLObjectMinCardinalityImpl(this, property, cardinality, classExpression);
     }
 
 
     public OWLObjectMaxCardinality getOWLObjectMaxCardinality(int cardinality, OWLObjectPropertyExpression property) {
-        return new OWLObjectMaxCardinalityImpl(this, property, cardinality, OWL_THING);
+    	HGHandle OWL_THING_Handle = graph.getHandle(OWL_THING);
+    	HGHandle propertyHandle = graph.getHandle(property);
+    	OWLObjectMaxCardinality o = new OWLObjectMaxCardinalityHGDB(propertyHandle, cardinality, OWL_THING_Handle);
+    	graph.add(o);
+    	return o;
+//        return new OWLObjectMaxCardinalityImpl(this, property, cardinality, OWL_THING);
     }
 
 
@@ -725,30 +814,51 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
         if(classExpression == null) {
             throw new NullPointerException("The filler of the restriction (classExpression) must not be null");
         }
-        return new OWLObjectMaxCardinalityImpl(this, property, cardinality, classExpression);
+    	HGHandle propertyHandle = graph.getHandle(property);
+    	HGHandle classExpressionHandle = graph.getHandle(classExpression);
+    	OWLObjectMaxCardinality o = new OWLObjectMaxCardinalityHGDB(propertyHandle, cardinality, classExpressionHandle);
+    	graph.add(o);
+    	return o;
+//		return new OWLObjectMaxCardinalityImpl(this, property, cardinality, classExpression);
     }
-
 
     public OWLObjectHasSelf getOWLObjectHasSelf(OWLObjectPropertyExpression property) {
-        return new OWLObjectHasSelfImpl(this, property);
+    	HGHandle propertyHandle = graph.getHandle(property);
+    	OWLObjectHasSelf o = new OWLObjectHasSelfHGDB(propertyHandle);
+    	graph.add(o);
+    	return o;
+    	//return new OWLObjectHasSelfImpl(this, property);
     }
-
 
     public OWLObjectSomeValuesFrom getOWLObjectSomeValuesFrom(OWLObjectPropertyExpression property, OWLClassExpression classExpression) {
         if(classExpression == null) {
             throw new NullPointerException("The filler of the restriction (classExpression) must not be null");
         }
-        return new OWLObjectSomeValuesFromImpl(this, property, classExpression);
+    	HGHandle propertyHandle = graph.getHandle(property);
+    	HGHandle classExpressionHandle = graph.getHandle(classExpression);
+    	OWLObjectSomeValuesFrom o = new OWLObjectSomeValuesFromHGDB(propertyHandle, classExpressionHandle);
+    	graph.add(o);
+    	return o;
+    	//return new OWLObjectSomeValuesFromImpl(this, property, classExpression);
     }
 
 
     public OWLObjectHasValue getOWLObjectHasValue(OWLObjectPropertyExpression property, OWLIndividual individual) {
-        return new OWLObjectHasValueImpl(this, property, individual);
+    	HGHandle propertyHandle = graph.getHandle(property);
+    	HGHandle individualHandle = graph.getHandle(individual);
+    	OWLObjectHasValue o = new OWLObjectHasValueHGDB(propertyHandle, individualHandle);
+    	graph.add(o);
+    	return o;
+        //return new OWLObjectHasValueImpl(this, property, individual);
     }
 
 
     public OWLObjectUnionOf getOWLObjectUnionOf(Set<? extends OWLClassExpression> operands) {
-        return new OWLObjectUnionOfImpl(this, operands);
+    	Set<HGHandle> operandHandles = getHandlesSetFor(operands);
+    	OWLObjectUnionOfHGDB o = new OWLObjectUnionOfHGDB(operandHandles);
+    	graph.add(o);
+    	return o;
+    	//return new OWLObjectUnionOfImpl(this, operands);
     }
 
 

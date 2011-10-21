@@ -2,6 +2,7 @@ package org.hypergraphdb.app.owl;
 
 import static org.semanticweb.owlapi.util.CollectionFactory.createSet;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,6 +15,7 @@ import java.util.logging.Logger;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
+import org.hypergraphdb.IncidenceSet;
 import org.hypergraphdb.app.owl.core.AbstractInternalsHGDB;
 import org.hypergraphdb.app.owl.core.AxiomTypeToHGDBMap;
 import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
@@ -41,6 +43,7 @@ import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAxiom;
+import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLDatatypeDefinitionAxiom;
@@ -252,10 +255,50 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 				if (owlEntityHandle == null) {
 					l = Collections.emptyList();
 				} else {
-					l = ontology.getAll(hg.and(hg.typePlus(OWLAxiom.class), hg.incident(owlEntityHandle)));
-					//l = hg.getAll(graph, hg.and(hg.typePlus(OWLAxiom.class), hg.incident(owlEntityHandle)));
+					l = new ArrayList<OWLAxiom>();
+					//2010.10.20 we traverse incidenceset until we hit an empty set or an axiom 
+					// that is a member of our Ontology.		
+					System.out.print("Collecting axioms: ");
+					collectOntologyAxiomsRecursive(owlEntityHandle, l);
+					System.out.println();
+					System.out.println("Found : " + l.size());					
+					//old l = ontology.getAll(hg.and(hg.typePlus(OWLAxiom.class), hg.incident(owlEntityHandle)));
+					//older l = hg.getAll(graph, hg.and(hg.typePlus(OWLAxiom.class), hg.incident(owlEntityHandle)));
 				}
 				return l;
+			}
+			
+			/**
+			 * Initial call: Handle should be entity. Recursive calls will only be on ClassExpressions.
+			 * @param h Handle (Entity intially, ClassExpressionHandle on recursion)
+			 * @param l the list for the axioms. Postcondition: List has no equal axioms.
+			 * @throws IllegalStateException, if an incidenceset contains something else than  Axioms or ClassExpressions.
+			 */
+			private void collectOntologyAxiomsRecursive(HGHandle atomHandle, List<OWLAxiom> axiomList) {
+				System.out.print("*");
+				if (atomHandle == null) {
+					return;
+				} else {
+					IncidenceSet iSet = graph.getIncidenceSet(atomHandle);
+					for (HGHandle incidentAtomHandle : iSet) {
+						Object o = graph.get(incidentAtomHandle);
+						if (o != null) {
+							if (o instanceof OWLAxiom) {
+								if (ontology.isMember(incidentAtomHandle)) {
+									axiomList.add((OWLAxiom) o);
+								} // else ignore axiom not part of our onto.
+							} else {
+								// we have no cycles up incidence sets starting
+								// on an entity.
+								if (!(o instanceof OWLClassExpression)) {
+									throw new IllegalStateException(
+											"We encountered an unexpected object in an incidenceset:" + o);
+								}
+								collectOntologyAxiomsRecursive(incidentAtomHandle, axiomList);
+							}
+						} // else o == null do nothing
+					} // for
+				}
 			}
 		}, HGTransactionConfig.READONLY);
 		// if (owlEntity instanceof OWLClass) {
@@ -402,13 +445,10 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		return ontologyAnnotations.remove(ann);
 	}
 
-	public boolean containsAxiom(OWLAxiom axiom) {
-		//TODO this is expensive !! Maybe implement a complex search condition based on equals in each axiom type.
-		//Called by OWLCellrenderer true will render an entity in bold font.
-		Class<?> hgdbType = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiom.getAxiomType());
-		List<?> axiomsOneTypeInOnto = ontology.getAll(hg.type(hgdbType));
-		return axiomsOneTypeInOnto.contains(axiom);
-		
+	public boolean containsAxiom(final OWLAxiom axiom) {
+		if (axiom == null) throw new NullPointerException("axiom");
+		HGHandle h = graph.getHandle(axiom);
+		return  h != null? ontology.isMember(h): findEqualAxiom(axiom) != null; 
 //		//TODO will not work 2011.10.13; must rely on equals code in axiom 
 //		HGHandle axiomHandle = graph.getHandle(axiom);
 //		// true iff found in graph and in ontology
@@ -416,6 +456,29 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 //		// old Set<OWLAxiom> axioms = axiomsByType.get(axiom.getAxiomType());
 //		// return axioms != null && axioms.contains(axiom);
 	}
+	
+	/**
+	 * Finds an equal axiom in the graph. See the equals methods implementation in Axiom. 
+	 * The method does not test for self.
+	 * 
+	 * @param axiom an axiom object that might be equal to one in the graph.
+	 * @return an axiom object that is guaranteed to be in the graph and equal to the given axiom.
+	 */
+	protected OWLAxiom findEqualAxiom(OWLAxiom axiom) {
+		if (axiom == null) throw new NullPointerException("axiom");
+		//TODO this is expensive !! Maybe implement a complex search condition based on equals in each axiom type.
+		// Boris had ideas about bottom up search and parallel search.
+		// Called by OWLCellrenderer true will render an entity in bold font.
+		OWLAxiom foundAxiom = null;
+		Class<?> hgdbType = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiom.getAxiomType());
+		List<OWLAxiom> axiomsOneTypeInOnto = ontology.getAll(hg.type(hgdbType));
+		// Find by axiom.equal (expensive)
+		int i = axiomsOneTypeInOnto.indexOf(axiom);	
+		if (i != -1) { 
+			foundAxiom = axiomsOneTypeInOnto.get(i);
+		}
+		return foundAxiom;
+	}	
 
 	public int getAxiomCount() {
 		long count = ontology.count(hg.typePlus(OWLAxiom.class));
@@ -483,7 +546,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		return result;
 	}
 
-	public <T extends OWLAxiom> int getAxiomCount(AxiomType<T> axiomType) {
+	public <T extends OWLAxiom> int getAxiomCount(final AxiomType<T> axiomType) {
 		long axiomsOneTypeCount = 0;
 		Class<? extends OWLAxiomHGDB> hgdbAxiomClass = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiomType);
 		if (hgdbAxiomClass == null) {
@@ -542,42 +605,44 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		return logicalAxQuery;
 	}
 
-	public void addAxiomsByType(AxiomType<?> type, final OWLAxiom axiom) {
+	public void addAxiomsByType(final AxiomType<?> type, final OWLAxiom axiom) {
 		// TODO implement more axiom types and remove check when done
 		if (DBG) {
 			log.info("ADD Axiom: " + axiom.getClass().getSimpleName() + "Type: " + type);
 		}
 		if (containsAxiom(axiom)) {
-			log.severe("DUPLICATE AXIOM WILL BE ADDED TO ONTOLOGY");
-			//A graph may contain duplicates, an ontology not.
-		}
-		if (AxiomTypeToHGDBMap.getAxiomClassHGDB(type) != null) {
-			graph.getTransactionManager().transact(new Callable<Boolean>() {
-				public Boolean call() {
-					if (DBG)
-						ontology.printGraphStats("Before AddAxiom");
-					// hyper hyper
-					// hilpold 2011.10.06 adding to graph here instead of
-					// previously in Datafactory
-					HGHandle h = graph.add(axiom);
-					// TODO REMOVE 2nd add (just to see if HG complains and what
-					// handle we'd get ?)
-					// HGHandle h2 = graph.add(axiom); this leads to getting a
-					// second handle ???
-					// HGHandle h = graph.getHandle(axiom);
-					ontology.add(h);
-					if (DBG)
-						ontology.printGraphStats("After  AddAxiom");
-					return true;
-				}
-			});
+			log.severe("DUPLICATE AXIOM WILL NOT BE ADDED TO ONTOLOGY");
+			// throw new IllegalStateException("Tried to add axiom already in ontology.");
+			// A graph may contain duplicates, an ontology not.
 		} else {
-			log.warning("NOT YET IMPLEMENTED: " + axiom.getClass().getSimpleName());
-			// addToIndexedSet(type, axiomsByType, axiom);
+			if (AxiomTypeToHGDBMap.getAxiomClassHGDB(type) != null) {
+				graph.getTransactionManager().ensureTransaction(new Callable<Boolean>() {
+					public Boolean call() {
+						if (DBG) ontology.printGraphStats("Before AddAxiom");
+						// hyper hyper
+						// hilpold 2011.10.06 adding to graph here instead of
+						// previously in Datafactory
+						HGHandle h = graph.add(axiom);
+						// TODO REMOVE 2nd add (just to see if HG complains and
+						// what
+						// handle we'd get ?)
+						// HGHandle h2 = graph.add(axiom); this leads to getting
+						// a
+						// second handle ???
+						// HGHandle h = graph.getHandle(axiom);
+						ontology.add(h);
+						if (DBG) ontology.printGraphStats("After AddAxiom");
+						return true;
+					}
+				});
+			} else {
+				log.warning("NOT YET IMPLEMENTED: " + axiom.getClass().getSimpleName());
+				// addToIndexedSet(type, axiomsByType, axiom);
+			}
 		}
 	}
 
-	public void removeAxiomsByType(AxiomType<?> type, final OWLAxiom axiom) {
+	public void removeAxiomsByType(final AxiomType<?> type, final OWLAxiom axiom) {
 		// TODO implement more axiom types and remove check when done
 		if (DBG) {
 			log.info("REMOVE Axiom: " + axiom.getClass().getSimpleName() + " Type: " + type);
@@ -585,16 +650,22 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		if (AxiomTypeToHGDBMap.getAxiomClassHGDB(type) != null) {
 			graph.getTransactionManager().transact(new Callable<Boolean>() {
 				public Boolean call() {
-					boolean removedSuccess;
+					boolean removedSuccess = false;
 					if (DBG)
 						ontology.printGraphStats("Before RemoveAxiom");
-					// hyper hyper
+					// get the axiom handle or find an equal axiom in the ontology.
 					HGHandle h = graph.getHandle(axiom);
-					ontology.remove(h);
-					removedSuccess = graph.remove(h);
-					if (DBG)
-						ontology.printGraphStats("After  RemoveAxiom");
-					// if it pointed to an entity, entity incidence is -1
+					if (h == null || ontology.get(h) == null) {
+						//Axiom null or not in ontology, try find an equal one in ontology
+						h = graph.getHandle(findEqualAxiom(axiom));
+					}
+					if (h != null) {
+						ontology.remove(h);
+						removedSuccess = graph.remove(h);
+						if (DBG)
+							ontology.printGraphStats("After  RemoveAxiom");
+						// if it pointed to an entity, entity incidence is -1
+					}
 					return removedSuccess;
 				}
 			});
