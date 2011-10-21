@@ -1,73 +1,31 @@
 package org.hypergraphdb.app.owl.test;
 
-import static org.junit.Assert.*;
 
-import org.hypergraphdb.app.owl.HGDBOntologyRepository;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
 /**
- * OntologyTest1.
+ * T001Classes.
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
- * @created Oct 14, 2011
+ * @created Oct 21, 2011
  */
-public class OntologyTest1 {
+public class T001Classes extends OntologyManagerTest {
 	
-	static boolean USE_HYPERGRAPH_ONTOLOGY = true;
-	
-	OWLOntology o;
-	OWLOntologyManager m;
-	OWLDataFactory df;
-	// HGDBOntologyRepository r;
-	IRI ontoIRI = IRI.create("hgdb://UNITTESTONTO1");
-
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public T001Classes(int useImplementation) throws Exception {
+		super(useImplementation);
+		disposeHypergraph();
 	}
 
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-	}
-
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@Before
-	public void setUp() throws Exception {
-		if (USE_HYPERGRAPH_ONTOLOGY) {
-			m = HGDBOntologyRepository.createOWLOntologyManager();
-		} else {
-			m = OWLManager.createOWLOntologyManager();
-		}
-		df = m.getOWLDataFactory();
-		IRI ontoIRI = IRI.create("hgdb://UNITTESTONTO 1");
-		o = m.createOntology(ontoIRI);
-	}
-
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@After
-	public void tearDown() throws Exception {
-	}
 
 	/**
 	 * Test method for {@link org.hypergraphdb.app.owl.HGDBOntologyImpl#isDeclared(org.semanticweb.owlapi.model.OWLEntity)}.
@@ -147,8 +105,6 @@ public class OntologyTest1 {
 		assertTrue("", o.containsAxiom(dCB2));
 		assertTrue("", o.containsAxiom(dCB2));
 		assertTrue("", o.containsAxiom(dCB2));
-		
 	}
-		
 
 }

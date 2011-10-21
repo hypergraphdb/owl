@@ -26,48 +26,11 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  * @created Oct 6, 2011
  */
-public class HGDBOntologyRepositoryTest extends TestCase {
-	private StopWatch s = new StopWatch();
+public class P001RepositoryPerformanceTest extends OntologyManagerTest {
 
-	OWLOntology o;
-	OWLOntologyManager m;
-	OWLDataFactory df;
-	// HGDBOntologyRepository r;
-	IRI ontoIRI = IRI.create("hgdb://UNITTESTONTO1");
 
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-	}
-
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-	}
-
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@Before
-	public void setUp() throws Exception {
-		// r = new HGDBOntologyRepository();
-		// m = r.createOWLOntologyManager();
-		m = HGDBOntologyRepository.createOWLOntologyManager();
-		df = m.getOWLDataFactory();
-		IRI ontoIRI = IRI.create("hgdb://UNITTESTONTO 1");
-		o = m.createOntology(ontoIRI);
-	}
-
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@After
-	public void tearDown() throws Exception {
-		// r.dispose();
+	public P001RepositoryPerformanceTest(int useImplementation) {
+		super(useImplementation);
 	}
 
 	/**
