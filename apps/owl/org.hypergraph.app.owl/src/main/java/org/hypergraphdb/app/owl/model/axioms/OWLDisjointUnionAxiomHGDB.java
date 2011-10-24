@@ -31,7 +31,7 @@ import org.semanticweb.owlapi.util.CollectionFactory;
  */
 public class OWLDisjointUnionAxiomHGDB extends OWLClassAxiomHGDB implements OWLDisjointUnionAxiom, HGLink {
     
-	private HGHandle owlClass; //OWLClass
+	private HGHandle owlClassHandle; //OWLClass
 
 	private List<HGHandle> classExpressionsHandles;
     //private Set<OWLClassExpression> classExpressions; //owlClassExpressions
@@ -45,14 +45,14 @@ public class OWLDisjointUnionAxiomHGDB extends OWLClassAxiomHGDB implements OWLD
     	for(int i = 1; i < args.length; i++) {
     		classExpressionsFromArgs.add(args[i]);
     	}
-        this.owlClass = args[0];
+        this.owlClassHandle = args[0];
         this.classExpressionsHandles = new ArrayList<HGHandle>(classExpressionsFromArgs);    	
     }
 	
     public OWLDisjointUnionAxiomHGDB(HGHandle owlClass, Set<? extends HGHandle> classExpressions, Set<? extends OWLAnnotation> annotations) {
         super(annotations);
         //TODO assert owlClass type OWLClass, classExpressions type OWLClassExpression
-        this.owlClass = owlClass;
+        this.owlClassHandle = owlClass;
         this.classExpressionsHandles = new ArrayList<HGHandle>(classExpressions);
     }
 
@@ -78,7 +78,7 @@ public class OWLDisjointUnionAxiomHGDB extends OWLClassAxiomHGDB implements OWLD
     }
 
     public OWLClass getOWLClass() {
-        return getHyperGraph().get(owlClass);
+        return getHyperGraph().get(owlClassHandle);
     }
 
 
@@ -88,7 +88,7 @@ public class OWLDisjointUnionAxiomHGDB extends OWLClassAxiomHGDB implements OWLD
             if (!(obj instanceof OWLDisjointUnionAxiom)) {
                 return false;
             }
-            return ((OWLDisjointUnionAxiom) obj).getOWLClass().equals(owlClass);
+            return ((OWLDisjointUnionAxiom) obj).getOWLClass().equals(getOWLClass());
         }
         return false;
     }
@@ -138,7 +138,9 @@ public class OWLDisjointUnionAxiomHGDB extends OWLClassAxiomHGDB implements OWLD
 	 */
 	@Override
 	public int getArity() {
-		return classExpressionsHandles.size();
+		//2011.10.24  
+		return 1 + classExpressionsHandles.size();
+		//old return classExpressionsHandles.size();
 	}
 
 	/* (non-Javadoc)
@@ -146,8 +148,12 @@ public class OWLDisjointUnionAxiomHGDB extends OWLClassAxiomHGDB implements OWLD
 	 */
 	@Override
 	public HGHandle getTargetAt(int i) {
-		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
-		return classExpressionsHandles.get(i);  
+		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity());
+		if (i == 0) {
+			return owlClassHandle;
+		} else {
+			return classExpressionsHandles.get(i - 1);
+		}
 	}
 
 	/* (non-Javadoc)
@@ -159,7 +165,11 @@ public class OWLDisjointUnionAxiomHGDB extends OWLClassAxiomHGDB implements OWLD
 		
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
 		if (handle == null) throw new IllegalArgumentException("handle null"); 
-		classExpressionsHandles.set(i, handle);  
+		if (i == 0) {
+			owlClassHandle = handle;
+		} else {
+			classExpressionsHandles.set(i - 1, handle);
+		}
 	}
 
 	/* (non-Javadoc)
@@ -168,7 +178,11 @@ public class OWLDisjointUnionAxiomHGDB extends OWLClassAxiomHGDB implements OWLD
 	@Override
 	public void notifyTargetRemoved(int i) {
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
-		classExpressionsHandles.set(i, null);  
+		if (i == 0) {
+			owlClassHandle = null;
+		} else {
+			classExpressionsHandles.set(i - 1, null);
+		}
 	}
 
 }
