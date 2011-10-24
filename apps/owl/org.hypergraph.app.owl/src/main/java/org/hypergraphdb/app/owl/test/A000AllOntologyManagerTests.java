@@ -10,7 +10,7 @@ import org.junit.runners.Suite;
  */ 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-  T002ClassExpressionTest.class,
+  //T002ClassExpressionTest.class,
   T001Classes.class
 })
 

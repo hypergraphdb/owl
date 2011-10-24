@@ -2,15 +2,8 @@ package org.hypergraphdb.app.owl.test;
 
 import static org.junit.Assert.assertTrue;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.Date;
 
-import org.hypergraphdb.HGQuery.hg;
-import org.hypergraphdb.app.owl.HGDBOntology;
-import org.hypergraphdb.app.owl.HGDBOntologyManager;
-import org.hypergraphdb.app.owl.HGDBOntologyRepository;
-import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -24,8 +17,6 @@ import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
-
-import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 
 /**
  * HGDBOntologyRepositoryTest.

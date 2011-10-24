@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import org.hypergraphdb.HGQuery.hg;
+import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.junit.AfterClass;
@@ -37,6 +38,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
  */
 @RunWith(value = Parameterized.class)
 public abstract class OntologyManagerTest {
+	
 	public final static int USE_HYPERGRAPH_IMPLEMENTATION = 0; 
 	public final static int USE_MANCHESTER_IMPLEMENTATION = 1; 
 	
@@ -72,8 +74,8 @@ public abstract class OntologyManagerTest {
 	 */
 	@Parameters
 	public static Collection<Object[]> data() {
+		//Object[][] data = new Object[][] { { USE_MANCHESTER_IMPLEMENTATION } };
 		Object[][] data = new Object[][] { { USE_HYPERGRAPH_IMPLEMENTATION }, { USE_MANCHESTER_IMPLEMENTATION } };
-		//Object[][] data = new Object[][] { { USE_HYPERGRAPH_IMPLEMENTATION } };
 		return Arrays.asList(data);
 	}
 
@@ -128,6 +130,14 @@ public abstract class OntologyManagerTest {
 	}
 
 	public boolean isInitialized() {
-		return o != null;
+		if (o != null) {
+			if (USE_HYPERGRAPH_ONTOLOGY) {
+				return o instanceof HGDBOntology;
+			} else {
+				return !(o instanceof HGDBOntology);			
+			}
+		} else {
+			return false;
+		}
 	}
 }
