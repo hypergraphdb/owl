@@ -24,11 +24,11 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
  * 
  * All necessary fields will be initialized to either API implentation after the first setup() call:
  *   
- * A subclass may call disposeHypergraph(), whenever it needs a freshly initialized HG store and an empty ontology o.
+ * A subclass may call tryCleanUp(), whenever it needs a freshly initialized HG store and an empty ontology o.
  * This will happen automatically at tearDownAfterClass().
  *   
  * o ... empty ontology
- * m ... OWLOntologyManager
+ * m ... OWLOntologyManager (static)
  * df... Data Factory
  * s ... StopWatch
  * 
@@ -42,7 +42,7 @@ public abstract class OntologyManagerTest {
 	public final static int USE_HYPERGRAPH_IMPLEMENTATION = 0; 
 	public final static int USE_MANCHESTER_IMPLEMENTATION = 1; 
 	
-	private static boolean USE_HYPERGRAPH_ONTOLOGY = true;
+	private boolean usingHypergraphMode;
 	
 	/** 
 	 * An empty ontology.
@@ -64,7 +64,7 @@ public abstract class OntologyManagerTest {
 	protected StopWatch s = new StopWatch();
 
 	public OntologyManagerTest(int useImplementation) {
-		USE_HYPERGRAPH_ONTOLOGY = (useImplementation == USE_HYPERGRAPH_IMPLEMENTATION);
+		usingHypergraphMode = (useImplementation == USE_HYPERGRAPH_IMPLEMENTATION);
 	}
 	
 	/**
@@ -79,19 +79,19 @@ public abstract class OntologyManagerTest {
 		return Arrays.asList(data);
 	}
 
-
 	/**
+	 * Might be called in both modes.
 	 * @throws java.lang.Exception
 	 */
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-		disposeHypergraph();
+	public static void tearDownAfterClass() throws Exception {		
+		tryCleanUp();
 	}
 	
 	/**
 	 * Drops the whole hypergraphstore, if m is a HGDBOntologyManager.
 	 */
-	public static void disposeHypergraph() {
+	public static void tryCleanUp() {
 		if (m instanceof HGDBOntologyManager) {
 			HGDBOntologyManager mHgdb = (HGDBOntologyManager)m;
 			HGDBOntologyRepository r = mHgdb.getOntologyRepository();
@@ -106,6 +106,7 @@ public abstract class OntologyManagerTest {
 		m = null;
 		o = null;
 	}
+	
 
 	/**
 	 * Initiializes o, m, df if o is null.
@@ -115,23 +116,38 @@ public abstract class OntologyManagerTest {
 	@Before
 	public void setUp() throws Exception {
 		if (!isInitialized()) {
-			System.out.println("-------------------------------------------------------------------------------");
-			System.out.print("Creating Ontology Manager : ");
-			if (USE_HYPERGRAPH_ONTOLOGY) {
-				System.out.println(" HGDBOntologyManager ");
-				m = HGDBOntologyRepository.createOWLOntologyManager();
+			//we either start or switch modes
+			tryCleanUp();
+			System.out.println("--------------------------------------------------------------------------------");
+			if (usingHypergraphMode) {
+				initializeHypergraphMode();
 			} else {
-				System.out.println(" OWLOntologyManager (no Hypergraph) ");
-				m = OWLManager.createOWLOntologyManager();
+				initializeManchesterMode();
 			}
 			df = m.getOWLDataFactory();
 			o = m.createOntology(ontoIRI);
-		}
+		} // else another method in the same class in the same mode gets called.
+		// with the same potentially modified testdata.
 	}
+	
+	public void initializeHypergraphMode() {
+		System.out.print("TESTRUN in HYPERGRAPH MODE: ");
+		System.out.println(" HGDBOntologyManager ");
+		m = HGDBOntologyRepository.createOWLOntologyManager();		
+	}
+	
+	public void initializeManchesterMode() {
+		System.out.print("TESTRUN in MANCHESTER MODE: ");
+		System.out.println(" OWLOntologyManager (no Hypergraph) ");
+		m = OWLManager.createOWLOntologyManager();		
+	}	
 
+	/**
+	 * @return true, if we have a valid ontology o, whose class matches the current mode.
+	 */
 	public boolean isInitialized() {
 		if (o != null) {
-			if (USE_HYPERGRAPH_ONTOLOGY) {
+			if (usingHypergraphMode) {
 				return o instanceof HGDBOntology;
 			} else {
 				return !(o instanceof HGDBOntology);			
@@ -139,5 +155,5 @@ public abstract class OntologyManagerTest {
 		} else {
 			return false;
 		}
-	}
+	}	
 }
