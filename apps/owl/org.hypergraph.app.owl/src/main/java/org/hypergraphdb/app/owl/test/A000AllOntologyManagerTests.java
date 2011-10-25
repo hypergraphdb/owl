@@ -10,8 +10,9 @@ import org.junit.runners.Suite;
  */ 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-  //T002ClassExpressionTest.class,
-  T001Classes.class
+	  T001Classes.class,
+	  T002ClassExpressionTest.class,
+	  T003PropertiesTest.class
 })
 
 public class A000AllOntologyManagerTests {
