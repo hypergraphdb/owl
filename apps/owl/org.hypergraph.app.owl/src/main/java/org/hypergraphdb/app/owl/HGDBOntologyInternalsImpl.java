@@ -45,6 +45,7 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataProperty;
+import org.semanticweb.owlapi.model.OWLDataRange;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLDatatypeDefinitionAxiom;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
@@ -52,8 +53,11 @@ import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLLogicalAxiom;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLObjectInverseOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
 
@@ -65,6 +69,8 @@ import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
 public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 
 	public static boolean DBG = true; // Switches LOG string creation on or off.
+
+	private int recLevel = 0; //recursion leve/depth for getReferencingAxioms.
 
 	protected Logger log = Logger.getLogger(this.getClass().getCanonicalName());
 
@@ -137,12 +143,12 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	 */
 	public boolean isDeclared(OWLDeclarationAxiom ax) {
 		return containsAxiom(ax);
-//		HGHandle entityHandle = graph.getHandle(ax.getEntity());
-//		if (entityHandle != null) {
-//			return graph.getIncidenceSet(entityHandle).size() > 0;
-//		} else {
-//			return (graph.getHandle(ax) != null);
-//		}
+		// HGHandle entityHandle = graph.getHandle(ax.getEntity());
+		// if (entityHandle != null) {
+		// return graph.getIncidenceSet(entityHandle).size() > 0;
+		// } else {
+		// return (graph.getHandle(ax) != null);
+		// }
 		// old return declarationsByEntity.containsKey(ax.getEntity());
 	}
 
@@ -256,50 +262,23 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 					l = Collections.emptyList();
 				} else {
 					l = new ArrayList<OWLAxiom>();
-					//2010.10.20 we traverse incidenceset until we hit an empty set or an axiom 
-					// that is a member of our Ontology.		
+					// 2010.10.20 we traverse incidenceset until we hit an empty
+					// set or an axiom
+					// that is a member of our Ontology.
 					System.out.print("Collecting axioms: ");
 					collectOntologyAxiomsRecursive(owlEntityHandle, l);
 					System.out.println();
-					System.out.println("Found : " + l.size());					
-					//old l = ontology.getAll(hg.and(hg.typePlus(OWLAxiom.class), hg.incident(owlEntityHandle)));
-					//older l = hg.getAll(graph, hg.and(hg.typePlus(OWLAxiom.class), hg.incident(owlEntityHandle)));
+					System.out.println("Found : " + l.size());
+					// old l =
+					// ontology.getAll(hg.and(hg.typePlus(OWLAxiom.class),
+					// hg.incident(owlEntityHandle)));
+					// older l = hg.getAll(graph,
+					// hg.and(hg.typePlus(OWLAxiom.class),
+					// hg.incident(owlEntityHandle)));
 				}
 				return l;
 			}
-			
-			/**
-			 * Initial call: Handle should be entity. Recursive calls will only be on ClassExpressions.
-			 * @param h Handle (Entity intially, ClassExpressionHandle on recursion)
-			 * @param l the list for the axioms. Postcondition: List has no equal axioms.
-			 * @throws IllegalStateException, if an incidenceset contains something else than  Axioms or ClassExpressions.
-			 */
-			private void collectOntologyAxiomsRecursive(HGHandle atomHandle, List<OWLAxiom> axiomList) {
-				System.out.print("*");
-				if (atomHandle == null) {
-					return;
-				} else {
-					IncidenceSet iSet = graph.getIncidenceSet(atomHandle);
-					for (HGHandle incidentAtomHandle : iSet) {
-						Object o = graph.get(incidentAtomHandle);
-						if (o != null) {
-							if (o instanceof OWLAxiom) {
-								if (ontology.isMember(incidentAtomHandle)) {
-									axiomList.add((OWLAxiom) o);
-								} // else ignore axiom not part of our onto.
-							} else {
-								// we have no cycles up incidence sets starting
-								// on an entity.
-								if (!(o instanceof OWLClassExpression)) {
-									throw new IllegalStateException(
-											"We encountered an unexpected object in an incidenceset:" + o);
-								}
-								collectOntologyAxiomsRecursive(incidentAtomHandle, axiomList);
-							}
-						} // else o == null do nothing
-					} // for
-				}
-			}
+
 		}, HGTransactionConfig.READONLY);
 		// if (owlEntity instanceof OWLClass) {
 		// axioms = getAxioms(owlEntity.asOWLClass(), owlClassReferences,
@@ -323,6 +302,92 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		// axioms = Collections.emptySet();
 		// }
 		return getReturnSet(axioms);
+	}
+
+	/**
+	 * Initial call: Handle should be entity. Recursive calls will only
+	 * be on ClassExpressions.
+	 * 
+	 * @param h
+	 *            Handle (Entity intially, ClassExpressionHandle, OWLObjectPropertyExpression handle (InverseOf) or DataRange on
+	 *            recursion)
+	 * @param l
+	 *            the list for the axioms. Postcondition: List has no
+	 *            equal axioms.
+	 * @throws IllegalStateException
+	 *             , if an incidenceset contains something else than
+	 *             Axioms or ClassExpressions.
+	 */
+	private void collectOntologyAxiomsRecursive(HGHandle atomHandle, List<OWLAxiom> axiomList) {
+		if (DBG) System.out.print("*" + recLevel);
+		if (atomHandle == null) {
+			return;
+		} else {
+			IncidenceSet iSet = graph.getIncidenceSet(atomHandle);
+			for (HGHandle incidentAtomHandle : iSet) {
+				Object o = graph.get(incidentAtomHandle);
+				if (o != null) {
+					if (o instanceof OWLAxiom) {
+						if (ontology.isMember(incidentAtomHandle)) {
+							axiomList.add((OWLAxiom) o);
+						} // else ignore axiom not part of our onto.
+					} else {
+						// we have no cycles up incidence sets starting
+						// on an entity.
+						if (!(o instanceof OWLClassExpression 
+							  || o instanceof OWLObjectPropertyExpression
+							  || o instanceof OWLDataRange
+
+							 )) {
+							throw new IllegalStateException(
+									"We encountered an unexpected object in an incidenceset:" + o);
+						}
+						recLevel ++;
+						collectOntologyAxiomsRecursive(incidentAtomHandle, axiomList);
+						recLevel --;
+					}
+				} // else o == null do nothing
+			} // for
+		}
+	}
+
+	/**
+	 * Tests, if for a given Entity, ClassExpression, ObjectPropExopression or Datarange one or more axioms can be found, 
+	 * that is a member of the ontology. 
+	 * @param atomHandle non null.
+	 * @return true as soon as one axiom in the ontology is found.
+	 */
+	private boolean hasOntologyAxiomsRecursive(HGHandle atomHandle) {
+		if (DBG) System.out.print("*" + recLevel);
+		IncidenceSet iSet = graph.getIncidenceSet(atomHandle);
+		for (HGHandle incidentAtomHandle : iSet) {
+			Object o = graph.get(incidentAtomHandle);
+			if (o != null) {
+				if (o instanceof OWLAxiom) {
+					if (ontology.isMember(incidentAtomHandle)) {
+						if (DBG) System.out.println("Found axiom recursive: " + o);
+						return true;
+					} // else ignore axiom not part of our onto.
+				} else {
+					// we have no cycles up incidence sets starting
+					// on an entity.
+					if (!(o instanceof OWLClassExpression 
+							|| o instanceof OWLObjectPropertyExpression
+							|| o instanceof OWLDataRange
+					)) {
+						throw new IllegalStateException(
+								"We encountered an unexpected object in an incidenceset:" + o);
+					}
+					recLevel ++;
+					if (hasOntologyAxiomsRecursive(incidentAtomHandle)) {
+						recLevel --;
+						return true;
+					} 
+					recLevel --;
+				}
+			} // else o == null do nothing
+		} // for
+		return false;
 	}
 
 	// hilpold
@@ -433,7 +498,6 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	public Set<OWLAnnotation> getOntologyAnnotations() {
-		//
 		return this.getReturnSet(this.ontologyAnnotations);
 	}
 
@@ -446,39 +510,45 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	public boolean containsAxiom(final OWLAxiom axiom) {
-		if (axiom == null) throw new NullPointerException("axiom");
+		if (axiom == null)
+			throw new NullPointerException("axiom");
 		HGHandle h = graph.getHandle(axiom);
-		return  h != null? ontology.isMember(h): findEqualAxiom(axiom) != null; 
-//		//TODO will not work 2011.10.13; must rely on equals code in axiom 
-//		HGHandle axiomHandle = graph.getHandle(axiom);
-//		// true iff found in graph and in ontology
-//		return (axiomHandle == null) ? false : ontology.get(axiomHandle) != null;
-//		// old Set<OWLAxiom> axioms = axiomsByType.get(axiom.getAxiomType());
-//		// return axioms != null && axioms.contains(axiom);
+		return h != null ? ontology.isMember(h) : findEqualAxiom(axiom) != null;
+		// //TODO will not work 2011.10.13; must rely on equals code in axiom
+		// HGHandle axiomHandle = graph.getHandle(axiom);
+		// // true iff found in graph and in ontology
+		// return (axiomHandle == null) ? false : ontology.get(axiomHandle) !=
+		// null;
+		// // old Set<OWLAxiom> axioms = axiomsByType.get(axiom.getAxiomType());
+		// // return axioms != null && axioms.contains(axiom);
 	}
-	
+
 	/**
-	 * Finds an equal axiom in the graph. See the equals methods implementation in Axiom. 
-	 * The method does not test for self.
+	 * Finds an equal axiom in the graph. See the equals methods implementation
+	 * in Axiom. The method does not test for self.
 	 * 
-	 * @param axiom an axiom object that might be equal to one in the graph.
-	 * @return an axiom object that is guaranteed to be in the graph and equal to the given axiom.
+	 * @param axiom
+	 *            an axiom object that might be equal to one in the graph.
+	 * @return an axiom object that is guaranteed to be in the graph and equal
+	 *         to the given axiom.
 	 */
 	protected OWLAxiom findEqualAxiom(OWLAxiom axiom) {
-		if (axiom == null) throw new NullPointerException("axiom");
-		//TODO this is expensive !! Maybe implement a complex search condition based on equals in each axiom type.
+		if (axiom == null)
+			throw new NullPointerException("axiom");
+		// TODO this is expensive !! Maybe implement a complex search condition
+		// based on equals in each axiom type.
 		// Boris had ideas about bottom up search and parallel search.
 		// Called by OWLCellrenderer true will render an entity in bold font.
 		OWLAxiom foundAxiom = null;
 		Class<?> hgdbType = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiom.getAxiomType());
 		List<OWLAxiom> axiomsOneTypeInOnto = ontology.getAll(hg.type(hgdbType));
 		// Find by axiom.equal (expensive)
-		int i = axiomsOneTypeInOnto.indexOf(axiom);	
-		if (i != -1) { 
+		int i = axiomsOneTypeInOnto.indexOf(axiom);
+		if (i != -1) {
 			foundAxiom = axiomsOneTypeInOnto.get(i);
 		}
 		return foundAxiom;
-	}	
+	}
 
 	public int getAxiomCount() {
 		long count = ontology.count(hg.typePlus(OWLAxiom.class));
@@ -612,13 +682,15 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		}
 		if (containsAxiom(axiom)) {
 			log.severe("DUPLICATE AXIOM WILL NOT BE ADDED TO ONTOLOGY");
-			// throw new IllegalStateException("Tried to add axiom already in ontology.");
+			// throw new
+			// IllegalStateException("Tried to add axiom already in ontology.");
 			// A graph may contain duplicates, an ontology not.
 		} else {
 			if (AxiomTypeToHGDBMap.getAxiomClassHGDB(type) != null) {
 				graph.getTransactionManager().ensureTransaction(new Callable<Boolean>() {
 					public Boolean call() {
-						if (DBG) ontology.printGraphStats("Before AddAxiom");
+						if (DBG)
+							ontology.printGraphStats("Before AddAxiom");
 						// hyper hyper
 						// hilpold 2011.10.06 adding to graph here instead of
 						// previously in Datafactory
@@ -631,7 +703,8 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 						// second handle ???
 						// HGHandle h = graph.getHandle(axiom);
 						ontology.add(h);
-						if (DBG) ontology.printGraphStats("After AddAxiom");
+						if (DBG)
+							ontology.printGraphStats("After AddAxiom");
 						return true;
 					}
 				});
@@ -653,10 +726,12 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 					boolean removedSuccess = false;
 					if (DBG)
 						ontology.printGraphStats("Before RemoveAxiom");
-					// get the axiom handle or find an equal axiom in the ontology.
+					// get the axiom handle or find an equal axiom in the
+					// ontology.
 					HGHandle h = graph.getHandle(axiom);
 					if (h == null || ontology.get(h) == null) {
-						//Axiom null or not in ontology, try find an equal one in ontology
+						// Axiom null or not in ontology, try find an equal one
+						// in ontology
 						h = graph.getHandle(findEqualAxiom(axiom));
 					}
 					if (h != null) {
@@ -1011,17 +1086,33 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		return containsOWLEntityOntology(c.getIRI(), OWLAnnotationPropertyHGDB.class);
 	}
 
-//	/**
-//	 * This is an expensive operation, because the hashmap has to be created.
-//	 * Maybe the hashmap should be lazy and backed by HG? (Protege never calls
-//	 * this.)
-//	 */
-//	public Map<OWLEntity, Set<OWLDeclarationAxiom>> getDeclarationsByEntity() {
-//		// return new HashMap<OWLEntity, Set<OWLDeclarationAxiom>>(
-//		// this.declarationsByEntity);
-//		// hilpold - for now.
-//		return null;
-//	}
+	
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#hasReferencingAxioms(org.semanticweb.owlapi.model.OWLEntity)
+	 */
+	@Override
+	public boolean hasReferencingAxioms(OWLEntity entity) {
+		HGHandle h= graph.getHandle(entity);
+		return hasOntologyAxiomsRecursive(h);
+	}
+
+	@Override
+	public boolean hasReferencingAxioms(HGHandle entity) {
+		return hasOntologyAxiomsRecursive(entity);
+	}
+
+	// /**
+	// * This is an expensive operation, because the hashmap has to be created.
+	// * Maybe the hashmap should be lazy and backed by HG? (Protege never calls
+	// * this.)
+	// */
+	// public Map<OWLEntity, Set<OWLDeclarationAxiom>> getDeclarationsByEntity()
+	// {
+	// // return new HashMap<OWLEntity, Set<OWLDeclarationAxiom>>(
+	// // this.declarationsByEntity);
+	// // hilpold - for now.
+	// return null;
+	// }
 
 	// public void removeDeclarationsByEntity(OWLEntity c, OWLDeclarationAxiom
 	// ax) {

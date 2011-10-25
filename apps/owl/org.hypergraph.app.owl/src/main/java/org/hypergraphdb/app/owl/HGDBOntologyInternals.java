@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.atom.HGSubgraph;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
@@ -368,7 +369,16 @@ public interface HGDBOntologyInternals  {
 	Set<OWLDeclarationAxiom> getDeclarationAxioms(OWLEntity entity);
 	
 	Set<OWLAxiom> getReferencingAxioms(OWLAnonymousIndividual individual);
+
+	/**
+	 * Hilpold. 
+	 * @param entity
+	 * @return true, if at least 1 axiom in the ontology exists that refers directly or indirectly to the entity.
+	 */
+	boolean hasReferencingAxioms(OWLEntity entity);
 	
+	boolean hasReferencingAxioms(HGHandle entity);
+
 	//TODO
 	Set<OWLAxiom> getReferencingAxioms(OWLEntity owlEntity);
 
