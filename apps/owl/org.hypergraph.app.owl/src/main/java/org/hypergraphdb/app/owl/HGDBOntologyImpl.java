@@ -1750,18 +1750,18 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		axiom.accept(entityCollector);
 		for (OWLEntity object : sig) {
 			HGHandle objectHandle = graph.getHandle(object);
-//2010.10.12			if (!object.isBuiltIn()) {
 				if (objectHandle != null) {				
 					if (this.isMember(objectHandle)) {
-						// Here we know, that it is not a builtin entity, because they will never be added
-						// to an ontology.
 						// Get onto incidence set of atoms that are members.
 						IncidenceSet is = this.getIncidenceSet(objectHandle);
 						if (DBG) printIncidenceSets(objectHandle);
 						// REMOVE IF NO MORE AXIOM IN THE ONTO POINTS TO IT DIRECTLY OR INDIRECTLY
 						//TODO need to check far more here: size is not an indicator for removal if we have dangling ClassExpressions in the graph that are not in any axiom.
 						if (is.size() == 0) {
-							this.remove(objectHandle);
+							//Might still have an axiom that indirectly refers to the object.
+							if (!internals.hasReferencingAxioms(objectHandle)) {
+								this.remove(objectHandle);
+							}
 							// 2011.10.11 DO NOT REMOVE Entity without references from graph,
 							// because it change propagation might want to refer to it.
 							// graph.remove(objectHandle);							
@@ -1839,7 +1839,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		System.out.println("" + header + " size: " + iSet.size());
 		for(HGHandle h : iSet) {
 			Object o = graph.get(h);
-			System.out.println("" + o);			
+			System.out.println("    " + o);			
 		}			
 	}
 
