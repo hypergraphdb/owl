@@ -1101,7 +1101,8 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 		l = ontology.getAll(hg.or(
 				hg.and(
 						hg.type(OWLSubClassOfAxiomHGDB.class)
-						,hg.orderedLink(clsHandle, hg.anyHandle()))
+						,hg.orderedLink(clsHandle, hg.anyHandle())
+						)
 				, hg.and(
 						hg.or(
 								hg.type(OWLEquivalentClassesAxiomHGDB.class),
@@ -1118,8 +1119,9 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 //					//links of any arity returned. 
 //					,hg.incident(clsHandle)));
 		} else {
-			System.out.println("WARNING: graph.getHandle(" + cls + ") in getAxioms(OWLClass) returned null");
-			l = null;
+			String msg = ("ClassHandle null. Graph.getHandle(" + cls + ") in getAxioms(OWLClass) returned null");
+			//l = null;
+			throw new IllegalStateException(msg);
 		}
 		return getReturnSet(l);
 
