@@ -21,14 +21,37 @@ import org.semanticweb.owlapi.model.OWLRuntimeException;
  */
 public class OWLAnonymousIndividualHGDB extends OWLIndividualHGDB implements OWLAnonymousIndividual {
 
-    private NodeID nodeId;
+    //private NodeID nodeId;
+	private String nodeIdString;
 
-    public OWLAnonymousIndividualHGDB(NodeID nodeID) {
-        this.nodeId = nodeID;
+	/**
+	 * Default constructor to be used for Bean persistence only.
+	 */
+	public OWLAnonymousIndividualHGDB() {
+		
+	}
+
+	public OWLAnonymousIndividualHGDB(NodeID nodeID) {
+        nodeIdString = nodeID.getID();
     }
 
+	/**
+	 * Default getter to be used for Bean persistence only.
+	 */
+	public String getNodeIdString() {
+		return nodeIdString;
+	}
+
+	/**
+	 * Default setter to be used for Bean persistence only.
+	 */
+	public void setNodeIdString(String nodeIdString) {
+		this.nodeIdString = nodeIdString;
+	}
+
+
     public NodeID getID() {
-        return nodeId;
+        return NodeID.getNodeID(nodeIdString);
     }
 
     /**
@@ -37,7 +60,7 @@ public class OWLAnonymousIndividualHGDB extends OWLIndividualHGDB implements OWL
      * @return A string representing the toString of the node ID of this entity.
      */
     public String toStringID() {
-        return nodeId.getID();
+        return nodeIdString;
     }
 
     public boolean isNamed() {
@@ -59,7 +82,8 @@ public class OWLAnonymousIndividualHGDB extends OWLIndividualHGDB implements OWL
     @Override
 	protected int compareObjectOfSameType(OWLObject object) {
         OWLAnonymousIndividual other = (OWLAnonymousIndividual) object;
-        return nodeId.compareTo(other.getID());
+        //return getID().compareTo(other.getID());
+        return nodeIdString.compareTo(other.getID().getID());
     }
 
     public void accept(OWLObjectVisitor visitor) {
@@ -104,11 +128,13 @@ public class OWLAnonymousIndividualHGDB extends OWLIndividualHGDB implements OWL
         if (!(obj instanceof OWLAnonymousIndividual)) {
             return false;
         }
-        return nodeId.equals(((OWLAnonymousIndividual) obj).getID());
+        return nodeIdString.equals(((OWLAnonymousIndividual) obj).getID().getID());
+        //return nodeId.equals(((OWLAnonymousIndividual) obj).getID());
     }
     @Override
     public int hashCode() {
-    	return nodeId.hashCode();
+    	//return nodeId.hashCode();
+    	return nodeIdString.hashCode();
     }
 
 }

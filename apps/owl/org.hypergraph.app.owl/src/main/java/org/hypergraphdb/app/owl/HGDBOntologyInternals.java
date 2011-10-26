@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.atom.HGSubgraph;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -191,15 +190,18 @@ public interface HGDBOntologyInternals  {
 
 	//End
 	
-	Map<OWLAnonymousIndividual, Set<OWLAxiom>> getOwlAnonymousIndividualReferences();
+	//2010.10.26 Map<OWLAnonymousIndividual, Set<OWLAxiom>> getOwlAnonymousIndividualReferences();
+	Set<OWLAnonymousIndividual> getOwlAnonymousIndividuals();
 
-	void removeOwlAnonymousIndividualReferences(OWLAnonymousIndividual c,
-			OWLAxiom ax);
+//	void removeOwlAnonymousIndividualReferences(OWLAnonymousIndividual c,
+//			OWLAxiom ax);
+//
+//	void addOwlAnonymousIndividualReferences(OWLAnonymousIndividual c,
+//			OWLAxiom ax);
 
-	void addOwlAnonymousIndividualReferences(OWLAnonymousIndividual c,
-			OWLAxiom ax);
-
-	boolean containsOwlAnonymousIndividualReferences(OWLAnonymousIndividual c);
+	//boolean containsOwlAnonymousIndividualReferences(OWLAnonymousIndividual c);
+	
+	boolean containsOwlAnonymousIndividual(OWLAnonymousIndividual c);
 
 	//Map<OWLDatatype, Set<OWLAxiom>> getOwlDatatypeReferences();
 
@@ -500,6 +502,7 @@ public interface HGDBOntologyInternals  {
 	Set<OWLLogicalAxiom> getLogicalAxioms();
 
 	int getLogicalAxiomCount();
+
 
 
 }

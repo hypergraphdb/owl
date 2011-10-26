@@ -21,6 +21,7 @@ import org.hypergraphdb.app.owl.core.AxiomTypeToHGDBMap;
 import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
 import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
 import org.hypergraphdb.app.owl.model.OWLAnnotationPropertyHGDB;
+import org.hypergraphdb.app.owl.model.OWLAnonymousIndividualHGDB;
 import org.hypergraphdb.app.owl.model.OWLClassHGDB;
 import org.hypergraphdb.app.owl.model.OWLDataPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLDatatypeHGDB;
@@ -98,7 +99,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	// owlObjectPropertyReferences;
 	// protected Map<OWLDataProperty, Set<OWLAxiom>> owlDataPropertyReferences;
 	// protected Map<OWLNamedIndividual, Set<OWLAxiom>> owlIndividualReferences;
-	protected Map<OWLAnonymousIndividual, Set<OWLAxiom>> owlAnonymousIndividualReferences;
+	//2011.10.26 protected Map<OWLAnonymousIndividual, Set<OWLAxiom>> owlAnonymousIndividualReferences;
 
 	// protected Map<OWLDatatype, Set<OWLAxiom>> owlDatatypeReferences;
 	// protected Map<OWLAnnotationProperty, Set<OWLAxiom>>
@@ -122,7 +123,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		// this.owlObjectPropertyReferences = createMap();
 		// this.owlDataPropertyReferences = createMap();
 		// this.owlIndividualReferences = createMap();
-		this.owlAnonymousIndividualReferences = createMap();
+		//this.owlAnonymousIndividualReferences = createMap();
 		// this.owlDatatypeReferences = createMap();
 		// this.owlAnnotationPropertyReferences = createMap();
 		// this.declarationsByEntity = createMap();
@@ -221,7 +222,11 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	public Set<OWLAxiom> getReferencingAxioms(OWLAnonymousIndividual individual) {
-		return getReturnSet(getAxioms(individual, owlAnonymousIndividualReferences, false));
+		HGHandle h = graph.getHandle(individual);
+		List<OWLAxiom> l = new ArrayList<OWLAxiom>();
+		collectOntologyAxiomsRecursive(h, l);
+		return getReturnSet(l);
+		//return getReturnSet(getAxioms(individual, owlAnonymousIndividualReferences, false));
 	}
 
 	/**
@@ -903,7 +908,6 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 						hg.and(hg.type(hgdbType), hg.eq("IRI", iri), new SubgraphMemberCondition(ontoHandle))) != null;
 			}
 		}, HGTransactionConfig.READONLY);
-
 	}
 
 	// public Map<OWLNamedIndividual, Set<OWLAxiom>>
@@ -1008,21 +1012,52 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	// END OWL_ENTITY BASIC QUERIES
 	// ------------------------------------------------------------------------------------
 
-	public Map<OWLAnonymousIndividual, Set<OWLAxiom>> getOwlAnonymousIndividualReferences() {
-		return new HashMap<OWLAnonymousIndividual, Set<OWLAxiom>>(this.owlAnonymousIndividualReferences);
+//	public Map<OWLAnonymousIndividual, Set<OWLAxiom>> getOwlAnonymousIndividualReferences() {
+//		return new HashMap<OWLAnonymousIndividual, Set<OWLAxiom>>(this.owlAnonymousIndividualReferences);
+//	}
+
+//	public void removeOwlAnonymousIndividualReferences(OWLAnonymousIndividual c, OWLAxiom ax) {
+//		removeAxiomFromSet(c, owlAnonymousIndividualReferences, ax, true);
+//	}
+//
+//	public void addOwlAnonymousIndividualReferences(OWLAnonymousIndividual c, OWLAxiom ax) {
+//		addToIndexedSet(c, owlAnonymousIndividualReferences, ax);
+//	}
+//
+//	public boolean containsOwlAnonymousIndividualReferences(OWLAnonymousIndividual c) {
+//		return this.owlAnonymousIndividualReferences.containsKey(c);
+//	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#getOwlAnonymousIndividuals()
+	 */
+	@Override
+	public Set<OWLAnonymousIndividual> getOwlAnonymousIndividuals() {
+		List<OWLAnonymousIndividual> l;
+		l = graph.getTransactionManager().transact(new Callable<List<OWLAnonymousIndividual>>() {
+			public List<OWLAnonymousIndividual> call() {
+				return hg.getAll(graph,
+						hg.and(hg.type(OWLAnonymousIndividualHGDB.class), new SubgraphMemberCondition(ontoHandle)));
+			}
+		}, HGTransactionConfig.READONLY);
+		return getReturnSet(l);
 	}
 
-	public void removeOwlAnonymousIndividualReferences(OWLAnonymousIndividual c, OWLAxiom ax) {
-		removeAxiomFromSet(c, owlAnonymousIndividualReferences, ax, true);
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#containsOwlAnonymousIndividual(org.semanticweb.owlapi.model.OWLAnonymousIndividual)
+	 */
+	@Override
+	public boolean containsOwlAnonymousIndividual(final OWLAnonymousIndividual c) {
+		return graph.getTransactionManager().transact(new Callable<Boolean>() {
+			public Boolean call() {
+				return hg.findOne(graph,
+						hg.and(hg.type(OWLAnonymousIndividualHGDB.class),
+								//equals is defined as equal id strings.
+								hg.eq(c), new SubgraphMemberCondition(ontoHandle))) != null;
+			}
+		}, HGTransactionConfig.READONLY);
 	}
 
-	public void addOwlAnonymousIndividualReferences(OWLAnonymousIndividual c, OWLAxiom ax) {
-		addToIndexedSet(c, owlAnonymousIndividualReferences, ax);
-	}
-
-	public boolean containsOwlAnonymousIndividualReferences(OWLAnonymousIndividual c) {
-		return this.owlAnonymousIndividualReferences.containsKey(c);
-	}
 
 	// public Map<OWLDatatype, Set<OWLAxiom>> getOwlDatatypeReferences() {
 	// return new HashMap<OWLDatatype,
@@ -1100,6 +1135,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	public boolean hasReferencingAxioms(HGHandle entity) {
 		return hasOntologyAxiomsRecursive(entity);
 	}
+
 
 	// /**
 	// * This is an expensive operation, because the hashmap has to be created.

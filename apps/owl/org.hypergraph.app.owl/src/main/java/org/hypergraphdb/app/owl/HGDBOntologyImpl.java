@@ -1292,7 +1292,8 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 * @return The set of referenced anonymous individuals
 	 */
 	public Set<OWLAnonymousIndividual> getReferencedAnonymousIndividuals() {
-		return internals.getReturnSet(internals.getOwlAnonymousIndividualReferences().keySet());
+		return internals.getReturnSet(internals.getOwlAnonymousIndividuals());
+		//return internals.getReturnSet(internals.getOwlAnonymousIndividualReferences().keySet());
 	}
 
 	/**
@@ -1723,7 +1724,22 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		// object.accept(referenceAdder);
 		
 		for (OWLAnonymousIndividual ind : anons) {
-			internals.addOwlAnonymousIndividualReferences(ind, axiom);
+			HGHandle objectHandle = graph.getHandle(ind);
+			if (objectHandle != null) {
+				if  (!this.isMember(objectHandle)) {
+					//ensure unique within ontology (ID); might have duplicates in graph!
+					if (!internals.containsOwlAnonymousIndividual(ind)) {
+						this.add(objectHandle);
+					} else {
+						if (DBG) log.info("Anonymous Individual already in ontology " + ind);
+					}
+				} //else {
+				// Just added an axiom that refers to an entity that's already a member of our ontology. 
+				//}
+			} else {
+				throw new IllegalStateException("getHandle(entity) for entity in memory returned null. Implement find?");
+			}
+			//internals.addOwlAnonymousIndividualReferences(ind, axiom);
 		}
 		if (axiom.isAnnotated()) {
 			internals.addLogicalAxiom2AnnotatedAxiomMap(axiom);
@@ -1779,7 +1795,23 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		//old object.accept(referenceRemover);
 		}
 		for (OWLAnonymousIndividual ind : anons) {
-			internals.removeOwlAnonymousIndividualReferences(ind, axiom);
+			HGHandle objectHandle = graph.getHandle(ind);
+			if (objectHandle != null) {				
+				if (this.isMember(objectHandle)) {
+					IncidenceSet is = this.getIncidenceSet(objectHandle);
+					if (DBG) printIncidenceSets(objectHandle);
+					if (is.size() == 0) {
+						if (!internals.hasReferencingAxioms(objectHandle)) {
+							this.remove(objectHandle);
+						}
+					}
+				} else {
+					throw new IllegalStateException("Just removed an axiom that did refer to an anonymous individual outside our ontology:" + ind);
+				}
+			} else {
+				throw new IllegalStateException("getHandle(entity) for anonymous individual in memory returned null. Implement find?");
+			}
+			//internals.removeOwlAnonymousIndividualReferences(ind, axiom);
 		}
 		if (axiom.isAnnotated()) {
 			internals.removeLogicalAxiom2AnnotatedAxiomMap(axiom);

@@ -10,6 +10,7 @@ import java.util.TreeSet;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.app.owl.model.OWLAnonymousIndividualHGDB;
 import org.hypergraphdb.app.owl.model.OWLClassHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectInverseOfHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDeclarationAxiomHGDB;
@@ -283,7 +284,13 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		if (id == null) {
 			throw new NullPointerException("ID for anonymous individual is null");
 		}
-		return new OWLAnonymousIndividualImpl(this, NodeID.getNodeID(id));
+		// we can not try to find the individual by id, because we do not know, which Ontology he belongs to.
+		// therefore we do not know the context in which the id will be valid.
+		//TODO Think about adding to graph again? 
+		// we could ensure here that NodeId gets initialized to max(ID) + 1, et.c.
+		OWLAnonymousIndividual i = new OWLAnonymousIndividualHGDB(NodeID.getNodeID(id));
+		graph.add(i);
+		return i; 
 	}
 
 	/**
@@ -293,7 +300,11 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 * @return The anonymous individual
 	 */
 	public OWLAnonymousIndividual getOWLAnonymousIndividual() {
-		return new OWLAnonymousIndividualImpl(this, NodeID.getNodeID());
+		//TODO we could ensure here that NodeId gets initialized to max(ID) + 1, et.c.
+		OWLAnonymousIndividual i = new OWLAnonymousIndividualHGDB(NodeID.getNodeID());
+		graph.add(i);
+		return i;
+		//return new OWLAnonymousIndividualImpl(this, NodeID.getNodeID());
 	}
 
 	public OWLDatatype getOWLDatatype(IRI iri) {
