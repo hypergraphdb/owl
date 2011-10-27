@@ -8,10 +8,9 @@ import java.util.List;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGPersistentHandle;
+import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.IncidenceSetRef;
 import org.hypergraphdb.LazyRef;
-import org.hypergraphdb.HGQuery.hg;
-import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.hypergraphdb.app.owl.model.OWLNamedIndividualHGDB;
 import org.hypergraphdb.type.HGAtomTypeBase;
 import org.hypergraphdb.type.HGCompositeType;

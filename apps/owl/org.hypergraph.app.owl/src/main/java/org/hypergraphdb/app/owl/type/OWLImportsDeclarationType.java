@@ -8,15 +8,14 @@ import java.util.List;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGPersistentHandle;
+import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.IncidenceSetRef;
 import org.hypergraphdb.LazyRef;
-import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.type.HGAtomTypeBase;
 import org.hypergraphdb.type.HGCompositeType;
 import org.hypergraphdb.type.HGProjection;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
-import org.semanticweb.owlapi.model.OWLOntologyID;
 
 import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 

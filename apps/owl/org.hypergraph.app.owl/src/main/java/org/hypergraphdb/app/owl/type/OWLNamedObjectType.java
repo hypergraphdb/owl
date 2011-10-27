@@ -1,8 +1,6 @@
 package org.hypergraphdb.app.owl.type;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -10,9 +8,9 @@ import java.util.List;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGPersistentHandle;
+import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.IncidenceSetRef;
 import org.hypergraphdb.LazyRef;
-import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.model.OWLAnnotationPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLClassHGDB;
 import org.hypergraphdb.app.owl.model.OWLDataPropertyHGDB;
@@ -98,7 +96,6 @@ public class OWLNamedObjectType extends HGAtomTypeBase implements HGCompositeTyp
 		graph.getStore().removeLink(handle);
 	}
 
-	@SuppressWarnings("unchecked")
 	public HGPersistentHandle store(Object instance) {
 		OWLNamedObject oni = (OWLNamedObject) instance;
 		// if (oid.isAnonymous())

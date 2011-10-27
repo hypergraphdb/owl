@@ -5,18 +5,18 @@ import java.util.List;
 import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HGTypeSystem;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.atom.HGSubsumes;
 import org.hypergraphdb.type.HGAtomType;
-import org.semanticweb.owlapi.model.OWLEntity;
 
 /**
  * TypeUtils.
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  * @created Sep 29, 2011
  */
+@SuppressWarnings("deprecation")
 public class TypeUtils {
 	
     /**
@@ -53,8 +53,8 @@ public class TypeUtils {
     public static List<HGAtomType> getSuperTypes(HyperGraph graph, HGHandle typeHandle) {
         return hg.getAll(graph, hg.apply(hg.targetAt(graph, 0), hg.and(hg.type(HGSubsumes.class), hg.orderedLink(hg.anyHandle(), typeHandle))));
     }
-    
-    public static List<HGAtomType> getSubTypes(HyperGraph graph, HGHandle typeHandle) {
+      
+	public static List<HGAtomType> getSubTypes(HyperGraph graph, HGHandle typeHandle) {
         return hg.getAll(graph, hg.apply(hg.targetAt(graph, 1), hg.and(hg.type(HGSubsumes.class), hg.orderedLink(typeHandle, hg.anyHandle()))));
     }
 
