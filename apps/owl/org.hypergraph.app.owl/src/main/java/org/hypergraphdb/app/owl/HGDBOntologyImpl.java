@@ -17,6 +17,7 @@ import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.IncidenceSet;
 import org.hypergraphdb.annotation.HGIgnore;
 import org.hypergraphdb.app.owl.core.ChangeAxiomVisitorHGDB;
+import org.hypergraphdb.app.owl.core.HGChangeableLink;
 import org.hypergraphdb.app.owl.core.OWLSubgraphObject;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
@@ -1723,16 +1724,35 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		// hilpold referenceAdder.setAxiom(axiom);
 		// object.accept(referenceAdder);
 		
-		for (OWLAnonymousIndividual ind : anons) {
-			HGHandle objectHandle = graph.getHandle(ind);
-			if (objectHandle != null) {
-				if  (!this.isMember(objectHandle)) {
+		for (OWLAnonymousIndividual anon : anons) {			
+			HGHandle anonHandle = graph.getHandle(anon);
+			//this handle might be outside our ontology.
+			if (anonHandle != null) {
+				if  (!this.isMember(anonHandle)) {
 					//ensure unique within ontology (ID); might have duplicates in graph!
-					if (!internals.containsOwlAnonymousIndividual(ind)) {
-						this.add(objectHandle);
+					if (!internals.containsOwlAnonymousIndividual(anon)) {
+						this.add(anonHandle);
 					} else {
-						if (DBG) log.info("Anonymous Individual already in ontology " + ind);
-					}
+						//ensure that all links pointing to the individual already in ontology.
+						HGHandle existingAnonHandle = internals.findAnonymousIndividual(anon);
+						assert (existingAnonHandle != null);
+						IncidenceSet is = graph.getIncidenceSet(anonHandle);
+						for (HGHandle incident : is) {
+							Object incidentObject = graph.get(incident);
+							if (incidentObject instanceof HGLink) {
+								//TODO for now we want the following cast, to find the objects who should implement HGChangeableLink
+								HGChangeableLink incidentObjectLink = (HGChangeableLink) incidentObject;
+								for (int i = 0; i < incidentObjectLink.getArity(); i++) {
+									if (incidentObjectLink.getTargetAt(i) == anonHandle) {
+										incidentObjectLink.setTargetAt(i, existingAnonHandle);
+										graph.update(incidentObjectLink);
+									}
+								}
+							}
+						}
+						if (DBG) log.info("Anonymous Individual already in ontology " + anon
+									+ "\r\n All links now pointing to existing anon handle: " + existingAnonHandle + " replaced handle: " + anonHandle);
+					} // if 
 				} //else {
 				// Just added an axiom that refers to an entity that's already a member of our ontology. 
 				//}

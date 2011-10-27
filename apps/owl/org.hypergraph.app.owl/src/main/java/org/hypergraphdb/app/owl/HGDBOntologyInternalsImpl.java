@@ -71,7 +71,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 
 	public static boolean DBG = true; // Switches LOG string creation on or off.
 
-	private int recLevel = 0; //recursion leve/depth for getReferencingAxioms.
+	private int recLevel = 0; // recursion leve/depth for getReferencingAxioms.
 
 	protected Logger log = Logger.getLogger(this.getClass().getCanonicalName());
 
@@ -94,12 +94,14 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	protected Map<OWLAxiom, Set<OWLAxiom>> logicalAxiom2AnnotatedAxiomMap;
 	protected Set<OWLClassAxiom> generalClassAxioms;
 	protected Set<OWLSubPropertyChainOfAxiom> propertyChainSubPropertyAxioms;
+
 	// protected Map<OWLClass, Set<OWLAxiom>> owlClassReferences;
 	// protected Map<OWLObjectProperty, Set<OWLAxiom>>
 	// owlObjectPropertyReferences;
 	// protected Map<OWLDataProperty, Set<OWLAxiom>> owlDataPropertyReferences;
 	// protected Map<OWLNamedIndividual, Set<OWLAxiom>> owlIndividualReferences;
-	//2011.10.26 protected Map<OWLAnonymousIndividual, Set<OWLAxiom>> owlAnonymousIndividualReferences;
+	// 2011.10.26 protected Map<OWLAnonymousIndividual, Set<OWLAxiom>>
+	// owlAnonymousIndividualReferences;
 
 	// protected Map<OWLDatatype, Set<OWLAxiom>> owlDatatypeReferences;
 	// protected Map<OWLAnnotationProperty, Set<OWLAxiom>>
@@ -123,7 +125,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		// this.owlObjectPropertyReferences = createMap();
 		// this.owlDataPropertyReferences = createMap();
 		// this.owlIndividualReferences = createMap();
-		//this.owlAnonymousIndividualReferences = createMap();
+		// this.owlAnonymousIndividualReferences = createMap();
 		// this.owlDatatypeReferences = createMap();
 		// this.owlAnnotationPropertyReferences = createMap();
 		// this.declarationsByEntity = createMap();
@@ -220,14 +222,36 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		return getReturnSet(axiomsOneType);
 		// return (Set<T>) getAxioms(axiomType, axiomsByType, false);
 	}
-
+	/**
+	 * Anonymousindividuals have an ID that must be unique in the context of an ontology.
+	 * DataFactoryHGDB cannot prevent creation of n AnonI with the same ID.
+	 * 
+	 */
 	public Set<OWLAxiom> getReferencingAxioms(OWLAnonymousIndividual individual) {
-		HGHandle h = graph.getHandle(individual);
-		List<OWLAxiom> l = new ArrayList<OWLAxiom>();
-		collectOntologyAxiomsRecursive(h, l);
-		return getReturnSet(l);
-		//return getReturnSet(getAxioms(individual, owlAnonymousIndividualReferences, false));
+		//TODO we know here, that this might not be in our onto; still an equal object might.
+		HGHandle h = findAnonymousIndividual(individual);		
+		if (h == null || !ontology.isMember(h))
+			return getReturnSet(null);
+		else {
+			List<OWLAxiom> l = new ArrayList<OWLAxiom>();
+			collectOntologyAxiomsRecursive(h, l);
+			return getReturnSet(l);
+		}
+		// return getReturnSet(getAxioms(individual,
+		// owlAnonymousIndividualReferences, false));
 	}
+	
+	public HGHandle findAnonymousIndividual(final OWLAnonymousIndividual individual) {
+		HGHandle iHandle = graph.getTransactionManager().transact(new Callable<HGHandle>() {
+			public HGHandle call() {
+				HGHandle h = ontology.findOne(hg.and(
+						hg.type(OWLAnonymousIndividualHGDB.class), 
+						hg.eq(individual)));
+				return h;
+				}
+		});
+		return iHandle;
+	}	
 
 	/**
 	 * 2011.10.13: return only axioms in Ontology!
@@ -247,7 +271,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 			log.warning("BAD ! OWLENTITY TYPE IS : " + owlEntity.getClass().getSimpleName());
 			log.warning("BAD ! Object IS : " + owlEntity);
 			log.warning("BAD ! IRI IS : " + owlEntity.getIRI());
-			// 2010.10.06 not acceptable anymore. HGApp adds BUILTIN types.
+			// 2010.10.06 not acceptable anymore. HGApp adds BUILTIN types.;
 			// return Collections.emptySet();
 			throw new IllegalStateException("We were called with a uk.ac entity.");
 		}
@@ -310,21 +334,23 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	/**
-	 * Initial call: Handle should be entity. Recursive calls will only
-	 * be on ClassExpressions.
+	 * Initial call: Handle should be entity. Recursive calls will only be on
+	 * ClassExpressions.
 	 * 
 	 * @param h
-	 *            Handle (Entity intially, ClassExpressionHandle, OWLObjectPropertyExpression handle (InverseOf) or DataRange on
+	 *            Handle (Entity intially, ClassExpressionHandle,
+	 *            OWLObjectPropertyExpression handle (InverseOf) or DataRange on
 	 *            recursion)
 	 * @param l
-	 *            the list for the axioms. Postcondition: List has no
-	 *            equal axioms.
+	 *            the list for the axioms. Postcondition: List has no equal
+	 *            axioms.
 	 * @throws IllegalStateException
-	 *             , if an incidenceset contains something else than
-	 *             Axioms or ClassExpressions.
+	 *             , if an incidenceset contains something else than Axioms or
+	 *             ClassExpressions.
 	 */
 	private void collectOntologyAxiomsRecursive(HGHandle atomHandle, List<OWLAxiom> axiomList) {
-		if (DBG) System.out.print("*" + recLevel);
+		if (DBG)
+			System.out.print("*" + recLevel);
 		if (atomHandle == null) {
 			return;
 		} else {
@@ -339,17 +365,15 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 					} else {
 						// we have no cycles up incidence sets starting
 						// on an entity.
-						if (!(o instanceof OWLClassExpression 
-							  || o instanceof OWLObjectPropertyExpression
-							  || o instanceof OWLDataRange
+						if (!(o instanceof OWLClassExpression || o instanceof OWLObjectPropertyExpression || o instanceof OWLDataRange
 
-							 )) {
-							throw new IllegalStateException(
-									"We encountered an unexpected object in an incidenceset:" + o);
+						)) {
+							throw new IllegalStateException("We encountered an unexpected object in an incidenceset:"
+									+ o);
 						}
-						recLevel ++;
+						recLevel++;
 						collectOntologyAxiomsRecursive(incidentAtomHandle, axiomList);
-						recLevel --;
+						recLevel--;
 					}
 				} // else o == null do nothing
 			} // for
@@ -357,38 +381,39 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	/**
-	 * Tests, if for a given Entity, ClassExpression, ObjectPropExopression or Datarange one or more axioms can be found, 
-	 * that is a member of the ontology. 
-	 * @param atomHandle non null.
+	 * Tests, if for a given Entity, ClassExpression, ObjectPropExopression or
+	 * Datarange one or more axioms can be found, that is a member of the
+	 * ontology.
+	 * 
+	 * @param atomHandle
+	 *            non null.
 	 * @return true as soon as one axiom in the ontology is found.
 	 */
 	private boolean hasOntologyAxiomsRecursive(HGHandle atomHandle) {
-		if (DBG) System.out.print("*" + recLevel);
+		if (DBG)
+			System.out.print("*" + recLevel);
 		IncidenceSet iSet = graph.getIncidenceSet(atomHandle);
 		for (HGHandle incidentAtomHandle : iSet) {
 			Object o = graph.get(incidentAtomHandle);
 			if (o != null) {
 				if (o instanceof OWLAxiom) {
 					if (ontology.isMember(incidentAtomHandle)) {
-						if (DBG) System.out.println("Found axiom recursive: " + o);
+						if (DBG)
+							System.out.println("\r\nFound axiom recursive: " + o);
 						return true;
 					} // else ignore axiom not part of our onto.
 				} else {
 					// we have no cycles up incidence sets starting
 					// on an entity.
-					if (!(o instanceof OWLClassExpression 
-							|| o instanceof OWLObjectPropertyExpression
-							|| o instanceof OWLDataRange
-					)) {
-						throw new IllegalStateException(
-								"We encountered an unexpected object in an incidenceset:" + o);
+					if (!(o instanceof OWLClassExpression || o instanceof OWLObjectPropertyExpression || o instanceof OWLDataRange)) {
+						throw new IllegalStateException("We encountered an unexpected object in an incidenceset:" + o);
 					}
-					recLevel ++;
+					recLevel++;
 					if (hasOntologyAxiomsRecursive(incidentAtomHandle)) {
-						recLevel --;
+						recLevel--;
 						return true;
-					} 
-					recLevel --;
+					}
+					recLevel--;
 				}
 			} // else o == null do nothing
 		} // for
@@ -1012,24 +1037,33 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	// END OWL_ENTITY BASIC QUERIES
 	// ------------------------------------------------------------------------------------
 
-//	public Map<OWLAnonymousIndividual, Set<OWLAxiom>> getOwlAnonymousIndividualReferences() {
-//		return new HashMap<OWLAnonymousIndividual, Set<OWLAxiom>>(this.owlAnonymousIndividualReferences);
-//	}
+	// public Map<OWLAnonymousIndividual, Set<OWLAxiom>>
+	// getOwlAnonymousIndividualReferences() {
+	// return new HashMap<OWLAnonymousIndividual,
+	// Set<OWLAxiom>>(this.owlAnonymousIndividualReferences);
+	// }
 
-//	public void removeOwlAnonymousIndividualReferences(OWLAnonymousIndividual c, OWLAxiom ax) {
-//		removeAxiomFromSet(c, owlAnonymousIndividualReferences, ax, true);
-//	}
-//
-//	public void addOwlAnonymousIndividualReferences(OWLAnonymousIndividual c, OWLAxiom ax) {
-//		addToIndexedSet(c, owlAnonymousIndividualReferences, ax);
-//	}
-//
-//	public boolean containsOwlAnonymousIndividualReferences(OWLAnonymousIndividual c) {
-//		return this.owlAnonymousIndividualReferences.containsKey(c);
-//	}
+	// public void removeOwlAnonymousIndividualReferences(OWLAnonymousIndividual
+	// c, OWLAxiom ax) {
+	// removeAxiomFromSet(c, owlAnonymousIndividualReferences, ax, true);
+	// }
+	//
+	// public void addOwlAnonymousIndividualReferences(OWLAnonymousIndividual c,
+	// OWLAxiom ax) {
+	// addToIndexedSet(c, owlAnonymousIndividualReferences, ax);
+	// }
+	//
+	// public boolean
+	// containsOwlAnonymousIndividualReferences(OWLAnonymousIndividual c) {
+	// return this.owlAnonymousIndividualReferences.containsKey(c);
+	// }
 
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#getOwlAnonymousIndividuals()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.hypergraphdb.app.owl.HGDBOntologyInternals#getOwlAnonymousIndividuals
+	 * ()
 	 */
 	@Override
 	public Set<OWLAnonymousIndividual> getOwlAnonymousIndividuals() {
@@ -1043,21 +1077,23 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		return getReturnSet(l);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#containsOwlAnonymousIndividual(org.semanticweb.owlapi.model.OWLAnonymousIndividual)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.hypergraphdb.app.owl.HGDBOntologyInternals#containsOwlAnonymousIndividual
+	 * (org.semanticweb.owlapi.model.OWLAnonymousIndividual)
 	 */
 	@Override
 	public boolean containsOwlAnonymousIndividual(final OWLAnonymousIndividual c) {
 		return graph.getTransactionManager().transact(new Callable<Boolean>() {
 			public Boolean call() {
-				return hg.findOne(graph,
-						hg.and(hg.type(OWLAnonymousIndividualHGDB.class),
-								//equals is defined as equal id strings.
-								hg.eq(c), new SubgraphMemberCondition(ontoHandle))) != null;
+				return hg.findOne(graph, hg.and(hg.type(OWLAnonymousIndividualHGDB.class),
+				// equals is defined as equal id strings.
+						hg.eq(c), new SubgraphMemberCondition(ontoHandle))) != null;
 			}
 		}, HGTransactionConfig.READONLY);
 	}
-
 
 	// public Map<OWLDatatype, Set<OWLAxiom>> getOwlDatatypeReferences() {
 	// return new HashMap<OWLDatatype,
@@ -1121,13 +1157,16 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		return containsOWLEntityOntology(c.getIRI(), OWLAnnotationPropertyHGDB.class);
 	}
 
-	
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#hasReferencingAxioms(org.semanticweb.owlapi.model.OWLEntity)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.hypergraphdb.app.owl.HGDBOntologyInternals#hasReferencingAxioms(org
+	 * .semanticweb.owlapi.model.OWLEntity)
 	 */
 	@Override
 	public boolean hasReferencingAxioms(OWLEntity entity) {
-		HGHandle h= graph.getHandle(entity);
+		HGHandle h = graph.getHandle(entity);
 		return hasOntologyAxiomsRecursive(h);
 	}
 
@@ -1135,7 +1174,6 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	public boolean hasReferencingAxioms(HGHandle entity) {
 		return hasOntologyAxiomsRecursive(entity);
 	}
-
 
 	// /**
 	// * This is an expensive operation, because the hashmap has to be created.

@@ -372,6 +372,8 @@ public interface HGDBOntologyInternals  {
 	
 	Set<OWLAxiom> getReferencingAxioms(OWLAnonymousIndividual individual);
 
+	HGHandle findAnonymousIndividual(final OWLAnonymousIndividual individual);
+
 	/**
 	 * Hilpold. 
 	 * @param entity

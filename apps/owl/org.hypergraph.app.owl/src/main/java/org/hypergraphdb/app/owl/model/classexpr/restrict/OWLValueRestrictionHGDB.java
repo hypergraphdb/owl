@@ -2,6 +2,7 @@ package org.hypergraphdb.app.owl.model.classexpr.restrict;
 
 import org.hypergraphdb.HGException;
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.app.owl.core.HGChangeableLink;
 import org.semanticweb.owlapi.model.OWLHasValueRestriction;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
@@ -97,5 +98,11 @@ public abstract class OWLValueRestrictionHGDB<R extends OWLPropertyRange, P exte
 			valueHandle = null;
 		}
 	}
-
+	/**
+	 * Sets the valueHandle to a new value.
+	 */
+	protected void updateValueHandle(HGHandle handle) {
+		if (handle == null) throw new IllegalArgumentException("handle was null.");
+		valueHandle = handle;
+	}
 }

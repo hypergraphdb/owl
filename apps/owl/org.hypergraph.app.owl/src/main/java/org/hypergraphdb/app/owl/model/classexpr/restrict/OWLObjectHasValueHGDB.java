@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl.model.classexpr.restrict;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.app.owl.core.HGChangeableLink;
 import org.semanticweb.owlapi.model.ClassExpressionType;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLClassExpressionVisitor;
@@ -18,10 +19,10 @@ import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
  * @created Oct 19, 2011
  */
 public class OWLObjectHasValueHGDB extends OWLValueRestrictionHGDB<OWLClassExpression, OWLObjectPropertyExpression, OWLIndividual> 
-	implements OWLObjectHasValue {
+	implements OWLObjectHasValue, HGChangeableLink {
 
 	/**
-	 * @param args [0]...property, [1]...filler
+	 * @param args [0]...property, [1]...OWLIndividual value
 	 * 
 	 */
 	public OWLObjectHasValueHGDB(HGHandle... args) {
@@ -79,5 +80,18 @@ public class OWLObjectHasValueHGDB extends OWLValueRestrictionHGDB<OWLClassExpre
 
 	public <O> O accept(OWLObjectVisitorEx<O> visitor) {
 		return visitor.visit(this);
+	}
+
+	/**
+	 * Sets the target. Only setting the valueHandle at position 1 is allowed.
+	 * @param i must be 1
+	 * @param handle a non null handle to an OWLIndividual.
+	 */
+	@Override
+	public void setTargetAt(int i, HGHandle handle) {
+		if (i == 1) updateValueHandle(handle);
+		else {
+			throw new IllegalArgumentException("i was <> 1; only target valueHandle can be set.");
+		}
 	}
 }
