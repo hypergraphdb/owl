@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.core.HGChangeableLink;
 import org.semanticweb.owlapi.model.ClassExpressionType;
