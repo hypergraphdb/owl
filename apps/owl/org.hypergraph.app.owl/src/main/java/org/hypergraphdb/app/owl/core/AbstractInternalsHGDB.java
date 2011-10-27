@@ -101,6 +101,7 @@ import uk.ac.manchester.cs.owl.owlapi.InitVisitorFactory;
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  * @created Sep 29, 2011
  */
+@SuppressWarnings("deprecation")
 public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HGGraphHolder {
 
 	protected HyperGraph graph;
@@ -530,85 +531,71 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 		},
 		ImportsDeclarations {
 			@Override
-			@SuppressWarnings("unused")
 			public void initMap(AbstractInternalsHGDB impl) {
 			}
 		},
 		OntologyAnnotations {
 			@Override
-			@SuppressWarnings("unused")
 			public void initMap(AbstractInternalsHGDB impl) {
 			}
 		},
 		AxiomsByType {
 			@Override
-			@SuppressWarnings("unused")
 			public void initMap(AbstractInternalsHGDB impl) {
 			}
 		},
 		LogicalAxiom2AnnotatedAxiomMap {
 			@Override
-			@SuppressWarnings("unused")
 			public void initMap(AbstractInternalsHGDB impl) {
 			}
 		},
 		GeneralClassAxioms {
 			@Override
-			@SuppressWarnings("unused")
 			public void initMap(AbstractInternalsHGDB impl) {
 			}
 		},
 		PropertyChainSubPropertyAxioms {
 			@Override
-			@SuppressWarnings("unused")
 			public void initMap(AbstractInternalsHGDB impl) {
 			}
 		},
 		OwlClassReferences {
 			@Override
-			@SuppressWarnings("unused")
 			public void initMap(AbstractInternalsHGDB impl) {
 			}
 		},
 		OwlObjectPropertyReferences {
 			@Override
-			@SuppressWarnings("unused")
 			public void initMap(AbstractInternalsHGDB impl) {
 			}
 		},
 		OwlDataPropertyReferences {
 			@Override
-			@SuppressWarnings("unused")
 			public void initMap(AbstractInternalsHGDB impl) {
 			}
 		},
 		OwlIndividualReferences {
 			@Override
-			@SuppressWarnings("unused")
 			public void initMap(AbstractInternalsHGDB impl) {
 			}
 		},
 		OwlAnonymousIndividualReferences {
 			@Override
-			@SuppressWarnings("unused")
 			public void initMap(AbstractInternalsHGDB impl) {
 			}
 		},
 		OwlDatatypeReferences {
 			@Override
-			@SuppressWarnings("unused")
 			public void initMap(AbstractInternalsHGDB impl) {
 			}
 		},
 		OwlAnnotationPropertyReferences {
 			@Override
-			@SuppressWarnings("unused")
 			public void initMap(AbstractInternalsHGDB impl) {
 			}
 		},
 		DeclarationsByEntity {
 			@Override
-			@SuppressWarnings("unused")
 			public void initMap(AbstractInternalsHGDB impl) {
 			}
 		}; //,
@@ -846,6 +833,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 //		return getReturnSet(getAxioms(cls, subClassAxiomsByLHS));
 	}
 
+	
 	public Set<OWLSubClassOfAxiom> getSubClassAxiomsForSuperClass(OWLClass cls) {
 		HGHandle clsHandle = graph.getHandle(cls);
 		List<OWLSubClassOfAxiom> l = ontology.getAll(hg.and(
