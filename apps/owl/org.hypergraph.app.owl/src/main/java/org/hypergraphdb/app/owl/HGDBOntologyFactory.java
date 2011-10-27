@@ -1,7 +1,5 @@
 package org.hypergraphdb.app.owl;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.logging.Logger;
 
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
@@ -12,8 +10,6 @@ import org.semanticweb.owlapi.model.OWLOntologyFactory;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
-
-import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 /**
  * HGDBOntologyFactory.
  *

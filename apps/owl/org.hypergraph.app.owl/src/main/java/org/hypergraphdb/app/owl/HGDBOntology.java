@@ -1,15 +1,9 @@
 package org.hypergraphdb.app.owl;
 
-import java.util.List;
-
-import org.hypergraphdb.HGGraphHolder;
-import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HyperNode;
 import org.hypergraphdb.annotation.HGIgnore;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLMutableOntology;
-import org.semanticweb.owlapi.model.OWLOntologyChange;
-import org.semanticweb.owlapi.model.OWLOntologyChangeException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 

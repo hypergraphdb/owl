@@ -2,17 +2,11 @@ package org.hypergraphdb.app.owl;
 
 import java.util.logging.Logger;
 
-import javax.sound.sampled.AudioFileFormat.Type;
-
-import org.hypergraphdb.HGEnvironment;
-import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HGTypeSystem;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.management.HGApplication;
-import org.hypergraphdb.app.management.HGManagement;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
 import org.hypergraphdb.app.owl.model.OWLClassHGDB;
@@ -22,17 +16,12 @@ import org.hypergraphdb.app.owl.model.OWLNamedIndividualHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectPropertyHGDB;
 import org.hypergraphdb.app.owl.type.IRIType;
 import org.hypergraphdb.app.owl.type.OWLImportsDeclarationType;
-import org.hypergraphdb.app.owl.type.OWLNamedIndividualHGDBType;
 import org.hypergraphdb.app.owl.type.OWLNamedObjectType;
 import org.hypergraphdb.app.owl.type.OntologyIDType;
 import org.hypergraphdb.app.owl.type.TypeUtils;
-import org.hypergraphdb.atom.HGRelType;
 import org.hypergraphdb.type.HGAtomType;
-import org.hypergraphdb.util.HGUtils;
-import org.semanticweb.owlapi.CreateValuePartition;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLNamedObject;
@@ -199,21 +188,21 @@ public class HGDBApplication extends HGApplication
 		assert(graph.getHandle(thing) != null);
 	}
 
-	/**
-	 * @param graph
-	 */
-	private void registerAllLinkTypes(HyperGraph graph) {
-//		HGRelType relType = new HGRelType("internals1:1", 				
-//				graph.getTypeSystem().getTypeHandle(HGDBOntologyImpl.class),
-//				graph.getTypeSystem().getTypeHandle(HGDBOntologyInternalsImpl.class));
-//		HGHandle internalsType = graph.add(relType);
-//		//
-//		relType = new HGRelType("importsDeclaration1:M", 				
-//		graph.getTypeSystem().getTypeHandle(HGDBOntologyInternalsImpl.class),
-//		graph.getTypeSystem().getTypeHandle(OWLImportsDeclaration.class));
-//		HGHandle importsType = graph.add(relType);
-		
-	}
+//	/**
+//	 * @param graph
+//	 */
+//	private void registerAllLinkTypes(HyperGraph graph) {
+////		HGRelType relType = new HGRelType("internals1:1", 				
+////				graph.getTypeSystem().getTypeHandle(HGDBOntologyImpl.class),
+////				graph.getTypeSystem().getTypeHandle(HGDBOntologyInternalsImpl.class));
+////		HGHandle internalsType = graph.add(relType);
+////		//
+////		relType = new HGRelType("importsDeclaration1:M", 				
+////		graph.getTypeSystem().getTypeHandle(HGDBOntologyInternalsImpl.class),
+////		graph.getTypeSystem().getTypeHandle(OWLImportsDeclaration.class));
+////		HGHandle importsType = graph.add(relType);
+//		
+//	}
 	
 	
 
