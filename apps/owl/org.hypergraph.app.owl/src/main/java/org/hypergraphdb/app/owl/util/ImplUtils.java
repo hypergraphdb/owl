@@ -54,7 +54,6 @@ public class ImplUtils
 		return result;
 	}
 
-	@SuppressWarnings("unchecked")
 	public static int compareSets(Set<? extends OWLObject> set1,
 			Set<? extends OWLObject> set2)
 	{
