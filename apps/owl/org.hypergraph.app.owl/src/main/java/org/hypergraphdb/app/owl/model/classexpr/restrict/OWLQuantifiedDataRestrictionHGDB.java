@@ -1,13 +1,11 @@
 package org.hypergraphdb.app.owl.model.classexpr.restrict;
 
 import org.hypergraphdb.HGHandle;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDataPropertyExpression;
 import org.semanticweb.owlapi.model.OWLDataRange;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLQuantifiedRestriction;
 
-import uk.ac.manchester.cs.owl.owlapi.OWLQuantifiedRestrictionImpl;
 
 /**
  * OWLQuantifiedDataRestrictionHGDB.

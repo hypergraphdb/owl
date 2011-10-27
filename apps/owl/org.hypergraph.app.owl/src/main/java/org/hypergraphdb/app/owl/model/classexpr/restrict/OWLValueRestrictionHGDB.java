@@ -2,7 +2,6 @@ package org.hypergraphdb.app.owl.model.classexpr.restrict;
 
 import org.hypergraphdb.HGException;
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.app.owl.core.HGChangeableLink;
 import org.semanticweb.owlapi.model.OWLHasValueRestriction;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
