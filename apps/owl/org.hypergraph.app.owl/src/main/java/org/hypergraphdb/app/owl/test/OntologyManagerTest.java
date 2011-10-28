@@ -106,7 +106,7 @@ public abstract class OntologyManagerTest {
 			System.out.println(" total Atoms.") ;
 			r.dropHypergraph();
 			r.dispose();
-		}		
+		}
 		df = null;
 		m = null;
 		o = null;
