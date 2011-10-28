@@ -63,7 +63,7 @@ public class TestBidirectionalShortFormProviderAdapter extends CachingBidirectio
 	    		return entity.toString();
 	    	} else {
 	    		String sf = shortFormProvider.getShortForm(entity);
-	    		if (sf.length() > 3 &&  sf.startsWith("<") && sf.endsWith(">")) {
+	    		if (sf.length() >= 2 &&  sf.startsWith("<") && sf.endsWith(">")) {
 	    			sf = sf.substring(1, sf.length() - 1);
 	    		}
 	    		return sf; 
