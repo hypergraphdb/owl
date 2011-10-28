@@ -12,6 +12,7 @@ import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.model.OWLAnonymousIndividualHGDB;
 import org.hypergraphdb.app.owl.model.OWLClassHGDB;
+import org.hypergraphdb.app.owl.model.OWLLiteralHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectInverseOfHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDeclarationAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDisjointClassesAxiomHGDB;
@@ -316,12 +317,12 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 			if (sep != -1) {
 				String lex = lexicalValue.substring(0, sep);
 				String lang = lexicalValue.substring(sep + 1);
-				literal = new OWLLiteralImpl(this, lex, lang);
+				literal = new OWLLiteralHGDB(lex, lang, graph.getHandle(getRDFPlainLiteral()));
 			} else {
-				literal = new OWLLiteralImpl(this, lexicalValue, datatype);
+				literal = new OWLLiteralHGDB(lexicalValue, graph.getHandle(datatype));
 			}
 		} else {
-			literal = new OWLLiteralImpl(this, lexicalValue, datatype);
+			literal = new OWLLiteralHGDB(lexicalValue, graph.getHandle(datatype));
 		}
 		return literal;
 	}
@@ -331,23 +332,23 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	}
 
 	public OWLLiteral getOWLLiteral(int value) {
-		return new OWLLiteralImpl(this, Integer.toString(value), getOWLDatatype(XSDVocabulary.INTEGER.getIRI()));
+		return new OWLLiteralHGDB(Integer.toString(value), graph.getHandle(getOWLDatatype(XSDVocabulary.INTEGER.getIRI())));
 	}
 
 	public OWLLiteral getOWLLiteral(double value) {
-		return new OWLLiteralImpl(this, Double.toString(value), getOWLDatatype(XSDVocabulary.DOUBLE.getIRI()));
+		return new OWLLiteralHGDB(Double.toString(value), graph.getHandle(getOWLDatatype(XSDVocabulary.DOUBLE.getIRI())));
 	}
 
 	public OWLLiteral getOWLLiteral(boolean value) {
-		return new OWLLiteralImpl(this, Boolean.toString(value), getOWLDatatype(XSDVocabulary.BOOLEAN.getIRI()));
+		return new OWLLiteralHGDB(Boolean.toString(value), graph.getHandle(getOWLDatatype(XSDVocabulary.BOOLEAN.getIRI())));
 	}
 
 	public OWLLiteral getOWLLiteral(float value) {
-		return new OWLLiteralImpl(this, Float.toString(value), getOWLDatatype(XSDVocabulary.FLOAT.getIRI()));
+		return new OWLLiteralHGDB(Float.toString(value), graph.getHandle(getOWLDatatype(XSDVocabulary.FLOAT.getIRI())));
 	}
 
 	public OWLLiteral getOWLLiteral(String value) {
-		return new OWLLiteralImpl(this, value, getOWLDatatype(XSDVocabulary.STRING.getIRI()));
+		return new OWLLiteralHGDB(value, graph.getHandle(getOWLDatatype(XSDVocabulary.STRING.getIRI())));
 	}
 
 	public OWLLiteral getOWLLiteral(String literal, String lang) {
