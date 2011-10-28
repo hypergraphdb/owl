@@ -38,8 +38,6 @@ public abstract class OWLObjectHGDB implements OWLObject, HGGraphHolder, HGHandl
 	private int hashCode = 0;
 	private Set<OWLEntity> signature;
 
-
-
 	public OWLObjectHGDB() {
 		this.dataFactory = OWLDataFactoryHGDB.getInstance();
 		
@@ -232,7 +230,4 @@ public abstract class OWLObjectHGDB implements OWLObject, HGGraphHolder, HGHandl
 		this.handle = handle;
 		
 	}
-
-
-
 }
