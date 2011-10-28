@@ -11,6 +11,7 @@ import org.coode.owlapi.rdf.rdfxml.RDFXMLOntologyStorer;
 import org.coode.owlapi.turtle.TurtleOntologyStorer;
 import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.management.HGManagement;
@@ -241,6 +242,37 @@ public class HGDBOntologyRepository {
 		return graph;
 	}
 	
+	/**
+	 * Gets the Number of Atoms (including Links) in the graph. 
+	 * @return
+	 */
+	public long getNrOfAtoms() {
+		return graph.count(hg.all());
+	}
+
+	/**
+	 * Gets the Number of Atoms in the graph that are of a given type.  
+	 * @return
+	 */
+	public long getNrOfAtomsByType(Class<?> clazz) {
+		return graph.count(hg.type(clazz));
+	}
+
+	/**
+	 * Gets the Number of Links in the graph. 
+	 * @return
+	 */
+	public long getNrOfLinks() {
+		return graph.count(hg.typePlus(HGLink.class));
+	}
+
+	/**
+	 * Gets the Number of Atoms (excluding Links) in the graph. 
+	 * @return
+	 */
+	public long getNrOfNonLinkAtoms() {
+		return getNrOfAtoms() - getNrOfLinks();
+	}
 	
 	//
 	//TODO MOVE CREATION OF HGDBONTOLOGYMANAGER SOMEWHERE ELSE ??
