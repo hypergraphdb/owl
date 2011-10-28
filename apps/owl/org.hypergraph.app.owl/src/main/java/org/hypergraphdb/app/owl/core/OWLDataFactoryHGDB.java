@@ -45,7 +45,7 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import org.semanticweb.owlapi.vocab.XSDVocabulary;
-//51 to go
+//49 to go
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationAssertionAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationPropertyDomainAxiomImpl;
@@ -75,7 +75,6 @@ import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLInverseFunctionalObjectPropertyAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLInverseObjectPropertiesAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLIrreflexiveObjectPropertyAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLLiteralImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLNegativeDataPropertyAssertionImplAxiom;
 import uk.ac.manchester.cs.owl.owlapi.OWLNegativeObjectPropertyAssertionAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLObjectPropertyAssertionAxiomImpl;
@@ -324,6 +323,7 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		} else {
 			literal = new OWLLiteralHGDB(lexicalValue, graph.getHandle(datatype));
 		}
+		graph.add(literal);
 		return literal;
 	}
 
@@ -332,23 +332,33 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	}
 
 	public OWLLiteral getOWLLiteral(int value) {
-		return new OWLLiteralHGDB(Integer.toString(value), graph.getHandle(getOWLDatatype(XSDVocabulary.INTEGER.getIRI())));
+		OWLLiteral literal = new OWLLiteralHGDB(Integer.toString(value), graph.getHandle(getOWLDatatype(XSDVocabulary.INTEGER.getIRI())));
+		graph.add(literal);
+		return literal;
 	}
 
 	public OWLLiteral getOWLLiteral(double value) {
-		return new OWLLiteralHGDB(Double.toString(value), graph.getHandle(getOWLDatatype(XSDVocabulary.DOUBLE.getIRI())));
+		OWLLiteral literal = new OWLLiteralHGDB(Double.toString(value), graph.getHandle(getOWLDatatype(XSDVocabulary.DOUBLE.getIRI())));
+		graph.add(literal);
+		return literal;
 	}
 
 	public OWLLiteral getOWLLiteral(boolean value) {
-		return new OWLLiteralHGDB(Boolean.toString(value), graph.getHandle(getOWLDatatype(XSDVocabulary.BOOLEAN.getIRI())));
+		OWLLiteral literal = new OWLLiteralHGDB(Boolean.toString(value), graph.getHandle(getOWLDatatype(XSDVocabulary.BOOLEAN.getIRI())));
+		graph.add(literal);
+		return literal;
 	}
 
 	public OWLLiteral getOWLLiteral(float value) {
-		return new OWLLiteralHGDB(Float.toString(value), graph.getHandle(getOWLDatatype(XSDVocabulary.FLOAT.getIRI())));
+		OWLLiteral literal = new OWLLiteralHGDB(Float.toString(value), graph.getHandle(getOWLDatatype(XSDVocabulary.FLOAT.getIRI())));
+		graph.add(literal);
+		return literal;
 	}
 
 	public OWLLiteral getOWLLiteral(String value) {
-		return new OWLLiteralHGDB(value, graph.getHandle(getOWLDatatype(XSDVocabulary.STRING.getIRI())));
+		OWLLiteral literal = new OWLLiteralHGDB(value, graph.getHandle(getOWLDatatype(XSDVocabulary.STRING.getIRI())));
+		graph.add(literal);
+		return literal;
 	}
 
 	public OWLLiteral getOWLLiteral(String literal, String lang) {
@@ -361,7 +371,9 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		} else {
 			normalisedLang = lang.trim().toLowerCase();
 		}
-		return new OWLLiteralImpl(this, literal, normalisedLang);
+		OWLLiteral l = new OWLLiteralHGDB(literal, normalisedLang, graph.getHandle(getRDFPlainLiteral()));
+		graph.add(l);
+		return l;
 	}
 
 	/**
