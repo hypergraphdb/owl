@@ -83,8 +83,8 @@ public class T002ClassExpressionTest extends OntologyManagerTest {
 		//References Before Addition
 		int preAxiomCount = o.getAxiomCount();
 		//TODO int preAxiomsA_CN = o.getAxioms(a_CN).size(); //TODO works, some result!
-		int preAxiomsB_CN = o.getAxioms(b_CN).size();
-		int preAxiomsC_CN = o.getAxioms(c_CN).size();
+		//int preAxiomsB_CN = o.getAxioms(b_CN).size();
+		//int preAxiomsC_CN = o.getAxioms(c_CN).size();
 		int preRefA_CN = o.getReferencingAxioms(a_CN).size(); //check this!
 		int preRefB_CN = o.getReferencingAxioms(b_CN).size();
 		int preRefC_CN = o.getReferencingAxioms(c_CN).size();
