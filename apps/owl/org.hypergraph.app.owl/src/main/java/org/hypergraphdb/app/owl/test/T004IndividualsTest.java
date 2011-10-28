@@ -24,9 +24,9 @@ import org.semanticweb.owlapi.util.SimpleShortFormProvider;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Oct 26, 2011
  */
-public class T004IndividualsAndLiteralsTest extends OntologyManagerTest {
+public class T004IndividualsTest extends OntologyManagerTest {
 
-	public T004IndividualsAndLiteralsTest(int useImplementation) {
+	public T004IndividualsTest(int useImplementation) {
 		super(useImplementation);
 	}
 
