@@ -58,6 +58,11 @@ public abstract class OntologyManagerTest {
 	 * A Datafactory. Never use new XXX to create Owl constructs or Axioms.
 	 */
 	protected static OWLDataFactory df;
+
+	/**
+	 * A HGDBOntologyRepository (Only use during usingHypergraphMode).
+	 */
+	protected static HGDBOntologyRepository r;
 	
 	protected final static IRI ontoIRI = IRI.create("hgdb://UNITTESTONTO1");
 
@@ -105,6 +110,7 @@ public abstract class OntologyManagerTest {
 		df = null;
 		m = null;
 		o = null;
+		r = null;
 	}
 	
 
@@ -133,13 +139,15 @@ public abstract class OntologyManagerTest {
 	public void initializeHypergraphMode() {
 		System.out.print("TESTRUN in HYPERGRAPH MODE: ");
 		System.out.println(" HGDBOntologyManager ");
-		m = HGDBOntologyRepository.createOWLOntologyManager();		
+		m = HGDBOntologyRepository.createOWLOntologyManager();	
+		r = ((HGDBOntologyManager)m).getOntologyRepository();
 	}
 	
 	public void initializeManchesterMode() {
 		System.out.print("TESTRUN in MANCHESTER MODE: ");
 		System.out.println(" OWLOntologyManager (no Hypergraph) ");
-		m = OWLManager.createOWLOntologyManager();		
+		m = OWLManager.createOWLOntologyManager();
+		r = null;
 	}	
 
 	/**
