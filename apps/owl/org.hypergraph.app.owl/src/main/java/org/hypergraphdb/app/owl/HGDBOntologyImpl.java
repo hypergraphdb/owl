@@ -19,6 +19,7 @@ import org.hypergraphdb.annotation.HGIgnore;
 import org.hypergraphdb.app.owl.core.ChangeAxiomVisitorHGDB;
 import org.hypergraphdb.app.owl.core.HGChangeableLink;
 import org.hypergraphdb.app.owl.core.OWLSubgraphObject;
+import org.hypergraphdb.query.HGQueryCondition;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
@@ -1852,15 +1853,11 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	}
 
 	public void printGraphStats(String label) {
-		int nrObjects = hg.findAll(graph, hg.all()).size();
-		//int nrLinks = hg.findAll(graph, hg.typePlus(HGLink.class)).size();
-		int nrObjectsOnto = this.findAll(hg.all()).size();
-		int nrLinksOnto = this.findAll(hg.typePlus(HGLink.class)).size();
 		System.out.println(label  
-				+ "\t Ontology Atoms(non link): " + (nrObjectsOnto - nrLinksOnto) 
-				+ "\t Links : " + nrLinksOnto  
-				+ "\t Total : " + nrObjectsOnto  
-				+ "\t Graph Total : " + nrObjects
+				+ "\t Ontology Atoms(non link): " + getNrOfNonLinkAtoms()
+				+ "\t Links : " + getNrOfLinks()  
+				+ "\t Total : " + getNrOfAtoms()  
+				+ "\t Graph Total : " + hg.count(graph, hg.all())
 				);
 		//printOntoOWLObjects();
 	}
@@ -2069,6 +2066,30 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		if (handle != null) {
 			ensureInternals();
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.HGDBOntology#getNrOfAtoms()
+	 */
+	@Override
+	public long getNrOfAtoms() {
+		return this.count(hg.all());
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.HGDBOntology#getNrOfLinks()
+	 */
+	@Override
+	public long getNrOfLinks() {
+		return this.count(hg.typePlus(HGLink.class));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.HGDBOntology#getNrOfNonLinkAtoms()
+	 */
+	@Override
+	public long getNrOfNonLinkAtoms() {
+		return getNrOfAtoms() - getNrOfLinks();
 	}
 
 
