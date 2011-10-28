@@ -63,9 +63,9 @@ public class T003PropertiesTest extends OntologyManagerTest {
 
 	@Test
 	public void testProperties0ObjectInverseOf() {
-		String clsExpr1 = " inverse  inverse inverse inverse inverse <B_PN> Self";
-		String clsExpr2 = " inverse <B_PN> Self";
-		String clsExpr3 = " <B_PN> Self";
+		String clsExpr1 = " inverse  inverse inverse inverse inverse B_PN Self";
+		String clsExpr2 = " inverse B_PN Self";
+		String clsExpr3 = " B_PN Self";
 		OWLClass a_CN = df.getOWLClass(IRI.create("A_CN")); 
 		OWLObjectProperty b_PN = df.getOWLObjectProperty(IRI.create("B_PN"));
 		OWLClassExpression ce1 = createClassExpr(clsExpr1);
@@ -203,9 +203,9 @@ public class T003PropertiesTest extends OntologyManagerTest {
 	}
 	@Test
 	public void testProperties2DataTopBottomSimple() {
-		String clsExpr1 = "  topDataProperty some <B_DN>";
-		String clsExpr2 = " bottomDataProperty max 7 <A_DN>";
-		String clsExpr3 = " topDataProperty min 3 <B_DN>";
+		String clsExpr1 = "  topDataProperty some B_DN";
+		String clsExpr2 = " bottomDataProperty max 7 A_DN";
+		String clsExpr3 = " topDataProperty min 3 B_DN";
 		OWLClass a_CN = df.getOWLClass(IRI.create("A_CN"));
 		OWLDatatype b_DN = df.getOWLDatatype(IRI.create("B_DN"));
 		OWLDataProperty top_R = df.getOWLTopDataProperty();

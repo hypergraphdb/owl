@@ -19,7 +19,11 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 
 /**
- * T004IndividualsAndLiteralsTest.
+ * T004IndividualsTest.
+ * 
+ * Individual := NamedIndividual | AnonymousIndividual
+ * NamedIndividual := IRI
+ * AnonymousIndividual := nodeID
  * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Oct 26, 2011
@@ -140,9 +144,9 @@ public class T004IndividualsTest extends OntologyManagerTest {
 
 	@Test
 	public void testIndividuals1Named() {
-		String clsExpr1 = " { <A_aN>} or ( {<B_aN>, <C_aN> }  and { <AA_aN>, <BB_aN> }) and not { <BB_aN> }";
-		String clsExpr2 = "  { <B_aN> }";
-		String clsExpr3 = "  { <C_aN>, <C_aN>, <C_aN> }";
+		String clsExpr1 = " { A_aN} or ( {B_aN, C_aN }  and { AA_aN, BB_aN }) and not { BB_aN }";
+		String clsExpr2 = "  { B_aN }";
+		String clsExpr3 = "  { C_aN, C_aN, C_aN }";
 		OWLClass a_CN = df.getOWLClass(IRI.create("A_CN"));
 		OWLNamedIndividual  A_aN = df.getOWLNamedIndividual(IRI.create("A_aN"));
 		OWLNamedIndividual  C_aN = df.getOWLNamedIndividual(IRI.create("C_aN"));
@@ -247,15 +251,15 @@ public class T004IndividualsTest extends OntologyManagerTest {
 		OWLClassExpression ce3;// = createClassExpr(clsExpr3);
 
 		//Create CLASS EXPRESSIONS MANUALLY
-		//String clsExpr1 = "  <A_PN> value _:a1 or ( (inverse <B_PN>) value _:a2 ) ";
+		//String clsExpr1 = "  A_PN value _:a1 or ( (inverse B_PN) value _:a2 ) ";
 		ce1 = df.getOWLObjectIntersectionOf(df.getOWLObjectHasValue(a_PN, _a1),
 				df.getOWLObjectHasValue(df.getOWLObjectInverseOf(b_PN), _a2));
 		
-		//String clsExpr2 = "  <A_PN> value _:a3 or ( (inverse <B_PN>) value _:a4 )";
+		//String clsExpr2 = "  A_PN value _:a3 or ( (inverse B_PN) value _:a4 )";
 		ce2 = df.getOWLObjectIntersectionOf(df.getOWLObjectHasValue(a_PN, _a3),
 				df.getOWLObjectHasValue(df.getOWLObjectInverseOf(b_PN), _a4));
 		
-		//String clsExpr3 = "  <B_PN> value _:a1 or ( (inverse <C_PN>) value _:a5 )";
+		//String clsExpr3 = "  B_PN value _:a1 or ( (inverse C_PN) value _:a5 )";
 		ce3 = df.getOWLObjectIntersectionOf(df.getOWLObjectHasValue(a_PN, _a1),
 				df.getOWLObjectHasValue(df.getOWLObjectInverseOf(c_PN), _a5));
 		

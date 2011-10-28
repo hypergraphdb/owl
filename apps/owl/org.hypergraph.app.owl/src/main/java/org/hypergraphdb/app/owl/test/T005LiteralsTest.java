@@ -4,22 +4,32 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxEditorParser;
+import org.hypergraphdb.app.owl.model.OWLLiteralHGDB;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.expression.ParserException;
 import org.semanticweb.owlapi.expression.ShortFormEntityChecker;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
-import org.semanticweb.owlapi.model.OWLNamedIndividual;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 
 /**
- * T004IndividualsAndLiteralsTest.
+ * T005LiteralsTest.
+ * 
+ * This test is using graph and ontology counts in Hypergraph mode.
+ * 
+ * http://www.w3.org/TR/2009/REC-owl2-syntax-20091027/#Literals
+ * 
+ * Literal := typedLiteral | stringLiteralNoLanguage | stringLiteralWithLanguage
+ * typedLiteral := lexicalForm '^^' Datatype
+ * lexicalForm := quotedString
+ * stringLiteralNoLanguage := quotedString
+ * stringLiteralWithLanguage := quotedString languageTag
  * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Oct 26, 2011
@@ -34,10 +44,21 @@ public class T005LiteralsTest extends OntologyManagerTest {
 	ShortFormEntityChecker sfec;
 
 	public OWLClassExpression createClassExpr(String text) {
-		ManchesterOWLSyntaxEditorParser parser = new ManchesterOWLSyntaxEditorParser(m.getOWLDataFactory(), text);
+		ManchesterOWLSyntaxEditorParser parser = new ManchesterOWLSyntaxEditorParser(m.getOWLDataFactory(), text); //takes long in HG
 		parser.setOWLEntityChecker(sfec);
 		try {
 			return parser.parseClassExpression();
+		} catch (ParserException e) {
+			e.printStackTrace();
+			throw new RuntimeException("Parser exception in Unit Test.", e);
+		}
+	}
+
+	public OWLLiteral createLiteral(String text) {
+		ManchesterOWLSyntaxEditorParser parser = new ManchesterOWLSyntaxEditorParser(m.getOWLDataFactory(), text);
+		parser.setOWLEntityChecker(sfec);
+		try {
+			return parser.parseLiteral();
 		} catch (ParserException e) {
 			e.printStackTrace();
 			throw new RuntimeException("Parser exception in Unit Test.", e);
@@ -59,289 +80,187 @@ public class T005LiteralsTest extends OntologyManagerTest {
 	}
 
 	@Test
-	public void testIndividuals0Anonymous() {
-		String clsExpr1 = " { _:a1} or ( { _:a2, _:a3 }  and { _:a1, _:a4 }) and not { _:a5 }";
-		String clsExpr2 = "  { _:a2 }";
-		String clsExpr3 = "  { _:a3, _:a3, _:a3 }";
+	public void testLiterals0TypedLiteral() {
+		long preDfNrLiteralsGraph = -1, preAxNrLiteralsGraph = -1, addNrLiteralsGraph = -1, remNrLiteralsGraph = -1;
+		if (r != null) preDfNrLiteralsGraph = r.getNrOfAtomsByType(OWLLiteralHGDB.class);
+		String clsExpr1 = " (A_R value \"15\"^^xsd:integer) or (A_R value \"15\"^^xsd:float) ";
+		String clsExpr2 = " B_R value \"xxxxxxxxx\"^^xsd:integer ";
+		String clsExpr3 = " C_R value \"0.001E1000\"^^xsd:float ";
 		OWLClass a_CN = df.getOWLClass(IRI.create("A_CN"));
-		OWLAnonymousIndividual  _a1 = df.getOWLAnonymousIndividual("a1");
-		OWLAnonymousIndividual  _a3 = df.getOWLAnonymousIndividual("_:a3");
-		OWLAnonymousIndividual  _a5 = df.getOWLAnonymousIndividual("_:a5");
-		OWLClassExpression ce1 = createClassExpr(clsExpr1);
+		OWLDatatype integer_DN = df.getIntegerOWLDatatype();
+		OWLDatatype float_DN = df.getFloatOWLDatatype();
+		OWLClassExpression ce1 = createClassExpr(clsExpr1); //takes extremely long in HG more than 3 secs
 		OWLClassExpression ce2 = createClassExpr(clsExpr2);
 		OWLClassExpression ce3 = createClassExpr(clsExpr3);
-
 		OWLSubClassOfAxiom axiom1 = df.getOWLSubClassOfAxiom(a_CN, ce1);
 		OWLDisjointClassesAxiom axiom2 = df.getOWLDisjointClassesAxiom(a_CN, ce2, ce3);
-		OWLSubClassOfAxiom axiom3 = df.getOWLSubClassOfAxiom(ce1, ce3);
+		OWLSubClassOfAxiom axiom3 = df.getOWLSubClassOfAxiom(a_CN, ce3);
 
 		// References Before Addition
 		int preAxiomCount = o.getAxiomCount();
 		int preSignatureCount = o.getSignature().size();
-		// TODO int preAxiomsA_CN = o.getAxioms(a_CN).size(); //TODO works, some
+		if (r != null) preAxNrLiteralsGraph = r.getNrOfAtomsByType(OWLLiteralHGDB.class);
+		if (r != null) assertTrue(preAxNrLiteralsGraph == preDfNrLiteralsGraph + 4);
 		// result!
-		int preAxiomsA_CN = o.getAxioms(a_CN).size();
-		int preAxioms_a1 = o.getAxioms(_a1).size();
-		int preAxioms_a3 = o.getAxioms(_a3).size();
-		int preAxioms_a5 = o.getAxioms(_a5).size();
-		int preRef_a1 = o.getReferencingAxioms(_a1).size(); 
-		int preRef_a3 = o.getReferencingAxioms(_a3).size(); 
-		int preRef_a5 = o.getReferencingAxioms(_a5).size();
+		//int preAxiomsA_CN = o.getAxioms(a_CN).size();
+		int preRef_Integer_DN = o.getReferencingAxioms(integer_DN).size(); 
+		int preRef_Float_DN = o.getReferencingAxioms(float_DN).size(); 
 		// add
 		m.addAxiom(o, axiom1);
 		m.addAxiom(o, axiom2);
 		m.addAxiom(o, axiom3);
+		if (r != null) addNrLiteralsGraph = r.getNrOfAtomsByType(OWLLiteralHGDB.class);
+		if (r != null) assertTrue(addNrLiteralsGraph == preAxNrLiteralsGraph);
 		int addAxiomCount = o.getAxiomCount();
 		int addSignatureCount = o.getSignature().size();
-		int addAxiomsA_CN = o.getAxioms(a_CN).size();
-		int addAxioms_a1 = o.getAxioms(_a1).size();
-		int addAxioms_a3 = o.getAxioms(_a3).size();
-		int addAxioms_a5 = o.getAxioms(_a5).size();
-		int addRef_a1 = o.getReferencingAxioms(_a1).size(); 
-		int addRef_a3 = o.getReferencingAxioms(_a3).size(); 
-		int addRef_a5 = o.getReferencingAxioms(_a5).size();
+		int addRef_Integer_DN = o.getReferencingAxioms(integer_DN).size(); 
+		int addRef_Float_DN = o.getReferencingAxioms(float_DN).size(); 
 		// assert after addition
 		assertTrue(addAxiomCount == preAxiomCount + 3);
-		assertTrue(addSignatureCount == preSignatureCount);
-		assertTrue(addAxioms_a1 == preAxioms_a1);
-		assertTrue(addAxioms_a3 == preAxioms_a3);
-		assertTrue(addAxioms_a5 == preAxioms_a5);
-		assertTrue(addAxiomsA_CN == preAxiomsA_CN + 2);
-		assertTrue(addRef_a1 == preRef_a1 + 2);
-		assertTrue(addRef_a3 == preRef_a3 + 3);
-		assertTrue(addRef_a5 == preRef_a5 + 2);
+		assertTrue(addSignatureCount == preSignatureCount + 2);
+		assertTrue(addRef_Integer_DN == preRef_Integer_DN + 2);
+		assertTrue(addRef_Float_DN == preRef_Float_DN + 3);
+		
 		assertTrue(o.getReferencingAxioms(a_CN).contains(axiom1));
 		assertTrue(o.getReferencingAxioms(a_CN).contains(axiom2));
-		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom3));
-		assertTrue(o.getReferencingAxioms(_a1).contains(axiom1));
-		assertTrue(o.getReferencingAxioms(_a1).contains(axiom3));
-		assertTrue(o.getReferencingAxioms(_a3).contains(axiom1));
-		assertTrue(o.getReferencingAxioms(_a3).contains(axiom2));
-		assertTrue(o.getReferencingAxioms(_a3).contains(axiom3));
-		assertTrue(o.getReferencingAxioms(_a5).contains(axiom1));
-		assertFalse(o.getReferencingAxioms(_a5).contains(axiom2));
-		assertTrue(o.getReferencingAxioms(_a5).contains(axiom3));
-		assertTrue(o.getReferencedAnonymousIndividuals().size() == 5);
+		assertTrue(o.getReferencingAxioms(a_CN).contains(axiom3));
+		assertTrue(o.getReferencingAxioms(integer_DN).contains(axiom1));
+		assertTrue(o.getReferencingAxioms(integer_DN).contains(axiom2));
+		assertFalse(o.getReferencingAxioms(integer_DN).contains(axiom3));
+		assertTrue(o.getReferencingAxioms(float_DN).contains(axiom1));
+		assertTrue(o.getReferencingAxioms(float_DN).contains(axiom2));
+		assertTrue(o.getReferencingAxioms(float_DN).contains(axiom3));
 		// Remove
 		m.removeAxiom(o, axiom1);
 		m.removeAxiom(o, axiom2);
 		m.removeAxiom(o, axiom3);
-		// assert before addition == after removal
-		assertTrue(o.getAxiomCount() == preAxiomCount);
-		assertTrue(o.getSignature().size() == preSignatureCount);		
-		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom1));
-		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom1));
-		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom1));
-		assertTrue(o.getReferencingAxioms(_a1).isEmpty());
-		assertTrue(o.getReferencingAxioms(_a3).isEmpty());
-		assertTrue(o.getReferencingAxioms(_a5).isEmpty());
-		assertTrue(o.getReferencedAnonymousIndividuals().size() == 0);
-	}
-
-	@Test
-	public void testIndividuals1Named() {
-		String clsExpr1 = " { <A_aN>} or ( {<B_aN>, <C_aN> }  and { <AA_aN>, <BB_aN> }) and not { <BB_aN> }";
-		String clsExpr2 = "  { <B_aN> }";
-		String clsExpr3 = "  { <C_aN>, <C_aN>, <C_aN> }";
-		OWLClass a_CN = df.getOWLClass(IRI.create("A_CN"));
-		OWLNamedIndividual  A_aN = df.getOWLNamedIndividual(IRI.create("A_aN"));
-		OWLNamedIndividual  C_aN = df.getOWLNamedIndividual(IRI.create("C_aN"));
-		OWLNamedIndividual  BB_aN = df.getOWLNamedIndividual(IRI.create("BB_aN"));
-		OWLClassExpression ce1 = createClassExpr(clsExpr1);
-		OWLClassExpression ce2 = createClassExpr(clsExpr2);
-		OWLClassExpression ce3 = createClassExpr(clsExpr3);
-
-		OWLSubClassOfAxiom axiom1 = df.getOWLSubClassOfAxiom(a_CN, ce1);
-		OWLDisjointClassesAxiom axiom2 = df.getOWLDisjointClassesAxiom(a_CN, ce2, ce3);
-		OWLSubClassOfAxiom axiom3 = df.getOWLSubClassOfAxiom(ce1, ce3);
-
-		// References Before Addition
-		int preAxiomCount = o.getAxiomCount();
-		int preSignatureCount = o.getSignature().size();
-		// TODO int preAxiomsA_CN = o.getAxioms(a_CN).size(); //TODO works, some
-		// result!
-		int preAxiomsA_CN = o.getAxioms(a_CN).size();
-		int preAxiomsA_aN = o.getAxioms(A_aN).size();
-		int preAxiomsC_aN = o.getAxioms(C_aN).size();
-		int preAxiomsBB_aN = o.getAxioms(BB_aN).size();
-		int preRefA_aN = o.getReferencingAxioms(A_aN).size(); 
-		int preRefC_aN = o.getReferencingAxioms(C_aN).size(); 
-		int preRefBB_aN = o.getReferencingAxioms(BB_aN).size();
-		// add
-		m.addAxiom(o, axiom1);
-		m.addAxiom(o, axiom2);
-		m.addAxiom(o, axiom3);
-		int addAxiomCount = o.getAxiomCount();
-		int addSignatureCount = o.getSignature().size();
-		int addAxiomsA_CN = o.getAxioms(a_CN).size();
-		int addAxiomsA_aN = o.getAxioms(A_aN).size();
-		int addAxiomsC_aN = o.getAxioms(C_aN).size();
-		int addAxiomsBB_aN = o.getAxioms(BB_aN).size();
-		int addRefA_aN = o.getReferencingAxioms(A_aN).size(); 
-		int addRefC_aN = o.getReferencingAxioms(C_aN).size(); 
-		int addRefBB_aN = o.getReferencingAxioms(BB_aN).size();
-		// assert after addition
-		assertTrue(addAxiomCount == preAxiomCount + 3);
-		assertTrue(addSignatureCount == preSignatureCount);
-		assertTrue(addAxiomsA_aN == preAxiomsA_aN);
-		assertTrue(addAxiomsC_aN == preAxiomsC_aN);
-		assertTrue(addAxiomsBB_aN == preAxiomsBB_aN);
-		assertTrue(addAxiomsA_CN == preAxiomsA_CN + 2);
-		assertTrue(addRefA_aN == preRefA_aN + 2);
-		assertTrue(addRefC_aN == preRefC_aN + 3);
-		assertTrue(addRefBB_aN == preRefBB_aN + 2);
-		assertTrue(o.getReferencingAxioms(a_CN).contains(axiom1));
-		assertTrue(o.getReferencingAxioms(a_CN).contains(axiom2));
-		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom3));
-		assertTrue(o.getReferencingAxioms(A_aN).contains(axiom1));
-		assertTrue(o.getReferencingAxioms(A_aN).contains(axiom3));
-		assertTrue(o.getReferencingAxioms(C_aN).contains(axiom1));
-		assertTrue(o.getReferencingAxioms(C_aN).contains(axiom2));
-		assertTrue(o.getReferencingAxioms(C_aN).contains(axiom3));
-		assertTrue(o.getReferencingAxioms(BB_aN).contains(axiom1));
-		assertFalse(o.getReferencingAxioms(BB_aN).contains(axiom2));
-		assertTrue(o.getReferencingAxioms(BB_aN).contains(axiom3));
-		assertTrue(o.getIndividualsInSignature().size() == 6);
-		// Remove
-		m.removeAxiom(o, axiom1);
-		m.removeAxiom(o, axiom2);
-		m.removeAxiom(o, axiom3);
+		if (r != null) remNrLiteralsGraph = r.getNrOfAtomsByType(OWLLiteralHGDB.class);
+		if (r != null) assertTrue(addNrLiteralsGraph == remNrLiteralsGraph);
 		// assert before addition == after removal
 		assertTrue(o.getAxiomCount() == preAxiomCount);
 		assertTrue(o.getSignature().size() == preSignatureCount);		
 		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom1));
 		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom2));
 		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom3));
-		assertFalse(o.getReferencingAxioms(A_aN).contains(axiom1));
-		assertFalse(o.getReferencingAxioms(A_aN).contains(axiom2));
-		assertFalse(o.getReferencingAxioms(A_aN).contains(axiom3));
-		assertFalse(o.getReferencingAxioms(C_aN).contains(axiom1));
-		assertFalse(o.getReferencingAxioms(C_aN).contains(axiom2));
-		assertFalse(o.getReferencingAxioms(C_aN).contains(axiom3));
-		assertFalse(o.getReferencingAxioms(BB_aN).contains(axiom1));
-		assertFalse(o.getReferencingAxioms(BB_aN).contains(axiom2));
-		assertFalse(o.getReferencingAxioms(BB_aN).contains(axiom3));
+		assertTrue(o.getReferencingAxioms(integer_DN).isEmpty());
+		assertTrue(o.getReferencingAxioms(float_DN).isEmpty());
 	}
-
-	/**
-	 * Interesting: I tried to parse a string using value (ObjectHasValue), but the parser would not allow me to 
-	 * put an anonymousindividual there; even though OWL2 Spec and API would allow it.
-	 * Individual := NamedIndividual | AnonymousIndividual
-	 * ObjectHasValue can be seen as syntactic shortcut for the class expression ObjectSomeValuesFrom( OPE ObjectOneOf( a ) )
-	 * Because of parser limitations as of 2011.10.28 (ManchesterOWLSyntaxEditorParser), we have to build our classexpression by hand. 
-	 */
+	
 	@Test
-	public void testIndividuals2Anonymous_ObjectHasValue() {
+	public void testLiterals0StringLiteralNoLanguage() {
+		long preDfNrLiteralsGraph = -1, preAxNrLiteralsGraph = -1, addNrLiteralsGraph = -1, remNrLiteralsGraph = -1;
+		if (r != null) preDfNrLiteralsGraph = r.getNrOfAtomsByType(OWLLiteralHGDB.class);
+		String clsExpr1 = " (A_R value \"15\" ) or (A_R value \"15\"^^rdf:PlainLiteral ) ";
+		String clsExpr2 = " B_R value  \"xxxxxxxxx\" ";
+		String clsExpr3 = " C_R value \"0.001E1000\"^^rdf:PlainLiteral ";
 		OWLClass a_CN = df.getOWLClass(IRI.create("A_CN"));
-		OWLObjectProperty a_PN = df.getOWLObjectProperty(IRI.create("A_PN"));
-		OWLObjectProperty b_PN = df.getOWLObjectProperty(IRI.create("B_PN"));
-		OWLObjectProperty c_PN = df.getOWLObjectProperty(IRI.create("C_PN"));
-		OWLAnonymousIndividual  _a1 = df.getOWLAnonymousIndividual("a1");
-		OWLAnonymousIndividual  _a2 = df.getOWLAnonymousIndividual("a2");
-		OWLAnonymousIndividual  _a3 = df.getOWLAnonymousIndividual("_:a3");
-		OWLAnonymousIndividual  _a4 = df.getOWLAnonymousIndividual("a4");
-		OWLAnonymousIndividual  _a5 = df.getOWLAnonymousIndividual("_:a5");
-		//TODO maybe future Parser would work! 
-		OWLClassExpression ce1;// = createClassExpr(clsExpr1);
-		OWLClassExpression ce2;// = createClassExpr(clsExpr2);
-		OWLClassExpression ce3;// = createClassExpr(clsExpr3);
-
-		//Create CLASS EXPRESSIONS MANUALLY
-		//String clsExpr1 = "  <A_PN> value _:a1 or ( (inverse <B_PN>) value _:a2 ) ";
-		ce1 = df.getOWLObjectIntersectionOf(df.getOWLObjectHasValue(a_PN, _a1),
-				df.getOWLObjectHasValue(df.getOWLObjectInverseOf(b_PN), _a2));
-		
-		//String clsExpr2 = "  <A_PN> value _:a3 or ( (inverse <B_PN>) value _:a4 )";
-		ce2 = df.getOWLObjectIntersectionOf(df.getOWLObjectHasValue(a_PN, _a3),
-				df.getOWLObjectHasValue(df.getOWLObjectInverseOf(b_PN), _a4));
-		
-		//String clsExpr3 = "  <B_PN> value _:a1 or ( (inverse <C_PN>) value _:a5 )";
-		ce3 = df.getOWLObjectIntersectionOf(df.getOWLObjectHasValue(a_PN, _a1),
-				df.getOWLObjectHasValue(df.getOWLObjectInverseOf(c_PN), _a5));
-		
+		OWLDatatype plainLiteral_DN = df.getRDFPlainLiteral();
+		OWLClassExpression ce1 = createClassExpr(clsExpr1); //takes extremely long in HG more than 3 secs
+		OWLClassExpression ce2 = createClassExpr(clsExpr2);
+		OWLClassExpression ce3 = createClassExpr(clsExpr3);
 		OWLSubClassOfAxiom axiom1 = df.getOWLSubClassOfAxiom(a_CN, ce1);
 		OWLDisjointClassesAxiom axiom2 = df.getOWLDisjointClassesAxiom(a_CN, ce2, ce3);
-		OWLSubClassOfAxiom axiom3 = df.getOWLSubClassOfAxiom(ce1, ce3);
+		OWLSubClassOfAxiom axiom3 = df.getOWLSubClassOfAxiom(a_CN, ce3);
 
 		// References Before Addition
 		int preAxiomCount = o.getAxiomCount();
 		int preSignatureCount = o.getSignature().size();
-		// TODO int preAxiomsA_CN = o.getAxioms(a_CN).size(); //TODO works, some
+		if (r != null) preAxNrLiteralsGraph = r.getNrOfAtomsByType(OWLLiteralHGDB.class);
+		if (r != null) assertTrue(preAxNrLiteralsGraph == preDfNrLiteralsGraph + 4);
 		// result!
-		int preAxiomsA_CN = o.getAxioms(a_CN).size();
-		int preAxioms_a1 = o.getAxioms(_a1).size();
-		int preAxioms_a3 = o.getAxioms(_a3).size();
-		int preAxioms_a5 = o.getAxioms(_a5).size();
-		int preRef_A_PN = o.getReferencingAxioms(a_PN).size(); 
-		int preRef_C_PN = o.getReferencingAxioms(c_PN).size(); 
-		int preRef_a1 = o.getReferencingAxioms(_a1).size(); 
-		int preRef_a3 = o.getReferencingAxioms(_a3).size(); 
-		int preRef_a5 = o.getReferencingAxioms(_a5).size();
+		int preRef_plainLiteral_DN = o.getReferencingAxioms(plainLiteral_DN).size(); 
+		assertTrue(o.getReferencingAxioms(plainLiteral_DN).isEmpty());
 		// add
 		m.addAxiom(o, axiom1);
 		m.addAxiom(o, axiom2);
 		m.addAxiom(o, axiom3);
+		if (r != null) addNrLiteralsGraph = r.getNrOfAtomsByType(OWLLiteralHGDB.class);
+		if (r != null) assertTrue(addNrLiteralsGraph == preAxNrLiteralsGraph);
 		int addAxiomCount = o.getAxiomCount();
 		int addSignatureCount = o.getSignature().size();
-		int addAxiomsA_CN = o.getAxioms(a_CN).size();
-		int addAxioms_a1 = o.getAxioms(_a1).size();
-		int addAxioms_a3 = o.getAxioms(_a3).size();
-		int addAxioms_a5 = o.getAxioms(_a5).size();
-		int addRef_A_PN = o.getReferencingAxioms(a_PN).size(); 
-		int addRef_C_PN = o.getReferencingAxioms(c_PN).size(); 
-		int addRef_a1 = o.getReferencingAxioms(_a1).size(); 
-		int addRef_a3 = o.getReferencingAxioms(_a3).size(); 
-		int addRef_a5 = o.getReferencingAxioms(_a5).size();
+		int addRef_plainLiteral_DN = o.getReferencingAxioms(plainLiteral_DN).size(); 
 		// assert after addition
 		assertTrue(addAxiomCount == preAxiomCount + 3);
-		assertTrue(addSignatureCount == preSignatureCount);
-		assertTrue(addAxioms_a1 == preAxioms_a1);
-		assertTrue(addAxioms_a3 == preAxioms_a3);
-		assertTrue(addAxioms_a5 == preAxioms_a5);
-		assertTrue(addAxiomsA_CN == preAxiomsA_CN + 2);
-		assertTrue(addRef_A_PN == preRef_A_PN + 3);
-		assertTrue(addRef_C_PN == preRef_C_PN + 2);
-		assertTrue(addRef_a1 == preRef_a1 + 3);
-		assertTrue(addRef_a3 == preRef_a3 + 1);
-		assertTrue(addRef_a5 == preRef_a5 + 2);
+		assertTrue(addSignatureCount == preSignatureCount + 1);
+		assertTrue(addRef_plainLiteral_DN == preRef_plainLiteral_DN + 3);
+		
 		assertTrue(o.getReferencingAxioms(a_CN).contains(axiom1));
 		assertTrue(o.getReferencingAxioms(a_CN).contains(axiom2));
-		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom3));
-		assertTrue(o.getReferencingAxioms(a_PN).contains(axiom1));
-		assertTrue(o.getReferencingAxioms(a_PN).contains(axiom2));
-		assertTrue(o.getReferencingAxioms(a_PN).contains(axiom3));
-		assertFalse(o.getReferencingAxioms(c_PN).contains(axiom1));
-		assertTrue(o.getReferencingAxioms(c_PN).contains(axiom2));
-		assertTrue(o.getReferencingAxioms(c_PN).contains(axiom3));
-		assertTrue(o.getReferencingAxioms(_a1).contains(axiom1));
-		assertTrue(o.getReferencingAxioms(_a1).contains(axiom2));
-		assertTrue(o.getReferencingAxioms(_a1).contains(axiom3));
-		assertFalse(o.getReferencingAxioms(_a3).contains(axiom1));
-		assertTrue(o.getReferencingAxioms(_a3).contains(axiom2));
-		assertFalse(o.getReferencingAxioms(_a3).contains(axiom3));
-		assertFalse(o.getReferencingAxioms(_a5).contains(axiom1));
-		assertTrue(o.getReferencingAxioms(_a5).contains(axiom2));
-		assertTrue(o.getReferencingAxioms(_a5).contains(axiom3));
-		assertTrue(o.getReferencedAnonymousIndividuals().size() == 5);
+		assertTrue(o.getReferencingAxioms(a_CN).contains(axiom3));
+		assertTrue(o.getReferencingAxioms(plainLiteral_DN).contains(axiom1));
+		assertTrue(o.getReferencingAxioms(plainLiteral_DN).contains(axiom2));
+		assertTrue(o.getReferencingAxioms(plainLiteral_DN).contains(axiom3));
 		// Remove
 		m.removeAxiom(o, axiom1);
 		m.removeAxiom(o, axiom2);
 		m.removeAxiom(o, axiom3);
+		if (r != null) remNrLiteralsGraph = r.getNrOfAtomsByType(OWLLiteralHGDB.class);
+		if (r != null) assertTrue(addNrLiteralsGraph == remNrLiteralsGraph);
 		// assert before addition == after removal
 		assertTrue(o.getAxiomCount() == preAxiomCount);
 		assertTrue(o.getSignature().size() == preSignatureCount);		
 		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom1));
 		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom2));
 		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom3));
-		assertFalse(o.getReferencingAxioms(a_PN).contains(axiom1));
-		assertFalse(o.getReferencingAxioms(a_PN).contains(axiom2));
-		assertFalse(o.getReferencingAxioms(a_PN).contains(axiom3));
-		assertFalse(o.getReferencingAxioms(c_PN).contains(axiom1));
-		assertFalse(o.getReferencingAxioms(c_PN).contains(axiom2));
-		assertFalse(o.getReferencingAxioms(c_PN).contains(axiom3));
-		assertTrue(o.getReferencingAxioms(_a1).isEmpty());
-		assertTrue(o.getReferencingAxioms(_a3).isEmpty());
-		assertTrue(o.getReferencingAxioms(_a5).isEmpty());
-		assertTrue(o.getReferencedAnonymousIndividuals().size() == 0);
+		assertTrue(o.getReferencingAxioms(plainLiteral_DN).isEmpty());
 	}
+	
+	@Test
+	public void testLiterals0StringLiteralWithLanguage() {
+		long preDfNrLiteralsGraph = -1, preAxNrLiteralsGraph = -1, addNrLiteralsGraph = -1, remNrLiteralsGraph = -1;
+		if (r != null) preDfNrLiteralsGraph = r.getNrOfAtomsByType(OWLLiteralHGDB.class);
+		String clsExpr1 = " (A_R value \"15@english\") or (A_R value \"15@spanish\"^^rdf:PlainLiteral) ";
+		String clsExpr2 = " B_R value \"xxxxxx@x\" ";
+		String clsExpr3 = " C_R value \"0.001@E1000\"^^rdf:PlainLiteral ";
+		OWLClass a_CN = df.getOWLClass(IRI.create("A_CN"));
+		OWLDatatype plainLiteral_DN = df.getRDFPlainLiteral();
+		OWLClassExpression ce1 = createClassExpr(clsExpr1); //takes extremely long in HG more than 3 secs
+		OWLClassExpression ce2 = createClassExpr(clsExpr2);
+		OWLClassExpression ce3 = createClassExpr(clsExpr3);
+		OWLSubClassOfAxiom axiom1 = df.getOWLSubClassOfAxiom(a_CN, ce1);
+		OWLDisjointClassesAxiom axiom2 = df.getOWLDisjointClassesAxiom(a_CN, ce2, ce3);
+		OWLSubClassOfAxiom axiom3 = df.getOWLSubClassOfAxiom(a_CN, ce3);
+
+		// References Before Addition
+		int preAxiomCount = o.getAxiomCount();
+		int preSignatureCount = o.getSignature().size();
+		if (r != null) preAxNrLiteralsGraph = r.getNrOfAtomsByType(OWLLiteralHGDB.class);
+		if (r != null) assertTrue(preAxNrLiteralsGraph == preDfNrLiteralsGraph + 4);
+		// result!
+		int preRef_plainLiteral_DN = o.getReferencingAxioms(plainLiteral_DN).size(); 
+		o.getReferencingAxioms(plainLiteral_DN).isEmpty();
+		// add
+		m.addAxiom(o, axiom1);
+		m.addAxiom(o, axiom2);
+		m.addAxiom(o, axiom3);
+		if (r != null) addNrLiteralsGraph = r.getNrOfAtomsByType(OWLLiteralHGDB.class);
+		if (r != null) assertTrue(addNrLiteralsGraph == preAxNrLiteralsGraph);
+		int addAxiomCount = o.getAxiomCount();
+		int addSignatureCount = o.getSignature().size();
+		int addRef_plainLiteral_DN = o.getReferencingAxioms(plainLiteral_DN).size(); 
+		// assert after addition
+		assertTrue(addAxiomCount == preAxiomCount + 3);
+		assertTrue(addSignatureCount == preSignatureCount + 1);
+		assertTrue(addRef_plainLiteral_DN == preRef_plainLiteral_DN + 3);
+		
+		assertTrue(o.getReferencingAxioms(a_CN).contains(axiom1));
+		assertTrue(o.getReferencingAxioms(a_CN).contains(axiom2));
+		assertTrue(o.getReferencingAxioms(a_CN).contains(axiom3));
+		assertTrue(o.getReferencingAxioms(plainLiteral_DN).contains(axiom1));
+		assertTrue(o.getReferencingAxioms(plainLiteral_DN).contains(axiom2));
+		assertTrue(o.getReferencingAxioms(plainLiteral_DN).contains(axiom3));
+		// Remove
+		m.removeAxiom(o, axiom1);
+		m.removeAxiom(o, axiom2);
+		m.removeAxiom(o, axiom3);
+		if (r != null) remNrLiteralsGraph = r.getNrOfAtomsByType(OWLLiteralHGDB.class);
+		if (r != null) assertTrue(addNrLiteralsGraph == remNrLiteralsGraph);
+		// assert before addition == after removal
+		assertTrue(o.getAxiomCount() == preAxiomCount);
+		assertTrue(o.getSignature().size() == preSignatureCount);		
+		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom1));
+		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom2));
+		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom3));
+		assertTrue(o.getReferencingAxioms(plainLiteral_DN).isEmpty());
+	}	
 }

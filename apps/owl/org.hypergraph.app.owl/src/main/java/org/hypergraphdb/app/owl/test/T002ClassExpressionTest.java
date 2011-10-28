@@ -22,7 +22,6 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
-import org.semanticweb.owlapi.util.BidirectionalShortFormProviderAdapter;
 import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 
 /**
@@ -66,7 +65,7 @@ public class T002ClassExpressionTest extends OntologyManagerTest {
 		}
 		HashSet<OWLOntology> h = new HashSet<OWLOntology>();
 		h.add(o);
-	    sfec = new ShortFormEntityChecker(new BidirectionalShortFormProviderAdapter(h, new SimpleShortFormProvider()));
+		sfec = new ShortFormEntityChecker(new TestBidirectionalShortFormProviderAdapter(o, df, new SimpleShortFormProvider()));
 	}
 	
 	@Test
@@ -209,7 +208,7 @@ public class T002ClassExpressionTest extends OntologyManagerTest {
 
 	@Test
 	public void testClassExpression1BooleanAddRemove() {
-		String clsExpr = "(<A_CN> OR (<A_CN> OR (<B_CN>)))";
+		String clsExpr = "(A_CN OR (A_CN OR (B_CN)))";
 		OWLClass a_CN = df.getOWLClass(IRI.create("A_CN")); 
 		OWLClass b_CN = df.getOWLClass(IRI.create("B_CN")); 
 		OWLClassExpression ce = createClassExpr(clsExpr);
@@ -246,11 +245,11 @@ public class T002ClassExpressionTest extends OntologyManagerTest {
 	public void testClassExpression2BooleanAddRemove() {
 		OWLClass c_CN = df.getOWLClass(IRI.create("C_CN")); 
 		OWLClass aa_CN = df.getOWLClass(IRI.create("AA_CN")); 
-		String clsExpr = "(<A_CN> OR (<B_CN> OR (<C_CN>)))";
+		String clsExpr = "(A_CN OR (B_CN OR (C_CN)))";
 		OWLClassExpression ce = createClassExpr(clsExpr);
 		OWLDisjointClassesAxiom axiom1 = df.getOWLDisjointClassesAxiom(ce);
 
-		String clsExpr2 = "(<A_CN> or (<B_CN> or (<C_CN> and not <AA_CN>)))";
+		String clsExpr2 = "(A_CN or (B_CN or (C_CN and not AA_CN)))";
 		OWLClassExpression ce2 = createClassExpr(clsExpr2);
 		OWLEquivalentClassesAxiom axiom2 = df.getOWLEquivalentClassesAxiom(ce2);
 		//int preAxiomsC_CN = o.getAxioms(c_CN).size();
@@ -277,7 +276,7 @@ public class T002ClassExpressionTest extends OntologyManagerTest {
 		OWLClass aa_CN = df.getOWLClass(IRI.create("AA_CN")); 
 		OWLNamedIndividual c_aN = df.getOWLNamedIndividual(IRI.create("C_aN")); 
 		OWLNamedIndividual b_aN = df.getOWLNamedIndividual(IRI.create("B_aN")); 
-		String clsExpr = "<A_CN> and (<C_CN> or (<A_CN> or ({<A_aN>, <C_aN>} and (<AA_CN> and {<B_aN>}))))";
+		String clsExpr = "A_CN and (C_CN or (A_CN or ({A_aN, C_aN} and (AA_CN and {B_aN}))))";
 		//defines B
 		OWLClassExpression ce = createClassExpr(clsExpr);
 		OWLDisjointClassesAxiom axiom1 = df.getOWLDisjointClassesAxiom(ce);
@@ -296,7 +295,7 @@ public class T002ClassExpressionTest extends OntologyManagerTest {
 		OWLClass a_CN = df.getOWLClass(IRI.create("A_CN")); 
 		OWLObjectProperty c_PN = df.getOWLObjectProperty(IRI.create("C_PN")); 
 		OWLObjectProperty a_PN = df.getOWLObjectProperty(IRI.create("A_PN")); 
-		String clsExpr = "<A_PN> only (<C_PN> some (<A_PN> only (<C_PN> some  (<A_PN> only (<C_PN> some <A_CN>)))))";
+		String clsExpr = "A_PN only (C_PN some (A_PN only (C_PN some  (A_PN only (C_PN some A_CN)))))";
 		OWLClassExpression ce = createClassExpr(clsExpr);
 		OWLDisjointClassesAxiom axiom1 = df.getOWLDisjointClassesAxiom(ce);
 		m.addAxiom(o, axiom1);
@@ -316,7 +315,7 @@ public class T002ClassExpressionTest extends OntologyManagerTest {
 		OWLObjectProperty c_PN = df.getOWLObjectProperty(IRI.create("C_PN")); 
 		OWLObjectProperty a_PN = df.getOWLObjectProperty(IRI.create("A_PN")); 
 		OWLNamedIndividual b_aN = df.getOWLNamedIndividual(IRI.create("B_aN")); 
-		String clsExpr = "<A_CN> and (<C_CN> or (<A_CN> or (<A_PN> value <A_aN> and (<A_CN> and not (<C_PN> value <B_aN>)))))";
+		String clsExpr = "A_CN and (C_CN or (A_CN or (A_PN value A_aN and (A_CN and not (C_PN value B_aN)))))";
 		OWLClassExpression ce = createClassExpr(clsExpr);
 		OWLDisjointClassesAxiom axiom1 = df.getOWLDisjointClassesAxiom(ce);
 		m.addAxiom(o, axiom1);
@@ -337,7 +336,7 @@ public class T002ClassExpressionTest extends OntologyManagerTest {
 		OWLClass aa_CN = df.getOWLClass(IRI.create("AA_CN")); 
 		OWLObjectProperty cc_PN = df.getOWLObjectProperty(IRI.create("CC_PN")); 
 		OWLObjectProperty bb_PN = df.getOWLObjectProperty(IRI.create("BB_PN")); 		
-		String clsExpr = "<A_PN> only (<B_PN> some (<C_PN> only (<AA_PN> some  (<BB_PN> only (<CC_PN> some <AA_CN>)))))";
+		String clsExpr = "A_PN only (B_PN some (C_PN only (AA_PN some  (BB_PN only (CC_PN some AA_CN)))))";
 		OWLClassExpression ce = createClassExpr(clsExpr);
 		OWLDisjointClassesAxiom axiom1 = df.getOWLDisjointClassesAxiom(ce);
 		m.addAxiom(o, axiom1);
@@ -354,7 +353,7 @@ public class T002ClassExpressionTest extends OntologyManagerTest {
 		OWLClass aa_CN = df.getOWLClass(IRI.create("AA_CN")); 
 		OWLObjectProperty c_PN = df.getOWLObjectProperty(IRI.create("C_PN")); 
 		OWLObjectProperty b_PN = df.getOWLObjectProperty(IRI.create("B_PN")); 		
-		String clsExpr = "<A_CN> and (<C_CN> or (<A_CN> or (<A_PN> exactly 5  (<C_CN> and not (<B_PN> max 0 (<C_PN> min 3 <AA_CN>))))))";
+		String clsExpr = "A_CN and (C_CN or (A_CN or (A_PN exactly 5  (C_CN and not (B_PN max 0 (C_PN min 3 AA_CN))))))";
 		OWLClassExpression ce = createClassExpr(clsExpr);
 		OWLDisjointClassesAxiom axiom1 = df.getOWLDisjointClassesAxiom(ce);
 		m.addAxiom(o, axiom1);
