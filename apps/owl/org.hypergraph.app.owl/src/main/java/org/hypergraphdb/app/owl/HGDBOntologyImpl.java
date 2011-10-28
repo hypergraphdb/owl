@@ -19,7 +19,6 @@ import org.hypergraphdb.annotation.HGIgnore;
 import org.hypergraphdb.app.owl.core.ChangeAxiomVisitorHGDB;
 import org.hypergraphdb.app.owl.core.HGChangeableLink;
 import org.hypergraphdb.app.owl.core.OWLSubgraphObject;
-import org.hypergraphdb.query.HGQueryCondition;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;

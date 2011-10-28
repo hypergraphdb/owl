@@ -52,6 +52,7 @@ import org.semanticweb.owlapi.model.OWLDatatypeDefinitionAxiom;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
+import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLLogicalAxiom;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -69,7 +70,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 
 	public static boolean DBG = true; // Switches LOG string creation on or off.
 
-	private int recLevel = 0; // recursion leve/depth for getReferencingAxioms.
+	private int recLevel = 0; // recursion level/depth for getReferencingAxioms.
 
 	protected Logger log = Logger.getLogger(this.getClass().getCanonicalName());
 
@@ -363,9 +364,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 					} else {
 						// we have no cycles up incidence sets starting
 						// on an entity.
-						if (!(o instanceof OWLClassExpression || o instanceof OWLObjectPropertyExpression || o instanceof OWLDataRange
-
-						)) {
+						if (!(o instanceof OWLClassExpression || o instanceof OWLObjectPropertyExpression || o instanceof OWLDataRange || o instanceof OWLLiteral)) {
 							throw new IllegalStateException("We encountered an unexpected object in an incidenceset:"
 									+ o);
 						}
@@ -403,7 +402,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 				} else {
 					// we have no cycles up incidence sets starting
 					// on an entity.
-					if (!(o instanceof OWLClassExpression || o instanceof OWLObjectPropertyExpression || o instanceof OWLDataRange)) {
+					if (!(o instanceof OWLClassExpression || o instanceof OWLObjectPropertyExpression || o instanceof OWLDataRange || o instanceof OWLLiteral)) {
 						throw new IllegalStateException("We encountered an unexpected object in an incidenceset:" + o);
 					}
 					recLevel++;
