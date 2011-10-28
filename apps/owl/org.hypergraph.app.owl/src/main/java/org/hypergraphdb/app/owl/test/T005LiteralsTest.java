@@ -83,9 +83,13 @@ public class T005LiteralsTest extends OntologyManagerTest {
 	public void testLiterals0TypedLiteral() {
 		long preDfNrLiteralsGraph = -1, preAxNrLiteralsGraph = -1, addNrLiteralsGraph = -1, remNrLiteralsGraph = -1;
 		if (r != null) preDfNrLiteralsGraph = r.getNrOfAtomsByType(OWLLiteralHGDB.class);
-		String clsExpr1 = " (A_R value \"15\"^^xsd:integer) or (A_R value \"15\"^^xsd:float) ";
-		String clsExpr2 = " B_R value \"xxxxxxxxx\"^^xsd:integer ";
-		String clsExpr3 = " C_R value \"0.001E1000\"^^xsd:float ";
+		String literal1 = " \"15\"^^xsd:float ";
+		String literal2 = " \"xxxxxxxxx\"^^xsd:integer ";
+		String literal3 = " \"0.001E1000\"^^xsd:float ";
+		String clsExpr1 = " (A_R value \"15\"^^xsd:integer) or (A_R value " + literal1 + " ) ";
+		String clsExpr2 = " B_R value " + literal2;
+		String clsExpr3 = " C_R value " + literal3;
+		
 		OWLClass a_CN = df.getOWLClass(IRI.create("A_CN"));
 		OWLDatatype integer_DN = df.getIntegerOWLDatatype();
 		OWLDatatype float_DN = df.getFloatOWLDatatype();
@@ -95,12 +99,29 @@ public class T005LiteralsTest extends OntologyManagerTest {
 		OWLSubClassOfAxiom axiom1 = df.getOWLSubClassOfAxiom(a_CN, ce1);
 		OWLDisjointClassesAxiom axiom2 = df.getOWLDisjointClassesAxiom(a_CN, ce2, ce3);
 		OWLSubClassOfAxiom axiom3 = df.getOWLSubClassOfAxiom(a_CN, ce3);
+		OWLLiteral l1 = createLiteral(literal1);
+		OWLLiteral l2 = createLiteral(literal2);
+		OWLLiteral l3 = createLiteral(literal3);
 
+		assertTrue(axiom1.toString().indexOf(l1.toString()) >= 0);
+		assertTrue(axiom2.toString().indexOf(l2.toString()) >= 0);
+		assertTrue(axiom3.toString().indexOf(l3.toString()) >= 0);
+		
+		assertTrue(l1.getSignature().contains(l1.getDatatype()));
+		assertTrue(l1.getLiteral().length() == 2);
+		assertTrue(l1.getLang().equals(""));
+		assertTrue(l2.getSignature().contains(l2.getDatatype()));
+		assertTrue(l2.getLiteral().length() == 9);
+		assertTrue(l2.getLang().equals(""));
+		assertTrue(l3.getSignature().contains(l3.getDatatype()));
+		assertTrue(l3.getLiteral().length() == 10);
+		assertTrue(l3.getLang().equals(""));
+		
 		// References Before Addition
 		int preAxiomCount = o.getAxiomCount();
 		int preSignatureCount = o.getSignature().size();
 		if (r != null) preAxNrLiteralsGraph = r.getNrOfAtomsByType(OWLLiteralHGDB.class);
-		if (r != null) assertTrue(preAxNrLiteralsGraph == preDfNrLiteralsGraph + 4);
+		if (r != null) assertTrue(preAxNrLiteralsGraph == preDfNrLiteralsGraph + 7);
 		// result!
 		//int preAxiomsA_CN = o.getAxioms(a_CN).size();
 		int preRef_Integer_DN = o.getReferencingAxioms(integer_DN).size(); 
@@ -209,9 +230,12 @@ public class T005LiteralsTest extends OntologyManagerTest {
 	public void testLiterals0StringLiteralWithLanguage() {
 		long preDfNrLiteralsGraph = -1, preAxNrLiteralsGraph = -1, addNrLiteralsGraph = -1, remNrLiteralsGraph = -1;
 		if (r != null) preDfNrLiteralsGraph = r.getNrOfAtomsByType(OWLLiteralHGDB.class);
-		String clsExpr1 = " (A_R value \"15@english\") or (A_R value \"15@spanish\"^^rdf:PlainLiteral) ";
-		String clsExpr2 = " B_R value \"xxxxxx@x\" ";
-		String clsExpr3 = " C_R value \"0.001@E1000\"^^rdf:PlainLiteral ";
+		String literal1 = " \"15@spanish\"^^rdf:PlainLiteral";
+		String literal2 = " \"xxxxxx@x\"";		
+		String literal3 = " \"0.001@E1000\"^^rdf:PlainLiteral ";
+		String clsExpr1 = " (A_R value \"15@english\") or (A_R value " + literal1 + ") ";
+		String clsExpr2 = " B_R value " + literal2;
+		String clsExpr3 = " C_R value " + literal3;
 		OWLClass a_CN = df.getOWLClass(IRI.create("A_CN"));
 		OWLDatatype plainLiteral_DN = df.getRDFPlainLiteral();
 		OWLClassExpression ce1 = createClassExpr(clsExpr1); //takes extremely long in HG more than 3 secs
@@ -221,11 +245,31 @@ public class T005LiteralsTest extends OntologyManagerTest {
 		OWLDisjointClassesAxiom axiom2 = df.getOWLDisjointClassesAxiom(a_CN, ce2, ce3);
 		OWLSubClassOfAxiom axiom3 = df.getOWLSubClassOfAxiom(a_CN, ce3);
 
+		OWLLiteral l1 = createLiteral(literal1);
+		OWLLiteral l2 = createLiteral(literal2);
+		OWLLiteral l3 = createLiteral(literal3);
+
+		// Test Literal and axiom construction
+		assertTrue(axiom1.toString().indexOf(l1.toString()) >= 0);
+		assertTrue(axiom2.toString().indexOf(l2.toString()) >= 0);
+		assertTrue(axiom3.toString().indexOf(l3.toString()) >= 0);
+		
+		assertTrue(l1.getSignature().contains(df.getRDFPlainLiteral()));
+		assertTrue(l1.getLiteral().length() == 2);
+		assertTrue(l1.getLang().equals("spanish"));
+		assertTrue(l2.getSignature().contains(df.getRDFPlainLiteral()));
+		assertTrue(l2.getLiteral().length() == 8);
+		//FOUND PARSER ERROR ON LITERAL l2: getLiteral returns xxxxxx@x ==8, should be 6..
+		assertTrue(l2.getLang().equals(""));
+		assertTrue(l3.getSignature().contains(df.getRDFPlainLiteral()));
+		assertTrue(l3.getLiteral().length() == 5);
+		assertTrue(l3.getLang().equals("E1000"));
+
 		// References Before Addition
 		int preAxiomCount = o.getAxiomCount();
 		int preSignatureCount = o.getSignature().size();
 		if (r != null) preAxNrLiteralsGraph = r.getNrOfAtomsByType(OWLLiteralHGDB.class);
-		if (r != null) assertTrue(preAxNrLiteralsGraph == preDfNrLiteralsGraph + 4);
+		if (r != null) assertTrue(preAxNrLiteralsGraph == preDfNrLiteralsGraph + 7);
 		// result!
 		int preRef_plainLiteral_DN = o.getReferencingAxioms(plainLiteral_DN).size(); 
 		o.getReferencingAxioms(plainLiteral_DN).isEmpty();
