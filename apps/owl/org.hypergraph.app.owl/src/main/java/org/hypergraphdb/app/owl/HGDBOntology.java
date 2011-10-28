@@ -40,4 +40,25 @@ public interface HGDBOntology extends OWLMutableOntology, HyperNode
 	
 	IRI getDocumentIRI();
 	
+	/**
+	 * Returns the number of atoms who are members in the ontology subgraph.
+	 * Use this for testing.
+	 * @return
+	 */
+	long getNrOfAtoms();
+	
+	/**
+	 * Returns the number of atoms who are links and members in the ontology subgraph.
+	 * Use this for testing.
+	 * @return
+	 */	
+    long getNrOfLinks();
+	
+    /**
+	 * Returns the number of atoms who are not links and members in the ontology subgraph.
+	 * Use this for testing.
+	 * @return
+	 */	
+	long getNrOfNonLinkAtoms();
+	
 }
