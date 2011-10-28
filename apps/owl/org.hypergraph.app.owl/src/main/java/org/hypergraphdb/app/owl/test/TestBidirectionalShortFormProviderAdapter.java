@@ -7,6 +7,7 @@ import java.util.TreeMap;
 
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.util.CachingBidirectionalShortFormProvider;
@@ -21,6 +22,9 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
  * The entities include all builtin entities/vocabluary, that's also accessible in the Protege GUI ClassExpression Editor.
  * Such as: TopObjectProperty, BottomObjectProperty, xsd datatypes et.c.
  * 
+ * Builtin datatypes will have the shortform of toString: rdf:PlainLiteral, xsd:int, et.c.
+ * For names enclosed in <NAME>, the <> will be removed.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Oct 25, 2011
  */
@@ -28,7 +32,7 @@ public class TestBidirectionalShortFormProviderAdapter extends CachingBidirectio
 
 		public static int MAX_SHORTFORM_STRING_LENGTH = 25;
 
-		public static boolean PRINT_SHORTFORM_MAP = false;
+		public static boolean PRINT_SHORTFORM_MAP = true;
 		
 		private static final DecimalFormat DEC_FORMAT = new DecimalFormat("000");
 
@@ -55,7 +59,15 @@ public class TestBidirectionalShortFormProviderAdapter extends CachingBidirectio
 
 	    @Override
 		protected String generateShortForm(OWLEntity entity) {
-	        return shortFormProvider.getShortForm(entity);
+	    	if (entity instanceof OWLDatatype && entity.isBuiltIn()) {
+	    		return entity.toString();
+	    	} else {
+	    		String sf = shortFormProvider.getShortForm(entity);
+	    		if (sf.length() > 3 &&  sf.startsWith("<") && sf.endsWith(">")) {
+	    			sf = sf.substring(1, sf.length() - 1);
+	    		}
+	    		return sf; 
+	    	}
 	    }
 	    
 	    /**
