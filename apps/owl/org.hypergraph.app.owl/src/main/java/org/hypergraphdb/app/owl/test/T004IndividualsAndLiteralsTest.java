@@ -223,21 +223,42 @@ public class T004IndividualsAndLiteralsTest extends OntologyManagerTest {
 		assertFalse(o.getReferencingAxioms(BB_aN).contains(axiom3));
 	}
 
+	/**
+	 * Interesting: I tried to parse a string using value (ObjectHasValue), but the parser would not allow me to 
+	 * put an anonymousindividual there; even though OWL2 Spec and API would allow it.
+	 * Individual := NamedIndividual | AnonymousIndividual
+	 * ObjectHasValue can be seen as syntactic shortcut for the class expression ObjectSomeValuesFrom( OPE ObjectOneOf( a ) )
+	 * Because of parser limitations as of 2011.10.28 (ManchesterOWLSyntaxEditorParser), we have to build our classexpression by hand. 
+	 */
 	@Test
 	public void testIndividuals2Anonymous_ObjectHasValue() {
-		String clsExpr1 = "  <A_PN> value _:a1 or ( inverse <B_PN> value _:a2 ) or ( inverse <B_PN> value _:a2 ) or ( inverse <B_PN> value _:a2 )";
-		String clsExpr2 = "  <A_PN> value _:a3 or ( inverse <B_PN> value _:a4 )";
-		String clsExpr3 = "  <B_PN> value _:a1 or ( inverse <C_PN> value _:a5 )";
 		OWLClass a_CN = df.getOWLClass(IRI.create("A_CN"));
-		OWLObjectProperty a_PN = df.getOWLObjectProperty(IRI.create("A_CN"));
-		OWLObjectProperty c_PN = df.getOWLObjectProperty(IRI.create("C_CN"));
+		OWLObjectProperty a_PN = df.getOWLObjectProperty(IRI.create("A_PN"));
+		OWLObjectProperty b_PN = df.getOWLObjectProperty(IRI.create("B_PN"));
+		OWLObjectProperty c_PN = df.getOWLObjectProperty(IRI.create("C_PN"));
 		OWLAnonymousIndividual  _a1 = df.getOWLAnonymousIndividual("a1");
+		OWLAnonymousIndividual  _a2 = df.getOWLAnonymousIndividual("a2");
 		OWLAnonymousIndividual  _a3 = df.getOWLAnonymousIndividual("_:a3");
+		OWLAnonymousIndividual  _a4 = df.getOWLAnonymousIndividual("a4");
 		OWLAnonymousIndividual  _a5 = df.getOWLAnonymousIndividual("_:a5");
-		OWLClassExpression ce1 = createClassExpr(clsExpr1);
-		OWLClassExpression ce2 = createClassExpr(clsExpr2);
-		OWLClassExpression ce3 = createClassExpr(clsExpr3);
+		//TODO maybe future Parser would work! 
+		OWLClassExpression ce1;// = createClassExpr(clsExpr1);
+		OWLClassExpression ce2;// = createClassExpr(clsExpr2);
+		OWLClassExpression ce3;// = createClassExpr(clsExpr3);
 
+		//Create CLASS EXPRESSIONS MANUALLY
+		//String clsExpr1 = "  <A_PN> value _:a1 or ( (inverse <B_PN>) value _:a2 ) ";
+		ce1 = df.getOWLObjectIntersectionOf(df.getOWLObjectHasValue(a_PN, _a1),
+				df.getOWLObjectHasValue(df.getOWLObjectInverseOf(b_PN), _a2));
+		
+		//String clsExpr2 = "  <A_PN> value _:a3 or ( (inverse <B_PN>) value _:a4 )";
+		ce2 = df.getOWLObjectIntersectionOf(df.getOWLObjectHasValue(a_PN, _a3),
+				df.getOWLObjectHasValue(df.getOWLObjectInverseOf(b_PN), _a4));
+		
+		//String clsExpr3 = "  <B_PN> value _:a1 or ( (inverse <C_PN>) value _:a5 )";
+		ce3 = df.getOWLObjectIntersectionOf(df.getOWLObjectHasValue(a_PN, _a1),
+				df.getOWLObjectHasValue(df.getOWLObjectInverseOf(c_PN), _a5));
+		
 		OWLSubClassOfAxiom axiom1 = df.getOWLSubClassOfAxiom(a_CN, ce1);
 		OWLDisjointClassesAxiom axiom2 = df.getOWLDisjointClassesAxiom(a_CN, ce2, ce3);
 		OWLSubClassOfAxiom axiom3 = df.getOWLSubClassOfAxiom(ce1, ce3);
@@ -278,10 +299,10 @@ public class T004IndividualsAndLiteralsTest extends OntologyManagerTest {
 		assertTrue(addAxioms_a3 == preAxioms_a3);
 		assertTrue(addAxioms_a5 == preAxioms_a5);
 		assertTrue(addAxiomsA_CN == preAxiomsA_CN + 2);
-		assertTrue(addRef_A_PN == preRef_A_PN + 2);
-		assertTrue(addRef_C_PN == preRef_C_PN + 3);
-		assertTrue(addRef_a1 == preRef_a1 + 2);
-		assertTrue(addRef_a3 == preRef_a3 + 3);
+		assertTrue(addRef_A_PN == preRef_A_PN + 3);
+		assertTrue(addRef_C_PN == preRef_C_PN + 2);
+		assertTrue(addRef_a1 == preRef_a1 + 3);
+		assertTrue(addRef_a3 == preRef_a3 + 1);
 		assertTrue(addRef_a5 == preRef_a5 + 2);
 		assertTrue(o.getReferencingAxioms(a_CN).contains(axiom1));
 		assertTrue(o.getReferencingAxioms(a_CN).contains(axiom2));
@@ -289,16 +310,17 @@ public class T004IndividualsAndLiteralsTest extends OntologyManagerTest {
 		assertTrue(o.getReferencingAxioms(a_PN).contains(axiom1));
 		assertTrue(o.getReferencingAxioms(a_PN).contains(axiom2));
 		assertTrue(o.getReferencingAxioms(a_PN).contains(axiom3));
-		assertTrue(o.getReferencingAxioms(c_PN).contains(axiom1));
+		assertFalse(o.getReferencingAxioms(c_PN).contains(axiom1));
 		assertTrue(o.getReferencingAxioms(c_PN).contains(axiom2));
 		assertTrue(o.getReferencingAxioms(c_PN).contains(axiom3));
 		assertTrue(o.getReferencingAxioms(_a1).contains(axiom1));
+		assertTrue(o.getReferencingAxioms(_a1).contains(axiom2));
 		assertTrue(o.getReferencingAxioms(_a1).contains(axiom3));
-		assertTrue(o.getReferencingAxioms(_a3).contains(axiom1));
+		assertFalse(o.getReferencingAxioms(_a3).contains(axiom1));
 		assertTrue(o.getReferencingAxioms(_a3).contains(axiom2));
-		assertTrue(o.getReferencingAxioms(_a3).contains(axiom3));
-		assertTrue(o.getReferencingAxioms(_a5).contains(axiom1));
-		assertFalse(o.getReferencingAxioms(_a5).contains(axiom2));
+		assertFalse(o.getReferencingAxioms(_a3).contains(axiom3));
+		assertFalse(o.getReferencingAxioms(_a5).contains(axiom1));
+		assertTrue(o.getReferencingAxioms(_a5).contains(axiom2));
 		assertTrue(o.getReferencingAxioms(_a5).contains(axiom3));
 		assertTrue(o.getReferencedAnonymousIndividuals().size() == 5);
 		// Remove
@@ -309,8 +331,8 @@ public class T004IndividualsAndLiteralsTest extends OntologyManagerTest {
 		assertTrue(o.getAxiomCount() == preAxiomCount);
 		assertTrue(o.getSignature().size() == preSignatureCount);		
 		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom1));
-		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom1));
-		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom1));
+		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom2));
+		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom3));
 		assertFalse(o.getReferencingAxioms(a_PN).contains(axiom1));
 		assertFalse(o.getReferencingAxioms(a_PN).contains(axiom2));
 		assertFalse(o.getReferencingAxioms(a_PN).contains(axiom3));
