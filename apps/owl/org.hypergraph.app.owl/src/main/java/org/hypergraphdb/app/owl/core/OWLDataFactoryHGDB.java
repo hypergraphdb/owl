@@ -12,6 +12,9 @@ import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.model.OWLAnonymousIndividualHGDB;
 import org.hypergraphdb.app.owl.model.OWLClassHGDB;
+import org.hypergraphdb.app.owl.model.OWLDataComplementOfHGDB;
+import org.hypergraphdb.app.owl.model.OWLDataIntersectionOfHGDB;
+import org.hypergraphdb.app.owl.model.OWLDataUnionOfHGDB;
 import org.hypergraphdb.app.owl.model.OWLLiteralHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectInverseOfHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDeclarationAxiomHGDB;
@@ -45,21 +48,18 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import org.semanticweb.owlapi.vocab.XSDVocabulary;
-//49 to go
+//46 to go
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationAssertionAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationPropertyDomainAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationPropertyRangeAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAsymmetricObjectPropertyAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLClassAssertionImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLDataComplementOfImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternals;
-import uk.ac.manchester.cs.owl.owlapi.OWLDataIntersectionOfImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataOneOfImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataPropertyAssertionAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataPropertyDomainAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataPropertyRangeAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLDataUnionOfImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDatatypeDefinitionAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDatatypeRestrictionImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDifferentIndividualsAxiomImpl;
@@ -509,15 +509,28 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	}
 
 	public OWLDataComplementOf getOWLDataComplementOf(OWLDataRange dataRange) {
-		return new OWLDataComplementOfImpl(this, dataRange);
+		if (dataRange == null)
+			throw new IllegalArgumentException("dataRange null");
+		HGHandle dataRangeHandle = graph.getHandle(dataRange);
+		if (dataRangeHandle == null)
+			throw new IllegalStateException("dataRangeHandle null");
+		OWLDataComplementOfHGDB i = new OWLDataComplementOfHGDB(dataRangeHandle);
+		graph.add(i);
+		return i;
+		//return new OWLDataComplementOfImpl(this, dataRange);
 	}
 
 	public OWLDataIntersectionOf getOWLDataIntersectionOf(OWLDataRange... dataRanges) {
 		return getOWLDataIntersectionOf(CollectionFactory.createSet(dataRanges));
+		//return getOWLDataIntersectionOf(CollectionFactory.createSet(dataRanges));
 	}
 
 	public OWLDataIntersectionOf getOWLDataIntersectionOf(Set<? extends OWLDataRange> dataRanges) {
-		return new OWLDataIntersectionOfImpl(this, dataRanges);
+		Set<HGHandle> dataRangesHandles = getHandlesSetFor(dataRanges);
+		OWLDataIntersectionOfHGDB o = new OWLDataIntersectionOfHGDB(dataRangesHandles);
+		graph.add(o);
+		return o;
+		//return new OWLDataIntersectionOfImpl(this, dataRanges);
 	}
 
 	public OWLDataUnionOf getOWLDataUnionOf(OWLDataRange... dataRanges) {
@@ -525,7 +538,11 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	}
 
 	public OWLDataUnionOf getOWLDataUnionOf(Set<? extends OWLDataRange> dataRanges) {
-		return new OWLDataUnionOfImpl(this, dataRanges);
+		Set<HGHandle> dataRangesHandles = getHandlesSetFor(CollectionFactory.createSet(dataRanges));
+		OWLDataUnionOfHGDB o = new OWLDataUnionOfHGDB(dataRangesHandles);
+		graph.add(o);
+		return o;
+		//return new OWLDataUnionOfImpl(this, dataRanges);
 	}
 
 	public OWLDatatypeRestriction getOWLDatatypeRestriction(OWLDatatype datatype, Set<OWLFacetRestriction> facets) {
