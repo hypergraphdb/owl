@@ -259,6 +259,14 @@ public class HGDBOntologyRepository {
 	}
 
 	/**
+	 * Gets the Number of Atoms in the graph that are of a given type.  
+	 * @return
+	 */
+	public long getNrOfAtomsByTypePlus(Class<?> clazz) {
+		return graph.count(hg.typePlus(clazz));
+	}
+
+	/**
 	 * Gets the Number of Links in the graph. 
 	 * @return
 	 */
