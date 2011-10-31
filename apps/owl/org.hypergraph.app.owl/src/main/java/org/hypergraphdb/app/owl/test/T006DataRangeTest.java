@@ -4,7 +4,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxEditorParser;
-import org.hypergraphdb.app.owl.model.OWLLiteralHGDB;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.expression.ParserException;
@@ -123,7 +122,7 @@ public class T006DataRangeTest extends OntologyManagerTest {
 		int addRef_aa_DN = o.getReferencingAxioms(aa_DN).size(); 
 		int addRef_byte_DN = o.getReferencingAxioms(byte_DN).size(); 
 		// assert after addition
-		boolean x = addAxiomCount == preAxiomCount + 3;
+		assertTrue(addAxiomCount == preAxiomCount + 3);
 		assertTrue(addSignatureCount == preSignatureCount + 1);
 		assertTrue(addRef_a_DN == preRef_a_DN + 3);
 		assertTrue(addRef_aa_DN == preRef_aa_DN + 1);
