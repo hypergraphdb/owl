@@ -12,7 +12,6 @@ import org.hypergraphdb.HyperGraph;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNaryBooleanClassExpression;
 import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.util.CollectionFactory;
 
 /**
  * OWLNaryBooleanClassExpressionHGDB.
@@ -47,7 +46,7 @@ public abstract class OWLNaryBooleanClassExpressionHGDB extends OWLAnonymousClas
     	for (HGHandle h : operandHandles) {
     		s.add((OWLClassExpression) g.get(h));    		
     	}
-    	return CollectionFactory.getCopyOnRequestSet(s);
+    	return s;
         //return CollectionFactory.getCopyOnRequestSet(operands);
     }
 
