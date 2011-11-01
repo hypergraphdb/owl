@@ -22,7 +22,6 @@ import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectVisitor;
 import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
-import org.semanticweb.owlapi.util.CollectionFactory;
 
 /**
  * OWLDisjointUnionAxiomHGDB.
@@ -36,8 +35,7 @@ public class OWLDisjointUnionAxiomHGDB extends OWLClassAxiomHGDB implements OWLD
 	private List<HGHandle> classExpressionsHandles;
     //private Set<OWLClassExpression> classExpressions; //owlClassExpressions
 
-    public OWLDisjointUnionAxiomHGDB(HGHandle...args)
-    {    
+    public OWLDisjointUnionAxiomHGDB(HGHandle...args) {    
         //TODO assert arg[0] type OWLClass, args[1...length-1] type OWLClassExpression
     	super(Collections.<OWLAnnotation>emptySet());    	
     	assert (args.length >= 2);
@@ -62,7 +60,7 @@ public class OWLDisjointUnionAxiomHGDB extends OWLClassAxiomHGDB implements OWLD
     	for (HGHandle h : classExpressionsHandles) {
     		s.add((OWLClassExpression) g.get(h));    		
     	}
-    	return CollectionFactory.getCopyOnRequestSet(s);
+    	return s;
         //return CollectionFactory.getCopyOnRequestSet(classExpressions);
     }
 
