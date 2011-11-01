@@ -36,6 +36,8 @@ import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
  */
 public class HGDBApplication extends HGApplication
 {
+	public static boolean DBG = true;
+	
 	private Logger log = Logger.getLogger(HGDBApplication.class.getName());
 	
 	
@@ -64,8 +66,28 @@ public class HGDBApplication extends HGApplication
 		registerTypeOWLImportsDeclaration(graph);
 		//All Entity types:
 		registerTypeOWLNamedObjectTypesHGDB(graph);
+		
 	}
 	
+//	/**
+//	 * @param graph
+//	 */
+//	@SuppressWarnings("deprecation")
+//	private void registerTypeOWLFacetEnumTypeHGDB(HyperGraph graph) {
+//		HGTypeSystem typeSystem = graph.getTypeSystem();
+//		
+//		if (typeSystem.getTypeHandleIfDefined(OWLFacet.class) == null) {
+//			HGPersistentHandle typeHandle = graph.getHandleFactory().makeHandle();
+//			HGAtomType type = new OWLFacetEnumType();
+//			type.setHyperGraph(graph);
+//			typeSystem.addPredefinedType(typeHandle, 
+//													type, 
+//													OWLFacet.class);
+//			log.info("HG IRI type registered.");
+//		}
+//		
+//	}
+
 	@SuppressWarnings("deprecation")
 	private void registerTypeIRI(HyperGraph graph) {
 		HGTypeSystem typeSystem = graph.getTypeSystem();
@@ -143,19 +165,6 @@ public class HGDBApplication extends HGApplication
 		graph.getTypeSystem().assertSubtype(oWLNamedObjectTypeHandle, owlEntityTypeHandle);		
 		//Assert OWLEntity subsumes OwlNamedObject
 		//graph.getTypeSystem().assertSubtype(oWLNamedObjectType, typeHandle);
-		System.out.println("PRINTING SUPERTYPES for just registered classes");
-		TypeUtils.printAllSupertypes(graph, graph.getTypeSystem().getAtomType(OWLClassHGDB.class));
-		TypeUtils.printAllSupertypes(graph, graph.getTypeSystem().getAtomType(OWLDatatypeHGDB.class));
-		TypeUtils.printAllSupertypes(graph, graph.getTypeSystem().getAtomType(OWLNamedIndividualHGDB.class));
-		TypeUtils.printAllSupertypes(graph, graph.getTypeSystem().getAtomType(OWLDataPropertyHGDB.class));
-		TypeUtils.printAllSupertypes(graph, graph.getTypeSystem().getAtomType(OWLObjectPropertyHGDB.class));
-		System.out.println("Higher level classes");
-		TypeUtils.printAllSupertypes(graph, graph.getTypeSystem().getAtomType(OWLClass.class));
-		System.out.println("SUBTYPES: FOR ");
-		TypeUtils.printAllSubtypes(graph, graph.getTypeSystem().getAtomType(OWLObjectHGDB.class));
-		TypeUtils.printAllSubtypes(graph, graph.getTypeSystem().getAtomType(OWLEntity.class));
-		TypeUtils.printAllSubtypes(graph, graph.getTypeSystem().getAtomType(OWLNamedObject.class));
-		
 		//assert(owlEntityType.subsumes(owlEntityType, oWLNamedObjectType));
 	}
 		
@@ -169,7 +178,26 @@ public class HGDBApplication extends HGApplication
 		registerAllAtomTypes(graph);
 		ensureBuiltInObjects(graph);
 		//registerAllLinkTypes(graph);
+		if (DBG) printAllTypes(graph);
 		
+	}
+
+	/**
+	 * For debug purposes. 
+	 */
+	private void printAllTypes(HyperGraph graph) {
+		System.out.println("PRINTING SUPERTYPES for just registered classes");
+		TypeUtils.printAllSupertypes(graph, graph.getTypeSystem().getAtomType(OWLClassHGDB.class));
+		TypeUtils.printAllSupertypes(graph, graph.getTypeSystem().getAtomType(OWLDatatypeHGDB.class));
+		TypeUtils.printAllSupertypes(graph, graph.getTypeSystem().getAtomType(OWLNamedIndividualHGDB.class));
+		TypeUtils.printAllSupertypes(graph, graph.getTypeSystem().getAtomType(OWLDataPropertyHGDB.class));
+		TypeUtils.printAllSupertypes(graph, graph.getTypeSystem().getAtomType(OWLObjectPropertyHGDB.class));
+		System.out.println("Higher level classes");
+		TypeUtils.printAllSupertypes(graph, graph.getTypeSystem().getAtomType(OWLClass.class));
+		System.out.println("SUBTYPES: FOR ");
+		TypeUtils.printAllSubtypes(graph, graph.getTypeSystem().getAtomType(OWLObjectHGDB.class));
+		TypeUtils.printAllSubtypes(graph, graph.getTypeSystem().getAtomType(OWLEntity.class));
+		TypeUtils.printAllSubtypes(graph, graph.getTypeSystem().getAtomType(OWLNamedObject.class));		
 	}
 
 	/**
