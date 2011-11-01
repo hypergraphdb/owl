@@ -51,6 +51,7 @@ import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLDatatypeDefinitionAxiom;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
+import org.semanticweb.owlapi.model.OWLFacetRestriction;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLLogicalAxiom;
@@ -364,7 +365,11 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 					} else {
 						// we have no cycles up incidence sets starting
 						// on an entity.
-						if (!(o instanceof OWLClassExpression || o instanceof OWLObjectPropertyExpression || o instanceof OWLDataRange || o instanceof OWLLiteral)) {
+						if (!(o instanceof OWLClassExpression 
+								|| o instanceof OWLObjectPropertyExpression 
+								|| o instanceof OWLDataRange 
+								|| o instanceof OWLLiteral 
+								|| o instanceof OWLFacetRestriction)) {
 							throw new IllegalStateException("We encountered an unexpected object in an incidenceset:"
 									+ o);
 						}
@@ -402,7 +407,11 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 				} else {
 					// we have no cycles up incidence sets starting
 					// on an entity.
-					if (!(o instanceof OWLClassExpression || o instanceof OWLObjectPropertyExpression || o instanceof OWLDataRange || o instanceof OWLLiteral)) {
+					if (!(o instanceof OWLClassExpression 
+							|| o instanceof OWLObjectPropertyExpression 
+							|| o instanceof OWLDataRange 
+							|| o instanceof OWLLiteral 
+							|| o instanceof OWLFacetRestriction)) {
 						throw new IllegalStateException("We encountered an unexpected object in an incidenceset:" + o);
 					}
 					recLevel++;
