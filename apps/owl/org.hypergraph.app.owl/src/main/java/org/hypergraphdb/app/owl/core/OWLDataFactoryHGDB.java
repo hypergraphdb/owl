@@ -14,7 +14,10 @@ import org.hypergraphdb.app.owl.model.OWLAnonymousIndividualHGDB;
 import org.hypergraphdb.app.owl.model.OWLClassHGDB;
 import org.hypergraphdb.app.owl.model.OWLDataComplementOfHGDB;
 import org.hypergraphdb.app.owl.model.OWLDataIntersectionOfHGDB;
+import org.hypergraphdb.app.owl.model.OWLDataOneOfHGDB;
 import org.hypergraphdb.app.owl.model.OWLDataUnionOfHGDB;
+import org.hypergraphdb.app.owl.model.OWLDatatypeRestrictionHGDB;
+import org.hypergraphdb.app.owl.model.OWLFacetRestrictionHGDB;
 import org.hypergraphdb.app.owl.model.OWLLiteralHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectInverseOfHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDeclarationAxiomHGDB;
@@ -48,7 +51,7 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import org.semanticweb.owlapi.vocab.XSDVocabulary;
-//46 to go
+//43 to go
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationAssertionAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationPropertyDomainAxiomImpl;
@@ -56,18 +59,15 @@ import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationPropertyRangeAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAsymmetricObjectPropertyAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLClassAssertionImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternals;
-import uk.ac.manchester.cs.owl.owlapi.OWLDataOneOfImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataPropertyAssertionAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataPropertyDomainAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataPropertyRangeAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDatatypeDefinitionAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLDatatypeRestrictionImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDifferentIndividualsAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDisjointDataPropertiesAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDisjointObjectPropertiesAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentDataPropertiesAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentObjectPropertiesAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLFacetRestrictionImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLFunctionalDataPropertyAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLFunctionalObjectPropertyAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLHasKeyAxiomImpl;
@@ -501,7 +501,10 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	}
 
 	public OWLDataOneOf getOWLDataOneOf(Set<? extends OWLLiteral> values) {
-		return new OWLDataOneOfImpl(this, values);
+		Set<HGHandle> valueHandles = getHandlesSetFor(values);
+		OWLDataOneOfHGDB d = new OWLDataOneOfHGDB(valueHandles);
+		graph.add(d);
+		return d;
 	}
 
 	public OWLDataOneOf getOWLDataOneOf(OWLLiteral... values) {
@@ -546,13 +549,26 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	}
 
 	public OWLDatatypeRestriction getOWLDatatypeRestriction(OWLDatatype datatype, Set<OWLFacetRestriction> facets) {
-		return new OWLDatatypeRestrictionImpl(this, datatype, facets);
+		HGHandle dataTypeHandle = getOrFindOWLEntityHandleInGraph(datatype);
+		Set<HGHandle> facetsHandles = getHandlesSetFor(facets);
+		OWLDatatypeRestriction o = new OWLDatatypeRestrictionHGDB(dataTypeHandle, facetsHandles);
+		graph.add(o);
+		return o;
+		//return new OWLDatatypeRestrictionImpl(this, datatype, facets);
 	}
 
 	public OWLDatatypeRestriction getOWLDatatypeRestriction(OWLDatatype datatype, OWLFacet facet,
 			OWLLiteral typedConstant) {
-		return new OWLDatatypeRestrictionImpl(this, datatype, Collections.singleton(getOWLFacetRestriction(facet,
-				typedConstant)));
+		HGHandle dataTypeHandle = getOrFindOWLEntityHandleInGraph(datatype);
+		OWLFacetRestriction facetRestriction = getOWLFacetRestriction(facet, typedConstant); 
+		HGHandle facetRestrictionHandle = graph.getHandle(facetRestriction); 
+		OWLDatatypeRestriction o = new OWLDatatypeRestrictionHGDB(dataTypeHandle, Collections.singleton(facetRestrictionHandle));
+		graph.add(o);
+		return o;
+
+		
+		//return new OWLDatatypeRestrictionImpl(this, datatype, Collections.singleton(getOWLFacetRestriction(facet,
+				//typedConstant)));
 	}
 
 	public OWLDatatypeRestriction getOWLDatatypeRestriction(OWLDatatype dataRange,
@@ -629,7 +645,11 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	}
 
 	public OWLFacetRestriction getOWLFacetRestriction(OWLFacet facet, OWLLiteral facetValue) {
-		return new OWLFacetRestrictionImpl(this, facet, facetValue);
+		HGHandle facetValueHandle = graph.getHandle(facetValue);
+		OWLFacetRestriction o = new OWLFacetRestrictionHGDB(facet, facetValueHandle);
+		graph.add(o);
+		return o;
+		//return new OWLFacetRestrictionImpl(this, facet, facetValue);
 	}
 
 	public OWLObjectIntersectionOf getOWLObjectIntersectionOf(Set<? extends OWLClassExpression> operands) {
