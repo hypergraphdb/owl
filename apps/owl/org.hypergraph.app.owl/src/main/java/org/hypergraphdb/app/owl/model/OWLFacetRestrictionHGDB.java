@@ -20,14 +20,14 @@ import org.semanticweb.owlapi.vocab.OWLFacet;
  */
 public class OWLFacetRestrictionHGDB extends OWLObjectHGDB implements HGLink, OWLFacetRestriction {
 
-	private OWLFacet facet; //index 0
+	private OWLFacet facet;
     //private OWLFacet facet;
 
-	private HGHandle facetValueHandle; //index 1
+	private HGHandle facetValueHandle;  //index 0
     //private OWLLiteral facetValue;
 
     public OWLFacetRestrictionHGDB(HGHandle...args) {    
-        //TODO assert arg[0] type OWLLiteral
+        //TODO assert args[0] type OWLLiteral
     	assert (args.length == 1);    	
         facetValueHandle = args[0];    	
     }
@@ -37,7 +37,6 @@ public class OWLFacetRestrictionHGDB extends OWLObjectHGDB implements HGLink, OW
         this.facet = facet;
         facetValueHandle = facetValue;
     }
-
 
     /**
      * Gets the restricting facet for this facet restriction
@@ -101,7 +100,7 @@ public class OWLFacetRestrictionHGDB extends OWLObjectHGDB implements HGLink, OW
 	 */
 	@Override
 	public HGHandle getTargetAt(int i) {
-		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity());
+		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be [0... " + getArity() + "[");
 		return facetValueHandle;
 	}
 
@@ -110,7 +109,7 @@ public class OWLFacetRestrictionHGDB extends OWLObjectHGDB implements HGLink, OW
 	 */
 	@Override
 	public void notifyTargetHandleUpdate(int i, HGHandle handle) {
-		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
+		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be [0... " + getArity() + "["); 
 		if (handle == null) throw new IllegalArgumentException("handle null"); 
 		facetValueHandle = handle;
 	}
@@ -120,7 +119,7 @@ public class OWLFacetRestrictionHGDB extends OWLObjectHGDB implements HGLink, OW
 	 */
 	@Override
 	public void notifyTargetRemoved(int i) {
-		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
+		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be [0... " + getArity() + "["); 
 		facetValueHandle = null;
 	}
 }
