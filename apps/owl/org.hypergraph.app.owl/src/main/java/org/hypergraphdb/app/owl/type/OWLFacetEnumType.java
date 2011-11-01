@@ -28,6 +28,7 @@ import org.semanticweb.owlapi.vocab.OWLFacet;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 1, 2011
  */
+@Deprecated
 public class OWLFacetEnumType extends HGAtomTypeBase implements HGCompositeType {
 	public static final String DIM_IRI = "IRI";
 	public static final String DIM_SHORTNAME = "shortname";
