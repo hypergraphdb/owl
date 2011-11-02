@@ -426,6 +426,9 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		return false;
 	}
 
+	
+
+
 	// hilpold
 	public Set<OWLDeclarationAxiom> getDeclarationAxioms(OWLEntity entity) {
 		// is entity in graph, fail if not?
