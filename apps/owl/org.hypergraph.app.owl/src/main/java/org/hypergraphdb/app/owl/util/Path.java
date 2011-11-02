@@ -9,6 +9,8 @@ import java.util.ListIterator;
 /**
  * Path represents a graph path with basic query abilities, such as match sequence of classes against objects on the path.
  * 
+ * The semantics of some methods are related to the String class.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 2, 2011
  */
@@ -28,6 +30,14 @@ public class Path {
 	public ListIterator<Object> listIterator() {
 		return pathAtoms.listIterator();
 	}
+
+	public int size() {
+		return pathAtoms.size();
+	}
+	
+	public void clear() {
+		pathAtoms.clear();
+	}		
 	
 	/**
 	 * Removes the last added Object from the path.
@@ -38,7 +48,7 @@ public class Path {
 	}
 
 	/**
-	 * Uses a hashset to find duplicates.
+	 * Uses a hashset/equals to find duplicate objects on the path.
 	 * @return
 	 */
 	public boolean hasDuplicates() {
@@ -69,7 +79,7 @@ public class Path {
 	 * Counts each object on the path that is of the same or a subclass of clazz or implements the interface.
 	 * 
 	 * @param clazz
-	 * @return
+	 * @return count of matching objects or 0.
 	 */
 	public int countObjectsOfClass(Class<?> clazz) {
 		int hits = 0;
@@ -82,7 +92,7 @@ public class Path {
 	}
 	
 	/**
-	 * Looks, if the n'th object on the path matches the n'th given class from 0..m, where m is the number of clazzes arguments.
+	 * Looks, if the n'th object on the path matches the n'th given class for n=0..m, where m is the number of clazzes arguments.
 	 * @param clazzes length must > 0 and smaller or equal to size().
 	 * @return
 	 */
@@ -115,7 +125,7 @@ public class Path {
 	/**
 	 * Slow and trivial indexOf implementation.
 	 * @param clazzes length must > 0 and smaller or equal to size().
-	 * @return
+	 * @return the start index of the classes sequence or -1.
 	 */
 	public int indexOfObjectsOfClasses(Class<?>... clazzes) {
 		if (clazzes.length == 0) throw new IllegalArgumentException("clazzes.length == 0");
@@ -131,11 +141,4 @@ public class Path {
 		return found ? offset : -1;
 	}
 	
-	public int size() {
-		return pathAtoms.size();
-	}
-	
-	public void clear() {
-		pathAtoms.clear();
-	}		
 }
