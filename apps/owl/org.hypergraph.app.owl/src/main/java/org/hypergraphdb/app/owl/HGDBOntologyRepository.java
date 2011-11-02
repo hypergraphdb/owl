@@ -12,6 +12,7 @@ import org.coode.owlapi.turtle.TurtleOntologyStorer;
 import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
+import org.hypergraphdb.IncidenceSet;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.management.HGManagement;
@@ -19,10 +20,18 @@ import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.hypergraphdb.app.owl.query.OWLEntityIsBuiltIn;
 import org.hypergraphdb.app.owl.test.TestData;
 import org.hypergraphdb.app.owl.type.TypeUtils;
+import org.hypergraphdb.app.owl.util.Path;
 import org.hypergraphdb.query.HGQueryCondition;
 import org.hypergraphdb.util.HGUtils;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDataRange;
 import org.semanticweb.owlapi.model.OWLEntity;
+import org.semanticweb.owlapi.model.OWLFacetRestriction;
+import org.semanticweb.owlapi.model.OWLLiteral;
+import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.util.NonMappingOntologyIRIMapper;
 
@@ -280,6 +289,73 @@ public class HGDBOntologyRepository {
 	 */
 	public long getNrOfNonLinkAtoms() {
 		return getNrOfAtoms() - getNrOfLinks();
+	}
+	
+	private int recLevel;
+	
+	/**
+	 * Tests, if for a given Entity, ClassExpression, ObjectPropExopression or
+	 * Datarange the given axiom can be reached by traversing incidence sets and returns the path to it.
+	 * 
+	 * !! Does not return if cycle in graph starting atomHandle. !!
+	 * 
+	 * @param atomHandle non null.
+	 * @param path a path that will be filled with all objects on the path including the axiom or unchanged if not found.
+	 * @param axiom an axiom that is equal to the axiom to be found. May be outside of any ontology and outside the hypergraph. 
+	 * @return true if the axiom is found.
+	 */
+	private boolean pathToAxiomRecursive(HGHandle atomHandle, Path path, OWLAxiom axiom) {
+		//TODO make cycle safe.
+		if (DBG) System.out.print("*" + recLevel);
+		Object atom = graph.get(atomHandle);
+		path.addAtom(atom);
+		// Terminal condition 1: ax found
+		if (atom instanceof OWLAxiom && axiom.equals(atom)) {
+			if (DBG)
+				System.out.println("\r\nFound axiom match: " + atom);
+				return true;
+		}		
+		IncidenceSet iSet = graph.getIncidenceSet(atomHandle);
+		// Terminal condition 2: empty incident set.
+		for (HGHandle incidentAtomHandle : iSet) {
+			Object o = graph.get(incidentAtomHandle);
+			if (o != null) {
+				// we have no cycles up incidence sets starting
+				// on an entity.
+				if (!(o instanceof OWLAxiom
+						|| o instanceof OWLClassExpression 
+						|| o instanceof OWLObjectPropertyExpression 
+						|| o instanceof OWLDataRange 
+						|| o instanceof OWLLiteral 
+						|| o instanceof OWLFacetRestriction)) {
+					throw new IllegalStateException("We encountered an unexpected object in an incidenceset:" + o);
+				}
+				recLevel++;
+				// Recursive descent
+				if (pathToAxiomRecursive(incidentAtomHandle, path , axiom)) {
+					recLevel--;
+					return true;
+				}
+				recLevel--;
+			} // else o == null do nothing
+		} // for
+		path.removeLast();
+		return false;
+	}
+	
+	/**
+	 * Tries to find a simple path from an entity to an axiom traversing incidence sets.
+	 * Neither has to be member of any ontology.
+	 * Might not return if a cycle can be reached from owlObject.
+	 * 
+	 * @param owlObject an OWLObject that is in the graph. 
+	 * @param axiom an axiom (May not be in the graph, compares by equals.)
+	 * @return the path including owlObject and axiom, null if axiom not found.
+	 */
+	public Path getPathFromOWLObjectToAxiom(OWLObject owlObject, OWLAxiom axiom) {
+		Path p = new Path();
+		pathToAxiomRecursive(graph.getHandle(owlObject), p, axiom);
+		return p;
 	}
 	
 	//
