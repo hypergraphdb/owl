@@ -11,11 +11,13 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 
 @Suite.SuiteClasses({
-	  T001Classes.class,
-	  T002ClassExpressionTest.class,
-	  T003PropertiesTest.class,
-	  T004IndividualsTest.class,
-	  T005LiteralsTest.class
+	  //T001Classes.class,
+	  //T002ClassExpressionTest.class,
+	  //T003PropertiesTest.class,
+	  //T004IndividualsTest.class,
+	  //T005LiteralsTest.class,
+		//T006DataRangeTest.class,
+	T007DataPropertyRestrictionTest.class
 })
 
 public class A000AllOntologyManagerTests {

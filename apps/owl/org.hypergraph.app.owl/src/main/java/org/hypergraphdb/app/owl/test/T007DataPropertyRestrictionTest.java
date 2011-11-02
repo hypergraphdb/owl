@@ -3,25 +3,34 @@ package org.hypergraphdb.app.owl.test;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxEditorParser;
+import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
+import org.hypergraphdb.app.owl.model.OWLDataIntersectionOfHGDB;
+import org.hypergraphdb.app.owl.model.OWLDatatypeRestrictionHGDB;
+import org.hypergraphdb.app.owl.model.OWLLiteralHGDB;
+import org.hypergraphdb.app.owl.model.classexpr.restrict.OWLDataExactCardinalityHGDB;
+import org.hypergraphdb.app.owl.model.classexpr.restrict.OWLDataHasValueHGDB;
+import org.hypergraphdb.app.owl.model.classexpr.restrict.OWLDataMaxCardinalityHGDB;
+import org.hypergraphdb.app.owl.model.classexpr.restrict.OWLDataMinCardinalityHGDB;
+import org.hypergraphdb.app.owl.model.classexpr.restrict.OWLDataSomeValuesFromHGDB;
+import org.hypergraphdb.app.owl.util.Path;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.expression.ParserException;
 import org.semanticweb.owlapi.expression.ShortFormEntityChecker;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDataAllValuesFrom;
+import org.semanticweb.owlapi.model.OWLDataExactCardinality;
+import org.semanticweb.owlapi.model.OWLDataMaxCardinality;
+import org.semanticweb.owlapi.model.OWLDataMinCardinality;
 import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLDataRange;
+import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
-import org.semanticweb.owlapi.model.OWLDisjointUnionAxiom;
 import org.semanticweb.owlapi.model.OWLLiteral;
-import org.semanticweb.owlapi.model.OWLNamedIndividual;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 
 /**
@@ -98,7 +107,7 @@ public class T007DataPropertyRestrictionTest  extends OntologyManagerTest {
 	}
 
 	@Test
-	public void testClassExpression0DataPropertyRestrictionsAxioms() {
+	public void testClassExpression00DataPropertyRestrictionsAxioms() {
 //		OWLClass a_CN = df.getOWLClass(IRI.create("A_CN")); 
 //		OWLClass b_CN = df.getOWLClass(IRI.create("B_CN")); 
 //		OWLClass c_CN = df.getOWLClass(IRI.create("C_CN")); 
@@ -155,103 +164,388 @@ public class T007DataPropertyRestrictionTest  extends OntologyManagerTest {
 	
 	
 	@Test
-	public void testClassExpression1DPR_OnlySomeBool() {
+	public void testClassExpression01DPR_OnlyBool() {
 		OWLClass a_CN = df.getOWLClass(IRI.create("A_CN")); 
-		OWLDataProperty c_R = df.getOWLDataProperty(IRI.create("C_R")); 
 		OWLDataProperty a_R = df.getOWLDataProperty(IRI.create("A_R")); 
-		String clsExpr = "A_R only (not integer[>0, <10] or not float[>=0.1 , < 10.5] and A_DN[>100, < 1000])";
+		OWLDatatype a_DN = df.getOWLDatatype(IRI.create("A_DN")); 
+		String clsExpr = "A_R only (not xsd:integer[>0, <10] or not xsd:float[>=0.1 , < 10.5] and A_DN[>100, < 1000])";
 		OWLClassExpression ce = createClassExpr(clsExpr);
-		OWLDisjointClassesAxiom axiom1 = df.getOWLDisjointClassesAxiom(ce);
+		OWLDisjointClassesAxiom axiom1 = df.getOWLDisjointClassesAxiom(a_CN, ce);
 		m.addAxiom(o, axiom1);
+		assertTrue(o.getAxioms().contains(axiom1));
+		assertTrue(o.getTBoxAxioms(false).contains(axiom1));
+		assertFalse(o.getABoxAxioms(false).contains(axiom1));
+		
+		if (r != null) {
+			Path p = r.getPathFromOWLObjectToAxiom(a_DN, axiom1);
+			assertTrue(p.startsWithObjectsOfClasses(OWLDatatype.class, 
+					OWLDatatypeRestrictionHGDB.class, 
+					OWLDataIntersectionOfHGDB.class,
+					OWLDataAllValuesFrom.class,					
+					OWLAxiom.class));
+			assertTrue(p.endsWithObjectsOfClasses(OWLDatatype.class, 
+					OWLDatatypeRestrictionHGDB.class, 
+					OWLDataIntersectionOfHGDB.class,
+					OWLDataAllValuesFrom.class,					
+					OWLAxiom.class));
+			assertTrue(p.indexOfObjectsOfClasses(OWLDatatype.class, 
+					OWLDatatypeRestrictionHGDB.class, 
+					OWLDataIntersectionOfHGDB.class,
+					OWLDataAllValuesFrom.class,					
+					OWLAxiom.class) == 0);
+			assertTrue(p.countObjectsOfClass(OWLDataIntersectionOfHGDB.class) == 1);
+			assertTrue(p.containsObjectOfClass(OWLDataAllValuesFrom.class));
+			assertFalse(p.hasDuplicates());
+			assertTrue(p.indexOfObjectsOfClasses(OWLAxiom.class) == 4);
+			assertTrue(p.size() == 5);
+		}
 		assertTrue(o.getReferencingAxioms(a_CN).contains(axiom1));
-		assertTrue(o.getReferencingAxioms(c_R).contains(axiom1));
+		assertTrue(o.getReferencingAxioms(a_DN).contains(axiom1));
 		assertTrue(o.getReferencingAxioms(a_R).contains(axiom1));
 		m.removeAxiom(o, axiom1);
 		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom1));
-		assertFalse(o.getReferencingAxioms(c_R).contains(axiom1));
+		assertFalse(o.getReferencingAxioms(a_DN).contains(axiom1));
 		assertFalse(o.getReferencingAxioms(a_R).contains(axiom1));		
 	}
 	
 	@Test
-	public void testClassExpression2DPR_value() {
+	public void testClassExpression02DPR_SomeBool() {
 		OWLClass a_CN = df.getOWLClass(IRI.create("A_CN")); 
-		OWLClass c_CN = df.getOWLClass(IRI.create("C_CN")); 
 		OWLDataProperty a_R = df.getOWLDataProperty(IRI.create("A_R")); 
-		OWLLiteral b_v = createLiteral("\"Hulehup@de\"^^xsd:string"); 
-		String clsExpr = "A_R some (not integer[>0, <10] or not float[>=0.1 , < 10.5] and B_DN[>10, < 20])";
+		OWLDatatype a_DN = df.getOWLDatatype(IRI.create("A_DN")); 
+		String clsExpr = "A_R some (not xsd:integer[>0, <10] or not xsd:float[>=0.1 , < 10.5] and A_DN[>100, < 1000])";
 		OWLClassExpression ce = createClassExpr(clsExpr);
-		OWLDisjointClassesAxiom axiom1 = df.getOWLDisjointClassesAxiom(ce);
+		OWLDisjointClassesAxiom axiom1 = df.getOWLDisjointClassesAxiom(a_CN, ce);
 		m.addAxiom(o, axiom1);
-		//assertTrue(o.getReferencingAxioms(b_v).contains(axiom1));
+		assertTrue(o.getAxioms().contains(axiom1));
+		assertTrue(o.getTBoxAxioms(false).contains(axiom1));
+		assertFalse(o.getABoxAxioms(false).contains(axiom1));
+		
+		if (r != null) {
+			Path p = r.getPathFromOWLObjectToAxiom(a_DN, axiom1);
+			assertTrue(p.startsWithObjectsOfClasses(OWLDatatype.class, 
+					OWLDatatypeRestrictionHGDB.class, 
+					OWLDataIntersectionOfHGDB.class,
+					OWLDataSomeValuesFromHGDB.class,					
+					OWLAxiomHGDB.class));
+			assertTrue(p.endsWithObjectsOfClasses(OWLDatatype.class, 
+					OWLDatatypeRestrictionHGDB.class, 
+					OWLDataIntersectionOfHGDB.class,
+					OWLDataSomeValuesFromHGDB.class,					
+					OWLAxiomHGDB.class));
+			assertTrue(p.indexOfObjectsOfClasses(OWLDatatype.class, 
+					OWLDatatypeRestrictionHGDB.class, 
+					OWLDataIntersectionOfHGDB.class,
+					OWLDataSomeValuesFromHGDB.class,					
+					OWLAxiomHGDB.class) == 0);
+			assertTrue(p.countObjectsOfClass(OWLDataIntersectionOfHGDB.class) == 1);
+			assertTrue(p.containsObjectOfClass(OWLDataSomeValuesFromHGDB.class));
+			assertFalse(p.hasDuplicates());
+			assertTrue(p.indexOfObjectsOfClasses(OWLAxiom.class) == 4);
+			assertTrue(p.size() == 5);
+		}
 		assertTrue(o.getReferencingAxioms(a_CN).contains(axiom1));
-		assertTrue(o.getReferencingAxioms(c_CN).contains(axiom1));
+		assertTrue(o.getReferencingAxioms(a_DN).contains(axiom1));
 		assertTrue(o.getReferencingAxioms(a_R).contains(axiom1));
 		m.removeAxiom(o, axiom1);
-		//assertFalse(o.getReferencingAxioms(b_aN).contains(axiom1));
 		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom1));
-		assertFalse(o.getReferencingAxioms(c_CN).contains(axiom1));
-		assertFalse(o.getReferencingAxioms(a_R).contains(axiom1));
-	}
-
-	@Test
-	public void testClassExpression3DPR_exactlyMinMax() {
-		OWLClass aa_CN = df.getOWLClass(IRI.create("AA_CN")); 
-		OWLObjectProperty cc_PN = df.getOWLObjectProperty(IRI.create("CC_PN")); 
-		OWLObjectProperty bb_PN = df.getOWLObjectProperty(IRI.create("BB_PN")); 
-		//and is ObjectIntersection
-		String clsExpr = "A_R max 5  (A_R max 5 A_DN) and (A_R min 3 B_DN)";
-		String clsExpr2 = "A_R min 100  ";
-		OWLClassExpression ce = createClassExpr(clsExpr);
-		OWLDisjointClassesAxiom axiom1 = df.getOWLDisjointClassesAxiom(ce);
-		m.addAxiom(o, axiom1);
-		assertTrue(o.getReferencingAxioms(aa_CN).contains(axiom1));
-		assertTrue(o.getReferencingAxioms(cc_PN).contains(axiom1));
-		assertTrue(o.getReferencingAxioms(bb_PN).contains(axiom1));
-		m.removeAxiom(o, axiom1);
-		assertFalse(o.getReferencingAxioms(aa_CN).contains(axiom1));
-		assertFalse(o.getReferencingAxioms(cc_PN).contains(axiom1));
-		assertFalse(o.getReferencingAxioms(bb_PN).contains(axiom1));
-
+		assertFalse(o.getReferencingAxioms(a_DN).contains(axiom1));
+		assertFalse(o.getReferencingAxioms(a_R).contains(axiom1));		
 	}
 	
 	@Test
-	public void testClassExpression4DPR_exactlyMinMaxQualified() {
-		OWLClass aa_CN = df.getOWLClass(IRI.create("AA_CN")); 
-		OWLObjectProperty c_PN = df.getOWLObjectProperty(IRI.create("C_PN")); 
-		OWLObjectProperty b_PN = df.getOWLObjectProperty(IRI.create("B_PN")); 		
-		String clsExpr = "(A_R max 5 A_DN) and (A_R min 3 B_DN[leg])";
+	public void testClassExpression03DPR_value() {
+		OWLClass a_CN = df.getOWLClass(IRI.create("A_CN")); 
+		OWLDataProperty a_R = df.getOWLDataProperty(IRI.create("A_R")); 
+		OWLDatatype float_DN = df.getFloatOWLDatatype(); 
+		String clsExpr = " A_R value \"99.9999999\"^^xsd:float ";
 		OWLClassExpression ce = createClassExpr(clsExpr);
-		OWLDisjointClassesAxiom axiom1 = df.getOWLDisjointClassesAxiom(ce);
+		OWLDisjointClassesAxiom axiom1 = df.getOWLDisjointClassesAxiom(a_CN, ce);
 		m.addAxiom(o, axiom1);
-		assertTrue(o.getReferencingAxioms(aa_CN).contains(axiom1));
-		assertTrue(o.getReferencingAxioms(c_PN).contains(axiom1));
-		assertTrue(o.getReferencingAxioms(b_PN).contains(axiom1));
+		assertTrue(o.getAxioms().contains(axiom1));
+		assertTrue(o.getTBoxAxioms(false).contains(axiom1));
+		assertFalse(o.getABoxAxioms(false).contains(axiom1));
+		
+		if (r != null) {
+			Path p = r.getPathFromOWLObjectToAxiom(float_DN, axiom1);
+			assertTrue(p.startsWithObjectsOfClasses(OWLDatatype.class, 
+					OWLLiteralHGDB.class, 
+					OWLDataHasValueHGDB.class,					
+					OWLAxiomHGDB.class));
+			assertTrue(p.endsWithObjectsOfClasses(OWLDatatype.class, 
+					OWLLiteralHGDB.class, 
+					OWLDataHasValueHGDB.class,					
+					OWLAxiomHGDB.class));
+			assertTrue(p.indexOfObjectsOfClasses(OWLDatatype.class, 
+					OWLLiteralHGDB.class, 
+					OWLDataHasValueHGDB.class,					
+					OWLAxiomHGDB.class) == 0);
+			assertTrue(p.countObjectsOfClass(OWLDataHasValueHGDB.class) == 1);
+			assertTrue(p.containsObjectOfClass(OWLDataHasValueHGDB.class));
+			assertFalse(p.hasDuplicates());
+			assertTrue(p.indexOfObjectsOfClasses(OWLAxiom.class) == 3);
+			assertTrue(p.size() == 4);
+		}
+		assertTrue(o.getReferencingAxioms(a_CN).contains(axiom1));
+		assertTrue(o.getReferencingAxioms(float_DN).contains(axiom1));
+		assertTrue(o.getReferencingAxioms(a_R).contains(axiom1));
 		m.removeAxiom(o, axiom1);
-		assertFalse(o.getReferencingAxioms(aa_CN).contains(axiom1));
-		assertFalse(o.getReferencingAxioms(c_PN).contains(axiom1));
-		assertFalse(o.getReferencingAxioms(b_PN).contains(axiom1));
+		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom1));
+		assertFalse(o.getReferencingAxioms(float_DN).contains(axiom1));
+		assertFalse(o.getReferencingAxioms(a_R).contains(axiom1));		
+	}
+
+	@Test
+	public void testClassExpression03DPR_Min() {
+		long preDfObj = -1;
+		if (r != null) { 
+			preDfObj = r.getNrOfAtomsByType(OWLDataMinCardinalityHGDB.class);
+		}
+		OWLClass a_CN = df.getOWLClass(IRI.create("A_CN")); 
+		OWLDataProperty a_R = df.getOWLDataProperty(IRI.create("A_R")); 
+		String clsExpr = "A_R min 5 ";
+		OWLClassExpression ce = createClassExpr(clsExpr);
+		OWLDisjointClassesAxiom axiom1 = df.getOWLDisjointClassesAxiom(a_CN, ce);
+		m.addAxiom(o, axiom1);
+		assertTrue(o.getAxioms().contains(axiom1));
+		if (r != null) {
+			assertTrue(r.getNrOfAtomsByType(OWLDataMinCardinalityHGDB.class) == preDfObj +1);
+		}
+		assertTrue(o.getReferencingAxioms(a_CN).contains(axiom1));
+		m.removeAxiom(o, axiom1);
+		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom1));
+		if (r != null) {
+			assertTrue(r.getNrOfAtomsByType(OWLDataMinCardinalityHGDB.class) == preDfObj +1);
+		}
+		OWLDataMinCardinality ceH = (OWLDataMinCardinality) ce;
+		assertTrue(ceH.getCardinality() == 5);
+		assertTrue(ceH.getFiller() != null); //rdfs plainliteral, why?
+		assertTrue(ceH.getDataPropertiesInSignature().contains(a_R));
+		assertTrue(ceH.getObjectPropertiesInSignature().size() == 0);
+		assertTrue(ceH.getSignature().contains(a_R));
+		assertTrue(ceH.getProperty() == a_R);
+	}
+
+	@Test
+	public void testClassExpression04DPR_Max() {
+		long preDfObj = -1;
+		if (r != null) { 
+			preDfObj = r.getNrOfAtomsByType(OWLDataMaxCardinalityHGDB.class);
+		}
+		OWLClass a_CN = df.getOWLClass(IRI.create("A_CN")); 
+		OWLDataProperty a_R = df.getOWLDataProperty(IRI.create("A_R")); 
+		String clsExpr = "A_R max 5 ";
+		OWLClassExpression ce = createClassExpr(clsExpr);
+		OWLDisjointClassesAxiom axiom1 = df.getOWLDisjointClassesAxiom(a_CN, ce);
+		m.addAxiom(o, axiom1);
+		assertTrue(o.getAxioms().contains(axiom1));
+		if (r != null) {
+			assertTrue(r.getNrOfAtomsByType(OWLDataMaxCardinalityHGDB.class) == preDfObj +1);
+		}
+		assertTrue(o.getReferencingAxioms(a_CN).contains(axiom1));
+		m.removeAxiom(o, axiom1);
+		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom1));
+		if (r != null) {
+			assertTrue(r.getNrOfAtomsByType(OWLDataMaxCardinalityHGDB.class) == preDfObj +1);
+		}
+		OWLDataMaxCardinality ceH = (OWLDataMaxCardinality) ce;
+		assertTrue(ceH.getCardinality() == 5);
+		assertTrue(ceH.getFiller() != null); //rdfs plainliteral, why?
+		assertTrue(ceH.getDataPropertiesInSignature().contains(a_R));
+		assertTrue(ceH.getObjectPropertiesInSignature().size() == 0);
+		assertTrue(ceH.getSignature().contains(a_R));
+		assertTrue(ceH.getProperty() == a_R);
+	}
+
+	@Test
+	public void testClassExpression05DPR_Exactly() {
+		long preDfObj = -1;
+		if (r != null) { 
+			preDfObj = r.getNrOfAtomsByType(OWLDataExactCardinalityHGDB.class);
+		}
+		OWLClass a_CN = df.getOWLClass(IRI.create("A_CN")); 
+		OWLDataProperty a_R = df.getOWLDataProperty(IRI.create("A_R")); 
+		String clsExpr = "A_R exactly 5 ";
+		OWLClassExpression ce = createClassExpr(clsExpr);
+		OWLDisjointClassesAxiom axiom1 = df.getOWLDisjointClassesAxiom(a_CN, ce);
+		m.addAxiom(o, axiom1);
+		assertTrue(o.getAxioms().contains(axiom1));
+		if (r != null) {
+			assertTrue(r.getNrOfAtomsByType(OWLDataExactCardinalityHGDB.class) == preDfObj +1);
+		}
+		assertTrue(o.getReferencingAxioms(a_CN).contains(axiom1));
+		m.removeAxiom(o, axiom1);
+		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom1));
+		if (r != null) {
+			assertTrue(r.getNrOfAtomsByType(OWLDataExactCardinalityHGDB.class) == preDfObj +1);
+		}
+		OWLDataExactCardinality ceH = (OWLDataExactCardinality) ce;
+		assertTrue(ceH.getCardinality() == 5);
+		assertTrue(ceH.getFiller() != null); //rdfs plainliteral, why?
+		assertTrue(ceH.getDataPropertiesInSignature().contains(a_R));
+		assertTrue(ceH.getObjectPropertiesInSignature().size() == 0);
+		assertTrue(ceH.getSignature().contains(a_R));
+		assertTrue(ceH.getProperty() == a_R);
+	}
+
+	@Test
+	public void testClassExpression06DPR_MinQualified() {
+		OWLClass a_CN = df.getOWLClass(IRI.create("A_CN")); 
+		OWLDataProperty a_R = df.getOWLDataProperty(IRI.create("A_R")); 
+		OWLDatatype a_DN = df.getOWLDatatype(IRI.create("A_DN")); 
+		String clsExpr = "A_R min 5 (not xsd:integer[>0, <10] or not xsd:float[>=0.1 , < 10.5] and A_DN[>100, < 1000])";
+		OWLClassExpression ce = createClassExpr(clsExpr);
+		OWLDisjointClassesAxiom axiom1 = df.getOWLDisjointClassesAxiom(a_CN, ce);
+		m.addAxiom(o, axiom1);
+		assertTrue(o.getAxioms().contains(axiom1));
+		assertTrue(o.getTBoxAxioms(false).contains(axiom1));
+		assertFalse(o.getABoxAxioms(false).contains(axiom1));
+		
+		if (r != null) {
+			Path p = r.getPathFromOWLObjectToAxiom(a_DN, axiom1);
+			assertTrue(p.startsWithObjectsOfClasses(OWLDatatype.class, 
+					OWLDatatypeRestrictionHGDB.class, 
+					OWLDataIntersectionOfHGDB.class,
+					OWLDataMinCardinalityHGDB.class,					
+					OWLAxiomHGDB.class));
+			assertTrue(p.endsWithObjectsOfClasses(OWLDatatype.class, 
+					OWLDatatypeRestrictionHGDB.class, 
+					OWLDataIntersectionOfHGDB.class,
+					OWLDataMinCardinalityHGDB.class,					
+					OWLAxiomHGDB.class));
+			assertTrue(p.indexOfObjectsOfClasses(OWLDatatype.class, 
+					OWLDatatypeRestrictionHGDB.class, 
+					OWLDataIntersectionOfHGDB.class,
+					OWLDataMinCardinalityHGDB.class,					
+					OWLAxiomHGDB.class) == 0);
+			assertTrue(p.countObjectsOfClass(OWLDataMinCardinalityHGDB.class) == 1);
+			assertTrue(p.containsObjectOfClass(OWLDataMinCardinalityHGDB.class));
+			assertFalse(p.hasDuplicates());
+			assertTrue(p.indexOfObjectsOfClasses(OWLAxiom.class) == 4);
+			assertTrue(p.size() == 5);
+		}
+		assertTrue(o.getReferencingAxioms(a_CN).contains(axiom1));
+		assertTrue(o.getReferencingAxioms(a_DN).contains(axiom1));
+		assertTrue(o.getReferencingAxioms(a_R).contains(axiom1));
+		m.removeAxiom(o, axiom1);
+		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom1));
+		assertFalse(o.getReferencingAxioms(a_DN).contains(axiom1));
+		assertFalse(o.getReferencingAxioms(a_R).contains(axiom1));		
+	}
+	
+	@Test
+	public void testClassExpression07DPR_MaxQualified() {
+		OWLClass a_CN = df.getOWLClass(IRI.create("A_CN")); 
+		OWLDataProperty a_R = df.getOWLDataProperty(IRI.create("A_R")); 
+		OWLDatatype a_DN = df.getOWLDatatype(IRI.create("A_DN")); 
+		String clsExpr = "A_R max 5 (not xsd:integer[>0, <10] or not xsd:float[>=0.1 , < 10.5] and A_DN[>100, < 1000])";
+		OWLClassExpression ce = createClassExpr(clsExpr);
+		OWLDisjointClassesAxiom axiom1 = df.getOWLDisjointClassesAxiom(a_CN, ce);
+		m.addAxiom(o, axiom1);
+		assertTrue(o.getAxioms().contains(axiom1));
+		assertTrue(o.getTBoxAxioms(false).contains(axiom1));
+		assertFalse(o.getABoxAxioms(false).contains(axiom1));
+		
+		if (r != null) {
+			Path p = r.getPathFromOWLObjectToAxiom(a_DN, axiom1);
+			assertTrue(p.startsWithObjectsOfClasses(OWLDatatype.class, 
+					OWLDatatypeRestrictionHGDB.class, 
+					OWLDataIntersectionOfHGDB.class,
+					OWLDataMaxCardinalityHGDB.class,					
+					OWLAxiomHGDB.class));
+			assertTrue(p.endsWithObjectsOfClasses(OWLDatatype.class, 
+					OWLDatatypeRestrictionHGDB.class, 
+					OWLDataIntersectionOfHGDB.class,
+					OWLDataMaxCardinalityHGDB.class,					
+					OWLAxiomHGDB.class));
+			assertTrue(p.indexOfObjectsOfClasses(OWLDatatype.class, 
+					OWLDatatypeRestrictionHGDB.class, 
+					OWLDataIntersectionOfHGDB.class,
+					OWLDataMaxCardinalityHGDB.class,					
+					OWLAxiomHGDB.class) == 0);
+			assertTrue(p.countObjectsOfClass(OWLDataMaxCardinalityHGDB.class) == 1);
+			assertTrue(p.containsObjectOfClass(OWLDataMaxCardinalityHGDB.class));
+			assertFalse(p.hasDuplicates());
+			assertTrue(p.indexOfObjectsOfClasses(OWLAxiom.class) == 4);
+			assertTrue(p.size() == 5);
+		}
+		assertTrue(o.getReferencingAxioms(a_CN).contains(axiom1));
+		assertTrue(o.getReferencingAxioms(a_DN).contains(axiom1));
+		assertTrue(o.getReferencingAxioms(a_R).contains(axiom1));
+		m.removeAxiom(o, axiom1);
+		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom1));
+		assertFalse(o.getReferencingAxioms(a_DN).contains(axiom1));
+		assertFalse(o.getReferencingAxioms(a_R).contains(axiom1));		
+	}
+
+	@Test
+	public void testClassExpression08DPR_ExactlyQualified() {
+		OWLClass a_CN = df.getOWLClass(IRI.create("A_CN")); 
+		OWLDataProperty a_R = df.getOWLDataProperty(IRI.create("A_R")); 
+		OWLDatatype a_DN = df.getOWLDatatype(IRI.create("A_DN")); 
+		String clsExpr = "A_R exactly 1 (not xsd:integer[>0, <10] or not xsd:float[>=0.1 , < 10.5] and A_DN[>100, < 1000])";
+		OWLClassExpression ce = createClassExpr(clsExpr);
+		OWLDisjointClassesAxiom axiom1 = df.getOWLDisjointClassesAxiom(a_CN, ce);
+		m.addAxiom(o, axiom1);
+		assertTrue(o.getAxioms().contains(axiom1));
+		assertTrue(o.getTBoxAxioms(false).contains(axiom1));
+		assertFalse(o.getABoxAxioms(false).contains(axiom1));
+		
+		if (r != null) {
+			Path p = r.getPathFromOWLObjectToAxiom(a_DN, axiom1);
+			assertTrue(p.startsWithObjectsOfClasses(OWLDatatype.class, 
+					OWLDatatypeRestrictionHGDB.class, 
+					OWLDataIntersectionOfHGDB.class,
+					OWLDataExactCardinalityHGDB.class,					
+					OWLAxiomHGDB.class));
+			assertTrue(p.endsWithObjectsOfClasses(OWLDatatype.class, 
+					OWLDatatypeRestrictionHGDB.class, 
+					OWLDataIntersectionOfHGDB.class,
+					OWLDataExactCardinalityHGDB.class,					
+					OWLAxiomHGDB.class));
+			assertTrue(p.indexOfObjectsOfClasses(OWLDatatype.class, 
+					OWLDatatypeRestrictionHGDB.class, 
+					OWLDataIntersectionOfHGDB.class,
+					OWLDataExactCardinalityHGDB.class,					
+					OWLAxiomHGDB.class) == 0);
+			assertTrue(p.countObjectsOfClass(OWLDataExactCardinalityHGDB.class) == 1);
+			assertTrue(p.containsObjectOfClass(OWLDataExactCardinalityHGDB.class));
+			assertFalse(p.hasDuplicates());
+			assertTrue(p.indexOfObjectsOfClasses(OWLAxiom.class) == 4);
+			assertTrue(p.size() == 5);
+		}
+		assertTrue(o.getReferencingAxioms(a_CN).contains(axiom1));
+		assertTrue(o.getReferencingAxioms(a_DN).contains(axiom1));
+		assertTrue(o.getReferencingAxioms(a_R).contains(axiom1));
+		m.removeAxiom(o, axiom1);
+		assertFalse(o.getReferencingAxioms(a_CN).contains(axiom1));
+		assertFalse(o.getReferencingAxioms(a_DN).contains(axiom1));
+		assertFalse(o.getReferencingAxioms(a_R).contains(axiom1));		
+
+	}
+
+
+	@Test
+	public void testClassExpression09DPR_nAryDataRangeOnly() {
+		//DataAllValuesFrom := 'DataAllValuesFrom' '(' DataPropertyExpression { DataPropertyExpression } DataRange ')'
+		//see 8.4 Data Property Restrictions 
+		// 
+		// we don't seem to have classes for this in the OWL API.
+		// 2011.11.02 waiting for email response from OWL-API list
+		assertTrue("NOT YET IMPLEMENTED", false);
 		
 	}
 
 	@Test
-	public void testClassExpression5DPR_nAryDataRangeOnlySome() {
-		OWLClass aa_CN = df.getOWLClass(IRI.create("AA_CN")); 
-		OWLObjectProperty c_PN = df.getOWLObjectProperty(IRI.create("C_PN")); 
-		OWLObjectProperty b_PN = df.getOWLObjectProperty(IRI.create("B_PN")); 		
-		String clsExpr = "A_CN and (C_CN or (A_CN or (A_PN exactly 5  (C_CN and not (B_PN max 0 (C_PN min 3 AA_CN))))))";
-		OWLClassExpression ce = createClassExpr(clsExpr);
-		OWLDisjointClassesAxiom axiom1 = df.getOWLDisjointClassesAxiom(ce);
-		m.addAxiom(o, axiom1);
-		assertTrue(o.getReferencingAxioms(aa_CN).contains(axiom1));
-		assertTrue(o.getReferencingAxioms(c_PN).contains(axiom1));
-		assertTrue(o.getReferencingAxioms(b_PN).contains(axiom1));
-		m.removeAxiom(o, axiom1);
-		assertFalse(o.getReferencingAxioms(aa_CN).contains(axiom1));
-		assertFalse(o.getReferencingAxioms(c_PN).contains(axiom1));
-		assertFalse(o.getReferencingAxioms(b_PN).contains(axiom1));
-		
+	public void testClassExpression10DPR_nAryDataRangeSome() {
+		//DataSomeValuesFrom := 'DataSomeValuesFrom' '(' DataPropertyExpression { DataPropertyExpression } DataRange ')' 
+		//see 8.4 Data Property Restrictions 
+		// 
+		// we don't seem to have classes for this in the OWL API.
+		// 2011.11.02 waiting for email response from OWL-API list
+		assertTrue("NOT YET IMPLEMENTED", false);
 	}
-	
+
 	
 	
 }
