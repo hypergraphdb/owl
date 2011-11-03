@@ -1356,8 +1356,12 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		// Datafactory
 		OWLSubObjectPropertyOfAxiomHGDB axiom;
 		// TODO Implement use of OWLObjectPropertyExpression
-		HGHandle subPropertyHandle = getOrFindOWLEntityHandleInGraph((OWLObjectProperty) subProperty);
-		HGHandle superPropertyHandle = getOrFindOWLEntityHandleInGraph((OWLObjectProperty) superProperty);
+		
+		//2011.11.03 Assume it's there.
+		HGHandle subPropertyHandle = graph.getHandle(subProperty);
+		HGHandle superPropertyHandle = graph.getHandle(superProperty);
+		//HGHandle subPropertyHandle = getOrFindOWLEntityHandleInGraph((OWLObjectProperty) subProperty);
+		//HGHandle superPropertyHandle = getOrFindOWLEntityHandleInGraph((OWLObjectProperty) superProperty);
 		if (subPropertyHandle == null || superPropertyHandle == null) {
 			throw new IllegalStateException("No Handle for subProperty or superProperty");
 		}
