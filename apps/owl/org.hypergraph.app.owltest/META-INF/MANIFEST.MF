@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Owltest
+Bundle-SymbolicName: org.hypergraph.app.owltest
+Bundle-Version: 1.0.0.qualifier
+Export-Package: org.semanticweb.owlapi.api.test,
+ org.semanticweb.owlapi.apibinding
+Require-Bundle: org.semanticweb.owl.owlapi;bundle-version="3.2.3",
+ org.hypergraph.app.owl;bundle-version="1.0.0",
+ org.protege.editor.core.application;bundle-version="4.1.0",
+ org.protege.editor.owl;bundle-version="4.1.0",
+ org.junit4
