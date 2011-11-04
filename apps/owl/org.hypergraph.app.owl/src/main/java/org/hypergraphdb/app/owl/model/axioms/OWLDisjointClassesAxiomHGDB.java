@@ -23,7 +23,6 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 public class OWLDisjointClassesAxiomHGDB extends OWLNaryClassAxiomHGDB implements
 		OWLDisjointClassesAxiom {
 
-	
     public OWLDisjointClassesAxiomHGDB(HGHandle...args) {    	
     	super(args);
     } 
@@ -52,7 +51,6 @@ public class OWLDisjointClassesAxiomHGDB extends OWLNaryClassAxiomHGDB implement
     public void accept(OWLAxiomVisitor visitor) {
         visitor.visit(this);
     }
-
 
     public void accept(OWLObjectVisitor visitor) {
         visitor.visit(this);
@@ -91,6 +89,4 @@ public class OWLDisjointClassesAxiomHGDB extends OWLNaryClassAxiomHGDB implement
         }
         return result;
     }
-
-
 }

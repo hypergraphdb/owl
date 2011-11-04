@@ -16,7 +16,6 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNaryClassAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.util.CollectionFactory;
 
 /**
  * OWLNaryClassAxiomHGDB.
@@ -27,7 +26,6 @@ public abstract class OWLNaryClassAxiomHGDB extends OWLClassAxiomHGDB implements
 
     private List<HGHandle> classExpressionsHandles;
     
-
     public OWLNaryClassAxiomHGDB(HGHandle...args)
     {
     	super(Collections.<OWLAnnotation>emptySet());
@@ -46,7 +44,7 @@ public abstract class OWLNaryClassAxiomHGDB extends OWLClassAxiomHGDB implements
     	for (HGHandle h : classExpressionsHandles) {
     		s.add((OWLClassExpression) g.get(h));    		
     	}
-    	return CollectionFactory.getCopyOnRequestSet(s);
+    	return s;
         //return CollectionFactory.getCopyOnRequestSet(classExpressions);
     }
 
