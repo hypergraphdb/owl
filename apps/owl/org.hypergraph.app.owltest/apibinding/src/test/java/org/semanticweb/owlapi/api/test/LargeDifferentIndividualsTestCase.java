@@ -55,10 +55,12 @@ public class LargeDifferentIndividualsTestCase extends AbstractAxiomsRoundTrippi
 
     @Override
 	protected Set<? extends OWLAxiom> createAxioms() {
+    	//.if this.
         Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
         Set<OWLNamedIndividual> inds = new HashSet<OWLNamedIndividual>();
+        //for (int i = 0; i < 1000; i++) {
         for (int i = 0; i < 1000; i++) {
-            inds.add(getOWLIndividual("i" + i));
+              inds.add(getOWLIndividual("i" + i));
         }
         axioms.add(getFactory().getOWLDifferentIndividualsAxiom(inds));
         return axioms;

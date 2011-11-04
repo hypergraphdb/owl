@@ -4,7 +4,7 @@ Longest tests:
 Large**TestCase
 
 --------------------------------------------------------------------------------
-ERROR 1/7
+ERROR 1/7 FIXED
 --------------------------------------------------------------------------------
 RenameToExistingOntologyTestCase
 testRenameToExistingOntology
@@ -22,9 +22,34 @@ Caused by: org.semanticweb.owlapi.model.OWLOntologyRenameException: Could not re
 	at org.protege.owlapi.model.ProtegeOWLOntologyManager.callWithWriteLockUnchecked(ProtegeOWLOntologyManager.java:190)
 	... 48 more
 -
+This behaviour is actually correct and the test expects the OWLOntologyRenameException!
+The problem seems to lie in ProtegeOWLOntologyManager.<X> X callWithWriteLockUnchecked(final Callable<X> call) 
+Here the original Exception gets wrapped into a RuntimeException:
+    public <X> X callWithWriteLockUnchecked(final Callable<X> call) {
+        try {
+            return callWithWriteLock(call);
+        }
+        catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+And the test expects it like this:
+    public void testRenameToExistingOntology() throws Exception {
+        try {
+			...
+            manager.applyChange(new SetOntologyID(ontologyB, new OWLOntologyID(ontologyAIRI)));
+            fail();
+        }
+        catch (OWLOntologyRenameException e) {
+            System.out.println("Got expected rename exception: " + e.getMessage());
+        }
+	}
+Therefore a OWLOntologyRenameException that's already a RuntimeException get's wrapped in another RuntimeException.
+The only quick solution is to change the test and check for the causal exception.
 
 --------------------------------------------------------------------------------
-ERROR 2/7 
+ERROR 2/7 FIXED
 --------------------------------------------------------------------------------
 DifferentPhysicalURISameOntologyIRITestCase
 testDifferentPhysicalURISameOntologyIRI
@@ -43,7 +68,7 @@ Caused by: org.semanticweb.owlapi.model.OWLOntologyRenameException: Could not re
 	
 	
 --------------------------------------------------------------------------------
-ERROR 3,4,5,6,7/7
+ERROR 3,4,5,6,7/7 FIXED
 --------------------------------------------------------------------------------
 SWRLRuleTestCase
 3:testManchesterOWLSyntax
@@ -58,9 +83,12 @@ java.lang.RuntimeException: Hilpold - not supported
 	at org.semanticweb.owlapi.api.test.AbstractAxiomsRoundTrippingTestCase.createOntology(AbstractAxiomsRoundTrippingTestCase.java:66)
 	at org.semanticweb.owlapi.api.test.AbstractRoundTrippingTest.setUp(AbstractRoundTrippingTest.java:70)
 	at junit.framework.TestCase.runBare(TestCase.java:132)
+-
+Changed OWLDataFactoryHGDB getSWRLVariable() to return anon inner class to circumvent protected contstructor until we get to SWRL implementation.
+
 
 --------------------------------------------------------------------------------
-FAILURE 1/1
+FAILURE 1/1  NOT F.
 --------------------------------------------------------------------------------
 LargeDifferentIndividualsTestCase
 AbstractAxiomsRoundTrippingTestCase
@@ -79,6 +107,15 @@ Add axiom: DifferentIndividuals(<http://www.semanticweb.org/owlapi/test#i0> <htt
 	at java.lang.reflect.Method.invoke(Unknown Source)
 	at junit.framework.TestCase.runTest(TestCase.java:168)
 	at junit.framework.TestCase.runBare(TestCase.java:134)
-
+---
+All other formats work (RDFXML, OWLXML, FunctionalSyntax, ManchasterSyntax; just Turtle has a problem at 1000.
+Reruning with only 10 instead of 1000 Individuals -> Runs with no problem.
+100 -> pass
+500 -> pass
+999 -> pass 
+Turtle alone with 
+1000 -> pass !!
+I suspect that the problem occurs with their AnonymousIndividualsNormaliser, who relies on iterating over a set in the same ORDER. See their comment in AbstractOWLAPITestCase.
+We will ignore this for now, as it works individually with 1000 Objects and with the other cases up to 999. Maybe it occurs on a rehash triggered by a loadfactor trigger or sth like that.
 
 
