@@ -95,6 +95,7 @@ import uk.ac.manchester.cs.owl.owlapi.SWRLLiteralArgumentImpl;
 import uk.ac.manchester.cs.owl.owlapi.SWRLObjectPropertyAtomImpl;
 import uk.ac.manchester.cs.owl.owlapi.SWRLRuleImpl;
 import uk.ac.manchester.cs.owl.owlapi.SWRLSameIndividualAtomImpl;
+import uk.ac.manchester.cs.owl.owlapi.SWRLVariableImpl;
 
 /**
  * OWLDataFactortHGDB.
@@ -1832,13 +1833,16 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *            The id (IRI) of the variable
 	 * @return A SWRLVariable that has the name specified by the IRI
 	 */
-	public SWRLVariable getSWRLVariable(IRI var) {
+	public SWRLVariable getSWRLVariable(final IRI var) {
 		// TODO WONT WORK NOW
-		throw new RuntimeException("Hilpold - not supported");
-		// hilpold not visible from our package return new
-		// SWRLVariableImpl(this, var);
+		//throw new RuntimeException("Hilpold - not supported");
+		// hilpold not visible from our package return new SWRLVariableImpl(this, var);
+		// 2011.11.03 quickfix until we get to SWRL:
+		return new SWRLVariableImpl(this, var) {
+			/** CONSTRUCTOR IS PROTECTED, WE NEED TO HAVE THIS EMPTY ANONYMOUS CLAS **/
+			};
 	}
-
+	
 	/**
 	 * Gets a SWRL individual object.
 	 * 
