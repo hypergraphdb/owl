@@ -66,17 +66,16 @@ import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
 import org.semanticweb.owlapi.model.OWLSymmetricObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
 
-
 /**
  * HGDBInternals.
+ * 
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  * @created Sep 26, 2011
  */
-public interface HGDBOntologyInternals  {
-	
-	
+public interface HGDBOntologyInternals {
+
 	void setOntologyHyperNode(HGDBOntology ontology);
-	
+
 	Set<OWLImportsDeclaration> getImportsDeclarations();
 
 	/**
@@ -124,166 +123,203 @@ public interface HGDBOntologyInternals  {
 
 	Set<OWLSubPropertyChainOfAxiom> getPropertyChainSubPropertyAxioms();
 
-	//2011.11.07 void addPropertyChainSubPropertyAxioms(OWLSubPropertyChainOfAxiom ax);
+	// 2011.11.07 void
+	// addPropertyChainSubPropertyAxioms(OWLSubPropertyChainOfAxiom ax);
 
-	//void removePropertyChainSubPropertyAxioms(OWLSubPropertyChainOfAxiom ax);
+	// void removePropertyChainSubPropertyAxioms(OWLSubPropertyChainOfAxiom ax);
 
-	//Map<OWLClass, Set<OWLAxiom>> getOwlClassReferences();
+	// Map<OWLClass, Set<OWLAxiom>> getOwlClassReferences();
 
-	//void removeOwlClassReferences(OWLClass c, OWLAxiom ax);
+	// void removeOwlClassReferences(OWLClass c, OWLAxiom ax);
 
-	//void addOwlClassReferences(OWLClass c, OWLAxiom ax);
+	// void addOwlClassReferences(OWLClass c, OWLAxiom ax);
 
-	//boolean containsOwlClassReferences(OWLClass c);
+	// boolean containsOwlClassReferences(OWLClass c);
 	boolean containsOwlClass(OWLClass c);
 
-	//Map<OWLObjectProperty, Set<OWLAxiom>> getOwlObjectPropertyReferences();
+	// Map<OWLObjectProperty, Set<OWLAxiom>> getOwlObjectPropertyReferences();
 
-	//void addOwlObjectPropertyReferences(OWLObjectProperty p, OWLAxiom ax);
+	// void addOwlObjectPropertyReferences(OWLObjectProperty p, OWLAxiom ax);
 
-	//void removeOwlObjectPropertyReferences(OWLObjectProperty p, OWLAxiom ax);
+	// void removeOwlObjectPropertyReferences(OWLObjectProperty p, OWLAxiom ax);
 
-	//boolean containsOwlObjectPropertyReferences(OWLObjectProperty c);
+	// boolean containsOwlObjectPropertyReferences(OWLObjectProperty c);
 	boolean containsOwlObjectProperty(OWLObjectProperty c);
 
-	//Map<OWLDataProperty, Set<OWLAxiom>> getOwlDataPropertyReferences();
+	// Map<OWLDataProperty, Set<OWLAxiom>> getOwlDataPropertyReferences();
 
-	//void removeOwlDataPropertyReferences(OWLDataProperty c, OWLAxiom ax);
+	// void removeOwlDataPropertyReferences(OWLDataProperty c, OWLAxiom ax);
 
-	//void addOwlDataPropertyReferences(OWLDataProperty c, OWLAxiom ax);
+	// void addOwlDataPropertyReferences(OWLDataProperty c, OWLAxiom ax);
 
-	//boolean containsOwlDataPropertyReferences(OWLDataProperty c);
+	// boolean containsOwlDataPropertyReferences(OWLDataProperty c);
 	boolean containsOwlDataProperty(OWLDataProperty c);
 
-	//Map<OWLNamedIndividual, Set<OWLAxiom>> getOwlIndividualReferences();
+	// Map<OWLNamedIndividual, Set<OWLAxiom>> getOwlIndividualReferences();
 
-	//void removeOwlIndividualReferences(OWLNamedIndividual c, OWLAxiom ax);
+	// void removeOwlIndividualReferences(OWLNamedIndividual c, OWLAxiom ax);
 
-	//void addOwlIndividualReferences(OWLNamedIndividual c, OWLAxiom ax);
+	// void addOwlIndividualReferences(OWLNamedIndividual c, OWLAxiom ax);
 
-	//boolean containsOwlIndividualReferences(OWLNamedIndividual c);
+	// boolean containsOwlIndividualReferences(OWLNamedIndividual c);
 
-	//hilpold new:
+	// hilpold new:
 	/**
 	 * Determines, if a an individual exists with the given IRI.
 	 */
 	boolean containsOwlNamedIndividual(IRI individualIRI);
 
-	//------------------------------------------------------------------------------------
-	// OWL_ENTITY BASIC QUERIES 
+	// ------------------------------------------------------------------------------------
+	// OWL_ENTITY BASIC QUERIES
 	//
-	
+
 	Set<OWLAnnotationProperty> getOwlAnnotationProperties();
 
 	Set<OWLClass> getOwlClasses();
-	
-	Set<OWLDatatype> getOwlDatatypes();	
+
+	Set<OWLDatatype> getOwlDatatypes();
 
 	/**
 	 * Returns all NamedIndividuals as a set.
 	 */
 	Set<OWLNamedIndividual> getOwlNamedIndividuals();
-	
+
 	Set<OWLDataProperty> getOwlDataProperties();
-	
+
 	Set<OWLObjectProperty> getOwlObjectProperties();
 
-	//End
-	
-	//2010.10.26 Map<OWLAnonymousIndividual, Set<OWLAxiom>> getOwlAnonymousIndividualReferences();
+	// End
+
+	// 2010.10.26 Map<OWLAnonymousIndividual, Set<OWLAxiom>>
+	// getOwlAnonymousIndividualReferences();
 	Set<OWLAnonymousIndividual> getOwlAnonymousIndividuals();
 
-//	void removeOwlAnonymousIndividualReferences(OWLAnonymousIndividual c,
-//			OWLAxiom ax);
-//
-//	void addOwlAnonymousIndividualReferences(OWLAnonymousIndividual c,
-//			OWLAxiom ax);
+	// void removeOwlAnonymousIndividualReferences(OWLAnonymousIndividual c,
+	// OWLAxiom ax);
+	//
+	// void addOwlAnonymousIndividualReferences(OWLAnonymousIndividual c,
+	// OWLAxiom ax);
 
-	//boolean containsOwlAnonymousIndividualReferences(OWLAnonymousIndividual c);
-	
+	// boolean containsOwlAnonymousIndividualReferences(OWLAnonymousIndividual
+	// c);
+
 	boolean containsOwlAnonymousIndividual(OWLAnonymousIndividual c);
 
-	//Map<OWLDatatype, Set<OWLAxiom>> getOwlDatatypeReferences();
+	// Map<OWLDatatype, Set<OWLAxiom>> getOwlDatatypeReferences();
 
-	//void removeOwlDatatypeReferences(OWLDatatype c, OWLAxiom ax);
+	// void removeOwlDatatypeReferences(OWLDatatype c, OWLAxiom ax);
 
-	//void addOwlDatatypeReferences(OWLDatatype c, OWLAxiom ax);
+	// void addOwlDatatypeReferences(OWLDatatype c, OWLAxiom ax);
 
-	//boolean containsOwlDatatypeReferences(OWLDatatype c);
+	// boolean containsOwlDatatypeReferences(OWLDatatype c);
 	boolean containsOwlDatatype(OWLDatatype c);
 
-	//Map<OWLAnnotationProperty, Set<OWLAxiom>> getOwlAnnotationPropertyReferences();
+	// Map<OWLAnnotationProperty, Set<OWLAxiom>>
+	// getOwlAnnotationPropertyReferences();
 
-	//void removeOwlAnnotationPropertyReferences(OWLAnnotationProperty c,
-//			OWLAxiom ax);
+	// void removeOwlAnnotationPropertyReferences(OWLAnnotationProperty c,
+	// OWLAxiom ax);
 
-
-	//boolean containsOwlAnnotationPropertyReferences(OWLAnnotationProperty c);
+	// boolean containsOwlAnnotationPropertyReferences(OWLAnnotationProperty c);
 	boolean containsOwlAnnotationProperty(OWLAnnotationProperty c);
 
-	//hilpold Map<OWLEntity, Set<OWLDeclarationAxiom>> getDeclarationsByEntity();
+	// hilpold Map<OWLEntity, Set<OWLDeclarationAxiom>>
+	// getDeclarationsByEntity();
 
-	//void removeDeclarationsByEntity(OWLEntity c, OWLDeclarationAxiom ax);
+	// void removeDeclarationsByEntity(OWLEntity c, OWLDeclarationAxiom ax);
 
-	//void addDeclarationsByEntity(OWLEntity c, OWLDeclarationAxiom ax);
+	// void addDeclarationsByEntity(OWLEntity c, OWLDeclarationAxiom ax);
 
-	//boolean containsDeclarationsByEntity(OWLEntity c);
+	// boolean containsDeclarationsByEntity(OWLEntity c);
 
-//2011.10.06	Map<OWLClass, Set<OWLClassAxiom>> getClassAxiomsByClass();
-//
-//	Map<OWLClass, Set<OWLSubClassOfAxiom>> getSubClassAxiomsByLHS();
-//
-//	Map<OWLClass, Set<OWLSubClassOfAxiom>> getSubClassAxiomsByRHS();
+	// 2011.10.06 Map<OWLClass, Set<OWLClassAxiom>> getClassAxiomsByClass();
+	//
+	// Map<OWLClass, Set<OWLSubClassOfAxiom>> getSubClassAxiomsByLHS();
+	//
+	// Map<OWLClass, Set<OWLSubClassOfAxiom>> getSubClassAxiomsByRHS();
 
-	//2011.10.13 Map<OWLClass, Set<OWLEquivalentClassesAxiom>> getEquivalentClassesAxiomsByClass();
+	// 2011.10.13 Map<OWLClass, Set<OWLEquivalentClassesAxiom>>
+	// getEquivalentClassesAxiomsByClass();
 
-	//2011.10.13 Map<OWLClass, Set<OWLDisjointClassesAxiom>> getDisjointClassesAxiomsByClass();
+	// 2011.10.13 Map<OWLClass, Set<OWLDisjointClassesAxiom>>
+	// getDisjointClassesAxiomsByClass();
 
-	//2011.10.13 Map<OWLClass, Set<OWLDisjointUnionAxiom>> getDisjointUnionAxiomsByClass();
+	// 2011.10.13 Map<OWLClass, Set<OWLDisjointUnionAxiom>>
+	// getDisjointUnionAxiomsByClass();
 
 	Map<OWLClass, Set<OWLHasKeyAxiom>> getHasKeyAxiomsByClass();
 
-	//2011.10.07 Map<OWLObjectPropertyExpression, Set<OWLSubObjectPropertyOfAxiom>> getObjectSubPropertyAxiomsByLHS();
+	// 2011.10.07 Map<OWLObjectPropertyExpression,
+	// Set<OWLSubObjectPropertyOfAxiom>> getObjectSubPropertyAxiomsByLHS();
 
-	//2011.10.07 Map<OWLObjectPropertyExpression, Set<OWLSubObjectPropertyOfAxiom>> getObjectSubPropertyAxiomsByRHS();
+	// 2011.10.07 Map<OWLObjectPropertyExpression,
+	// Set<OWLSubObjectPropertyOfAxiom>> getObjectSubPropertyAxiomsByRHS();
 
-	//2011.11.07 Map<OWLObjectPropertyExpression, Set<OWLEquivalentObjectPropertiesAxiom>> getEquivalentObjectPropertyAxiomsByProperty();
+	// 2011.11.07 Map<OWLObjectPropertyExpression,
+	// Set<OWLEquivalentObjectPropertiesAxiom>>
+	// getEquivalentObjectPropertyAxiomsByProperty();
 
-	Map<OWLObjectPropertyExpression, Set<OWLDisjointObjectPropertiesAxiom>> getDisjointObjectPropertyAxiomsByProperty();
+	//Map<OWLObjectPropertyExpression, Set<OWLDisjointObjectPropertiesAxiom>> getDisjointObjectPropertyAxiomsByProperty();
 
-	//2011.10.07 Map<OWLObjectPropertyExpression, Set<OWLObjectPropertyDomainAxiom>> getObjectPropertyDomainAxiomsByProperty();
+	// 2011.10.07 Map<OWLObjectPropertyExpression,
+	// Set<OWLObjectPropertyDomainAxiom>>
+	// getObjectPropertyDomainAxiomsByProperty();
 
-	//2011.10.07 Map<OWLObjectPropertyExpression, Set<OWLObjectPropertyRangeAxiom>> getObjectPropertyRangeAxiomsByProperty();
+	// 2011.10.07 Map<OWLObjectPropertyExpression,
+	// Set<OWLObjectPropertyRangeAxiom>>
+	// getObjectPropertyRangeAxiomsByProperty();
 
-	//2011.11.07 Map<OWLObjectPropertyExpression, Set<OWLFunctionalObjectPropertyAxiom>> getFunctionalObjectPropertyAxiomsByProperty();
+	// 2011.11.07 Map<OWLObjectPropertyExpression,
+	// Set<OWLFunctionalObjectPropertyAxiom>>
+	// getFunctionalObjectPropertyAxiomsByProperty();
 
-	//2011.11.07 Map<OWLObjectPropertyExpression, Set<OWLInverseFunctionalObjectPropertyAxiom>> getInverseFunctionalPropertyAxiomsByProperty();
+	// 2011.11.07 Map<OWLObjectPropertyExpression,
+	// Set<OWLInverseFunctionalObjectPropertyAxiom>>
+	// getInverseFunctionalPropertyAxiomsByProperty();
 
-	//2011.11.07 Map<OWLObjectPropertyExpression, Set<OWLSymmetricObjectPropertyAxiom>> getSymmetricPropertyAxiomsByProperty();
+	// 2011.11.07 Map<OWLObjectPropertyExpression,
+	// Set<OWLSymmetricObjectPropertyAxiom>>
+	// getSymmetricPropertyAxiomsByProperty();
 
-	//2011.11.07 Map<OWLObjectPropertyExpression, Set<OWLAsymmetricObjectPropertyAxiom>> getAsymmetricPropertyAxiomsByProperty();
+	// 2011.11.07 Map<OWLObjectPropertyExpression,
+	// Set<OWLAsymmetricObjectPropertyAxiom>>
+	// getAsymmetricPropertyAxiomsByProperty();
 
-	//2011.11.07 Map<OWLObjectPropertyExpression, Set<OWLReflexiveObjectPropertyAxiom>> getReflexivePropertyAxiomsByProperty();
+	// 2011.11.07 Map<OWLObjectPropertyExpression,
+	// Set<OWLReflexiveObjectPropertyAxiom>>
+	// getReflexivePropertyAxiomsByProperty();
 
-	//2011.11.07 Map<OWLObjectPropertyExpression, Set<OWLIrreflexiveObjectPropertyAxiom>> getIrreflexivePropertyAxiomsByProperty();
+	// 2011.11.07 Map<OWLObjectPropertyExpression,
+	// Set<OWLIrreflexiveObjectPropertyAxiom>>
+	// getIrreflexivePropertyAxiomsByProperty();
 
-	//2011.11.07 Map<OWLObjectPropertyExpression, Set<OWLTransitiveObjectPropertyAxiom>> getTransitivePropertyAxiomsByProperty();
+	// 2011.11.07 Map<OWLObjectPropertyExpression,
+	// Set<OWLTransitiveObjectPropertyAxiom>>
+	// getTransitivePropertyAxiomsByProperty();
 
-	//2011.11.07 Map<OWLObjectPropertyExpression, Set<OWLInverseObjectPropertiesAxiom>> getInversePropertyAxiomsByProperty();
+	// 2011.11.07 Map<OWLObjectPropertyExpression,
+	// Set<OWLInverseObjectPropertiesAxiom>>
+	// getInversePropertyAxiomsByProperty();
 
-	//2011.10.07 Map<OWLDataPropertyExpression, Set<OWLSubDataPropertyOfAxiom>> getDataSubPropertyAxiomsByLHS();
+	// 2011.10.07 Map<OWLDataPropertyExpression, Set<OWLSubDataPropertyOfAxiom>>
+	// getDataSubPropertyAxiomsByLHS();
 
-	//2011.10.07 Map<OWLDataPropertyExpression, Set<OWLSubDataPropertyOfAxiom>> getDataSubPropertyAxiomsByRHS();
+	// 2011.10.07 Map<OWLDataPropertyExpression, Set<OWLSubDataPropertyOfAxiom>>
+	// getDataSubPropertyAxiomsByRHS();
 
-	Map<OWLDataPropertyExpression, Set<OWLEquivalentDataPropertiesAxiom>> getEquivalentDataPropertyAxiomsByProperty();
+	// 2011.11.07 Map<OWLDataPropertyExpression,
+	// Set<OWLEquivalentDataPropertiesAxiom>>
+	// getEquivalentDataPropertyAxiomsByProperty();
 
-	Map<OWLDataPropertyExpression, Set<OWLDisjointDataPropertiesAxiom>> getDisjointDataPropertyAxiomsByProperty();
+	// 2011.11.07 Map<OWLDataPropertyExpression, Set<OWLDisjointDataPropertiesAxiom>> getDisjointDataPropertyAxiomsByProperty();
 
-	Map<OWLDataPropertyExpression, Set<OWLDataPropertyDomainAxiom>> getDataPropertyDomainAxiomsByProperty();
+	// 2011.10.07 Map<OWLDataPropertyExpression,
+	// Set<OWLDataPropertyDomainAxiom>> getDataPropertyDomainAxiomsByProperty();
 
-	Map<OWLDataPropertyExpression, Set<OWLDataPropertyRangeAxiom>> getDataPropertyRangeAxiomsByProperty();
+	// 2011.10.07 Map<OWLDataPropertyExpression, Set<OWLDataPropertyRangeAxiom>>
+	// getDataPropertyRangeAxiomsByProperty();
 
-	Map<OWLDataPropertyExpression, Set<OWLFunctionalDataPropertyAxiom>> getFunctionalDataPropertyAxiomsByProperty();
+	// 2011.11.07  Map<OWLDataPropertyExpression, Set<OWLFunctionalDataPropertyAxiom>> getFunctionalDataPropertyAxiomsByProperty();
 
 	Map<OWLIndividual, Set<OWLClassAssertionAxiom>> getClassAssertionAxiomsByIndividual();
 
@@ -307,14 +343,11 @@ public interface HGDBOntologyInternals  {
 
 	Set<OWLDatatypeDefinitionAxiom> getDatatypeDefinitions(OWLDatatype datatype);
 
-	Set<OWLSubAnnotationPropertyOfAxiom> getSubAnnotationPropertyOfAxioms(
-			OWLAnnotationProperty subProperty);
+	Set<OWLSubAnnotationPropertyOfAxiom> getSubAnnotationPropertyOfAxioms(OWLAnnotationProperty subProperty);
 
-	Set<OWLAnnotationPropertyDomainAxiom> getAnnotationPropertyDomainAxioms(
-			OWLAnnotationProperty property);
+	Set<OWLAnnotationPropertyDomainAxiom> getAnnotationPropertyDomainAxioms(OWLAnnotationProperty property);
 
-	Set<OWLAnnotationPropertyRangeAxiom> getAnnotationPropertyRangeAxioms(
-			OWLAnnotationProperty property);
+	Set<OWLAnnotationPropertyRangeAxiom> getAnnotationPropertyRangeAxioms(OWLAnnotationProperty property);
 
 	/**
 	 * A convenience method that adds an axiom to a set, but checks that the set
@@ -343,8 +376,7 @@ public interface HGDBOntologyInternals  {
 	 * @param axiom
 	 *            The axiom to be added
 	 */
-	<K, V extends OWLAxiom> void addToIndexedSet(K key, Map<K, Set<V>> map,
-			V axiom);
+	<K, V extends OWLAxiom> void addToIndexedSet(K key, Map<K, Set<V>> map, V axiom);
 
 	/**
 	 * Removes an axiom from a set of axioms, which is the value for a specified
@@ -360,30 +392,30 @@ public interface HGDBOntologyInternals  {
 	 *            Specifies whether or not the indexed set should be removed
 	 *            from the map if it is empty after removing the specified axiom
 	 */
-	<K, V extends OWLAxiom> void removeAxiomFromSet(K key, Map<K, Set<V>> map,
-			V axiom, boolean removeSetIfEmpty);
+	<K, V extends OWLAxiom> void removeAxiomFromSet(K key, Map<K, Set<V>> map, V axiom, boolean removeSetIfEmpty);
 
 	<E> Set<E> getReturnSet(Set<E> set);
 
-	<K extends OWLObject, V extends OWLAxiom> Set<V> getAxioms(K key,
-			Map<K, Set<V>> map);
-	
+	<K extends OWLObject, V extends OWLAxiom> Set<V> getAxioms(K key, Map<K, Set<V>> map);
+
 	Set<OWLDeclarationAxiom> getDeclarationAxioms(OWLEntity entity);
-	
+
 	Set<OWLAxiom> getReferencingAxioms(OWLAnonymousIndividual individual);
 
 	HGHandle findAnonymousIndividual(final OWLAnonymousIndividual individual);
 
 	/**
-	 * Hilpold. 
+	 * Hilpold.
+	 * 
 	 * @param entity
-	 * @return true, if at least 1 axiom in the ontology exists that refers directly or indirectly to the entity.
+	 * @return true, if at least 1 axiom in the ontology exists that refers
+	 *         directly or indirectly to the entity.
 	 */
 	boolean hasReferencingAxioms(OWLEntity entity);
-	
+
 	boolean hasReferencingAxioms(HGHandle entity);
 
-	//TODO
+	// TODO
 	Set<OWLAxiom> getReferencingAxioms(OWLEntity owlEntity);
 
 	Set<OWLSubClassOfAxiom> getSubClassAxiomsForSubClass(OWLClass cls);
@@ -399,92 +431,66 @@ public interface HGDBOntologyInternals  {
 	Set<OWLHasKeyAxiom> getHasKeyAxioms(OWLClass cls);
 
 	// Object properties
-	Set<OWLSubObjectPropertyOfAxiom> getObjectSubPropertyAxiomsForSubProperty(
-			OWLObjectPropertyExpression property);
+	Set<OWLSubObjectPropertyOfAxiom> getObjectSubPropertyAxiomsForSubProperty(OWLObjectPropertyExpression property);
 
-	Set<OWLSubObjectPropertyOfAxiom> getObjectSubPropertyAxiomsForSuperProperty(
-			OWLObjectPropertyExpression property);
+	Set<OWLSubObjectPropertyOfAxiom> getObjectSubPropertyAxiomsForSuperProperty(OWLObjectPropertyExpression property);
 
-	Set<OWLObjectPropertyDomainAxiom> getObjectPropertyDomainAxioms(
-			OWLObjectPropertyExpression property);
+	Set<OWLObjectPropertyDomainAxiom> getObjectPropertyDomainAxioms(OWLObjectPropertyExpression property);
 
-	Set<OWLObjectPropertyRangeAxiom> getObjectPropertyRangeAxioms(
-			OWLObjectPropertyExpression property);
+	Set<OWLObjectPropertyRangeAxiom> getObjectPropertyRangeAxioms(OWLObjectPropertyExpression property);
 
-	Set<OWLInverseObjectPropertiesAxiom> getInverseObjectPropertyAxioms(
-			OWLObjectPropertyExpression property);
+	Set<OWLInverseObjectPropertiesAxiom> getInverseObjectPropertyAxioms(OWLObjectPropertyExpression property);
 
-	Set<OWLEquivalentObjectPropertiesAxiom> getEquivalentObjectPropertiesAxioms(
-			OWLObjectPropertyExpression property);
+	Set<OWLEquivalentObjectPropertiesAxiom> getEquivalentObjectPropertiesAxioms(OWLObjectPropertyExpression property);
 
-	Set<OWLDisjointObjectPropertiesAxiom> getDisjointObjectPropertiesAxioms(
-			OWLObjectPropertyExpression property);
+	Set<OWLDisjointObjectPropertiesAxiom> getDisjointObjectPropertiesAxioms(OWLObjectPropertyExpression property);
 
-	Set<OWLFunctionalObjectPropertyAxiom> getFunctionalObjectPropertyAxioms(
-			OWLObjectPropertyExpression property);
+	Set<OWLFunctionalObjectPropertyAxiom> getFunctionalObjectPropertyAxioms(OWLObjectPropertyExpression property);
 
 	Set<OWLInverseFunctionalObjectPropertyAxiom> getInverseFunctionalObjectPropertyAxioms(
 			OWLObjectPropertyExpression property);
 
-	Set<OWLSymmetricObjectPropertyAxiom> getSymmetricObjectPropertyAxioms(
-			OWLObjectPropertyExpression property);
+	Set<OWLSymmetricObjectPropertyAxiom> getSymmetricObjectPropertyAxioms(OWLObjectPropertyExpression property);
 
-	Set<OWLAsymmetricObjectPropertyAxiom> getAsymmetricObjectPropertyAxioms(
-			OWLObjectPropertyExpression property);
+	Set<OWLAsymmetricObjectPropertyAxiom> getAsymmetricObjectPropertyAxioms(OWLObjectPropertyExpression property);
 
-	Set<OWLReflexiveObjectPropertyAxiom> getReflexiveObjectPropertyAxioms(
-			OWLObjectPropertyExpression property);
+	Set<OWLReflexiveObjectPropertyAxiom> getReflexiveObjectPropertyAxioms(OWLObjectPropertyExpression property);
 
-	Set<OWLIrreflexiveObjectPropertyAxiom> getIrreflexiveObjectPropertyAxioms(
-			OWLObjectPropertyExpression property);
+	Set<OWLIrreflexiveObjectPropertyAxiom> getIrreflexiveObjectPropertyAxioms(OWLObjectPropertyExpression property);
 
-	Set<OWLTransitiveObjectPropertyAxiom> getTransitiveObjectPropertyAxioms(
-			OWLObjectPropertyExpression property);
+	Set<OWLTransitiveObjectPropertyAxiom> getTransitiveObjectPropertyAxioms(OWLObjectPropertyExpression property);
 
-	Set<OWLFunctionalDataPropertyAxiom> getFunctionalDataPropertyAxioms(
-			OWLDataPropertyExpression property);
+	Set<OWLFunctionalDataPropertyAxiom> getFunctionalDataPropertyAxioms(OWLDataPropertyExpression property);
 
-	Set<OWLSubDataPropertyOfAxiom> getDataSubPropertyAxiomsForSubProperty(
-			OWLDataProperty lhsProperty);
+	Set<OWLSubDataPropertyOfAxiom> getDataSubPropertyAxiomsForSubProperty(OWLDataProperty lhsProperty);
 
-	Set<OWLSubDataPropertyOfAxiom> getDataSubPropertyAxiomsForSuperProperty(
-			OWLDataPropertyExpression property);
+	Set<OWLSubDataPropertyOfAxiom> getDataSubPropertyAxiomsForSuperProperty(OWLDataPropertyExpression property);
 
-	Set<OWLDataPropertyDomainAxiom> getDataPropertyDomainAxioms(
-			OWLDataProperty property);
+	Set<OWLDataPropertyDomainAxiom> getDataPropertyDomainAxioms(OWLDataProperty property);
 
-	Set<OWLDataPropertyRangeAxiom> getDataPropertyRangeAxioms(
-			OWLDataProperty property);
+	Set<OWLDataPropertyRangeAxiom> getDataPropertyRangeAxioms(OWLDataProperty property);
 
-	Set<OWLEquivalentDataPropertiesAxiom> getEquivalentDataPropertiesAxioms(
-			OWLDataProperty property);
+	Set<OWLEquivalentDataPropertiesAxiom> getEquivalentDataPropertiesAxioms(OWLDataProperty property);
 
-	Set<OWLDisjointDataPropertiesAxiom> getDisjointDataPropertiesAxioms(
-			OWLDataProperty property);
+	Set<OWLDisjointDataPropertiesAxiom> getDisjointDataPropertiesAxioms(OWLDataProperty property);
 
 	Set<OWLClassAssertionAxiom> getClassAssertionAxioms(OWLIndividual individual);
 
 	Set<OWLClassAssertionAxiom> getClassAssertionAxioms(OWLClassExpression type);
 
-	Set<OWLDataPropertyAssertionAxiom> getDataPropertyAssertionAxioms(
-			OWLIndividual individual);
+	Set<OWLDataPropertyAssertionAxiom> getDataPropertyAssertionAxioms(OWLIndividual individual);
 
-	Set<OWLObjectPropertyAssertionAxiom> getObjectPropertyAssertionAxioms(
-			OWLIndividual individual);
+	Set<OWLObjectPropertyAssertionAxiom> getObjectPropertyAssertionAxioms(OWLIndividual individual);
 
-	Set<OWLNegativeObjectPropertyAssertionAxiom> getNegativeObjectPropertyAssertionAxioms(
-			OWLIndividual individual);
+	Set<OWLNegativeObjectPropertyAssertionAxiom> getNegativeObjectPropertyAssertionAxioms(OWLIndividual individual);
 
-	Set<OWLNegativeDataPropertyAssertionAxiom> getNegativeDataPropertyAssertionAxioms(
-			OWLIndividual individual);
+	Set<OWLNegativeDataPropertyAssertionAxiom> getNegativeDataPropertyAssertionAxioms(OWLIndividual individual);
 
 	Set<OWLSameIndividualAxiom> getSameIndividualAxioms(OWLIndividual individual);
 
-	Set<OWLDifferentIndividualsAxiom> getDifferentIndividualAxioms(
-			OWLIndividual individual);
+	Set<OWLDifferentIndividualsAxiom> getDifferentIndividualAxioms(OWLIndividual individual);
 
-	Set<OWLAnnotationAssertionAxiom> getAnnotationAssertionAxiomsBySubject(
-			OWLAnnotationSubject subject);
+	Set<OWLAnnotationAssertionAxiom> getAnnotationAssertionAxiomsBySubject(OWLAnnotationSubject subject);
 
 	Set<OWLClassAxiom> getAxioms(OWLClass cls);
 
@@ -496,15 +502,12 @@ public interface HGDBOntologyInternals  {
 
 	<T extends OWLAxiom> Set<T> getAxioms(AxiomType<T> axiomType);
 
-	<T extends OWLAxiom> Set<T> getAxioms(AxiomType<T> axiomType,
-			Collection<OWLOntology> importsClosure);
+	<T extends OWLAxiom> Set<T> getAxioms(AxiomType<T> axiomType, Collection<OWLOntology> importsClosure);
 
 	<T extends OWLAxiom> int getAxiomCount(AxiomType<T> axiomType);
 
 	Set<OWLLogicalAxiom> getLogicalAxioms();
 
 	int getLogicalAxiomCount();
-
-
 
 }
