@@ -4,7 +4,6 @@ import static org.semanticweb.owlapi.model.AxiomType.ANNOTATION_ASSERTION;
 import static org.semanticweb.owlapi.model.AxiomType.CLASS_ASSERTION;
 import static org.semanticweb.owlapi.model.AxiomType.DATA_PROPERTY_ASSERTION;
 import static org.semanticweb.owlapi.model.AxiomType.DIFFERENT_INDIVIDUALS;
-import static org.semanticweb.owlapi.model.AxiomType.DISJOINT_OBJECT_PROPERTIES;
 import static org.semanticweb.owlapi.model.AxiomType.HAS_KEY;
 import static org.semanticweb.owlapi.model.AxiomType.IRREFLEXIVE_OBJECT_PROPERTY;
 import static org.semanticweb.owlapi.model.AxiomType.NEGATIVE_DATA_PROPERTY_ASSERTION;
