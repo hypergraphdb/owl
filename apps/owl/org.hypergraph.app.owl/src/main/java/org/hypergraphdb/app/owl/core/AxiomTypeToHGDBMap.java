@@ -11,12 +11,17 @@ import java.util.Set;
 
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.app.owl.model.axioms.OWLAsymmetricObjectPropertyAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLDataPropertyDomainAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLDataPropertyRangeAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDeclarationAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDisjointClassesAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLDisjointDataPropertiesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDisjointObjectPropertiesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDisjointUnionAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLEquivalentClassesAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLEquivalentDataPropertiesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLEquivalentObjectPropertiesAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLFunctionalDataPropertyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLFunctionalObjectPropertyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLInverseFunctionalObjectPropertyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLInverseObjectPropertiesAxiomHGDB;
@@ -121,12 +126,12 @@ public class AxiomTypeToHGDBMap {
         addToMap(AxiomType.TRANSITIVE_OBJECT_PROPERTY, OWLTransitiveObjectPropertyAxiomHGDB.class); //2011.11.07
         addToMap(AxiomType.REFLEXIVE_OBJECT_PROPERTY, OWLReflexiveObjectPropertyAxiomHGDB.class); //2011.11.07
         addToMap(AxiomType.IRREFLEXIVE_OBJECT_PROPERTY, OWLIrreflexiveObjectPropertyAxiomHGDB.class); //2011.11.07
-        //25 addToMap(AxiomType.DATA_PROPERTY_DOMAIN, OWLAxiomHGDB.class);
-        //26 addToMap(AxiomType.DATA_PROPERTY_RANGE, OWLAxiomHGDB.class);
-        //27 addToMap(AxiomType.DISJOINT_DATA_PROPERTIES, OWLAxiomHGDB.class);
+        addToMap(AxiomType.DATA_PROPERTY_DOMAIN, OWLDataPropertyDomainAxiomHGDB.class);
+        addToMap(AxiomType.DATA_PROPERTY_RANGE, OWLDataPropertyRangeAxiomHGDB.class);
+        addToMap(AxiomType.DISJOINT_DATA_PROPERTIES, OWLDisjointDataPropertiesAxiomHGDB.class);
         addToMap(AxiomType.SUB_DATA_PROPERTY, OWLSubDataPropertyOfAxiomHGDB.class);
-        //29 addToMap(AxiomType.EQUIVALENT_DATA_PROPERTIES, OWLAxiomHGDB.class);
-        //30 addToMap(AxiomType.FUNCTIONAL_DATA_PROPERTY, OWLAxiomHGDB.class);
+        addToMap(AxiomType.EQUIVALENT_DATA_PROPERTIES, OWLEquivalentDataPropertiesAxiomHGDB.class);
+        addToMap(AxiomType.FUNCTIONAL_DATA_PROPERTY, OWLFunctionalDataPropertyAxiomHGDB.class);
         //31 addToMap(AxiomType.DATATYPE_DEFINITION, OWLAxiomHGDB.class);
         addToMap(AxiomType.DISJOINT_UNION, OWLDisjointUnionAxiomHGDB.class); //2011.10.13
         addToMap(AxiomType.DECLARATION, OWLDeclarationAxiomHGDB.class);

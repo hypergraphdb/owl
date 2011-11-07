@@ -51,7 +51,6 @@ import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLDataPropertyDomainAxiom;
-import org.semanticweb.owlapi.model.OWLDataPropertyExpression;
 import org.semanticweb.owlapi.model.OWLDataPropertyRangeAxiom;
 import org.semanticweb.owlapi.model.OWLDatatypeDefinitionAxiom;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
@@ -74,7 +73,6 @@ import org.semanticweb.owlapi.model.OWLNegativeDataPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLNegativeObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyDomainAxiom;
-import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectPropertyRangeAxiom;
 import org.semanticweb.owlapi.model.OWLReflexiveObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLSameIndividualAxiom;
@@ -212,11 +210,11 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
     public void visit(OWLDataPropertyDomainAxiom axiom) {
         if (addAxiom) {
             oi.addAxiomsByType(DATA_PROPERTY_DOMAIN, axiom);
-            oi.addToIndexedSet(axiom.getProperty(), oi.getDataPropertyDomainAxiomsByProperty(), axiom);
+            //oi.addTo IndexedSet(axiom.getProperty(), oi.getDataPropertyDomainAxiomsByProperty(), axiom);
         }
         else {
             oi.removeAxiomsByType(DATA_PROPERTY_DOMAIN, axiom);
-            oi.removeAxiomFromSet(axiom.getProperty(), oi.getDataPropertyDomainAxiomsByProperty(), axiom, true);
+            //oi.removeAxiomFromSet(axiom.getProperty(), oi.getDataPropertyDomainAxiomsByProperty(), axiom, true);
         }
     }
 
@@ -297,15 +295,15 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
     public void visit(OWLDisjointDataPropertiesAxiom axiom) {
         if (addAxiom) {
             oi.addAxiomsByType(DISJOINT_DATA_PROPERTIES, axiom);
-            for (OWLDataPropertyExpression prop : axiom.getProperties()) {
-                oi.addToIndexedSet(prop, oi.getDisjointDataPropertyAxiomsByProperty(), axiom);
-            }
+//            for (OWLDataPropertyExpression prop : axiom.getProperties()) {
+//                oi.addToIndexedSet(prop, oi.getDisjointDataPropertyAxiomsByProperty(), axiom);
+//            }
         }
         else {
             oi.removeAxiomsByType(DISJOINT_DATA_PROPERTIES, axiom);
-            for (OWLDataPropertyExpression prop : axiom.getProperties()) {
-                oi.removeAxiomFromSet(prop, oi.getDisjointDataPropertyAxiomsByProperty(), axiom, true);
-            }
+//            for (OWLDataPropertyExpression prop : axiom.getProperties()) {
+//                oi.removeAxiomFromSet(prop, oi.getDisjointDataPropertyAxiomsByProperty(), axiom, true);
+//            }
         }
     }
 
@@ -313,15 +311,15 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
     public void visit(OWLDisjointObjectPropertiesAxiom axiom) {
         if (addAxiom) {
             oi.addAxiomsByType(DISJOINT_OBJECT_PROPERTIES, axiom);
-            for (OWLObjectPropertyExpression prop : axiom.getProperties()) {
-                oi.addToIndexedSet(prop, oi.getDisjointObjectPropertyAxiomsByProperty(), axiom);
-            }
+//2011.11.07            for (OWLObjectPropertyExpression prop : axiom.getProperties()) {
+//                oi.addToIndexedSet(prop, oi.getDisjointObjectPropertyAxiomsByProperty(), axiom);
+//            }
         }
         else {
             oi.removeAxiomsByType(DISJOINT_OBJECT_PROPERTIES, axiom);
-            for (OWLObjectPropertyExpression prop : axiom.getProperties()) {
-                oi.removeAxiomFromSet(prop, oi.getDisjointObjectPropertyAxiomsByProperty(), axiom, true);
-            }
+//            for (OWLObjectPropertyExpression prop : axiom.getProperties()) {
+//                oi.removeAxiomFromSet(prop, oi.getDisjointObjectPropertyAxiomsByProperty(), axiom, true);
+//            }
         }
     }
 
@@ -472,11 +470,11 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
     public void visit(OWLDataPropertyRangeAxiom axiom) {
         if (addAxiom) {
             oi.addAxiomsByType(DATA_PROPERTY_RANGE, axiom);
-            oi.addToIndexedSet(axiom.getProperty(), oi.getDataPropertyRangeAxiomsByProperty(), axiom);
+            //oi.addToIndexedSet(axiom.getProperty(), oi.getDataPropertyRangeAxiomsByProperty(), axiom);
         }
         else {
             oi.removeAxiomsByType(DATA_PROPERTY_RANGE, axiom);
-            oi.removeAxiomFromSet(axiom.getProperty(), oi.getDataPropertyRangeAxiomsByProperty(), axiom, true);
+            //oi.removeAxiomFromSet(axiom.getProperty(), oi.getDataPropertyRangeAxiomsByProperty(), axiom, true);
         }
     }
 
@@ -484,11 +482,11 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
     public void visit(OWLFunctionalDataPropertyAxiom axiom) {
         if (addAxiom) {
             oi.addAxiomsByType(FUNCTIONAL_DATA_PROPERTY, axiom);
-            oi.addToIndexedSet(axiom.getProperty(), oi.getFunctionalDataPropertyAxiomsByProperty(), axiom);
+            //oi.addToIndexedSet(axiom.getProperty(), oi.getFunctionalDataPropertyAxiomsByProperty(), axiom);
         }
         else {
             oi.removeAxiomsByType(FUNCTIONAL_DATA_PROPERTY, axiom);
-            oi.removeAxiomFromSet(axiom.getProperty(), oi.getFunctionalDataPropertyAxiomsByProperty(), axiom, true);
+            //oi.removeAxiomFromSet(axiom.getProperty(), oi.getFunctionalDataPropertyAxiomsByProperty(), axiom, true);
         }
     }
 
@@ -496,15 +494,15 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
     public void visit(OWLEquivalentDataPropertiesAxiom axiom) {
         if (addAxiom) {
             oi.addAxiomsByType(EQUIVALENT_DATA_PROPERTIES, axiom);
-            for (OWLDataPropertyExpression prop : axiom.getProperties()) {
-                oi.addToIndexedSet(prop, oi.getEquivalentDataPropertyAxiomsByProperty(), axiom);
-            }
+//            for (OWLDataPropertyExpression prop : axiom.getProperties()) {
+//                oi.addToIndexedSet(prop, oi.getEquivalentDataPropertyAxiomsByProperty(), axiom);
+//            }
         }
         else {
             oi.removeAxiomsByType(EQUIVALENT_DATA_PROPERTIES, axiom);
-            for (OWLDataPropertyExpression prop : axiom.getProperties()) {
-                oi.removeAxiomFromSet(prop, oi.getEquivalentDataPropertyAxiomsByProperty(), axiom, true);
-            }
+//            for (OWLDataPropertyExpression prop : axiom.getProperties()) {
+//                oi.removeAxiomFromSet(prop, oi.getEquivalentDataPropertyAxiomsByProperty(), axiom, true);
+//            }
         }
     }
 
