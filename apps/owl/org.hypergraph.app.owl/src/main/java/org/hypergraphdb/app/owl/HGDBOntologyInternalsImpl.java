@@ -93,7 +93,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	// 2011.10.06
 	protected Map<OWLAxiom, Set<OWLAxiom>> logicalAxiom2AnnotatedAxiomMap;
 	protected Set<OWLClassAxiom> generalClassAxioms;
-	protected Set<OWLSubPropertyChainOfAxiom> propertyChainSubPropertyAxioms;
+	//2011.11.07 protected Set<OWLSubPropertyChainOfAxiom> propertyChainSubPropertyAxioms;
 
 	// protected Map<OWLClass, Set<OWLAxiom>> owlClassReferences;
 	// protected Map<OWLObjectProperty, Set<OWLAxiom>>
@@ -120,7 +120,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		// this.axiomsByType = createMap();
 		this.logicalAxiom2AnnotatedAxiomMap = createMap();
 		this.generalClassAxioms = createSet();
-		this.propertyChainSubPropertyAxioms = createSet();
+		//this.propertyChainSubPropertyAxioms = createSet();
 		// this.owlClassReferences = createMap();
 		// this.owlObjectPropertyReferences = createMap();
 		// this.owlDataPropertyReferences = createMap();
@@ -822,16 +822,17 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	public Set<OWLSubPropertyChainOfAxiom> getPropertyChainSubPropertyAxioms() {
-		return getReturnSet(this.propertyChainSubPropertyAxioms);
+		return getAxiomsInternal(AxiomType.SUB_PROPERTY_CHAIN_OF);
+		//return getReturnSet(this.propertyChainSubPropertyAxioms);
 	}
 
-	public void addPropertyChainSubPropertyAxioms(OWLSubPropertyChainOfAxiom ax) {
-		this.propertyChainSubPropertyAxioms.add(ax);
-	}
+//	public void addPropertyChainSubPropertyAxioms(OWLSubPropertyChainOfAxiom ax) {
+//		this.propertyChainSubPropertyAxi oms.add(ax);
+//	}
 
-	public void removePropertyChainSubPropertyAxioms(OWLSubPropertyChainOfAxiom ax) {
-		this.propertyChainSubPropertyAxioms.remove(ax);
-	}
+//	public void removePropertyChainSubPropertyAxioms(OWLSubPropertyChainOfAxiom ax) {
+//		this.propertyChainSubPropertyAxioms.remove(ax);
+//	}
 
 	// public Map<OWLClass, Set<OWLAxiom>> getOwlClassReferences() {
 	// return new HashMap<OWLClass, Set<OWLAxiom>>(this.owlClassReferences);

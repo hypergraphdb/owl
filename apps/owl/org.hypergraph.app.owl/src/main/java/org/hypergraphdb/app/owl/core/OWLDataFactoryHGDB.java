@@ -1,5 +1,6 @@
 package org.hypergraphdb.app.owl.core;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -20,14 +21,27 @@ import org.hypergraphdb.app.owl.model.OWLDatatypeRestrictionHGDB;
 import org.hypergraphdb.app.owl.model.OWLFacetRestrictionHGDB;
 import org.hypergraphdb.app.owl.model.OWLLiteralHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectInverseOfHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLAsymmetricObjectPropertyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDeclarationAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDisjointClassesAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLDisjointObjectPropertiesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDisjointUnionAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLEquivalentClassesAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLEquivalentObjectPropertiesAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLFunctionalObjectPropertyAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLInverseFunctionalObjectPropertyAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLInverseObjectPropertiesAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLIrreflexiveObjectPropertyAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLObjectPropertyDomainAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLObjectPropertyRangeAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLReflexiveObjectPropertyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubAnnotationPropertyOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubDataPropertyOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubObjectPropertyOfAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLSubPropertyChainAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLSymmetricObjectPropertyAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLTransitiveObjectPropertyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.classexpr.OWLObjectComplementOfHGDB;
 import org.hypergraphdb.app.owl.model.classexpr.OWLObjectIntersectionOfHGDB;
 import org.hypergraphdb.app.owl.model.classexpr.OWLObjectOneOfHGDB;
@@ -51,12 +65,11 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import org.semanticweb.owlapi.vocab.XSDVocabulary;
-//43 to go
+//31 to go
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationAssertionAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationPropertyDomainAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationPropertyRangeAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLAsymmetricObjectPropertyAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLClassAssertionImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternals;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataPropertyAssertionAxiomImpl;
@@ -65,26 +78,14 @@ import uk.ac.manchester.cs.owl.owlapi.OWLDataPropertyRangeAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDatatypeDefinitionAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDifferentIndividualsAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDisjointDataPropertiesAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLDisjointObjectPropertiesAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentDataPropertiesAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLEquivalentObjectPropertiesAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLFunctionalDataPropertyAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLFunctionalObjectPropertyAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLHasKeyAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLInverseFunctionalObjectPropertyAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLInverseObjectPropertiesAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLIrreflexiveObjectPropertyAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLNegativeDataPropertyAssertionImplAxiom;
 import uk.ac.manchester.cs.owl.owlapi.OWLNegativeObjectPropertyAssertionAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLObjectPropertyAssertionAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectPropertyDomainAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLObjectPropertyRangeAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLReflexiveObjectPropertyAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLSameIndividualAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLSubPropertyChainAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLSymmetricObjectPropertyAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLTransitiveObjectPropertyAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.SWRLBuiltInAtomImpl;
 import uk.ac.manchester.cs.owl.owlapi.SWRLClassAtomImpl;
 import uk.ac.manchester.cs.owl.owlapi.SWRLDataPropertyAtomImpl;
@@ -925,12 +926,25 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 	public OWLAsymmetricObjectPropertyAxiom getOWLAsymmetricObjectPropertyAxiom(
 			OWLObjectPropertyExpression propertyExpression, Set<? extends OWLAnnotation> annotations) {
-		return new OWLAsymmetricObjectPropertyAxiomImpl(this, propertyExpression, annotations);
+		if (propertyExpression == null) throw new IllegalArgumentException("propertyExpression null");
+		if (annotations == null) throw new IllegalArgumentException("annotations null");
+		OWLAsymmetricObjectPropertyAxiomHGDB axiom;
+		HGHandle propertyHandle = graph.getHandle(propertyExpression);
+		axiom = new OWLAsymmetricObjectPropertyAxiomHGDB(propertyHandle, annotations);
+		axiom.setHyperGraph(graph);
+		return axiom;	
+		//return new OWLAsymmetricObjectPropertyAxiomImpl(this, propertyExpression, annotations);
 	}
 
 	public OWLAsymmetricObjectPropertyAxiom getOWLAsymmetricObjectPropertyAxiom(
 			OWLObjectPropertyExpression propertyExpression) {
-		return getOWLAsymmetricObjectPropertyAxiom(propertyExpression, EMPTY_ANNOTATIONS_SET);
+		if (propertyExpression == null) throw new IllegalArgumentException("propertyExpression null");
+		OWLAsymmetricObjectPropertyAxiomHGDB axiom;
+		HGHandle propertyHandle = graph.getHandle(propertyExpression);
+		axiom = new OWLAsymmetricObjectPropertyAxiomHGDB(propertyHandle, EMPTY_ANNOTATIONS_SET);
+		axiom.setHyperGraph(graph);
+		return axiom;	
+		///return getOWLAsymmetricObjectPropertyAxiom(propertyExpression, EMPTY_ANNOTATIONS_SET);
 	}
 
 	public OWLDataPropertyDomainAxiom getOWLDataPropertyDomainAxiom(OWLDataPropertyExpression property,
@@ -1098,7 +1112,14 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 	public OWLDisjointObjectPropertiesAxiom getOWLDisjointObjectPropertiesAxiom(
 			Set<? extends OWLObjectPropertyExpression> properties, Set<? extends OWLAnnotation> annotations) {
-		return new OWLDisjointObjectPropertiesAxiomImpl(this, properties, annotations);
+		if (properties == null) throw new IllegalArgumentException("properties null");
+		if (annotations == null) throw new IllegalArgumentException("annotations null");
+		OWLDisjointObjectPropertiesAxiomHGDB axiom;
+		Set<HGHandle> propertiesHandles = getHandlesSetFor(properties);
+		axiom = new OWLDisjointObjectPropertiesAxiomHGDB(propertiesHandles, annotations);
+		axiom.setHyperGraph(graph);
+		return axiom;
+		//return new OWLDisjointObjectPropertiesAxiomImpl(this, properties, annotations);
 	}
 
 	/**
@@ -1122,6 +1143,27 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		}
 		assert (s.size() == sHandles.size());
 		return sHandles;
+	}
+
+	/**
+	 * Gets handles for each element from Hypergraph and
+	 * 
+	 * @param s
+	 *            a set of atoms implementing OWLObject and stored in HG.
+	 * @return a set of handles (no null, same size as s)
+	 */
+	private List<HGHandle> getHandlesListFor(List<? extends OWLObject> l) {
+		List<HGHandle> lHandles = new ArrayList<HGHandle>(5);
+		HGHandle h;
+		for (OWLObject o : l) {
+			h = graph.getHandle(o);
+			if (h == null) {
+				throw new IllegalArgumentException("l contained an object that we could not get a handle for: " + o);
+			} else {
+				lHandles.add(h);
+			}
+		}
+		return lHandles;
 	}
 
 	public OWLEquivalentClassesAxiom getOWLEquivalentClassesAxiom(Set<? extends OWLClassExpression> classExpressions,
@@ -1187,7 +1229,13 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 	public OWLEquivalentObjectPropertiesAxiom getOWLEquivalentObjectPropertiesAxiom(
 			OWLObjectPropertyExpression... properties) {
-		return getOWLEquivalentObjectPropertiesAxiom(CollectionFactory.createSet(properties));
+		if (properties == null) throw new IllegalArgumentException("property null");
+		OWLEquivalentObjectPropertiesAxiomHGDB axiom;
+		Set<HGHandle> propertiesHandles = getHandlesSetFor(CollectionFactory.createSet(properties));
+		axiom = new OWLEquivalentObjectPropertiesAxiomHGDB(propertiesHandles, EMPTY_ANNOTATIONS_SET);
+		axiom.setHyperGraph(graph);
+		return axiom;
+		//return getOWLEquivalentObjectPropertiesAxiom(CollectionFactory.createSet(properties));
 	}
 
 	public OWLEquivalentObjectPropertiesAxiom getOWLEquivalentObjectPropertiesAxiom(
@@ -1217,7 +1265,14 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 	public OWLFunctionalObjectPropertyAxiom getOWLFunctionalObjectPropertyAxiom(OWLObjectPropertyExpression property,
 			Set<? extends OWLAnnotation> annotations) {
-		return new OWLFunctionalObjectPropertyAxiomImpl(this, property, annotations);
+		if (property == null) throw new IllegalArgumentException("property null");
+		if (annotations == null) throw new IllegalArgumentException("annotations null");
+		OWLFunctionalObjectPropertyAxiomHGDB axiom;
+		HGHandle propertyHandle = graph.getHandle(property);
+		axiom = new OWLFunctionalObjectPropertyAxiomHGDB(propertyHandle, annotations);
+		axiom.setHyperGraph(graph);
+		return axiom;
+		//return new OWLFunctional ObjectPropertyAxiomImpl(this, property, annotations);
 	}
 
 	public OWLFunctionalObjectPropertyAxiom getOWLFunctionalObjectPropertyAxiom(OWLObjectPropertyExpression property) {
@@ -1309,12 +1364,26 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 	public OWLInverseFunctionalObjectPropertyAxiom getOWLInverseFunctionalObjectPropertyAxiom(
 			OWLObjectPropertyExpression property, Set<? extends OWLAnnotation> annotations) {
-		return new OWLInverseFunctionalObjectPropertyAxiomImpl(this, property, annotations);
+		if (property == null) throw new IllegalArgumentException("property null");
+		if (annotations == null) throw new IllegalArgumentException("annotations null");
+		OWLInverseFunctionalObjectPropertyAxiomHGDB axiom;
+		HGHandle propertyHandle = graph.getHandle(property);
+		axiom = new OWLInverseFunctionalObjectPropertyAxiomHGDB(propertyHandle, annotations);
+		axiom.setHyperGraph(graph);
+		return axiom;		
+		//return new OWLInverseFunctionalO bjectPropertyAxiomImpl(this, property, annotations);
 	}
 
 	public OWLIrreflexiveObjectPropertyAxiom getOWLIrreflexiveObjectPropertyAxiom(OWLObjectPropertyExpression property,
 			Set<? extends OWLAnnotation> annotations) {
-		return new OWLIrreflexiveObjectPropertyAxiomImpl(this, property, annotations);
+		if (property == null) throw new IllegalArgumentException("property null");
+		if (annotations == null) throw new IllegalArgumentException("annotations null");
+		OWLIrreflexiveObjectPropertyAxiomHGDB axiom;
+		HGHandle propertyHandle = graph.getHandle(property);
+		axiom = new OWLIrreflexiveObjectPropertyAxiomHGDB(propertyHandle, annotations);
+		axiom.setHyperGraph(graph);
+		return axiom;		
+		//return new OWLIrreflexiveObjectPropertyAxiomImpl(this, property, annotations);
 	}
 
 	public OWLReflexiveObjectPropertyAxiom getOWLReflexiveObjectPropertyAxiom(OWLObjectPropertyExpression property) {
@@ -1327,7 +1396,16 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 	public OWLObjectPropertyDomainAxiom getOWLObjectPropertyDomainAxiom(OWLObjectPropertyExpression property,
 			OWLClassExpression classExpression, Set<? extends OWLAnnotation> annotations) {
-		return new OWLObjectPropertyDomainAxiomImpl(this, property, classExpression, annotations);
+		if (property == null) throw new IllegalArgumentException("property null");
+		if (classExpression == null) throw new IllegalArgumentException("classExpression null");
+		if (annotations == null) throw new IllegalArgumentException("annotations null");
+		OWLObjectPropertyDomainAxiomHGDB axiom;
+		HGHandle propertyHandle = graph.getHandle(property);
+		HGHandle classExpressionHandle = graph.getHandle(classExpression);
+		axiom = new OWLObjectPropertyDomainAxiomHGDB(propertyHandle, classExpressionHandle, annotations);
+		axiom.setHyperGraph(graph);
+		return axiom;
+		//return new OWLObjectPropert yDomainAxiomImpl(this, property, classExpression, annotations);
 	}
 
 	public OWLObjectPropertyDomainAxiom getOWLObjectPropertyDomainAxiom(OWLObjectPropertyExpression property,
@@ -1337,7 +1415,18 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 	public OWLObjectPropertyRangeAxiom getOWLObjectPropertyRangeAxiom(OWLObjectPropertyExpression property,
 			OWLClassExpression range, Set<? extends OWLAnnotation> annotations) {
-		return new OWLObjectPropertyRangeAxiomImpl(this, property, range, annotations);
+		if (property == null) throw new IllegalArgumentException("property null");
+		if (range == null) throw new IllegalArgumentException("range null");
+		if (annotations == null) throw new IllegalArgumentException("annotations null");
+		// chain, superProperty and annotations are in Graph, if created
+		// by this Datafactory
+		OWLObjectPropertyRangeAxiomHGDB axiom;
+		HGHandle propertyHandle = graph.getHandle(property);
+		HGHandle rangeHandle = graph.getHandle(range);
+		axiom = new OWLObjectPropertyRangeAxiomHGDB(propertyHandle, rangeHandle, annotations);
+		axiom.setHyperGraph(graph);
+		return axiom;
+		//return new OWLObjectPropertyRang eAxiomImpl(this, property, range, annotations);
 	}
 
 	public OWLObjectPropertyRangeAxiom getOWLObjectPropertyRangeAxiom(OWLObjectPropertyExpression property,
@@ -1380,7 +1469,14 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 	public OWLReflexiveObjectPropertyAxiom getOWLReflexiveObjectPropertyAxiom(OWLObjectPropertyExpression property,
 			Set<? extends OWLAnnotation> annotations) {
-		return new OWLReflexiveObjectPropertyAxiomImpl(this, property, annotations);
+		if (property == null) throw new IllegalArgumentException("property null");
+		if (annotations == null) throw new IllegalArgumentException("annotations null");
+		OWLReflexiveObjectPropertyAxiomHGDB axiom;
+		HGHandle propertyHandle = graph.getHandle(property);
+		axiom = new OWLReflexiveObjectPropertyAxiomHGDB(propertyHandle, annotations);
+		axiom.setHyperGraph(graph);
+		return axiom;				
+		//return new OWLReflexiveObjectPropertyAxiomImpl(this, property, annotations);
 	}
 
 	public OWLSameIndividualAxiom getOWLSameIndividualAxiom(Set<? extends OWLIndividual> individuals,
@@ -1447,7 +1543,14 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 	public OWLSymmetricObjectPropertyAxiom getOWLSymmetricObjectPropertyAxiom(OWLObjectPropertyExpression property,
 			Set<? extends OWLAnnotation> annotations) {
-		return new OWLSymmetricObjectPropertyAxiomImpl(this, property, annotations);
+		if (property == null) throw new IllegalArgumentException("property null");
+		if (annotations == null) throw new IllegalArgumentException("annotations null");
+		OWLSymmetricObjectPropertyAxiomHGDB axiom;
+		HGHandle propertyHandle = graph.getHandle(property);
+		axiom = new OWLSymmetricObjectPropertyAxiomHGDB(propertyHandle, annotations);
+		axiom.setHyperGraph(graph);
+		return axiom;				
+		//return new OWLSymmetricObjectPropertyAxiomImpl(this, property, annotations);
 	}
 
 	public OWLSymmetricObjectPropertyAxiom getOWLSymmetricObjectPropertyAxiom(OWLObjectPropertyExpression property) {
@@ -1456,7 +1559,14 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 	public OWLTransitiveObjectPropertyAxiom getOWLTransitiveObjectPropertyAxiom(OWLObjectPropertyExpression property,
 			Set<? extends OWLAnnotation> annotations) {
-		return new OWLTransitiveObjectPropertyAxiomImpl(this, property, annotations);
+		if (property == null) throw new IllegalArgumentException("property null");
+		if (annotations == null) throw new IllegalArgumentException("annotations null");
+		OWLTransitiveObjectPropertyAxiomHGDB axiom;
+		HGHandle propertyHandle = graph.getHandle(property);
+		axiom = new OWLTransitiveObjectPropertyAxiomHGDB(propertyHandle, annotations);
+		axiom.setHyperGraph(graph);
+		return axiom;				
+		//return new OWLTransitiveObjectPropertyAxiomImpl(this, property, annotations);
 	}
 
 	public OWLTransitiveObjectPropertyAxiom getOWLTransitiveObjectPropertyAxiom(OWLObjectPropertyExpression property) {
@@ -1477,7 +1587,16 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	public OWLInverseObjectPropertiesAxiom getOWLInverseObjectPropertiesAxiom(
 			OWLObjectPropertyExpression forwardProperty, OWLObjectPropertyExpression inverseProperty,
 			Set<? extends OWLAnnotation> annotations) {
-		return new OWLInverseObjectPropertiesAxiomImpl(this, forwardProperty, inverseProperty, annotations);
+		if (forwardProperty == null) throw new IllegalArgumentException("forwardProperty null");
+		if (inverseProperty == null) throw new IllegalArgumentException("inverseProperty null");
+		if (annotations == null) throw new IllegalArgumentException("annotations null");
+		OWLInverseObjectPropertiesAxiomHGDB axiom;
+		HGHandle forwardPropertyHandle = graph.getHandle(forwardProperty);
+		HGHandle inversePropertyHandle = graph.getHandle(inverseProperty);
+		axiom = new OWLInverseObjectPropertiesAxiomHGDB(forwardPropertyHandle, inversePropertyHandle, annotations);
+		axiom.setHyperGraph(graph);
+		return axiom;
+		//return new OWLInverseObjectPropertiesAxiomImpl(this, forwardProperty, inverseProperty, annotations);
 	}
 
 	public OWLInverseObjectPropertiesAxiom getOWLInverseObjectPropertiesAxiom(
@@ -1487,7 +1606,18 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 	public OWLSubPropertyChainOfAxiom getOWLSubPropertyChainOfAxiom(List<? extends OWLObjectPropertyExpression> chain,
 			OWLObjectPropertyExpression superProperty, Set<? extends OWLAnnotation> annotations) {
-		return new OWLSubPropertyChainAxiomImpl(this, chain, superProperty, annotations);
+		if (chain == null) throw new IllegalArgumentException("chain null");
+		if (superProperty == null) throw new IllegalArgumentException("superProperty null");
+		if (annotations == null) throw new IllegalArgumentException("annotations null");
+		// chain, superProperty and annotations are in Graph, if created
+		// by this Datafactory
+		OWLSubPropertyChainAxiomHGDB axiom;
+		List<HGHandle> chainElementHandles = getHandlesListFor(chain);
+		HGHandle superPropertyHandle = graph.getHandle(superProperty);
+		axiom = new OWLSubPropertyChainAxiomHGDB(chainElementHandles, superPropertyHandle, annotations);
+		axiom.setHyperGraph(graph);
+		return axiom;
+		//return new OWLSubPropertyChainAxiomImpl(this, chain, superProperty, annotations);
 	}
 
 	public OWLSubPropertyChainOfAxiom getOWLSubPropertyChainOfAxiom(List<? extends OWLObjectPropertyExpression> chain,
@@ -1535,7 +1665,13 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 	public OWLEquivalentObjectPropertiesAxiom getOWLEquivalentObjectPropertiesAxiom(
 			Set<? extends OWLObjectPropertyExpression> properties, Set<? extends OWLAnnotation> annotations) {
-		return new OWLEquivalentObjectPropertiesAxiomImpl(this, properties, annotations);
+		if (properties == null) throw new IllegalArgumentException("property null");
+		OWLEquivalentObjectPropertiesAxiomHGDB axiom;
+		Set<HGHandle> propertiesHandles = getHandlesSetFor(properties);
+		axiom = new OWLEquivalentObjectPropertiesAxiomHGDB(propertiesHandles, annotations);
+		axiom.setHyperGraph(graph);
+		return axiom;				
+		//return new OWLEquivalentObjectPropertiesAxiomImpl(this, properties, annotations);
 	}
 
 	public OWLObjectPropertyAssertionAxiom getOWLObjectPropertyAssertionAxiom(OWLObjectPropertyExpression property,

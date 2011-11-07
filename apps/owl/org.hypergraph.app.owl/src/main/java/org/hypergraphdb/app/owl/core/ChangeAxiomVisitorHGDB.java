@@ -72,7 +72,6 @@ import org.semanticweb.owlapi.model.OWLInverseObjectPropertiesAxiom;
 import org.semanticweb.owlapi.model.OWLIrreflexiveObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLNegativeDataPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLNegativeObjectPropertyAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyDomainAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
@@ -153,24 +152,24 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
 
     public void visit(OWLAsymmetricObjectPropertyAxiom axiom) {
         if (addAxiom) {
-            oi.addToIndexedSet(axiom.getProperty(), oi.getAsymmetricPropertyAxiomsByProperty(), axiom);
+            //2011.11.07 oi.addToIndexedSet(axiom.getProperty(), oi.getAsymmetricPropertyAxiomsByProperty(), axiom);
             oi.addAxiomsByType(ASYMMETRIC_OBJECT_PROPERTY, axiom);
         }
         else {
             oi.removeAxiomsByType(ASYMMETRIC_OBJECT_PROPERTY, axiom);
-            oi.removeAxiomFromSet(axiom.getProperty(), oi.getAsymmetricPropertyAxiomsByProperty(), axiom, true);
+          //2011.11.07 oi.removeAxiomFromSet(axiom.getProperty(), oi.getAsymmetricPropertyAxiomsByProperty(), axiom, true);
         }
     }
 
 
     public void visit(OWLReflexiveObjectPropertyAxiom axiom) {
         if (addAxiom) {
-            oi.addToIndexedSet(axiom.getProperty(), oi.getReflexivePropertyAxiomsByProperty(), axiom);
+            //2011.11.07 oi.addToIndexedSet(axiom.getProperty(), oi.getReflexivePropertyAxiomsByProperty(), axiom);
             oi.addAxiomsByType(REFLEXIVE_OBJECT_PROPERTY, axiom);
         }
         else {
             oi.removeAxiomsByType(REFLEXIVE_OBJECT_PROPERTY, axiom);
-            oi.removeAxiomFromSet(axiom.getProperty(), oi.getReflexivePropertyAxiomsByProperty(), axiom, true);
+            //oi.removeAxiomFromSet(axiom.getProperty(), oi.getReflexivePropertyAxiomsByProperty(), axiom, true);
         }
     }
 
@@ -224,15 +223,15 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
     public void visit(OWLObjectPropertyDomainAxiom axiom) {
         if (addAxiom) {
             oi.addAxiomsByType(OBJECT_PROPERTY_DOMAIN, axiom);
-            if (axiom.getProperty() instanceof OWLObjectProperty) {
-                oi.addToIndexedSet(axiom.getProperty(), oi.getObjectPropertyDomainAxiomsByProperty(), axiom);
-            }
+//            if (axiom.getProperty() instanceof OWLObjectProperty) {
+//                oi.addToIndexedSet(axiom.getProperty(), oi.getObjectPropertyDomainAxiomsByProperty(), axiom);
+//            }
         }
         else {
             oi.removeAxiomsByType(OBJECT_PROPERTY_DOMAIN, axiom);
-            if (axiom.getProperty() instanceof OWLObjectProperty) {
-                oi.removeAxiomFromSet(axiom.getProperty(), oi.getObjectPropertyDomainAxiomsByProperty(), axiom, true);
-            }
+//            if (axiom.getProperty() instanceof OWLObjectProperty) {
+//                oi.removeAxiomFromSet(axiom.getProperty(), oi.getObjectPropertyDomainAxiomsByProperty(), axiom, true);
+//            }
         }
     }
 
@@ -240,15 +239,15 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
     public void visit(OWLEquivalentObjectPropertiesAxiom axiom) {
         if (addAxiom) {
             oi.addAxiomsByType(EQUIVALENT_OBJECT_PROPERTIES, axiom);
-            for (OWLObjectPropertyExpression prop : axiom.getProperties()) {
-                oi.addToIndexedSet(prop, oi.getEquivalentObjectPropertyAxiomsByProperty(), axiom);
-            }
+//            for (OWLObjectProper tyExpression prop : axiom.getProperties()) {
+//                oi.addToIndexedSet(prop, oi.getEquivalentObjectPropertyAxiomsByProperty(), axiom);
+//            }
         }
         else {
             oi.removeAxiomsByType(EQUIVALENT_OBJECT_PROPERTIES, axiom);
-            for (OWLObjectPropertyExpression prop : axiom.getProperties()) {
-                oi.removeAxiomFromSet(prop, oi.getEquivalentObjectPropertyAxiomsByProperty(), axiom, true);
-            }
+//            for (OWLObjectPropertyExpression prop : axiom.getProperties()) {
+//                oi.removeAxiomFromSet(prop, oi.getEquivalentObjectPropertyAxiomsByProperty(), axiom, true);
+//            }
         }
     }
 
@@ -256,13 +255,13 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
     public void visit(OWLInverseObjectPropertiesAxiom axiom) {
         if (addAxiom) {
             oi.addAxiomsByType(INVERSE_OBJECT_PROPERTIES, axiom);
-            oi.addToIndexedSet(axiom.getFirstProperty(), oi.getInversePropertyAxiomsByProperty(), axiom);
-            oi.addToIndexedSet(axiom.getSecondProperty(), oi.getInversePropertyAxiomsByProperty(), axiom);
+//            oi.addToIndexedSet(axiom.getFirstProperty(), oi.getInversePropertyAxiomsByProperty(), axiom);
+//            oi.addToIndexedSet(axiom.getSecondProperty(), oi.getInversePropertyAxiomsByProperty(), axiom);
         }
         else {
             oi.removeAxiomsByType(INVERSE_OBJECT_PROPERTIES, axiom);
-            oi.removeAxiomFromSet(axiom.getFirstProperty(), oi.getInversePropertyAxiomsByProperty(), axiom, false);
-            oi.removeAxiomFromSet(axiom.getSecondProperty(), oi.getInversePropertyAxiomsByProperty(), axiom, false);
+//            oi.removeAxiomFromSet(axiom.getFirstProperty(), oi.getInversePropertyAxiomsByProperty(), axiom, false);
+//            oi.removeAxiomFromSet(axiom.getSecondProperty(), oi.getInversePropertyAxiomsByProperty(), axiom, false);
         }
     }
 
@@ -330,11 +329,11 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
     public void visit(OWLObjectPropertyRangeAxiom axiom) {
         if (addAxiom) {
             oi.addAxiomsByType(OBJECT_PROPERTY_RANGE, axiom);
-            oi.addToIndexedSet(axiom.getProperty(), oi.getObjectPropertyRangeAxiomsByProperty(), axiom);
+            //oi.addToIndexedSet(axiom.getProperty(), oi.getObjectPropertyRangeAxiomsByProperty(), axiom);
         }
         else {
             oi.removeAxiomsByType(OBJECT_PROPERTY_RANGE, axiom);
-            oi.removeAxiomFromSet(axiom.getProperty(), oi.getObjectPropertyRangeAxiomsByProperty(), axiom, true);
+            //oi.removeAxiomFromSet(axiom.getProperty(), oi.getObjectPropertyRangeAxiomsByProperty(), axiom, true);
         }
     }
 
@@ -354,11 +353,11 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
     public void visit(OWLFunctionalObjectPropertyAxiom axiom) {
         if (addAxiom) {
             oi.addAxiomsByType(FUNCTIONAL_OBJECT_PROPERTY, axiom);
-            oi.addToIndexedSet(axiom.getProperty(), oi.getFunctionalObjectPropertyAxiomsByProperty(), axiom);
+            //2011.11.07 oi.addToIndexedSet(axiom.getProperty(), oi.getFunctionalObjectPropertyAxiomsByProperty(), axiom);
         }
         else {
             oi.removeAxiomsByType(FUNCTIONAL_OBJECT_PROPERTY, axiom);
-            oi.removeAxiomFromSet(axiom.getProperty(), oi.getFunctionalObjectPropertyAxiomsByProperty(), axiom, true);
+            //oi.removeAxiomFromSet(axiom.getProperty(), oi.getFunctionalObjectPropertyAxiomsByProperty(), axiom, true);
         }
     }
 
@@ -461,11 +460,11 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
     public void visit(OWLSymmetricObjectPropertyAxiom axiom) {
         if (addAxiom) {
             oi.addAxiomsByType(SYMMETRIC_OBJECT_PROPERTY, axiom);
-            oi.addToIndexedSet(axiom.getProperty(), oi.getSymmetricPropertyAxiomsByProperty(), axiom);
+            //oi.addToIndexedSet(axiom.getProperty(), oi.getSymmetricPropertyAxiomsByProperty(), axiom);
         }
         else {
             oi.removeAxiomsByType(SYMMETRIC_OBJECT_PROPERTY, axiom);
-            oi.removeAxiomFromSet(axiom.getProperty(), oi.getSymmetricPropertyAxiomsByProperty(), axiom, true);
+            //oi.removeAxiomFromSet(axiom.getProperty(), oi.getSymmetricPropertyAxiomsByProperty(), axiom, true);
         }
     }
 
@@ -575,11 +574,11 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
     public void visit(OWLTransitiveObjectPropertyAxiom axiom) {
         if (addAxiom) {
             oi.addAxiomsByType(TRANSITIVE_OBJECT_PROPERTY, axiom);
-            oi.addToIndexedSet(axiom.getProperty(), oi.getTransitivePropertyAxiomsByProperty(), axiom);
+            //oi.addToIndexedSet(axiom.getProperty(), oi.getTransitivePropertyAxiomsByProperty(), axiom);
         }
         else {
             oi.removeAxiomsByType(TRANSITIVE_OBJECT_PROPERTY, axiom);
-            oi.removeAxiomFromSet(axiom.getProperty(), oi.getTransitivePropertyAxiomsByProperty(), axiom, true);
+            //oi.removeAxiomFromSet(axiom.getProperty(), oi.getTransitivePropertyAxiomsByProperty(), axiom, true);
         }
     }
 
@@ -587,11 +586,11 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
     public void visit(OWLIrreflexiveObjectPropertyAxiom axiom) {
         if (addAxiom) {
             oi.addAxiomsByType(IRREFLEXIVE_OBJECT_PROPERTY, axiom);
-            oi.addToIndexedSet(axiom.getProperty(), oi.getIrreflexivePropertyAxiomsByProperty(), axiom);
+            //oi.addToIndexedSet(axiom.getProperty(), oi.getIrreflexivePropertyAxiomsByProperty(), axiom);
         }
         else {
             oi.removeAxiomsByType(IRREFLEXIVE_OBJECT_PROPERTY, axiom);
-            oi.removeAxiomFromSet(axiom.getProperty(), oi.getIrreflexivePropertyAxiomsByProperty(), axiom, true);
+            //oi.removeAxiomFromSet(axiom.getProperty(), oi.getIrreflexivePropertyAxiomsByProperty(), axiom, true);
         }
     }
 
@@ -613,11 +612,11 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
     public void visit(OWLInverseFunctionalObjectPropertyAxiom axiom) {
         if (addAxiom) {
             oi.addAxiomsByType(INVERSE_FUNCTIONAL_OBJECT_PROPERTY, axiom);
-            oi.addToIndexedSet(axiom.getProperty(), oi.getInverseFunctionalPropertyAxiomsByProperty(), axiom);
+            //oi.addToIndexedSet(axiom.getProperty(), oi.getInverseFunctionalPropertyAxiomsByProperty(), axiom);
         }
         else {
             oi.removeAxiomsByType(INVERSE_FUNCTIONAL_OBJECT_PROPERTY, axiom);
-            oi.removeAxiomFromSet(axiom.getProperty(), oi.getInverseFunctionalPropertyAxiomsByProperty(), axiom, true);
+            //oi.removeAxiomFromSet(axiom.getProperty(), oi.getInverseFunctionalPropertyAxiomsByProperty(), axiom, true);
         }
     }
 
@@ -641,11 +640,11 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
     public void visit(OWLSubPropertyChainOfAxiom axiom) {
         if (addAxiom) {
             oi.addAxiomsByType(SUB_PROPERTY_CHAIN_OF, axiom);
-            oi.addPropertyChainSubPropertyAxioms(axiom);
+            //oi.addPropertyChainSubPropertyAxioms(axiom);
         }
         else {
             oi.removeAxiomsByType(SUB_PROPERTY_CHAIN_OF, axiom);
-            oi.removePropertyChainSubPropertyAxioms(axiom);
+            //oi.removePropertyChainSubPropertyAxioms(axiom);
         }
     }
 
