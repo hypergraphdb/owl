@@ -25,7 +25,7 @@ public abstract class OWLNaryPropertyAxiomHGDB <P extends OWLPropertyExpression<
 	private List<HGHandle> propertiesHandles;
 	//private Set<P> properties;
 
-	public OWLNaryPropertyAxiomHGDB(Set<HGHandle> properties, Collection<? extends OWLAnnotation> annotations) {
+	public OWLNaryPropertyAxiomHGDB(Set<? extends HGHandle> properties, Collection<? extends OWLAnnotation> annotations) {
     	//Set<? extends P> properties, Collection<? extends OWLAnnotation> annotations
         super(annotations);
         propertiesHandles = new ArrayList<HGHandle>(properties);
