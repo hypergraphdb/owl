@@ -19,18 +19,15 @@ public abstract class OWLPropertyDomainAxiomHGDB<P extends OWLPropertyExpression
 	private HGHandle domainHandle;
     //private OWLClassExpression domain;
 
-
     public OWLPropertyDomainAxiomHGDB(HGHandle property, HGHandle domain, Set<? extends OWLAnnotation> annotations) {
     	//P property, OWLClassExpression domain, Set<? extends OWLAnnotation> annotations
     	super(property, annotations);
         this.domainHandle = domain;
     }
 
-
     public OWLClassExpression getDomain() {
         return getHyperGraph().get(domainHandle);
     }
-
 
     @Override
 	public boolean equals(Object obj) {
@@ -43,7 +40,6 @@ public abstract class OWLPropertyDomainAxiomHGDB<P extends OWLPropertyExpression
         return false;
     }
 
-
     @Override
 	protected int compareObjectOfSameType(OWLObject object) {
         OWLPropertyDomainAxiom<?> other = (OWLPropertyDomainAxiom<?>) object;
@@ -53,7 +49,8 @@ public abstract class OWLPropertyDomainAxiomHGDB<P extends OWLPropertyExpression
         }
         return getDomain().compareTo(other.getDomain());
     }
-	/* (non-Javadoc)
+
+    /* (non-Javadoc)
 	 * @see org.hypergraphdb.HGLink#getArity()
 	 */
 	@Override
