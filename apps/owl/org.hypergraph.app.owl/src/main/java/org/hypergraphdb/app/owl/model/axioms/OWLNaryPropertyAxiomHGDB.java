@@ -31,6 +31,12 @@ public abstract class OWLNaryPropertyAxiomHGDB <P extends OWLPropertyExpression<
         propertiesHandles = new ArrayList<HGHandle>(properties);
     }
 
+	public OWLNaryPropertyAxiomHGDB(List<HGHandle> properties, Collection<? extends OWLAnnotation> annotations) {
+    	//Set<? extends P> properties, Collection<? extends OWLAnnotation> annotations
+        super(annotations);
+        propertiesHandles = new ArrayList<HGHandle>(properties);
+    }
+
     @SuppressWarnings("unchecked")
 	public Set<P> getProperties() {
     	HyperGraph g = getHyperGraph();

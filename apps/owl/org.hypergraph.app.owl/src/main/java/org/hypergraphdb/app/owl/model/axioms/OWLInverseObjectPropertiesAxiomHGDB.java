@@ -2,9 +2,9 @@ package org.hypergraphdb.app.owl.model.axioms;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
 
 import org.hypergraphdb.HGHandle;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -20,17 +20,26 @@ import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
 
 /**
  * OWLInverseObjectPropertiesAxiomHGDB.
+ * 
+ * 2011.11.07 we cannot use a set for the properties, because OWL-API test testInverseSelf implies that 
+ * both properties might be equal and therefore we use a list.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 4, 2011
  */
 public class OWLInverseObjectPropertiesAxiomHGDB extends OWLNaryPropertyAxiomHGDB<OWLObjectPropertyExpression> implements OWLInverseObjectPropertiesAxiom {
     //private OWLObjectPropertyExpression first;
-
     //private OWLObjectPropertyExpression second;
+
+    public OWLInverseObjectPropertiesAxiomHGDB(HGHandle...args) {
+    	this(args[0], args[1], Collections.<OWLAnnotation>emptySet());
+    	if (args.length != 2) throw new IllegalArgumentException("args.length was not 2 but " + args.length);
+    }
 
     public OWLInverseObjectPropertiesAxiomHGDB(HGHandle first, HGHandle second, Collection<? extends OWLAnnotation> annotations) {
     	//OWLObjectPropertyExpression first, OWLObjectPropertyExpression second, Collection<? extends OWLAnnotation> annotations
-    	super(new TreeSet<HGHandle>(Arrays.asList(first, second)), annotations);
+    	super(Arrays.asList(first, second), annotations);
+        //super(new TreeSet<HGHandle>(Arrays.asList(first, second)), annotations);
         //super(new TreeSet<OWLObjectPropertyExpression>(Arrays.asList(first, second)), annotations);
         //this.first = first;
         //this.second = second;
