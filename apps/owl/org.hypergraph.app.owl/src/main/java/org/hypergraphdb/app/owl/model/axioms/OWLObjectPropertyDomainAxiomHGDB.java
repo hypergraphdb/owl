@@ -24,7 +24,7 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 public class OWLObjectPropertyDomainAxiomHGDB  extends OWLPropertyDomainAxiomHGDB<OWLObjectPropertyExpression> implements OWLObjectPropertyDomainAxiom {
     
     public OWLObjectPropertyDomainAxiomHGDB(HGHandle...args) {    
-        //TODO assert arg[0] type OWLObjectPropertyExpression, args[1] type OWLClassExpression
+        //TODO assert args[0] type OWLObjectPropertyExpression, args[1] type OWLClassExpression
     	super(args[0], args[1], Collections.<OWLAnnotation>emptySet());   
     	if (args.length != 2) throw new IllegalArgumentException("args.length must be 2. Was " + args.length);
     }
@@ -78,7 +78,5 @@ public class OWLObjectPropertyDomainAxiomHGDB  extends OWLPropertyDomainAxiomHGD
         OWLDataFactory df = getOWLDataFactory();
         OWLClassExpression sub = df.getOWLObjectSomeValuesFrom(getProperty(), df.getOWLThing());
         return df.getOWLSubClassOfAxiom(sub, getDomain());
-    }
-
-	
+    }	
 }
