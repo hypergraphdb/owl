@@ -11,46 +11,45 @@ import org.semanticweb.owlapi.model.OWLAxiomVisitor;
 import org.semanticweb.owlapi.model.OWLAxiomVisitorEx;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDataPropertyDomainAxiom;
 import org.semanticweb.owlapi.model.OWLDataPropertyExpression;
-import org.semanticweb.owlapi.model.OWLDataPropertyRangeAxiom;
-import org.semanticweb.owlapi.model.OWLDataRange;
 import org.semanticweb.owlapi.model.OWLObjectVisitor;
 import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
 /**
- * OWLDataPropertyRangeAxiomHGDB.
+ * OWLDataPropertyDomainAxiomHGDB.
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 7, 2011
  */
-public class OWLDataPropertyRangeAxiomHGDB extends OWLPropertyRangeAxiomHGDB<OWLDataPropertyExpression, OWLDataRange> implements OWLDataPropertyRangeAxiom {
-
-    public OWLDataPropertyRangeAxiomHGDB(HGHandle...args) {    
-        //TODO assert arg[0] type OWLDataPropertyExpression, args[1] type OWLDataRange
+public class OWLDataPropertyDomainAxiomHGDB extends OWLPropertyDomainAxiomHGDB<OWLDataPropertyExpression> implements OWLDataPropertyDomainAxiom {
+    
+	public OWLDataPropertyDomainAxiomHGDB(HGHandle...args) {    
+        //TODO assert arg[0] type OWLDataPropertyExpression, args[1] type OWLClassExpression
     	super(args[0], args[1], Collections.<OWLAnnotation>emptySet());   
     	if (args.length != 2) throw new IllegalArgumentException("args.length must be 2. Was " + args.length);
     }
 
-	public OWLDataPropertyRangeAxiomHGDB(HGHandle property, HGHandle range, Set<? extends OWLAnnotation> annotations) {
-		//OWLDataPropertyExpression property, OWLDataRange range, Set<? extends OWLAnnotation> annotations
-        super(property, range, annotations);
+    public OWLDataPropertyDomainAxiomHGDB(HGHandle property, HGHandle domain, Set<? extends OWLAnnotation> annotations) {
+    	//OWLDataPropertyExpression property, OWLClassExpression domain, Set<? extends OWLAnnotation> annotations    	
+        super(property, domain, annotations);
     }
 
-    public OWLDataPropertyRangeAxiom getAxiomWithoutAnnotations() {
+    public OWLDataPropertyDomainAxiom getAxiomWithoutAnnotations() {
         if (!isAnnotated()) {
             return this;
         }
-        return getOWLDataFactory().getOWLDataPropertyRangeAxiom(getProperty(), getRange());
+        return getOWLDataFactory().getOWLDataPropertyDomainAxiom(getProperty(), getDomain());
     }
 
     public OWLAxiom getAnnotatedAxiom(Set<OWLAnnotation> annotations) {
-        return getOWLDataFactory().getOWLDataPropertyRangeAxiom(getProperty(), getRange(), mergeAnnos(annotations));
+        return getOWLDataFactory().getOWLDataPropertyDomainAxiom(getProperty(), getDomain(), mergeAnnos(annotations));
     }
 
     @Override
 	public boolean equals(Object obj) {
         if (super.equals(obj)) {
-            return obj instanceof OWLDataPropertyRangeAxiom;
+            return obj instanceof OWLDataPropertyDomainAxiom;
         }
         return false;
     }
@@ -72,12 +71,12 @@ public class OWLDataPropertyRangeAxiomHGDB extends OWLPropertyRangeAxiomHGDB<OWL
     }
 
     public AxiomType<?> getAxiomType() {
-        return AxiomType.DATA_PROPERTY_RANGE;
+        return AxiomType.DATA_PROPERTY_DOMAIN;
     }
 
     public OWLSubClassOfAxiom asOWLSubClassOfAxiom() {
         OWLDataFactory df = getOWLDataFactory();
-        OWLClassExpression sup = df.getOWLDataAllValuesFrom(getProperty(), getRange());
-        return df.getOWLSubClassOfAxiom(df.getOWLThing(), sup);
+        OWLClassExpression sub = df.getOWLDataSomeValuesFrom(getProperty(), df.getTopDatatype());
+        return df.getOWLSubClassOfAxiom(sub, getDomain());
     }
 }
