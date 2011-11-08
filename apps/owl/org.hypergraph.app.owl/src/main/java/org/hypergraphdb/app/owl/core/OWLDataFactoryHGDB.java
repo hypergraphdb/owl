@@ -24,6 +24,7 @@ import org.hypergraphdb.app.owl.model.OWLObjectInverseOfHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLAsymmetricObjectPropertyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDataPropertyDomainAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDataPropertyRangeAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLDatatypeDefinitionAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDeclarationAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDisjointClassesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDisjointDataPropertiesAxiomHGDB;
@@ -70,7 +71,7 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import org.semanticweb.owlapi.vocab.XSDVocabulary;
-//26 to go
+//25 to go
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationAssertionAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationPropertyDomainAxiomImpl;
@@ -78,7 +79,6 @@ import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationPropertyRangeAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLClassAssertionImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternals;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataPropertyAssertionAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLDatatypeDefinitionAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDifferentIndividualsAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLHasKeyAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
@@ -2011,7 +2011,7 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		// hilpold not visible from our package return new SWRLVariableImpl(this, var);
 		// 2011.11.03 quickfix until we get to SWRL:
 		return new SWRLVariableImpl(this, var) {
-			/** CONSTRUCTOR IS PROTECTED, WE NEED TO HAVE THIS EMPTY ANONYMOUS CLAS **/
+			/** CONSTRUCTOR IS PROTECTED, WE NEED TO HAVE THIS EMPTY ANONYMOUS CLASS **/
 			};
 	}
 	
@@ -2053,7 +2053,22 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 	public OWLDatatypeDefinitionAxiom getOWLDatatypeDefinitionAxiom(OWLDatatype datatype, OWLDataRange dataRange,
 			Set<? extends OWLAnnotation> annotations) {
-		return new OWLDatatypeDefinitionAxiomImpl(this, datatype, dataRange, annotations);
+		if (datatype == null)
+			throw new IllegalArgumentException("datatype null");
+		if (dataRange == null)
+			throw new IllegalArgumentException("dataRange null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
+		OWLDatatypeDefinitionAxiomHGDB axiom;
+		HGHandle datatypeHandle = getOrFindOWLEntityHandleInGraph(datatype);
+		HGHandle dataRangeHandle = graph.getHandle(dataRange);
+		if (datatypeHandle == null || dataRangeHandle == null) {
+			throw new IllegalStateException("No Handle for datatypeHandle or dataRangeHandle");
+		}
+		axiom = new OWLDatatypeDefinitionAxiomHGDB(datatypeHandle, dataRangeHandle, annotations);
+		axiom.setHyperGraph(graph);
+		return axiom;
+		//return new OWLDatatypeDefinitionAxiomImpl(this, datatype, dataRange, annotations);
 	}
 
 	//
