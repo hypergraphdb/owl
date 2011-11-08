@@ -1,15 +1,8 @@
 package org.hypergraphdb.app.owl.core;
 
 import static org.semanticweb.owlapi.model.AxiomType.ANNOTATION_ASSERTION;
-import static org.semanticweb.owlapi.model.AxiomType.CLASS_ASSERTION;
-import static org.semanticweb.owlapi.model.AxiomType.DATA_PROPERTY_ASSERTION;
-import static org.semanticweb.owlapi.model.AxiomType.DIFFERENT_INDIVIDUALS;
 import static org.semanticweb.owlapi.model.AxiomType.HAS_KEY;
 import static org.semanticweb.owlapi.model.AxiomType.IRREFLEXIVE_OBJECT_PROPERTY;
-import static org.semanticweb.owlapi.model.AxiomType.NEGATIVE_DATA_PROPERTY_ASSERTION;
-import static org.semanticweb.owlapi.model.AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION;
-import static org.semanticweb.owlapi.model.AxiomType.OBJECT_PROPERTY_ASSERTION;
-import static org.semanticweb.owlapi.model.AxiomType.SAME_INDIVIDUAL;
 import static org.semanticweb.owlapi.model.AxiomType.TRANSITIVE_OBJECT_PROPERTY;
 import static org.semanticweb.owlapi.util.CollectionFactory.createSet;
 
@@ -28,8 +21,11 @@ import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyImpl;
 import org.hypergraphdb.app.owl.HGDBOntologyInternals;
 import org.hypergraphdb.app.owl.model.axioms.OWLAsymmetricObjectPropertyAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLClassAssertionHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLDataPropertyAssertionAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDataPropertyDomainAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDataPropertyRangeAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLDifferentIndividualsAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDisjointClassesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDisjointDataPropertiesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDisjointObjectPropertiesAxiomHGDB;
@@ -42,9 +38,13 @@ import org.hypergraphdb.app.owl.model.axioms.OWLFunctionalObjectPropertyAxiomHGD
 import org.hypergraphdb.app.owl.model.axioms.OWLInverseFunctionalObjectPropertyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLInverseObjectPropertiesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLIrreflexiveObjectPropertyAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLNegativeDataPropertyAssertionAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLNegativeObjectPropertyAssertionAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLObjectPropertyAssertionAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLObjectPropertyDomainAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLObjectPropertyRangeAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLReflexiveObjectPropertyAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLSameIndividualAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubDataPropertyOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubObjectPropertyOfAxiomHGDB;
@@ -166,14 +166,14 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	// protected volatile Map<OWLDataPropertyExpression,
 	// Set<OWLDataPropertyRangeAxiom>> dataPropertyRangeAxiomsByProperty;
 	//2011.11.07 protected volatile Map<OWLDataPropertyExpression, Set<OWLFunctionalDataPropertyAxiom>> functionalDataPropertyAxiomsByProperty;
-	protected volatile Map<OWLIndividual, Set<OWLClassAssertionAxiom>> classAssertionAxiomsByIndividual;
-	protected volatile Map<OWLClassExpression, Set<OWLClassAssertionAxiom>> classAssertionAxiomsByClass;
-	protected volatile Map<OWLIndividual, Set<OWLObjectPropertyAssertionAxiom>> objectPropertyAssertionsByIndividual;
-	protected volatile Map<OWLIndividual, Set<OWLDataPropertyAssertionAxiom>> dataPropertyAssertionsByIndividual;
-	protected volatile Map<OWLIndividual, Set<OWLNegativeObjectPropertyAssertionAxiom>> negativeObjectPropertyAssertionAxiomsByIndividual;
-	protected volatile Map<OWLIndividual, Set<OWLNegativeDataPropertyAssertionAxiom>> negativeDataPropertyAssertionAxiomsByIndividual;
-	protected volatile Map<OWLIndividual, Set<OWLDifferentIndividualsAxiom>> differentIndividualsAxiomsByIndividual;
-	protected volatile Map<OWLIndividual, Set<OWLSameIndividualAxiom>> sameIndividualsAxiomsByIndividual;
+	//2011.11.08 protected volatile Map<OWLIndividual, Set<OWLClassAssertionAxiom>> classAssertionAxiomsByIndividual;
+	//2011.11.08 protected volatile Map<OWLClassExpression, Set<OWLClassAssertionAxiom>> classAssertionAxiomsByClass;
+	//2011.11.08 protected volatile Map<OWLIndividual, Set<OWLObjectPropertyAssertionAxiom>> objectPropertyAssertionsByIndividual;
+	//2011.11.08 protected volatile Map<OWLIndividual, Set<OWLDataPropertyAssertionAxiom>> dataPropertyAssertionsByIndividual;
+	//2011.11.08 protected volatile Map<OWLIndssertionAxiom>> negativeObjectPropertyAssertionAxiomsByIndividual;
+	//2011.11.08 protected volatile Map<OWLIndividual, Set<OWLNegativeDataPropertyAssertionAxiom>> negativeDataPropertyAssertionAxiomsByIndividual;
+	//2011.11.08 protected volatile Map<OWLIndividual, Set<OWLDifferentIndividualsAxiom>> differentIndividualsAxiomsByIndividual;
+	//2011.11.08 protected volatile Map<OWLIndividual, Set<OWLSameIndividualAxiom>> sameIndividualsAxiomsByIndividual;
 	protected volatile Map<OWLAnnotationSubject, Set<OWLAnnotationAssertionAxiom>> annotationAssertionAxiomsBySubject;
 
 	protected abstract <T extends OWLAxiom> Set<T> getAxiomsInternal(AxiomType<T> axiomType);
@@ -473,80 +473,80 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 //				}
 //			}
 //		},
-		ClassAssertionAxiomsByIndividual {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-				if (impl.classAssertionAxiomsByIndividual == null) {
-					impl.classAssertionAxiomsByIndividual = impl.fill(impl.classAssertionAxiomsByIndividual,
-							CLASS_ASSERTION, individualsubnamed);
-				}
-			}
-		},
-		ClassAssertionAxiomsByClass {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-				if (impl.classAssertionAxiomsByClass == null) {
-					impl.classAssertionAxiomsByClass = impl.fill(impl.classAssertionAxiomsByClass, CLASS_ASSERTION,
-							classexpressions);
-				}
-			}
-		},
-		ObjectPropertyAssertionsByIndividual {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-				if (impl.objectPropertyAssertionsByIndividual == null) {
-					impl.objectPropertyAssertionsByIndividual = impl.fill(impl.objectPropertyAssertionsByIndividual,
-							OBJECT_PROPERTY_ASSERTION, individualsubnamed);
-				}
-			}
-		},
-		DataPropertyAssertionsByIndividual {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-				if (impl.dataPropertyAssertionsByIndividual == null) {
-					impl.dataPropertyAssertionsByIndividual = impl.fill(impl.dataPropertyAssertionsByIndividual,
-							DATA_PROPERTY_ASSERTION, individualsubnamed);
-				}
-			}
-		},
-		NegativeObjectPropertyAssertionAxiomsByIndividual {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-				if (impl.negativeObjectPropertyAssertionAxiomsByIndividual == null) {
-					impl.negativeObjectPropertyAssertionAxiomsByIndividual = impl.fill(
-							impl.negativeObjectPropertyAssertionAxiomsByIndividual, NEGATIVE_OBJECT_PROPERTY_ASSERTION,
-							individualsubnamed);
-				}
-			}
-		},
-		NegativeDataPropertyAssertionAxiomsByIndividual {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-				if (impl.negativeDataPropertyAssertionAxiomsByIndividual == null) {
-					impl.negativeDataPropertyAssertionAxiomsByIndividual = impl.fill(
-							impl.negativeDataPropertyAssertionAxiomsByIndividual, NEGATIVE_DATA_PROPERTY_ASSERTION,
-							individualsubnamed);
-				}
-			}
-		},
-		DifferentIndividualsAxiomsByIndividual {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-				if (impl.differentIndividualsAxiomsByIndividual == null) {
-					impl.differentIndividualsAxiomsByIndividual = impl.fill(
-							impl.differentIndividualsAxiomsByIndividual, DIFFERENT_INDIVIDUALS, icollections);
-				}
-			}
-		},
-		SameIndividualsAxiomsByIndividual {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-				if (impl.sameIndividualsAxiomsByIndividual == null) {
-					impl.sameIndividualsAxiomsByIndividual = impl.fill(impl.sameIndividualsAxiomsByIndividual,
-							SAME_INDIVIDUAL, icollections);
-				}
-			}
-		},
+//		ClassAssertionAxiomsByIndividual {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//				if (impl.classAssertionAxiomsByIndividual == null) {
+//					impl.classAssertionAxiomsByIndividual = impl.fill(impl.classAssertionAxiomsByIndividual,
+//							CLASS_ASSERTION, individualsubnamed);
+//				}
+//			}
+//		},
+//		ClassAssertionAxiomsByClass {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//				if (impl.classAssertionAxiomsByClass == null) {
+//					impl.classAssertionAxiomsByClass = impl.fill(impl.classAssertionAxiomsByClass, CLASS_ASSERTION,
+//							classexpressions);
+//				}
+//			}
+//		},
+//		ObjectPropertyAssertionsByIndividual {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//				if (impl.objectPropertyAssertionsByIndividual == null) {
+//					impl.objectPropertyAssertionsByIndividual = impl.fill(impl.objectPropertyAssertionsByIndividual,
+//							OBJECT_PROPERTY_ASSERTION, individualsubnamed);
+//				}
+//			}
+//		},
+//		DataPropertyAssertionsByIndividual {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//				if (impl.dataPropertyAssertionsByIndividual == null) {
+//					impl.dataPropertyAssertionsByIndividual = impl.fill(impl.dataPropertyAssertionsByIndividual,
+//							DATA_PROPERTY_ASSERTION, individualsubnamed);
+//				}
+//			}
+//		},
+//		NegativeObjectPropertyAssertionAxiomsByIndividual {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//				if (impl.negativeObjectPropertyAssertionAxiomsByIndividual == null) {
+//					impl.negativeObjectPropertyAssertionAxiomsByIndividual = impl.fill(
+//							impl.negativeObjectPropertyAssertionAxiomsByIndividual, NEGATIVE_OBJECT_PROPERTY_ASSERTION,
+//							individualsubnamed);
+//				}
+//			}
+//		},
+//		NegativeDataPropertyAssertionAxiomsByIndividual {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//				if (impl.negativeDataPropertyAssertionAxiomsByIndividual == null) {
+//					impl.negativeDataPropertyAssertionAxiomsByIndividual = impl.fill(
+//							impl.negativeDataPropertyAssertionAxiomsByIndividual, NEGATIVE_DATA_PROPERTY_ASSERTION,
+//							individualsubnamed);
+//				}
+//			}
+//		},
+//		DifferentIndividualsAxiomsByIndividual {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//				if (impl.differentIndividualsAxiomsByIndividual == null) {
+//					impl.differentIndividualsAxiomsByIndividual = impl.fill(
+//							impl.differentIndividualsAxiomsByIndividual, DIFFERENT_INDIVIDUALS, icollections);
+//				}
+//			}
+//		},
+//		SameIndividualsAxiomsByIndividual {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//				if (impl.sameIndividualsAxiomsByIndividual == null) {
+//					impl.sameIndividualsAxiomsByIndividual = impl.fill(impl.sameIndividualsAxiomsByIndividual,
+//							SAME_INDIVIDUAL, icollections);
+//				}
+//			}
+//		},
 		AnnotationAssertionAxiomsBySubject {
 			@Override
 			public void initMap(AbstractInternalsHGDB impl) {
@@ -1158,46 +1158,93 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 //		return getReturnSet(getAxioms(property, getDisjointDataPropertyAxiomsByProperty()));
 	}
 
-	// //
 	public Set<OWLClassAssertionAxiom> getClassAssertionAxioms(OWLIndividual individual) {
-		Maps.ClassAssertionAxiomsByIndividual.initMap(this);
-		return getReturnSet(getAxioms(individual, getClassAssertionAxiomsByIndividual()));
+		HGHandle individualHandle = graph.getHandle(individual);
+		List<OWLClassAssertionAxiom> l = ontology.getAll(hg.and(
+				hg.type(OWLClassAssertionHGDB.class)
+				// individualHandle index 0, classExpressionHandle index 1 
+				, hg.orderedLink(individualHandle, hg.anyHandle())));
+		return getReturnSet(l);
+//		Maps.ClassAssertionAxiomsByIndividual.initMap(this);
+//		return getReturnSet(getAxioms(individual, getClassAssertionAxiomsByIndividual()));
 	}
 
 	public Set<OWLClassAssertionAxiom> getClassAssertionAxioms(OWLClassExpression type) {
-		Maps.ClassAssertionAxiomsByClass.initMap(this);
-		return getReturnSet(getAxioms(type, getClassAssertionAxiomsByClass()));
+		HGHandle typeHandle = graph.getHandle(type);
+		List<OWLClassAssertionAxiom> l = ontology.getAll(hg.and(
+				hg.type(OWLClassAssertionHGDB.class)
+				// individualHandle index 0, classExpressionHandle index 1 
+				, hg.orderedLink(hg.anyHandle(), typeHandle)));
+		return getReturnSet(l);
+//		Maps.ClassAssertionAxiomsByClass.initMap(this);
+//		return getReturnSet(getAxioms(type, getClassAssertionAxiomsByClass()));
 	}
 
 	public Set<OWLDataPropertyAssertionAxiom> getDataPropertyAssertionAxioms(OWLIndividual individual) {
-		Maps.DataPropertyAssertionsByIndividual.initMap(this);
-		return getReturnSet(getAxioms(individual, getDataPropertyAssertionsByIndividual()));
+		HGHandle individualHandle = graph.getHandle(individual);
+		List<OWLDataPropertyAssertionAxiom> l = ontology.getAll(hg.and(
+				hg.type(OWLDataPropertyAssertionAxiomHGDB.class)
+				//subjectHandle 0, propertyHandle 1, objectHandle 2
+				, hg.orderedLink(individualHandle, hg.anyHandle(), hg.anyHandle())));
+		return getReturnSet(l);						
+//		Maps.DataPropertyAssertionsByIndividual.initMap(this);
+//		return getReturnSet(getAxioms(individual, getDataPropertyAssertionsByIndividual()));
 	}
 
 	public Set<OWLObjectPropertyAssertionAxiom> getObjectPropertyAssertionAxioms(OWLIndividual individual) {
-		Maps.ObjectPropertyAssertionsByIndividual.initMap(this);
-		return getReturnSet(getAxioms(individual, getObjectPropertyAssertionsByIndividual()));
+		HGHandle individualHandle = graph.getHandle(individual);
+		List<OWLObjectPropertyAssertionAxiom> l = ontology.getAll(hg.and(
+				hg.type(OWLObjectPropertyAssertionAxiomHGDB.class)
+				//subjectHandle 0, propertyHandle 1, objectHandle 2
+				, hg.orderedLink(individualHandle, hg.anyHandle(), hg.anyHandle())));
+		return getReturnSet(l);				
+//		Maps.ObjectPropertyAssertionsByIndividual.initMap(this);
+//		return getReturnSet(getAxioms(individual, getObjectPropertyAssertionsByIndividual()));
 	}
 
 	public Set<OWLNegativeObjectPropertyAssertionAxiom> getNegativeObjectPropertyAssertionAxioms(
 			OWLIndividual individual) {
-		Maps.NegativeObjectPropertyAssertionAxiomsByIndividual.initMap(this);
-		return getReturnSet(getAxioms(individual, getNegativeObjectPropertyAssertionAxiomsByIndividual()));
+		HGHandle individualHandle = graph.getHandle(individual);
+		List<OWLNegativeObjectPropertyAssertionAxiom> l = ontology.getAll(hg.and(
+				hg.type(OWLNegativeObjectPropertyAssertionAxiomHGDB.class)
+				//subjectHandle 0, propertyHandle 1, objectHandle 2
+				, hg.orderedLink(individualHandle, hg.anyHandle(), hg.anyHandle())));
+		return getReturnSet(l);				
+//		Maps.NegativeObjectPropertyAssertionAxiomsByIndividual.initMap(this);
+//		return getReturnSet(getAxioms(individual, getNegativeObjectPropertyAssertionAxiomsByIndividual()));
 	}
 
 	public Set<OWLNegativeDataPropertyAssertionAxiom> getNegativeDataPropertyAssertionAxioms(OWLIndividual individual) {
-		Maps.NegativeDataPropertyAssertionAxiomsByIndividual.initMap(this);
-		return getReturnSet(getAxioms(individual, getNegativeDataPropertyAssertionAxiomsByIndividual()));
+		HGHandle individualHandle = graph.getHandle(individual);
+		List<OWLNegativeDataPropertyAssertionAxiom> l = ontology.getAll(hg.and(
+				hg.type(OWLNegativeDataPropertyAssertionAxiomHGDB.class)
+				//subjectHandle 0, propertyHandle 1, objectHandle 2
+				, hg.orderedLink(individualHandle, hg.anyHandle(), hg.anyHandle())));
+		return getReturnSet(l);								
+//		Maps.NegativeDataPropertyAssertionAxiomsByIndividual.initMap(this);
+//		return getReturnSet(getAxioms(individual, getNegativeDataPropertyAssertionAxiomsByIndividual()));
 	}
 
 	public Set<OWLSameIndividualAxiom> getSameIndividualAxioms(OWLIndividual individual) {
-		Maps.SameIndividualsAxiomsByIndividual.initMap(this);
-		return getReturnSet(getAxioms(individual, getSameIndividualsAxiomsByIndividual()));
+		HGHandle individualHandle = graph.getHandle(individual);
+		List<OWLSameIndividualAxiom> l = ontology.getAll(hg.and(
+				hg.type(OWLSameIndividualAxiomHGDB.class)
+				// List<HGHandle> individualsHandles 
+				, hg.link(individualHandle)));
+		return getReturnSet(l);		
+//		Maps.SameIndividualsAxiomsByIndividual.initMap(this);
+//		return getReturnSet(getAxioms(individual, getSameIndividualsAxiomsByIndividual()));
 	}
 
 	public Set<OWLDifferentIndividualsAxiom> getDifferentIndividualAxioms(OWLIndividual individual) {
-		Maps.DifferentIndividualsAxiomsByIndividual.initMap(this);
-		return getReturnSet(getAxioms(individual, getDifferentIndividualsAxiomsByIndividual()));
+		HGHandle individualHandle = graph.getHandle(individual);
+		List<OWLDifferentIndividualsAxiom> l = ontology.getAll(hg.and(
+				hg.type(OWLDifferentIndividualsAxiomHGDB.class)
+				// List<HGHandle> individualsHandles 
+				, hg.link(individualHandle)));
+		return getReturnSet(l);
+//		Maps.DifferentIndividualsAxiomsByIndividual.initMap(this);
+//		return getReturnSet(getAxioms(individual, getDifferentIndividualsAxiomsByIndividual()));
 	}
 
 	public Set<OWLAnnotationAssertionAxiom> getAnnotationAssertionAxiomsBySubject(OWLAnnotationSubject subject) {
@@ -1375,37 +1422,37 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 //		return this.functionalDataPropertyAxiomsByProperty;
 //	}
 
-	public Map<OWLIndividual, Set<OWLClassAssertionAxiom>> getClassAssertionAxiomsByIndividual() {
-		return this.classAssertionAxiomsByIndividual;
-	}
+//	public Map<OWLIndividual, Set<OWLClassAssertionAxiom>> getClassAssertionAxiomsByIndividual() {
+//		return this.classAssertionAxiomsByIndividual;
+//	}
 
-	public Map<OWLClassExpression, Set<OWLClassAssertionAxiom>> getClassAssertionAxiomsByClass() {
-		return this.classAssertionAxiomsByClass;
-	}
+//	public Map<OWLClassExpression, Set<OWLClassAssertionAxiom>> getClassAssertionAxiomsByClass() {
+//		return this.classAssertionAxiomsByClass;
+//	}
 
-	public Map<OWLIndividual, Set<OWLObjectPropertyAssertionAxiom>> getObjectPropertyAssertionsByIndividual() {
-		return this.objectPropertyAssertionsByIndividual;
-	}
+//	public Map<OWLIndividual, Set<OWLObjectPropertyAssertionAxiom>> getObjectPropertyAssertionsByIndividual() {
+//		return this.objectPropertyAssertionsByIndividual;
+//	}
 
-	public Map<OWLIndividual, Set<OWLDataPropertyAssertionAxiom>> getDataPropertyAssertionsByIndividual() {
-		return this.dataPropertyAssertionsByIndividual;
-	}
+//	public Map<OWLIndividual, Set<OWLDataPropertyAssertionAxiom>> getDataPropertyAssertionsByIndividual() {
+//		return this.dataPropertyAssertionsByIndividual;
+//	}
 
-	public Map<OWLIndividual, Set<OWLNegativeObjectPropertyAssertionAxiom>> getNegativeObjectPropertyAssertionAxiomsByIndividual() {
-		return this.negativeObjectPropertyAssertionAxiomsByIndividual;
-	}
+//	public Map<OWLIndividual, Set<OWLNegativeObjectPropertyAssertionAxiom>> getNegativeObjectPropertyAssertionAxiomsByIndividual() {
+//		return this.negativeObjectPropertyAssertionAxiomsByIndividual;
+//	}
 
-	public Map<OWLIndividual, Set<OWLNegativeDataPropertyAssertionAxiom>> getNegativeDataPropertyAssertionAxiomsByIndividual() {
-		return this.negativeDataPropertyAssertionAxiomsByIndividual;
-	}
+//	public Map<OWLIndividual, Set<OWLNegativeDataPropertyAssertionAxiom>> getNegativeDataPropertyAssertionAxiomsByIndividual() {
+//		return this.negativeDataPropertyAssertionAxiomsByIndividual;
+//	}
 
-	public Map<OWLIndividual, Set<OWLDifferentIndividualsAxiom>> getDifferentIndividualsAxiomsByIndividual() {
-		return this.differentIndividualsAxiomsByIndividual;
-	}
+//	public Map<OWLIndividual, Set<OWLDifferentIndividualsAxiom>> getDifferentIndividualsAxiomsByIndividual() {
+//		return this.differentIndividualsAxiomsByIndividual;
+//	}
 
-	public Map<OWLIndividual, Set<OWLSameIndividualAxiom>> getSameIndividualsAxiomsByIndividual() {
-		return this.sameIndividualsAxiomsByIndividual;
-	}
+//	public Map<OWLIndividual, Set<OWLSameIndividualAxiom>> getSameIndividualsAxiomsByIndividual() {
+//		return this.sameIndividualsAxiomsByIndividual;
+//	}
 
 	public Map<OWLAnnotationSubject, Set<OWLAnnotationAssertionAxiom>> getAnnotationAssertionAxiomsBySubject() {
 		return this.annotationAssertionAxiomsBySubject;
