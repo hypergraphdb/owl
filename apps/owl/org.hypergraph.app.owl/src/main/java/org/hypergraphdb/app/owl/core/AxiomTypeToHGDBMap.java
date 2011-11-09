@@ -27,6 +27,7 @@ import org.hypergraphdb.app.owl.model.axioms.OWLEquivalentDataPropertiesAxiomHGD
 import org.hypergraphdb.app.owl.model.axioms.OWLEquivalentObjectPropertiesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLFunctionalDataPropertyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLFunctionalObjectPropertyAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLHasKeyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLInverseFunctionalObjectPropertyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLInverseObjectPropertiesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLIrreflexiveObjectPropertyAxiomHGDB;
@@ -148,8 +149,9 @@ public class AxiomTypeToHGDBMap {
         addToMap(AxiomType.SUB_ANNOTATION_PROPERTY_OF, OWLSubAnnotationPropertyOfAxiomHGDB.class);
         //37 addToMap(AxiomType.ANNOTATION_PROPERTY_DOMAIN, OWLAxiomHGDB.class);
         //38 addToMap(AxiomType.ANNOTATION_PROPERTY_RANGE, OWLAxiomHGDB.class);
-        //39 addToMap(AxiomType.HAS_KEY, OWLAxiomHGDB.class);
-		System.out.println("AxiomTypeMapToHGDB Initialized: " + m.size() + " mappings defined.");
+        addToMap(AxiomType.HAS_KEY, OWLHasKeyAxiomHGDB.class);
+        //39 Axioms total 
+        System.out.println("AxiomTypeMapToHGDB Initialized: " + m.size() + " mappings defined.");
 	}	
 	
 	/**

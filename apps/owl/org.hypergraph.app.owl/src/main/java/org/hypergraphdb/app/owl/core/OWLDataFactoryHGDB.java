@@ -38,6 +38,7 @@ import org.hypergraphdb.app.owl.model.axioms.OWLEquivalentDataPropertiesAxiomHGD
 import org.hypergraphdb.app.owl.model.axioms.OWLEquivalentObjectPropertiesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLFunctionalDataPropertyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLFunctionalObjectPropertyAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLHasKeyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLInverseFunctionalObjectPropertyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLInverseObjectPropertiesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLIrreflexiveObjectPropertyAxiomHGDB;
@@ -78,13 +79,12 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import org.semanticweb.owlapi.vocab.XSDVocabulary;
-//18 to go
+//17 to go
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationAssertionAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationPropertyDomainAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationPropertyRangeAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternals;
-import uk.ac.manchester.cs.owl.owlapi.OWLHasKeyAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 import uk.ac.manchester.cs.owl.owlapi.SWRLBuiltInAtomImpl;
 import uk.ac.manchester.cs.owl.owlapi.SWRLClassAtomImpl;
@@ -1726,9 +1726,17 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		return getOWLSubPropertyChainOfAxiom(chain, superProperty, EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLHasKeyAxiom getOWLHasKeyAxiom(OWLClassExpression ce,
-			Set<? extends OWLPropertyExpression<?, ?>> properties, Set<? extends OWLAnnotation> annotations) {
-		return new OWLHasKeyAxiomImpl(this, ce, properties, annotations);
+	public OWLHasKeyAxiom getOWLHasKeyAxiom(OWLClassExpression ce, Set<? extends OWLPropertyExpression<?, ?>> properties, Set<? extends OWLAnnotation> annotations) {
+		if (ce == null) throw new IllegalArgumentException("owlClass null");
+		if (properties == null)	throw new IllegalArgumentException("properties null");
+		if (annotations == null) throw new IllegalArgumentException("annotations null");
+		OWLHasKeyAxiomHGDB axiom;
+		HGHandle owlClassHandle = graph.getHandle(ce);
+		Set<HGHandle> propertiesHandles = getHandlesSetFor(properties);
+		axiom = new OWLHasKeyAxiomHGDB(owlClassHandle, propertiesHandles, annotations);
+		axiom.setHyperGraph(graph);
+		return axiom;		
+		//return new OWLHasKeyAxiomImpl(this, ce, properties, annotations);
 	}
 
 	public OWLHasKeyAxiom getOWLHasKeyAxiom(OWLClassExpression ce, Set<? extends OWLPropertyExpression<?, ?>> properties) {
@@ -1741,12 +1749,9 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 	public OWLDisjointUnionAxiom getOWLDisjointUnionAxiom(OWLClass owlClass,
 			Set<? extends OWLClassExpression> classExpressions, Set<? extends OWLAnnotation> annotations) {
-		if (owlClass == null)
-			throw new IllegalArgumentException("owlClass null");
-		if (classExpressions == null)
-			throw new IllegalArgumentException("classExpressions null");
-		if (annotations == null)
-			throw new IllegalArgumentException("annotations null");
+		if (owlClass == null) throw new IllegalArgumentException("owlClass null");
+		if (classExpressions == null) throw new IllegalArgumentException("classExpressions null");
+		if (annotations == null) throw new IllegalArgumentException("annotations null");
 		// owlClass, classExpressions and annotations are in Graph, if created
 		// by this Datafactory
 		OWLDisjointUnionAxiomHGDB axiom;

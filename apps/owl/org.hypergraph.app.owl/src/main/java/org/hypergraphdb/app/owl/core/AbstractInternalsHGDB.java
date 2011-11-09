@@ -1,7 +1,6 @@
 package org.hypergraphdb.app.owl.core;
 
 import static org.semanticweb.owlapi.model.AxiomType.ANNOTATION_ASSERTION;
-import static org.semanticweb.owlapi.model.AxiomType.HAS_KEY;
 import static org.semanticweb.owlapi.model.AxiomType.IRREFLEXIVE_OBJECT_PROPERTY;
 import static org.semanticweb.owlapi.model.AxiomType.TRANSITIVE_OBJECT_PROPERTY;
 import static org.semanticweb.owlapi.util.CollectionFactory.createSet;
@@ -35,6 +34,7 @@ import org.hypergraphdb.app.owl.model.axioms.OWLEquivalentDataPropertiesAxiomHGD
 import org.hypergraphdb.app.owl.model.axioms.OWLEquivalentObjectPropertiesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLFunctionalDataPropertyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLFunctionalObjectPropertyAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLHasKeyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLInverseFunctionalObjectPropertyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLInverseObjectPropertiesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLIrreflexiveObjectPropertyAxiomHGDB;
@@ -121,7 +121,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	// disjointClassesAxiomsByClass;
 	// 2011.10.13 protected volatile Map<OWLClass, Set<OWLDisjointUnionAxiom>>
 	// disjointUnionAxiomsByClass;
-	protected volatile Map<OWLClass, Set<OWLHasKeyAxiom>> hasKeyAxiomsByClass;
+	// 2011.11.09 protected volatile Map<OWLClass, Set<OWLHasKeyAxiom>> hasKeyAxiomsByClass;
 	// 2011.10.07 protected volatile Map<OWLObjectPropertyExpression,
 	// Set<OWLSubObjectPropertyOfAxiom>> objectSubPropertyAxiomsByLHS;
 	// 2011.10.07 protected volatile Map<OWLObjectPropertyExpression,
@@ -260,14 +260,14 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 		// }
 		// }
 		// },
-		HasKeyAxiomsByClass {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-				if (impl.hasKeyAxiomsByClass == null) {
-					impl.hasKeyAxiomsByClass = impl.fill(impl.hasKeyAxiomsByClass, HAS_KEY, classsupernamed);
-				}
-			}
-		},
+		//		HasKeyAxiomsByClass {
+		//			@Override
+		//			public void initMap(AbstractInternalsHGDB impl) {
+		//				if (impl.hasKeyAxiomsByClass == null) {
+		//					impl.hasKeyAxiomsByClass = impl.fill(impl.hasKeyAxiomsByClass, HAS_KEY, classsupernamed);
+		//				}
+		//			}
+		//		},
 		// ObjectSubPropertyAxiomsByLHS {
 		// @Override
 		// public void initMap(AbstractInternalsHGDB impl) {
@@ -297,15 +297,15 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 		// }
 		// }
 		// },
-//		DisjointObjectPropertyAxiomsByProperty {
-//			@Override
-//			public void initMap(AbstractInternalsHGDB impl) {
-//				if (impl.disjointObjectPropertyAxiomsByProperty == null) {
-//					impl.disjointObjectPropertyAxiomsByProperty = impl.fill(
-//							impl.disjointObjectPropertyAxiomsByProperty, DISJOINT_OBJECT_PROPERTIES, opcollections);
-//				}
-//			}
-//		},
+		//		DisjointObjectPropertyAxiomsByProperty {
+		//			@Override
+		//			public void initMap(AbstractInternalsHGDB impl) {
+		//				if (impl.disjointObjectPropertyAxiomsByProperty == null) {
+		//					impl.disjointObjectPropertyAxiomsByProperty = impl.fill(
+		//							impl.disjointObjectPropertyAxiomsByProperty, DISJOINT_OBJECT_PROPERTIES, opcollections);
+		//				}
+		//			}
+		//		},
 		// ObjectPropertyDomainAxiomsByProperty {
 		// @Override
 		// public void initMap(AbstractInternalsHGDB impl) {
@@ -464,89 +464,89 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 		// }
 		// }
 		// },
-//		FunctionalDataPropertyAxiomsByProperty {
-//			@Override
-//			public void initMap(AbstractInternalsHGDB impl) {
-//				if (impl.functionalDataPropertyAxiomsByProperty == null) {
-//					impl.functionalDataPropertyAxiomsByProperty = impl.fill(
-//							impl.functionalDataPropertyAxiomsByProperty, FUNCTIONAL_DATA_PROPERTY, dpsubnamed);
-//				}
-//			}
-//		},
-//		ClassAssertionAxiomsByIndividual {
-//			@Override
-//			public void initMap(AbstractInternalsHGDB impl) {
-//				if (impl.classAssertionAxiomsByIndividual == null) {
-//					impl.classAssertionAxiomsByIndividual = impl.fill(impl.classAssertionAxiomsByIndividual,
-//							CLASS_ASSERTION, individualsubnamed);
-//				}
-//			}
-//		},
-//		ClassAssertionAxiomsByClass {
-//			@Override
-//			public void initMap(AbstractInternalsHGDB impl) {
-//				if (impl.classAssertionAxiomsByClass == null) {
-//					impl.classAssertionAxiomsByClass = impl.fill(impl.classAssertionAxiomsByClass, CLASS_ASSERTION,
-//							classexpressions);
-//				}
-//			}
-//		},
-//		ObjectPropertyAssertionsByIndividual {
-//			@Override
-//			public void initMap(AbstractInternalsHGDB impl) {
-//				if (impl.objectPropertyAssertionsByIndividual == null) {
-//					impl.objectPropertyAssertionsByIndividual = impl.fill(impl.objectPropertyAssertionsByIndividual,
-//							OBJECT_PROPERTY_ASSERTION, individualsubnamed);
-//				}
-//			}
-//		},
-//		DataPropertyAssertionsByIndividual {
-//			@Override
-//			public void initMap(AbstractInternalsHGDB impl) {
-//				if (impl.dataPropertyAssertionsByIndividual == null) {
-//					impl.dataPropertyAssertionsByIndividual = impl.fill(impl.dataPropertyAssertionsByIndividual,
-//							DATA_PROPERTY_ASSERTION, individualsubnamed);
-//				}
-//			}
-//		},
-//		NegativeObjectPropertyAssertionAxiomsByIndividual {
-//			@Override
-//			public void initMap(AbstractInternalsHGDB impl) {
-//				if (impl.negativeObjectPropertyAssertionAxiomsByIndividual == null) {
-//					impl.negativeObjectPropertyAssertionAxiomsByIndividual = impl.fill(
-//							impl.negativeObjectPropertyAssertionAxiomsByIndividual, NEGATIVE_OBJECT_PROPERTY_ASSERTION,
-//							individualsubnamed);
-//				}
-//			}
-//		},
-//		NegativeDataPropertyAssertionAxiomsByIndividual {
-//			@Override
-//			public void initMap(AbstractInternalsHGDB impl) {
-//				if (impl.negativeDataPropertyAssertionAxiomsByIndividual == null) {
-//					impl.negativeDataPropertyAssertionAxiomsByIndividual = impl.fill(
-//							impl.negativeDataPropertyAssertionAxiomsByIndividual, NEGATIVE_DATA_PROPERTY_ASSERTION,
-//							individualsubnamed);
-//				}
-//			}
-//		},
-//		DifferentIndividualsAxiomsByIndividual {
-//			@Override
-//			public void initMap(AbstractInternalsHGDB impl) {
-//				if (impl.differentIndividualsAxiomsByIndividual == null) {
-//					impl.differentIndividualsAxiomsByIndividual = impl.fill(
-//							impl.differentIndividualsAxiomsByIndividual, DIFFERENT_INDIVIDUALS, icollections);
-//				}
-//			}
-//		},
-//		SameIndividualsAxiomsByIndividual {
-//			@Override
-//			public void initMap(AbstractInternalsHGDB impl) {
-//				if (impl.sameIndividualsAxiomsByIndividual == null) {
-//					impl.sameIndividualsAxiomsByIndividual = impl.fill(impl.sameIndividualsAxiomsByIndividual,
-//							SAME_INDIVIDUAL, icollections);
-//				}
-//			}
-//		},
+		//		FunctionalDataPropertyAxiomsByProperty {
+		//			@Override
+		//			public void initMap(AbstractInternalsHGDB impl) {
+		//				if (impl.functionalDataPropertyAxiomsByProperty == null) {
+		//					impl.functionalDataPropertyAxiomsByProperty = impl.fill(
+		//							impl.functionalDataPropertyAxiomsByProperty, FUNCTIONAL_DATA_PROPERTY, dpsubnamed);
+		//				}
+		//			}
+		//		},
+		//		ClassAssertionAxiomsByIndividual {
+		//			@Override
+		//			public void initMap(AbstractInternalsHGDB impl) {
+		//				if (impl.classAssertionAxiomsByIndividual == null) {
+		//					impl.classAssertionAxiomsByIndividual = impl.fill(impl.classAssertionAxiomsByIndividual,
+		//							CLASS_ASSERTION, individualsubnamed);
+		//				}
+		//			}
+		//		},
+		//		ClassAssertionAxiomsByClass {
+		//			@Override
+		//			public void initMap(AbstractInternalsHGDB impl) {
+		//				if (impl.classAssertionAxiomsByClass == null) {
+		//					impl.classAssertionAxiomsByClass = impl.fill(impl.classAssertionAxiomsByClass, CLASS_ASSERTION,
+		//							classexpressions);
+		//				}
+		//			}
+		//		},
+		//		ObjectPropertyAssertionsByIndividual {
+		//			@Override
+		//			public void initMap(AbstractInternalsHGDB impl) {
+		//				if (impl.objectPropertyAssertionsByIndividual == null) {
+		//					impl.objectPropertyAssertionsByIndividual = impl.fill(impl.objectPropertyAssertionsByIndividual,
+		//							OBJECT_PROPERTY_ASSERTION, individualsubnamed);
+		//				}
+		//			}
+		//		},
+		//		DataPropertyAssertionsByIndividual {
+		//			@Override
+		//			public void initMap(AbstractInternalsHGDB impl) {
+		//				if (impl.dataPropertyAssertionsByIndividual == null) {
+		//					impl.dataPropertyAssertionsByIndividual = impl.fill(impl.dataPropertyAssertionsByIndividual,
+		//							DATA_PROPERTY_ASSERTION, individualsubnamed);
+		//				}
+		//			}
+		//		},
+		//		NegativeObjectPropertyAssertionAxiomsByIndividual {
+		//			@Override
+		//			public void initMap(AbstractInternalsHGDB impl) {
+		//				if (impl.negativeObjectPropertyAssertionAxiomsByIndividual == null) {
+		//					impl.negativeObjectPropertyAssertionAxiomsByIndividual = impl.fill(
+		//							impl.negativeObjectPropertyAssertionAxiomsByIndividual, NEGATIVE_OBJECT_PROPERTY_ASSERTION,
+		//							individualsubnamed);
+		//				}
+		//			}
+		//		},
+		//		NegativeDataPropertyAssertionAxiomsByIndividual {
+		//			@Override
+		//			public void initMap(AbstractInternalsHGDB impl) {
+		//				if (impl.negativeDataPropertyAssertionAxiomsByIndividual == null) {
+		//					impl.negativeDataPropertyAssertionAxiomsByIndividual = impl.fill(
+		//							impl.negativeDataPropertyAssertionAxiomsByIndividual, NEGATIVE_DATA_PROPERTY_ASSERTION,
+		//							individualsubnamed);
+		//				}
+		//			}
+		//		},
+		//		DifferentIndividualsAxiomsByIndividual {
+		//			@Override
+		//			public void initMap(AbstractInternalsHGDB impl) {
+		//				if (impl.differentIndividualsAxiomsByIndividual == null) {
+		//					impl.differentIndividualsAxiomsByIndividual = impl.fill(
+		//							impl.differentIndividualsAxiomsByIndividual, DIFFERENT_INDIVIDUALS, icollections);
+		//				}
+		//			}
+		//		},
+		//		SameIndividualsAxiomsByIndividual {
+		//			@Override
+		//			public void initMap(AbstractInternalsHGDB impl) {
+		//				if (impl.sameIndividualsAxiomsByIndividual == null) {
+		//					impl.sameIndividualsAxiomsByIndividual = impl.fill(impl.sameIndividualsAxiomsByIndividual,
+		//							SAME_INDIVIDUAL, icollections);
+		//				}
+		//			}
+		//		},
 		AnnotationAssertionAxiomsBySubject {
 			@Override
 			public void initMap(AbstractInternalsHGDB impl) {
@@ -905,8 +905,12 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	}
 
 	public Set<OWLHasKeyAxiom> getHasKeyAxioms(OWLClass cls) {
-		Maps.HasKeyAxiomsByClass.initMap(this);
-		return getReturnSet(getAxioms(cls, getHasKeyAxiomsByClass()));
+		HGHandle clsHandle = graph.getHandle(cls);
+		List<OWLHasKeyAxiom> l = ontology.getAll(hg.and(hg.type(OWLHasKeyAxiomHGDB.class),
+				hg.link(clsHandle)));
+		return getReturnSet(l);
+//		Maps.HasKeyAxiomsByClass.initMap(this);
+//		return getReturnSet(getAxioms(cls, getHasKeyAxiomsByClass()));
 	}
 
 	// Object properties
@@ -1309,9 +1313,9 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	// return this.disjointUnionAxiomsByClass;
 	// }
 
-	public Map<OWLClass, Set<OWLHasKeyAxiom>> getHasKeyAxiomsByClass() {
-		return this.hasKeyAxiomsByClass;
-	}
+	//	public Map<OWLClass, Set<OWLHasKeyAxiom>> getHasKeyAxiomsByClass() {
+	//		return this.hasKeyAxiomsByClass;
+	//	}
 
 	// public Map<OWLObjectPropertyExpression, Set<OWLSubObjectPropertyOfAxiom>>
 	// getObjectSubPropertyAxiomsByLHS() {
@@ -1329,9 +1333,9 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	// return this.equivalentObjectPropertyAxiomsByProperty;
 	// }
 
-//	public Map<OWLObjectPropertyExpression, Set<OWLDisjointObjectPropertiesAxiom>> getDisjointObjectPropertyAxiomsByProperty() {
-//		return this.disjointObjectPropertyAxiomsByProperty;
-//	}
+	//	public Map<OWLObjectPropertyExpression, Set<OWLDisjointObjectPropertiesAxiom>> getDisjointObjectPropertyAxiomsByProperty() {
+	//		return this.disjointObjectPropertyAxiomsByProperty;
+	//	}
 
 	// public Map<OWLObjectPropertyExpression,
 	// Set<OWLObjectPropertyDomainAxiom>>

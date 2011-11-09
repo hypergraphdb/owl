@@ -247,7 +247,7 @@ public interface HGDBOntologyInternals {
 	// 2011.10.13 Map<OWLClass, Set<OWLDisjointUnionAxiom>>
 	// getDisjointUnionAxiomsByClass();
 
-	Map<OWLClass, Set<OWLHasKeyAxiom>> getHasKeyAxiomsByClass();
+	// 2011.11.09 Map<OWLClass, Set<OWLHasKeyAxiom>> getHasKeyAxiomsByClass();
 
 	// 2011.10.07 Map<OWLObjectPropertyExpression,
 	// Set<OWLSubObjectPropertyOfAxiom>> getObjectSubPropertyAxiomsByLHS();
