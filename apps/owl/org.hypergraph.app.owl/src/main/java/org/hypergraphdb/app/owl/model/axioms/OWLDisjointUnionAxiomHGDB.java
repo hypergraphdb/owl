@@ -79,7 +79,6 @@ public class OWLDisjointUnionAxiomHGDB extends OWLClassAxiomHGDB implements OWLD
         return getHyperGraph().get(owlClassHandle);
     }
 
-
     @Override
 	public boolean equals(Object obj) {
         if (super.equals(obj)) {
@@ -91,11 +90,9 @@ public class OWLDisjointUnionAxiomHGDB extends OWLClassAxiomHGDB implements OWLD
         return false;
     }
 
-
     public void accept(OWLAxiomVisitor visitor) {
         visitor.visit(this);
     }
-
 
     public void accept(OWLObjectVisitor visitor) {
         visitor.visit(this);
@@ -104,7 +101,6 @@ public class OWLDisjointUnionAxiomHGDB extends OWLClassAxiomHGDB implements OWLD
     public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
         return visitor.visit(this);
     }
-
 
     public <O> O accept(OWLObjectVisitorEx<O> visitor) {
         return visitor.visit(this);
@@ -131,7 +127,8 @@ public class OWLDisjointUnionAxiomHGDB extends OWLClassAxiomHGDB implements OWLD
         }
         return compareSets(getClassExpressions(), other.getClassExpressions());
     }
-	/* (non-Javadoc)
+
+    /* (non-Javadoc)
 	 * @see org.hypergraphdb.HGLink#getArity()
 	 */
 	@Override
@@ -182,5 +179,4 @@ public class OWLDisjointUnionAxiomHGDB extends OWLClassAxiomHGDB implements OWLD
 			classExpressionsHandles.set(i - 1, null);
 		}
 	}
-
 }
