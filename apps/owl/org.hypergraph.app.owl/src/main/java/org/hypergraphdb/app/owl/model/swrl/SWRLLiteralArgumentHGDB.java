@@ -1,7 +1,7 @@
 package org.hypergraphdb.app.owl.model.swrl;
 
 import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
-import org.hypergraphdb.app.owl.model.OWLLiteralHGDB;
+import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectVisitor;
 import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
@@ -17,19 +17,19 @@ import org.semanticweb.owlapi.model.SWRLObjectVisitorEx;
  */
 public class SWRLLiteralArgumentHGDB extends OWLObjectHGDB implements SWRLLiteralArgument
 {
-	private OWLLiteralHGDB literal;
+	private OWLLiteral literal;
 
 	public SWRLLiteralArgumentHGDB() {}; 
-	public SWRLLiteralArgumentHGDB(OWLLiteralHGDB literal) { 
+	public SWRLLiteralArgumentHGDB(OWLLiteral literal) { 
 		this.literal = literal; 
 	}
 	
-	public void setLiteral(OWLLiteralHGDB literal)
+	public void setLiteral(OWLLiteral literal)
 	{
 		this.literal = literal;
 	}
 
-	public OWLLiteralHGDB getLiteral()
+	public OWLLiteral getLiteral()
 	{
 		return literal;
 	}

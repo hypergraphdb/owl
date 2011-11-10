@@ -1,5 +1,6 @@
 package org.hypergraphdb.app.owl.model.swrl;
 
+import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.semanticweb.owlapi.model.OWLObjectVisitor;
 import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
 import org.semanticweb.owlapi.model.SWRLDifferentIndividualsAtom;
@@ -7,8 +8,6 @@ import org.semanticweb.owlapi.model.SWRLIArgument;
 import org.semanticweb.owlapi.model.SWRLObjectVisitor;
 import org.semanticweb.owlapi.model.SWRLObjectVisitorEx;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
-
-import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 
 /**
  * SWRLDifferentIndividualsAtomHGDB.
@@ -24,7 +23,7 @@ public class SWRLDifferentIndividualsAtomHGDB extends SWRLBinaryAtomHGDB<SWRLIAr
 	
 	public SWRLDifferentIndividualsAtomHGDB(SWRLIArgument arg0, SWRLIArgument arg1)
 	{
-		super(OWLDataFactoryImpl.getInstance()
+		super(OWLDataFactoryHGDB.getInstance()
 				.getOWLObjectProperty(OWLRDFVocabulary.OWL_DIFFERENT_FROM
 						.getIRI()), arg0, arg1);
 	}

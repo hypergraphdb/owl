@@ -39,8 +39,7 @@ public class SWRLBuiltInAtomHGDB extends SWRLAtomHGDB implements SWRLBuiltInAtom
 	
 	public SWRLBuiltInAtomHGDB(IRI predicate, List<SWRLDArgument> args)
 	{
-		this();
-		this.predicate = predicate;
+		this(predicate);
 		this.args.addAll(args);
 	}
 

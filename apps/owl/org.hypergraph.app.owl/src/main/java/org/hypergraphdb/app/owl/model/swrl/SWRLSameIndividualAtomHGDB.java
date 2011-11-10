@@ -1,6 +1,6 @@
 package org.hypergraphdb.app.owl.model.swrl;
 
-import org.hypergraphdb.app.owl.model.OWLObjectPropertyHGDB;
+import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.semanticweb.owlapi.model.OWLObjectVisitor;
 import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
 import org.semanticweb.owlapi.model.SWRLIArgument;
@@ -25,7 +25,8 @@ public class SWRLSameIndividualAtomHGDB extends
 	
 	public SWRLSameIndividualAtomHGDB(SWRLIArgument arg0, SWRLIArgument arg1)
 	{
-		super(new OWLObjectPropertyHGDB(OWLRDFVocabulary.OWL_SAME_AS.getIRI()),
+		super(OWLDataFactoryHGDB.getInstance()
+				.getOWLObjectProperty(OWLRDFVocabulary.OWL_SAME_AS.getIRI()),
 				arg0, arg1);
 	}
 

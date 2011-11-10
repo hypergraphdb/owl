@@ -20,8 +20,8 @@ import org.semanticweb.owlapi.util.SWRLVariableExtractor;
  * @created Nov 9, 2011
  */
 public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLink {
-	private HGHandle body = null;
-	private HGHandle head = null;
+	private HGHandle bodyHandle = null;
+	private HGHandle headHandle = null;
 
 	private Set<SWRLVariable> variables;
 	private Boolean containsAnonymousClassExpressions = null;
@@ -30,30 +30,37 @@ public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLin
 	public SWRLRuleHGDB(HGHandle... args) {
 		super(Collections.<OWLAnnotation> emptySet());
 		assert args.length == 2 : new IllegalArgumentException("Expecting 2 targets to SWRLRuleHGDB");
-		body = args[0];
-		head = args[1];
+		bodyHandle = args[0];
+		headHandle = args[1];
 	}
 
+	public SWRLRuleHGDB(HGHandle body, HGHandle head, Set<? extends OWLAnnotation> annotations) {
+		//SWRLBody body, SWRLHead head.
+		super(annotations);
+		this.bodyHandle = body;
+		this.headHandle = head;				
+	}
+	
 	public SWRLHead getHeadAtom() {
-		return getHyperGraph().get(head);
+		return getHyperGraph().get(headHandle);
 	}
 
 	public SWRLBody getBodyAtom() {
-		return getHyperGraph().get(body);
+		return getHyperGraph().get(bodyHandle);
 	}
 
 	public void addConclusion(HGHandle conclusion) {
 		SWRLHead H = getHeadAtom();
 		ArrayList<HGHandle> L = new ArrayList<HGHandle>(H.asCollection());
 		L.add(conclusion);
-		getHyperGraph().replace(head, new SWRLHead(L));
+		getHyperGraph().replace(headHandle, new SWRLHead(L));
 	}
 
 	public void addPremise(HGHandle premise) {
 		SWRLBody H = getBodyAtom();
 		ArrayList<HGHandle> L = new ArrayList<HGHandle>(H.asCollection());
 		L.add(premise);
-		getHyperGraph().replace(body, new SWRLBody(L));
+		getHyperGraph().replace(bodyHandle, new SWRLBody(L));
 	}
 
 	public int getArity() {
@@ -62,18 +69,18 @@ public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLin
 
 	public HGHandle getTargetAt(int i) {
 		if (i == 0)
-			return body;
+			return bodyHandle;
 		else if (i == 1)
-			return head;
+			return headHandle;
 		else
 			throw new IllegalArgumentException("i != 0 or 1");
 	}
 
 	public void notifyTargetHandleUpdate(int i, HGHandle handle) {
 		if (i == 0)
-			body = handle;
+			bodyHandle = handle;
 		else if (i == 1)
-			head = handle;
+			headHandle = handle;
 		else
 			throw new IllegalArgumentException("i != 0 or 1");
 	}
@@ -172,7 +179,7 @@ public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLin
 	 *         antecedent of the rule.
 	 */
 	public Set<SWRLAtom> getBody() {
-		SWRLConjuction C = getHyperGraph().get(body);
+		SWRLConjuction C = getHyperGraph().get(bodyHandle);
 		HashSet<SWRLAtom> S = new HashSet<SWRLAtom>();
 		for (int i = 0; i < C.getArity(); i++) {
 			SWRLAtom a = getHyperGraph().get(C.getTargetAt(i));
@@ -188,7 +195,7 @@ public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLin
 	 *         consequent of the rule
 	 */
 	public Set<SWRLAtom> getHead() {
-		SWRLConjuction C = getHyperGraph().get(head);
+		SWRLConjuction C = getHyperGraph().get(headHandle);
 		HashSet<SWRLAtom> S = new HashSet<SWRLAtom>();
 		for (int i = 0; i < C.getArity(); i++) {
 			SWRLAtom a = getHyperGraph().get(C.getTargetAt(i));
@@ -235,7 +242,7 @@ public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLin
 			return false;
 		}
 		SWRLRule other = (SWRLRule) obj;
-		return other.getBody().equals(body) && other.getHead().equals(head);
+		return other.getBody().equals(getBody()) && other.getHead().equals(getHead());
 	}
 
 	public AxiomType<SWRLRule> getAxiomType() {
