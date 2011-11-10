@@ -206,7 +206,6 @@ public class OWLLiteralHGDB extends OWLObjectHGDB implements OWLLiteral, HGLink 
 		return 1;
 	}
 
-
 	/* (non-Javadoc)
 	 * @see org.hypergraphdb.HGLink#getTargetAt(int)
 	 */
@@ -215,7 +214,6 @@ public class OWLLiteralHGDB extends OWLObjectHGDB implements OWLLiteral, HGLink 
 		if (i != 0) throw new HGException("Index i must be 0");
 		return datatypeHandle;
 	}
-
 
 	/* (non-Javadoc)
 	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int, org.hypergraphdb.HGHandle)
@@ -226,7 +224,6 @@ public class OWLLiteralHGDB extends OWLObjectHGDB implements OWLLiteral, HGLink 
 		datatypeHandle = handle;		
 	}
 
-
 	/* (non-Javadoc)
 	 * @see org.hypergraphdb.HGLink#notifyTargetRemoved(int)
 	 */
@@ -235,5 +232,4 @@ public class OWLLiteralHGDB extends OWLObjectHGDB implements OWLLiteral, HGLink 
 		if (i != 0) throw new HGException("Index i must be 0");		
 		datatypeHandle = null;
 	}
-
 }
