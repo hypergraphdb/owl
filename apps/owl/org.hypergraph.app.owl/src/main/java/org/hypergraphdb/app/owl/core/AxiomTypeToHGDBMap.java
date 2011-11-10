@@ -45,6 +45,7 @@ import org.hypergraphdb.app.owl.model.axioms.OWLSubObjectPropertyOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubPropertyChainAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSymmetricObjectPropertyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLTransitiveObjectPropertyAxiomHGDB;
+import org.hypergraphdb.app.owl.model.swrl.SWRLRuleHGDB;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
@@ -144,7 +145,7 @@ public class AxiomTypeToHGDBMap {
         addToMap(AxiomType.DATATYPE_DEFINITION, OWLDatatypeDefinitionAxiomHGDB.class); //2011.11.08
         addToMap(AxiomType.DISJOINT_UNION, OWLDisjointUnionAxiomHGDB.class); //2011.10.13
         addToMap(AxiomType.DECLARATION, OWLDeclarationAxiomHGDB.class);
-        //34 addToMap(AxiomType.SWRL_RULE, OWLAxiomHGDB.class);
+        addToMap(AxiomType.SWRL_RULE, SWRLRuleHGDB.class);
         //35 addToMap(AxiomType.ANNOTATION_ASSERTION, OWLAxiomHGDB.class);
         addToMap(AxiomType.SUB_ANNOTATION_PROPERTY_OF, OWLSubAnnotationPropertyOfAxiomHGDB.class);
         //37 addToMap(AxiomType.ANNOTATION_PROPERTY_DOMAIN, OWLAxiomHGDB.class);

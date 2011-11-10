@@ -73,36 +73,48 @@ import org.hypergraphdb.app.owl.model.classexpr.restrict.OWLObjectHasValueHGDB;
 import org.hypergraphdb.app.owl.model.classexpr.restrict.OWLObjectMaxCardinalityHGDB;
 import org.hypergraphdb.app.owl.model.classexpr.restrict.OWLObjectMinCardinalityHGDB;
 import org.hypergraphdb.app.owl.model.classexpr.restrict.OWLObjectSomeValuesFromHGDB;
+import org.hypergraphdb.app.owl.model.swrl.SWRLBody;
+import org.hypergraphdb.app.owl.model.swrl.SWRLBuiltInAtomHGDB;
+import org.hypergraphdb.app.owl.model.swrl.SWRLClassAtomHGDB;
+import org.hypergraphdb.app.owl.model.swrl.SWRLDataPropertyAtomHGDB;
+import org.hypergraphdb.app.owl.model.swrl.SWRLDataRangeAtomHGDB;
+import org.hypergraphdb.app.owl.model.swrl.SWRLDifferentIndividualsAtomHGDB;
+import org.hypergraphdb.app.owl.model.swrl.SWRLHead;
+import org.hypergraphdb.app.owl.model.swrl.SWRLIndividualArgumentHGDB;
+import org.hypergraphdb.app.owl.model.swrl.SWRLLiteralArgumentHGDB;
+import org.hypergraphdb.app.owl.model.swrl.SWRLObjectPropertyAtomHGDB;
+import org.hypergraphdb.app.owl.model.swrl.SWRLRuleHGDB;
+import org.hypergraphdb.app.owl.model.swrl.SWRLSameIndividualAtomHGDB;
+import org.hypergraphdb.app.owl.model.swrl.SWRLVariableHGDB;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.CollectionFactory;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import org.semanticweb.owlapi.vocab.XSDVocabulary;
-//17 to go
+
+//
+import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternals;
+import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
+
+//4 to go
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationAssertionAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationPropertyDomainAxiomImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationPropertyRangeAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternals;
-import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
-import uk.ac.manchester.cs.owl.owlapi.SWRLBuiltInAtomImpl;
-import uk.ac.manchester.cs.owl.owlapi.SWRLClassAtomImpl;
-import uk.ac.manchester.cs.owl.owlapi.SWRLDataPropertyAtomImpl;
-import uk.ac.manchester.cs.owl.owlapi.SWRLDataRangeAtomImpl;
-import uk.ac.manchester.cs.owl.owlapi.SWRLDifferentIndividualsAtomImpl;
-import uk.ac.manchester.cs.owl.owlapi.SWRLIndividualArgumentImpl;
-import uk.ac.manchester.cs.owl.owlapi.SWRLLiteralArgumentImpl;
-import uk.ac.manchester.cs.owl.owlapi.SWRLObjectPropertyAtomImpl;
-import uk.ac.manchester.cs.owl.owlapi.SWRLRuleImpl;
-import uk.ac.manchester.cs.owl.owlapi.SWRLSameIndividualAtomImpl;
-import uk.ac.manchester.cs.owl.owlapi.SWRLVariableImpl;
 
 /**
  * OWLDataFactoryHGDB.
  * 
- * Implementing Declaration Axiom; OwlDeclarationAxiomHGDB;
- * OWLNamedIndividualHGDB
+ * All Axioms are added to the graph after adding them to an ontology.
+ * All other items are added to the graph in this datafactory and might never be part of an axiom that gets added to an ontology.
+ *
+ * Cleanup considerations: <br>
+ * Sophisticated cleanup is needed to remove atoms that are not part of an ontology, if API users decide 
+ * to create objects without adding them to an ontology. <br> 
+ * Cleanup has to take into account that an API user (editor) might keep objects/atoms that are existentially dependent on an axiom after removing 
+ * an axiom in a REDO stack or reuses them for other purposes later.
+ * In such a situation the axiom will not be part of the graph anymore but still refer to dependent objects in the graph. 
  * 
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  * @created Sep 28, 2011
@@ -1953,7 +1965,7 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		Set<OWLAnnotation> annos = new HashSet<OWLAnnotation>(2);
 		annos.add(getOWLAnnotation(getOWLAnnotationProperty(IRI.create("http://www.semanticweb.org/owlapi#iri")),
 				getOWLLiteral(iri.toQuotedString())));
-		return new SWRLRuleImpl(this, body, head, annos);
+		return getSWRLRuleImpl(body, head, annos);
 	}
 
 	/**
@@ -1973,7 +1985,7 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		Set<OWLAnnotation> annos = new HashSet<OWLAnnotation>(2);
 		annos.add(getOWLAnnotation(getOWLAnnotationProperty(IRI.create("http://www.semanticweb.org/owlapi#nodeID")),
 				getOWLLiteral(nodeID.toString())));
-		return new SWRLRuleImpl(this, body, head, annos);
+		return getSWRLRuleImpl(body, head, annos);
 	}
 
 	/**
@@ -1989,7 +2001,7 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 */
 	public SWRLRule getSWRLRule(Set<? extends SWRLAtom> body, Set<? extends SWRLAtom> head,
 			Set<OWLAnnotation> annotations) {
-		return new SWRLRuleImpl(this, body, head, annotations);
+		return getSWRLRuleImpl(body, head, annotations);
 	}
 
 	/**
@@ -2000,9 +2012,22 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 * @param consequent
 	 *            The atoms that make up the consequent
 	 */
-
 	public SWRLRule getSWRLRule(Set<? extends SWRLAtom> antecedent, Set<? extends SWRLAtom> consequent) {
-		return new SWRLRuleImpl(this, antecedent, consequent);
+		return getSWRLRuleImpl(antecedent, consequent, EMPTY_ANNOTATIONS_SET);
+	}
+	
+	protected SWRLRule getSWRLRuleImpl(Set<? extends SWRLAtom> body, Set<? extends SWRLAtom> head, Set<? extends OWLAnnotation> annos) {
+		Set<HGHandle> bodyHandles = getHandlesSetFor(body);
+		Set<HGHandle> headHandles = getHandlesSetFor(head);
+		SWRLBody swrlBody = new SWRLBody(bodyHandles);
+		SWRLHead swrlHead = new SWRLHead(headHandles);
+		HGHandle bodyHandle = graph.add(swrlBody);
+		HGHandle headHandle = graph.add(swrlHead);		
+		graph.add(bodyHandle);
+		graph.add(headHandle);
+		SWRLRuleHGDB ruleAxiom = new SWRLRuleHGDB(bodyHandle, headHandle, annos);
+		ruleAxiom.setHyperGraph(graph);
+		return ruleAxiom;
 	}
 
 	/**
@@ -2014,9 +2039,11 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 * @param arg
 	 *            The argument (x)
 	 */
-
 	public SWRLClassAtom getSWRLClassAtom(OWLClassExpression predicate, SWRLIArgument arg) {
-		return new SWRLClassAtomImpl(this, predicate, arg);
+		SWRLClassAtomHGDB classAtom = new SWRLClassAtomHGDB(predicate, arg);
+		graph.add(classAtom);
+		return classAtom;
+		//return new SWRLClassAtomImpl(this, predicate, arg);
 	}
 
 	/**
@@ -2028,9 +2055,11 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 * @param arg
 	 *            The argument (x)
 	 */
-
 	public SWRLDataRangeAtom getSWRLDataRangeAtom(OWLDataRange predicate, SWRLDArgument arg) {
-		return new SWRLDataRangeAtomImpl(this, predicate, arg);
+		SWRLDataRangeAtomHGDB atom = new SWRLDataRangeAtomHGDB(predicate, arg);
+		graph.add(atom);
+		return atom;
+		// return new SWRLDataRangeAtomImpl(this, predicate, arg);
 	}
 
 	/**
@@ -2045,10 +2074,12 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 * @param arg1
 	 *            The second argument (y)
 	 */
-
 	public SWRLObjectPropertyAtom getSWRLObjectPropertyAtom(OWLObjectPropertyExpression property, SWRLIArgument arg0,
 			SWRLIArgument arg1) {
-		return new SWRLObjectPropertyAtomImpl(this, property, arg0, arg1);
+		SWRLObjectPropertyAtomHGDB atom = new SWRLObjectPropertyAtomHGDB(property, arg0, arg1);
+		graph.add(atom);
+		return atom;		
+		// return new SWRLObjectPropertyAtomImpl(this, property, arg0, arg1);
 	}
 
 	/**
@@ -2063,10 +2094,12 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 * @param arg1
 	 *            The second argument (y)
 	 */
-
 	public SWRLDataPropertyAtom getSWRLDataPropertyAtom(OWLDataPropertyExpression property, SWRLIArgument arg0,
 			SWRLDArgument arg1) {
-		return new SWRLDataPropertyAtomImpl(this, property, arg0, arg1);
+		SWRLDataPropertyAtomHGDB atom = new SWRLDataPropertyAtomHGDB(property, arg0, arg1);
+		graph.add(atom);
+		return atom;				
+		// return new SWRLDataPropertyAtomImpl(this, property, arg0, arg1);
 	}
 
 	/**
@@ -2077,9 +2110,11 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 * @param args
 	 *            A non-empty set of SWRL D-Objects
 	 */
-
 	public SWRLBuiltInAtom getSWRLBuiltInAtom(IRI builtInIRI, List<SWRLDArgument> args) {
-		return new SWRLBuiltInAtomImpl(this, builtInIRI, args);
+		SWRLBuiltInAtomHGDB atom = new SWRLBuiltInAtomHGDB(builtInIRI, args);
+		graph.add(atom);
+		return atom;				
+		//return new SWRLBuiltInAtomImpl(this, builtInIRI, args);
 	}
 
 	/**
@@ -2090,13 +2125,9 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 * @return A SWRLVariable that has the name specified by the IRI
 	 */
 	public SWRLVariable getSWRLVariable(final IRI var) {
-		// TODO WONT WORK NOW
-		//throw new RuntimeException("Hilpold - not supported");
-		// hilpold not visible from our package return new SWRLVariableImpl(this, var);
-		// 2011.11.03 quickfix until we get to SWRL:
-		return new SWRLVariableImpl(this, var) {
-			/** CONSTRUCTOR IS PROTECTED, WE NEED TO HAVE THIS EMPTY ANONYMOUS CLASS **/
-			};
+		SWRLVariableHGDB atom = new SWRLVariableHGDB(var);
+		graph.add(atom);
+		return atom;				
 	}
 	
 	/**
@@ -2105,9 +2136,13 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 * @param individual
 	 *            The individual that is the object argument
 	 */
-
 	public SWRLIndividualArgument getSWRLIndividualArgument(OWLIndividual individual) {
-		return new SWRLIndividualArgumentImpl(this, individual);
+		HGHandle h = graph.getHandle(individual);
+		if (h == null) throw new IllegalArgumentException("Individual handle not found.");
+		SWRLIndividualArgumentHGDB atom = new SWRLIndividualArgumentHGDB(h);
+		graph.add(atom);
+		return atom;
+		//return new SWRLIndividualArgumentImpl(this, individual);
 	}
 
 	/**
@@ -2116,17 +2151,28 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 * @param literal
 	 *            The constant that is the object argument
 	 */
-
 	public SWRLLiteralArgument getSWRLLiteralArgument(OWLLiteral literal) {
-		return new SWRLLiteralArgumentImpl(this, literal);
+		//HGHandle h = graph.getHandle(literal);
+		//if (h == null) throw new IllegalArgumentException("Literal handle not found.");
+		//TODO Do we care here, whether literal is in graph or not? It is.
+		SWRLLiteralArgument atom = new SWRLLiteralArgumentHGDB(literal);
+		graph.add(atom);
+		return atom;
+		//return new SWRLLiteralArgumentImpl(this, literal);
 	}
 
 	public SWRLDifferentIndividualsAtom getSWRLDifferentIndividualsAtom(SWRLIArgument arg0, SWRLIArgument arg1) {
-		return new SWRLDifferentIndividualsAtomImpl(this, arg0, arg1);
+		SWRLDifferentIndividualsAtom atom = new SWRLDifferentIndividualsAtomHGDB(arg0, arg1);
+		graph.add(atom);
+		return atom;
+		//return new SWRLDifferentIndividualsAtomImpl(this, arg0, arg1);
 	}
 
 	public SWRLSameIndividualAtom getSWRLSameIndividualAtom(SWRLIArgument arg0, SWRLIArgument arg1) {
-		return new SWRLSameIndividualAtomImpl(this, arg0, arg1);
+		SWRLSameIndividualAtom atom = new SWRLSameIndividualAtomHGDB(arg0, arg1);
+		graph.add(atom);
+		return atom;
+		//return new SWRLSameIndividualAtomImpl(this, arg0, arg1);
 	}
 
 	private static Set<OWLAnnotation> EMPTY_ANNOTATIONS_SET = Collections.emptySet();
