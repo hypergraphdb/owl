@@ -50,6 +50,8 @@ import org.semanticweb.owlapi.model.OWLClass;
  * The University of Manchester<br>
  * Information Management Group<br>
  * Date: 21-Sep-2009
+ * 
+ * 2011.11.07 1000 ->> 100
  */
 public class LargeDisjointClassesAxiomTestCase extends AbstractAxiomsRoundTrippingTestCase {
 
@@ -57,7 +59,7 @@ public class LargeDisjointClassesAxiomTestCase extends AbstractAxiomsRoundTrippi
 	protected Set<? extends OWLAxiom> createAxioms() {
         Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
         Set<OWLClass> clses = new HashSet<OWLClass>();
-        for(int i = 0; i < 1000; i++) {
+        for(int i = 0; i < 100; i++) {
             clses.add(getOWLClass("Cls" + i));
         }
         axioms.add(getFactory().getOWLDisjointClassesAxiom(clses));

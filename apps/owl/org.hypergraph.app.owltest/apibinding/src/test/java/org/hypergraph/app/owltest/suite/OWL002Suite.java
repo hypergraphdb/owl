@@ -23,7 +23,8 @@ import org.semanticweb.owlapi.api.test.SWRLRuleTestCase;
 	//RenameToExistingOntologyTestCase.class,
 	//DifferentPhysicalURISameOntologyIRITestCase.class,
 	//SWRLRuleTestCase.class,	
-	LargeDifferentIndividualsTestCase.class //Takes > 1000 secs.
+	//LargeDifferentIndividualsTestCase.class //Takes > 1000 secs.
+	SWRLRuleTestCase.class
 })
 public class OWL002Suite {
 
