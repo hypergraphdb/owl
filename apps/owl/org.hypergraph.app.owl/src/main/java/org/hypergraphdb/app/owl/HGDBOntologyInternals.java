@@ -337,7 +337,7 @@ public interface HGDBOntologyInternals {
 
 	// 2011.11.08 Map<OWLIndividual, Set<OWLSameIndividualAxiom>> getSameIndividualsAxiomsByIndividual();
 
-	Map<OWLAnnotationSubject, Set<OWLAnnotationAssertionAxiom>> getAnnotationAssertionAxiomsBySubject();
+	// 2011.11.14 Map<OWLAnnotationSubject, Set<OWLAnnotationAssertionAxiom>> getAnnotationAssertionAxiomsBySubject();
 
 	boolean isDeclared(OWLDeclarationAxiom ax);
 

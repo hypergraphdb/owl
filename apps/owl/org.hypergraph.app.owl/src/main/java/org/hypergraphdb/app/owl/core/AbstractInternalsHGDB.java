@@ -1,8 +1,5 @@
 package org.hypergraphdb.app.owl.core;
 
-import static org.semanticweb.owlapi.model.AxiomType.ANNOTATION_ASSERTION;
-import static org.semanticweb.owlapi.model.AxiomType.IRREFLEXIVE_OBJECT_PROPERTY;
-import static org.semanticweb.owlapi.model.AxiomType.TRANSITIVE_OBJECT_PROPERTY;
 import static org.semanticweb.owlapi.util.CollectionFactory.createSet;
 
 import java.util.Collection;
@@ -19,6 +16,7 @@ import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyImpl;
 import org.hypergraphdb.app.owl.HGDBOntologyInternals;
+import org.hypergraphdb.app.owl.model.axioms.OWLAnnotationAssertionAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLAsymmetricObjectPropertyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLClassAssertionHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDataPropertyAssertionAxiomHGDB;
@@ -147,8 +145,8 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	// asymmetricPropertyAxiomsByProperty;
 	// 2011.11.07 protected volatile Map<OWLObjectPropertyExpression,
 	// Set<OWLReflexiveObjectPropertyAxiom>> reflexivePropertyAxiomsByProperty;
-	protected volatile Map<OWLObjectPropertyExpression, Set<OWLIrreflexiveObjectPropertyAxiom>> irreflexivePropertyAxiomsByProperty;
-	protected volatile Map<OWLObjectPropertyExpression, Set<OWLTransitiveObjectPropertyAxiom>> transitivePropertyAxiomsByProperty;
+	//2011.11.14 protected volatile Map<OWLObjectPropertyExpression, Set<OWLIrreflexiveObjectPropertyAxiom>> irreflexivePropertyAxiomsByProperty;
+	//2011.11.14 protected volatile Map<OWLObjectPropertyExpression, Set<OWLTransitiveObjectPropertyAxiom>> transitivePropertyAxiomsByProperty;
 	// 2011.11.07 protected volatile Map<OWLObjectPropertyExpression,
 	// Set<OWLInverseObjectPropertiesAxiom>> inversePropertyAxiomsByProperty;
 	// 2011.10.07 protected volatile Map<OWLDataPropertyExpression,
@@ -174,7 +172,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	//2011.11.08 protected volatile Map<OWLIndividual, Set<OWLNegativeDataPropertyAssertionAxiom>> negativeDataPropertyAssertionAxiomsByIndividual;
 	//2011.11.08 protected volatile Map<OWLIndividual, Set<OWLDifferentIndividualsAxiom>> differentIndividualsAxiomsByIndividual;
 	//2011.11.08 protected volatile Map<OWLIndividual, Set<OWLSameIndividualAxiom>> sameIndividualsAxiomsByIndividual;
-	protected volatile Map<OWLAnnotationSubject, Set<OWLAnnotationAssertionAxiom>> annotationAssertionAxiomsBySubject;
+	//2011.11.14 protected volatile Map<OWLAnnotationSubject, Set<OWLAnnotationAssertionAxiom>> annotationAssertionAxiomsBySubject;
 
 	protected abstract <T extends OWLAxiom> Set<T> getAxiomsInternal(AxiomType<T> axiomType);
 
@@ -376,24 +374,24 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 		// }
 		// }
 		// },
-		IrreflexivePropertyAxiomsByProperty {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-				if (impl.irreflexivePropertyAxiomsByProperty == null) {
-					impl.irreflexivePropertyAxiomsByProperty = impl.fill(impl.irreflexivePropertyAxiomsByProperty,
-							IRREFLEXIVE_OBJECT_PROPERTY, opsubnamed);
-				}
-			}
-		},
-		TransitivePropertyAxiomsByProperty {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-				if (impl.transitivePropertyAxiomsByProperty == null) {
-					impl.transitivePropertyAxiomsByProperty = impl.fill(impl.transitivePropertyAxiomsByProperty,
-							TRANSITIVE_OBJECT_PROPERTY, opsubnamed);
-				}
-			}
-		},
+		//		IrreflexivePropertyAxiomsByProperty {
+		//			@Override
+		//			public void initMap(AbstractInternalsHGDB impl) {
+		//				if (impl.irreflexivePropertyAxiomsByProperty == null) {
+		//					impl.irreflexivePropertyAxiomsByProperty = impl.fill(impl.irreflexivePropertyAxiomsByProperty,
+		//							IRREFLEXIVE_OBJECT_PROPERTY, opsubnamed);
+		//				}
+		//			}
+		//		},
+		//		TransitivePropertyAxiomsByProperty {
+		//			@Override
+		//			public void initMap(AbstractInternalsHGDB impl) {
+		//				if (impl.transitivePropertyAxiomsByProperty == null) {
+		//					impl.transitivePropertyAxiomsByProperty = impl.fill(impl.transitivePropertyAxiomsByProperty,
+		//							TRANSITIVE_OBJECT_PROPERTY, opsubnamed);
+		//				}
+		//			}
+		//		},
 		// InversePropertyAxiomsByProperty {
 		// @Override
 		// public void initMap(AbstractInternalsHGDB impl) {
@@ -547,15 +545,15 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 		//				}
 		//			}
 		//		},
-		AnnotationAssertionAxiomsBySubject {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-				if (impl.annotationAssertionAxiomsBySubject == null) {
-					impl.annotationAssertionAxiomsBySubject = impl.fill(impl.annotationAssertionAxiomsBySubject,
-							ANNOTATION_ASSERTION, annotsupernamed);
-				}
-			}
-		},
+		//		AnnotationAssertionAxiomsBySubject {
+		//			@Override
+		//			public void initMap(AbstractInternalsHGDB impl) {
+		//				if (impl.annotationAssertionAxiomsBySubject == null) {
+		//					impl.annotationAssertionAxiomsBySubject = impl.fill(impl.annotationAssertionAxiomsBySubject,
+		//							ANNOTATION_ASSERTION, annotsupernamed);
+		//				}
+		//			}
+		//		},
 		ImportsDeclarations {
 			@Override
 			public void initMap(AbstractInternalsHGDB impl) {
@@ -1252,8 +1250,14 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	}
 
 	public Set<OWLAnnotationAssertionAxiom> getAnnotationAssertionAxiomsBySubject(OWLAnnotationSubject subject) {
-		Maps.AnnotationAssertionAxiomsBySubject.initMap(this);
-		return getReturnSet(getAxioms(subject, annotationAssertionAxiomsBySubject, false));
+		HGHandle subjectHandle = graph.getHandle(subject);
+		List<OWLAnnotationAssertionAxiom> l = ontology.getAll(hg.and(
+				hg.type(OWLAnnotationAssertionAxiomHGDB.class)
+				//subjectHandle 0, propertyHandle 1, valueHandle 2
+				, hg.orderedLink(subjectHandle, hg.anyHandle(), hg.anyHandle())));
+		return getReturnSet(l);
+//2011.11.14		Maps.AnnotationAssertionAxiomsBySubject.initMap(this);
+//		return getReturnSet(getAxioms(subject, annotationAssertionAxiomsBySubject, false));
 	}
 
 	/**
@@ -1378,13 +1382,13 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	// return this.reflexivePropertyAxiomsByProperty;
 	// }
 
-	public Map<OWLObjectPropertyExpression, Set<OWLIrreflexiveObjectPropertyAxiom>> getIrreflexivePropertyAxiomsByProperty() {
-		return this.irreflexivePropertyAxiomsByProperty;
-	}
-
-	public Map<OWLObjectPropertyExpression, Set<OWLTransitiveObjectPropertyAxiom>> getTransitivePropertyAxiomsByProperty() {
-		return this.transitivePropertyAxiomsByProperty;
-	}
+//2011.11.14 removed	public Map<OWLObjectPropertyExpression, Set<OWLIrreflexiveObjectPropertyAxiom>> getIrreflexivePropertyAxiomsByProperty() {
+//		return this.irreflexivePropertyAxiomsByProperty;
+//	}
+//
+//	public Map<OWLObjectPropertyExpression, Set<OWLTransitiveObjectPropertyAxiom>> getTransitivePropertyAxiomsByProperty() {
+//		return this.transitivePropertyAxiomsByProperty;
+//	}
 
 	// public Map<OWLObjectPropertyExpression,
 	// Set<OWLInverseObjectPropertiesAxiom>>
@@ -1458,9 +1462,9 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 //		return this.sameIndividualsAxiomsByIndividual;
 //	}
 
-	public Map<OWLAnnotationSubject, Set<OWLAnnotationAssertionAxiom>> getAnnotationAssertionAxiomsBySubject() {
-		return this.annotationAssertionAxiomsBySubject;
-	}
+//	public Map<OWLAnnotationSubject, Set<OWLAnnotationAssertionAxiom>> getAnnotationAssertionAxiomsBySubject() {
+//		return this.annotationAssertionAxiomsBySubject;
+//	}
 
 	// ----------------------------------------------------------------------
 	// HGGraphHolder HGHandleHolder Interfaces
@@ -1484,7 +1488,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	@Override
 	public void setOntologyHyperNode(HGDBOntology ontology) {
 		// TODO ugly, but we need it, because Hypernode Interface does not
-		// define convienient add)
+		// define convenient add)
 		this.ontology = (HGDBOntologyImpl) ontology;
 		this.ontoHandle = graph.getHandle(ontology);
 	}

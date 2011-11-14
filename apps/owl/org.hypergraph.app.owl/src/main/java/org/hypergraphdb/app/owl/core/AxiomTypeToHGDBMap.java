@@ -10,51 +10,19 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hypergraphdb.HGLink;
-import org.hypergraphdb.app.owl.model.axioms.OWLAsymmetricObjectPropertyAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLClassAssertionHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLDataPropertyAssertionAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLDataPropertyDomainAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLDataPropertyRangeAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLDatatypeDefinitionAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLDeclarationAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLDifferentIndividualsAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLDisjointClassesAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLDisjointDataPropertiesAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLDisjointObjectPropertiesAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLDisjointUnionAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLEquivalentClassesAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLEquivalentDataPropertiesAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLEquivalentObjectPropertiesAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLFunctionalDataPropertyAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLFunctionalObjectPropertyAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLHasKeyAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLInverseFunctionalObjectPropertyAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLInverseObjectPropertiesAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLIrreflexiveObjectPropertyAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLNegativeDataPropertyAssertionAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLNegativeObjectPropertyAssertionAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLObjectPropertyAssertionAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLObjectPropertyDomainAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLObjectPropertyRangeAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLReflexiveObjectPropertyAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLSameIndividualAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLSubAnnotationPropertyOfAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLSubDataPropertyOfAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLSubObjectPropertyOfAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLSubPropertyChainAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLSymmetricObjectPropertyAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLTransitiveObjectPropertyAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.*;
 import org.hypergraphdb.app.owl.model.swrl.SWRLRuleHGDB;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
 /**
  * AxiomTypeMapToHGDB maps all 39 Axiom types as defined by AxiomType.class to HGDB concrete HGLink axiom classes, who's object are stored in the graph.
- * * @author Thomas Hilpold (GIC/Miami-Dade County)
+ * 
+ * @author Thomas Hilpold (GIC/Miami-Dade County)
  * @created Oct 6, 2011
  */
 public class AxiomTypeToHGDBMap {
+	
 	public final static int INITIAL_MAP_SIZE = 101;
 
 	static {
@@ -71,8 +39,7 @@ public class AxiomTypeToHGDBMap {
 	private static Set<Class<? extends OWLAxiomHGDB>> logicalAxiomTypesHGDB;
 	
 	private AxiomTypeToHGDBMap() {
-	}
-	
+	}	
 
 	/**
 	 * Gets a AxiomTypeHGDB class by hash lookup O(1). 
@@ -146,12 +113,12 @@ public class AxiomTypeToHGDBMap {
         addToMap(AxiomType.DISJOINT_UNION, OWLDisjointUnionAxiomHGDB.class); //2011.10.13
         addToMap(AxiomType.DECLARATION, OWLDeclarationAxiomHGDB.class);
         addToMap(AxiomType.SWRL_RULE, SWRLRuleHGDB.class);
-        //35 addToMap(AxiomType.ANNOTATION_ASSERTION, OWLAxiomHGDB.class);
+        addToMap(AxiomType.ANNOTATION_ASSERTION, OWLAnnotationAssertionAxiomHGDB.class);
         addToMap(AxiomType.SUB_ANNOTATION_PROPERTY_OF, OWLSubAnnotationPropertyOfAxiomHGDB.class);
-        //37 addToMap(AxiomType.ANNOTATION_PROPERTY_DOMAIN, OWLAxiomHGDB.class);
-        //38 addToMap(AxiomType.ANNOTATION_PROPERTY_RANGE, OWLAxiomHGDB.class);
+        addToMap(AxiomType.ANNOTATION_PROPERTY_DOMAIN, OWLAnnotationPropertyDomainAxiomHGDB.class);
+        addToMap(AxiomType.ANNOTATION_PROPERTY_RANGE, OWLAnnotationPropertyRangeAxiomHGDB.class);
         addToMap(AxiomType.HAS_KEY, OWLHasKeyAxiomHGDB.class);
-        //39 Axioms total 
+        //39 Axiom types total 
         System.out.println("AxiomTypeMapToHGDB Initialized: " + m.size() + " mappings defined.");
 	}	
 	
@@ -165,7 +132,7 @@ public class AxiomTypeToHGDBMap {
 	}
 
 	/**
-	 * Adds all Axiom HGDB classes to the set that correspond to locigal Axiomtypes.
+	 * Adds all Axiom HGDB classes to the set that correspond to logical Axiomtypes.
 	 */
 	private static void initializeLogicalAxiomSet() {
 		for (AxiomType<?> type : AXIOM_TYPES) {

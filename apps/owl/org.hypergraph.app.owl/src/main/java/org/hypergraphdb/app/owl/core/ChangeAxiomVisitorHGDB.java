@@ -127,10 +127,10 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
             else {
                 oi.removeGeneralClassAxioms(axiom);
             }
-            if (!axiom.getSuperClass().isAnonymous()) {
+//            if (!axiom.getSuperClass().isAnonymous()) {
 //				2010.10.06 removd
 //                oi.removeAxiomFromSet(axiom.getSuperClass().asOWLClass(), oi.getSubClassAxiomsByRHS(), axiom, true);
-            }
+//            }
         }
     }
 
@@ -399,11 +399,11 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
     public void visit(OWLAnnotationAssertionAxiom axiom) {
         if (addAxiom) {
             oi.addAxiomsByType(ANNOTATION_ASSERTION, axiom);
-            oi.addToIndexedSet(axiom.getSubject(), oi.getAnnotationAssertionAxiomsBySubject(), axiom);
+            //oi.addToIndexedSet(axiom.getSubject(), oi.getAnnotationAssertionAxiomsBySubject(), axiom);
         }
         else {
             oi.removeAxiomsByType(ANNOTATION_ASSERTION, axiom);
-            oi.removeAxiomFromSet(axiom.getSubject(), oi.getAnnotationAssertionAxiomsBySubject(), axiom, true);
+            //oi.removeAxiomFromSet(axiom.getSubject(), oi.getAnnotationAssertionAxiomsBySubject(), axiom, true);
         }
     }
 

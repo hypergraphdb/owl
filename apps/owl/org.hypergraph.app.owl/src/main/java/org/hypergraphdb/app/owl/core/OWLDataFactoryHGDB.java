@@ -11,6 +11,7 @@ import java.util.TreeSet;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.app.owl.model.OWLAnnotationHGDB;
 import org.hypergraphdb.app.owl.model.OWLAnonymousIndividualHGDB;
 import org.hypergraphdb.app.owl.model.OWLClassHGDB;
 import org.hypergraphdb.app.owl.model.OWLDataComplementOfHGDB;
@@ -21,6 +22,9 @@ import org.hypergraphdb.app.owl.model.OWLDatatypeRestrictionHGDB;
 import org.hypergraphdb.app.owl.model.OWLFacetRestrictionHGDB;
 import org.hypergraphdb.app.owl.model.OWLLiteralHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectInverseOfHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLAnnotationAssertionAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLAnnotationPropertyDomainAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLAnnotationPropertyRangeAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLAsymmetricObjectPropertyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLClassAssertionHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDataPropertyAssertionAxiomHGDB;
@@ -97,11 +101,7 @@ import org.semanticweb.owlapi.vocab.XSDVocabulary;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternals;
 import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 
-//4 to go
-import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationAssertionAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationPropertyDomainAxiomImpl;
-import uk.ac.manchester.cs.owl.owlapi.OWLAnnotationPropertyRangeAxiomImpl;
+//0 to go
 
 /**
  * OWLDataFactoryHGDB.
@@ -1868,7 +1868,25 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 */
 	public OWLAnnotation getOWLAnnotation(OWLAnnotationProperty property, OWLAnnotationValue value,
 			Set<? extends OWLAnnotation> annotations) {
-		return new OWLAnnotationImpl(this, property, value, annotations);
+		if (property == null) {
+			throw new NullPointerException("Annotation property is null");
+		}
+		if (value == null) {
+			throw new NullPointerException("Annotation value is null");
+		}
+		HGHandle propertyHandle = graph.getHandle(property);
+		HGHandle valueHandle = graph.getHandle(value);
+		Set<HGHandle> annotationsHandles = getHandlesSetFor(annotations);
+		if (propertyHandle == null) {
+			throw new NullPointerException("Annotation propertyhandle is null");
+		}
+		if (valueHandle == null) {
+			throw new NullPointerException("Annotation valueHandle is null");
+		}		
+		OWLAnnotationHGDB a = new OWLAnnotationHGDB(propertyHandle, valueHandle, annotationsHandles);
+		graph.add(a);
+		return a;
+		// return new OWLAnnotationImpl(this, property, value, annotations);
 	}
 
 	public OWLAnnotationAssertionAxiom getOWLAnnotationAssertionAxiom(OWLAnnotationSubject subject,
@@ -1905,7 +1923,20 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		if (value == null) {
 			throw new NullPointerException("Annotation value is null");
 		}
-		return new OWLAnnotationAssertionAxiomImpl(this, subject, property, value, annotations);
+		HGHandle propertyHandle = graph.getHandle(property);
+		HGHandle subjectHandle = graph.getHandle(subject);
+		HGHandle valueHandle = graph.getHandle(value);
+		if (propertyHandle == null) {
+			throw new NullPointerException("Annotation propertyhandle is null");
+		}
+		if (subjectHandle == null) {
+			throw new NullPointerException("Annotation subjectHandle is null");
+		}
+		if (valueHandle == null) {
+			throw new NullPointerException("Annotation valueHandle is null");
+		}
+		return new OWLAnnotationAssertionAxiomHGDB(subjectHandle, propertyHandle, valueHandle, annotations);
+		//return new OWLAnnotationAssertionAxiomHGDB(subject, property, value, annotations);	
 	}
 
 	/**
@@ -1925,7 +1956,16 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 	public OWLAnnotationPropertyDomainAxiom getOWLAnnotationPropertyDomainAxiom(OWLAnnotationProperty prop, IRI domain,
 			Set<? extends OWLAnnotation> annotations) {
-		return new OWLAnnotationPropertyDomainAxiomImpl(this, prop, domain, annotations);
+		HGHandle propertyHandle = graph.getHandle(prop);
+		HGHandle domainHandle = graph.getHandle(domain);
+		if (propertyHandle == null) {
+			throw new NullPointerException("Annotation propertyHandle is null");
+		}
+		if (domainHandle == null) {
+			throw new NullPointerException("Annotation domainHandle is null");
+		}
+		return new OWLAnnotationPropertyDomainAxiomHGDB(propertyHandle, domainHandle, annotations);
+		// return new OWLAnnotationPropertyDomainAxiomImpl(this, prop, domain, annotations);
 	}
 
 	public OWLAnnotationPropertyDomainAxiom getOWLAnnotationPropertyDomainAxiom(OWLAnnotationProperty prop, IRI domain) {
@@ -1934,7 +1974,16 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 	public OWLAnnotationPropertyRangeAxiom getOWLAnnotationPropertyRangeAxiom(OWLAnnotationProperty prop, IRI range,
 			Set<? extends OWLAnnotation> annotations) {
-		return new OWLAnnotationPropertyRangeAxiomImpl(this, prop, range, annotations);
+		HGHandle propertyHandle = graph.getHandle(prop);
+		HGHandle rangeHandle = graph.getHandle(range);
+		if (propertyHandle == null) {
+			throw new NullPointerException("Annotation propertyhandle is null");
+		}
+		if (rangeHandle == null) {
+			throw new NullPointerException("Annotation subjectHandle is null");
+		}
+		return new OWLAnnotationPropertyRangeAxiomHGDB(propertyHandle, rangeHandle, annotations);
+		//return new OWLAnnotationPropertyRangeAxiomImpl(this, prop, range, annotations);
 	}
 
 	public OWLAnnotationPropertyRangeAxiom getOWLAnnotationPropertyRangeAxiom(OWLAnnotationProperty prop, IRI range) {
