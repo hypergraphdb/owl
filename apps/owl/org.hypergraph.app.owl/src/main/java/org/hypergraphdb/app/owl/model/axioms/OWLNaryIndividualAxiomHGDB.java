@@ -111,6 +111,6 @@ public abstract class OWLNaryIndividualAxiomHGDB extends OWLIndividualAxiomHGDB 
 	@Override
 	public void notifyTargetRemoved(int i) {
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
-		individualsHandles.set(i, null);  
+		individualsHandles.remove(i);  
 	}
 }
