@@ -106,6 +106,6 @@ public abstract class OWLNaryPropertyAxiomHGDB <P extends OWLPropertyExpression<
 	@Override
 	public void notifyTargetRemoved(int i) {
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
-		propertiesHandles.set(i, null);  
+		propertiesHandles.remove(i);  
 	}
 }
