@@ -97,11 +97,7 @@ import org.semanticweb.owlapi.vocab.OWLFacet;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import org.semanticweb.owlapi.vocab.XSDVocabulary;
 
-//
-import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternals;
 import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
-
-//0 to go
 
 /**
  * OWLDataFactoryHGDB.
@@ -116,18 +112,22 @@ import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
  * an axiom in a REDO stack or reuses them for other purposes later.
  * In such a situation the axiom will not be part of the graph anymore but still refer to dependent objects in the graph. 
  * 
+ * IRIs as used for Annotations need to be cleaned up too. 
+ * 
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  * @created Sep 28, 2011
  */
 public class OWLDataFactoryHGDB implements OWLDataFactory {
 
+	public static boolean DBG = true;
+	
 	private static OWLDataFactoryHGDB instance = new OWLDataFactoryHGDB();
 
 	private static OWLClass OWL_THING = new OWLClassHGDB(OWLRDFVocabulary.OWL_THING.getIRI());
 
 	private static OWLClass OWL_NOTHING = new OWLClassHGDB(OWLRDFVocabulary.OWL_NOTHING.getIRI());
 
-	protected OWLDataFactoryInternals data;
+	protected OWLDataFactoryInternalsHGDB data;
 
 	private HyperGraph graph;
 
@@ -1165,51 +1165,7 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		return axiom;
 		//return new OWLDisjointObjectPropertiesAxiomImpl(this, properties, annotations);
 	}
-
-	/**
-	 * Gets handles for each element from Hypergraph and
-	 * 
-	 * @param s
-	 *            a set of atoms implementing OWLObject and stored in HG.
-	 * @return a set of handles (no null, same size as s)
-	 */
-	private Set<HGHandle> getHandlesSetFor(Set<? extends OWLObject> s) {
-		Set<HGHandle> sHandles = new TreeSet<HGHandle>();
-		HGHandle h;
-		for (OWLObject o : s) {
-			h = graph.getHandle(o);
-			if (h == null) {
-				throw new IllegalArgumentException("s contained an object that we could not get a handle for: " + o);
-			} else {
-				if (!sHandles.add(h))
-					throw new IllegalStateException("we got a duplicate handle");
-			}
-		}
-		assert (s.size() == sHandles.size());
-		return sHandles;
-	}
-
-	/**
-	 * Gets handles for each element from Hypergraph and
-	 * 
-	 * @param s
-	 *            a set of atoms implementing OWLObject and stored in HG.
-	 * @return a set of handles (no null, same size as s)
-	 */
-	private List<HGHandle> getHandlesListFor(List<? extends OWLObject> l) {
-		List<HGHandle> lHandles = new ArrayList<HGHandle>(5);
-		HGHandle h;
-		for (OWLObject o : l) {
-			h = graph.getHandle(o);
-			if (h == null) {
-				throw new IllegalArgumentException("l contained an object that we could not get a handle for: " + o);
-			} else {
-				lHandles.add(h);
-			}
-		}
-		return lHandles;
-	}
-
+	
 	public OWLEquivalentClassesAxiom getOWLEquivalentClassesAxiom(Set<? extends OWLClassExpression> classExpressions,
 			Set<? extends OWLAnnotation> annotations) {
 		if (classExpressions == null) throw new IllegalArgumentException("classExpressions null");
@@ -1875,13 +1831,21 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 			throw new NullPointerException("Annotation value is null");
 		}
 		HGHandle propertyHandle = graph.getHandle(property);
-		HGHandle valueHandle = graph.getHandle(value);
+		// value might be IRI, OWLAnonymousIndividual or OWLLiteral
+		// If it's an IRI, it was not created in the DF and we need to check,  
+		// whether we have it in the graph already.
+		HGHandle valueHandle; 
+		if (value instanceof IRI) {
+			valueHandle = data.findOrAddIRIHandle((IRI)value);
+		} else {
+			valueHandle = graph.getHandle(value);
+		}		
 		Set<HGHandle> annotationsHandles = getHandlesSetFor(annotations);
 		if (propertyHandle == null) {
-			throw new NullPointerException("Annotation propertyhandle is null");
+			throw new NullPointerException("Annotation propertyhandle is null for property " + property);
 		}
 		if (valueHandle == null) {
-			throw new NullPointerException("Annotation valueHandle is null");
+			throw new NullPointerException("Annotation valueHandle is null for value " + value);
 		}		
 		OWLAnnotationHGDB a = new OWLAnnotationHGDB(propertyHandle, valueHandle, annotationsHandles);
 		graph.add(a);
@@ -1924,18 +1888,32 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 			throw new NullPointerException("Annotation value is null");
 		}
 		HGHandle propertyHandle = graph.getHandle(property);
-		HGHandle subjectHandle = graph.getHandle(subject);
-		HGHandle valueHandle = graph.getHandle(value);
+		HGHandle subjectHandle;
+		// IRIs are not created by this Datafactory.
+		// therefore add them to graph here, so we can get a handle.
+		if (subject instanceof IRI) {
+			subjectHandle = data.findOrAddIRIHandle((IRI)subject);
+		} else {
+			subjectHandle = graph.getHandle(subject);
+		}
+		HGHandle valueHandle;
+		if (value instanceof IRI) {
+			valueHandle = data.findOrAddIRIHandle((IRI)value);
+		} else {
+			valueHandle = graph.getHandle(value);
+		}		
 		if (propertyHandle == null) {
-			throw new NullPointerException("Annotation propertyhandle is null");
+			throw new NullPointerException("Annotation propertyhandle is null for property " + property + ".");
 		}
 		if (subjectHandle == null) {
-			throw new NullPointerException("Annotation subjectHandle is null");
+			throw new NullPointerException("Annotation subjectHandle is null for subject " + subject + ".");
 		}
 		if (valueHandle == null) {
-			throw new NullPointerException("Annotation valueHandle is null");
+			throw new NullPointerException("Annotation valueHandle is null for value " + value + ".");
 		}
-		return new OWLAnnotationAssertionAxiomHGDB(subjectHandle, propertyHandle, valueHandle, annotations);
+		OWLAnnotationAssertionAxiomHGDB a = new OWLAnnotationAssertionAxiomHGDB(subjectHandle, propertyHandle, valueHandle, annotations);
+		a.setHyperGraph(graph);
+		return a; 
 		//return new OWLAnnotationAssertionAxiomHGDB(subject, property, value, annotations);	
 	}
 
@@ -1957,14 +1935,17 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	public OWLAnnotationPropertyDomainAxiom getOWLAnnotationPropertyDomainAxiom(OWLAnnotationProperty prop, IRI domain,
 			Set<? extends OWLAnnotation> annotations) {
 		HGHandle propertyHandle = graph.getHandle(prop);
-		HGHandle domainHandle = graph.getHandle(domain);
+		HGHandle domainHandle;
 		if (propertyHandle == null) {
 			throw new NullPointerException("Annotation propertyHandle is null");
 		}
+		domainHandle = data.findOrAddIRIHandle(domain);
 		if (domainHandle == null) {
 			throw new NullPointerException("Annotation domainHandle is null");
 		}
-		return new OWLAnnotationPropertyDomainAxiomHGDB(propertyHandle, domainHandle, annotations);
+		OWLAnnotationPropertyDomainAxiomHGDB a = new OWLAnnotationPropertyDomainAxiomHGDB(propertyHandle, domainHandle, annotations);
+		a.setHyperGraph(graph);
+		return a;
 		// return new OWLAnnotationPropertyDomainAxiomImpl(this, prop, domain, annotations);
 	}
 
@@ -1975,14 +1956,17 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	public OWLAnnotationPropertyRangeAxiom getOWLAnnotationPropertyRangeAxiom(OWLAnnotationProperty prop, IRI range,
 			Set<? extends OWLAnnotation> annotations) {
 		HGHandle propertyHandle = graph.getHandle(prop);
-		HGHandle rangeHandle = graph.getHandle(range);
+		HGHandle rangeHandle;
 		if (propertyHandle == null) {
 			throw new NullPointerException("Annotation propertyhandle is null");
 		}
+		rangeHandle = data.findOrAddIRIHandle(range);
 		if (rangeHandle == null) {
-			throw new NullPointerException("Annotation subjectHandle is null");
+			throw new NullPointerException("Annotation rangeHandle is null");
 		}
-		return new OWLAnnotationPropertyRangeAxiomHGDB(propertyHandle, rangeHandle, annotations);
+		OWLAnnotationPropertyRangeAxiomHGDB a = new OWLAnnotationPropertyRangeAxiomHGDB(propertyHandle, rangeHandle, annotations);
+		a.setHyperGraph(graph);
+		return a;
 		//return new OWLAnnotationPropertyRangeAxiomImpl(this, prop, range, annotations);
 	}
 
@@ -2279,5 +2263,49 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 			eHandle = hg.getOne(graph, hg.and(hg.type(e.getClass()), hg.eq("IRI", e.getIRI())));
 		}
 		return eHandle;
+	}
+
+	/**
+	 * Gets handles for each element from Hypergraph and
+	 * 
+	 * @param s
+	 *            a set of atoms implementing OWLObject and stored in HG.
+	 * @return a set of handles (no null, same size as s)
+	 */
+	private Set<HGHandle> getHandlesSetFor(Set<? extends OWLObject> s) {
+		Set<HGHandle> sHandles = new TreeSet<HGHandle>();
+		HGHandle h;
+		for (OWLObject o : s) {
+			h = graph.getHandle(o);
+			if (h == null) {
+				throw new IllegalArgumentException("s contained an object that we could not get a handle for: " + o);
+			} else {
+				if (!sHandles.add(h))
+					throw new IllegalStateException("we got a duplicate handle");
+			}
+		}
+		assert (s.size() == sHandles.size());
+		return sHandles;
+	}
+
+	/**
+	 * Gets handles for each element from Hypergraph and
+	 * 
+	 * @param s
+	 *            a set of atoms implementing OWLObject and stored in HG.
+	 * @return a set of handles (no null, same size as s)
+	 */
+	private List<HGHandle> getHandlesListFor(List<? extends OWLObject> l) {
+		List<HGHandle> lHandles = new ArrayList<HGHandle>(5);
+		HGHandle h;
+		for (OWLObject o : l) {
+			h = graph.getHandle(o);
+			if (h == null) {
+				throw new IllegalArgumentException("l contained an object that we could not get a handle for: " + o);
+			} else {
+				lHandles.add(h);
+			}
+		}
+		return lHandles;
 	}
 }
