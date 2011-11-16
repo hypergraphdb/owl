@@ -1,9 +1,9 @@
 package org.hypergraphdb.app.owl.model.axioms;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -34,26 +34,32 @@ public class OWLHasKeyAxiomHGDB extends OWLLogicalAxiomHGDB implements HGLink, O
 //  private OWLClassExpression expression;
 //	private Set<OWLPropertyExpression<?,?>> propertyExpressions;
 
-	private HGHandle expressionHandle;
-    private List<HGHandle> propertyExpressionsHandles;
+//	private HGHandle expressionHandle;
+	// at 0  - class expression
+	// at 1+ - the property expressions
+    private List<HGHandle> handles;
     
     public OWLHasKeyAxiomHGDB(HGHandle...args) {    
         //TODO assert arg[0] type OWLClassExpression, args[1...length-1] type OWLPropertyExpression
     	super(Collections.<OWLAnnotation>emptySet());    	
-    	assert (args.length >= 2);
-    	Set<HGHandle> propertyExpressionsFromArgs = new HashSet<HGHandle>();
-    	for(int i = 1; i < args.length; i++) {
-    		propertyExpressionsFromArgs.add(args[i]);
-    	}
-        this.expressionHandle = args[0];
-        this.propertyExpressionsHandles = new ArrayList<HGHandle>(propertyExpressionsFromArgs);    	
+//    	assert (args.length >= 2);
+//    	Set<HGHandle> propertyExpressionsFromArgs = new HashSet<HGHandle>();
+//    	for(int i = 1; i < args.length; i++) {
+//    		propertyExpressionsFromArgs.add(args[i]);
+//    	}
+//        this.expressionHandle = args[0];
+//        this.propertyExpressionsHandles = new ArrayList<HGHandle>(propertyExpressionsFromArgs);
+    	this.handles = Arrays.asList(args);
     }
 
-    public OWLHasKeyAxiomHGDB(HGHandle expression, Set<? extends HGHandle> propertyExpressions, Collection<? extends OWLAnnotation> annotations) {
+    public OWLHasKeyAxiomHGDB(HGHandle expression, Set<HGHandle> propertyExpressions, Collection<? extends OWLAnnotation> annotations) {
     	//OWLClassExpression expression, Set<? extends OWLPropertyExpression<?,?>> propertyExpressions, Collection<? extends OWLAnnotation> annotations
         super(annotations);
-        this.expressionHandle = expression;
-        this.propertyExpressionsHandles = new ArrayList<HGHandle>(propertyExpressions);
+//        this.expressionHandle = expression;
+//        this.propertyExpressionsHandles = new ArrayList<HGHandle>(propertyExpressions);
+        handles = new ArrayList<HGHandle>(1 + propertyExpressions.size());
+        handles.add(expression);
+        handles.addAll(propertyExpressions);
     }
 
     public OWLHasKeyAxiom getAxiomWithoutAnnotations() {
@@ -77,15 +83,17 @@ public class OWLHasKeyAxiomHGDB extends OWLLogicalAxiomHGDB implements HGLink, O
     }
 
     public OWLClassExpression getClassExpression() {
-        return getHyperGraph().get(expressionHandle);
+        return getHyperGraph().get(getTargetAt(0));//expressionHandle);
     }
 
     public Set<OWLPropertyExpression<?,?>> getPropertyExpressions() {
     	HyperGraph g = getHyperGraph();
     	Set<OWLPropertyExpression<?,?>> s = new TreeSet<OWLPropertyExpression<?,?>>();
-    	for (HGHandle h : propertyExpressionsHandles) {
+    	for (int i = 1; i < handles.size(); i++) { 
+    		HGHandle h = handles.get(i); 
     		s.add((OWLPropertyExpression<?,?>) g.get(h));    		
     	}
+    	if (s.size() != (handles.size() - 1)) throw new IllegalStateException("Set contract broken.");
     	return s;
         //return CollectionFactory.getCopyOnRequestSet(propertyExpressions);
     }
@@ -153,7 +161,7 @@ public class OWLHasKeyAxiomHGDB extends OWLLogicalAxiomHGDB implements HGLink, O
 	 */
 	@Override
 	public int getArity() {
-		return 1 + propertyExpressionsHandles.size();
+		return handles.size();
 	}
 
 	/* (non-Javadoc)
@@ -162,11 +170,7 @@ public class OWLHasKeyAxiomHGDB extends OWLLogicalAxiomHGDB implements HGLink, O
 	@Override
 	public HGHandle getTargetAt(int i) {
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity());
-		if (i == 0) {
-			return expressionHandle;
-		} else {
-			return propertyExpressionsHandles.get(i - 1);
-		}
+		return handles.get(i);
 	}
 
 	/* (non-Javadoc)
@@ -178,11 +182,7 @@ public class OWLHasKeyAxiomHGDB extends OWLLogicalAxiomHGDB implements HGLink, O
 		
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
 		if (handle == null) throw new IllegalArgumentException("handle null"); 
-		if (i == 0) {
-			expressionHandle = handle;
-		} else {
-			propertyExpressionsHandles.set(i - 1, handle);
-		}
+		handles.set(i, handle);
 	}
 
 	/* (non-Javadoc)
@@ -191,10 +191,6 @@ public class OWLHasKeyAxiomHGDB extends OWLLogicalAxiomHGDB implements HGLink, O
 	@Override
 	public void notifyTargetRemoved(int i) {
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
-		if (i == 0) {
-			expressionHandle = null;
-		} else {
-			propertyExpressionsHandles.set(i - 1, null);
-		}
+		handles.remove(i);
 	}
 }
