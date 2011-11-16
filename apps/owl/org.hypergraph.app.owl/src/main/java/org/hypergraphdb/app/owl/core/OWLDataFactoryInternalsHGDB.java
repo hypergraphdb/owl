@@ -2,6 +2,7 @@ package org.hypergraphdb.app.owl.core;
 
 import org.hypergraphdb.HGException;
 import org.hypergraphdb.HGGraphHolder;
+import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
@@ -21,8 +22,6 @@ import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 
-import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternals;
-
 /**
  * OWLDataFactoryInternalsHGDB.
  * 
@@ -34,7 +33,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternals;
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  * @created Sep 28, 2011
  */
-public class OWLDataFactoryInternalsHGDB implements OWLDataFactoryInternals {
+public class OWLDataFactoryInternalsHGDB {
 	public static boolean DBG = true;
 	
     //private WeakHashMap<IRI, WeakReference<? extends OWLEntity>> classesByURI;
@@ -189,4 +188,15 @@ public class OWLDataFactoryInternalsHGDB implements OWLDataFactoryInternals {
 		return e;
 	}
     
+	HGHandle findOrAddIRIHandle(IRI iri) {
+    	HyperGraph graph = factory.getHyperGraph();
+		HGHandle iriHandle = hg.findOne(graph, hg.and(hg.type(IRI.class), hg.eq(iri)));
+		if (DBG) {
+			System.out.println("findOrAddIRIHandle IRI: " + iri + " found?: " + iriHandle);
+		}
+		if (iriHandle == null) {
+			iriHandle = graph.add(iri);
+		}
+		return iriHandle;
+	}
 }
