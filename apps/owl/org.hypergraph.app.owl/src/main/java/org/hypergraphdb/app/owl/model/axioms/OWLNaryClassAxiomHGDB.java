@@ -122,6 +122,6 @@ public abstract class OWLNaryClassAxiomHGDB extends OWLClassAxiomHGDB implements
 	@Override
 	public void notifyTargetRemoved(int i) {
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
-		classExpressionsHandles.set(i, null);  
+		classExpressionsHandles.remove(i);  
 	}
 }
