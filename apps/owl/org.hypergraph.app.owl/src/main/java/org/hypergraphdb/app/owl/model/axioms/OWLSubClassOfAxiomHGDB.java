@@ -24,16 +24,12 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
  */
 public class OWLSubClassOfAxiomHGDB extends OWLClassAxiomHGDB implements OWLSubClassOfAxiom, HGLink  {
 
-//    private OWLClassExpression subClass;
-//
-//    private OWLClassExpression superClass;
-
-    private HGHandle subClassHandle; //0 OWLClassExpression
-
+    private HGHandle subClassHandle;   //0 OWLClassExpression
     private HGHandle superClassHandle; //1 OWLClassExpression
+    // private OWLClassExpression subClass;
+    // private OWLClassExpression superClass;
 
-    public OWLSubClassOfAxiomHGDB(HGHandle...args)
-    {
+    public OWLSubClassOfAxiomHGDB(HGHandle...args) {
     	this(args[0], args[1], Collections.<OWLAnnotation>emptySet());
     }
 
@@ -83,17 +79,14 @@ public class OWLSubClassOfAxiomHGDB extends OWLClassAxiomHGDB implements OWLSubC
         return getHyperGraph().get(subClassHandle);
     }
 
-
     public OWLClassExpression getSuperClass() {
         return getHyperGraph().get(superClassHandle);
     }
-
 
     public boolean isGCI() {
         return getSubClass().isAnonymous();
         //return subClass.isAnonymous();
     }
-
 
     @Override
 	public boolean equals(Object obj) {
@@ -128,7 +121,6 @@ public class OWLSubClassOfAxiomHGDB extends OWLClassAxiomHGDB implements OWLSubC
     public AxiomType<?> getAxiomType() {
         return AxiomType.SUBCLASS_OF;
     }
-
 
     @Override
 	protected int compareObjectOfSameType(OWLObject object) {
@@ -182,6 +174,5 @@ public class OWLSubClassOfAxiomHGDB extends OWLClassAxiomHGDB implements OWLSubC
 		} else {
 			superClassHandle = null;
 		}
-	}
-	
+	}	
 }
