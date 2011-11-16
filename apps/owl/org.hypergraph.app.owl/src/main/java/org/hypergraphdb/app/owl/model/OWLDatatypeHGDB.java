@@ -152,16 +152,13 @@ public class OWLDatatypeHGDB extends OWLObjectHGDB implements OWLDatatype {
         return true;
     }
 
-
     public boolean isTopDatatype() {
         return top;
     }
 
-
     public URI getURI() {
         return iri.toURI();
     }
-
 
     @Override
 	public boolean equals(Object obj) {
@@ -173,46 +170,37 @@ public class OWLDatatypeHGDB extends OWLObjectHGDB implements OWLDatatype {
         return false;
     }
 
-
     public Set<OWLAnnotation> getAnnotations(OWLOntology ontology) {
         return ImplUtils.getAnnotations(this, Collections.singleton(ontology));
     }
-
 
     public Set<OWLAnnotationAssertionAxiom> getAnnotationAssertionAxioms(OWLOntology ontology) {
         return ImplUtils.getAnnotationAxioms(this, Collections.singleton(ontology));
     }
 
-
     public Set<OWLAnnotation> getAnnotations(OWLOntology ontology, OWLAnnotationProperty annotationProperty) {
         return ImplUtils.getAnnotations(this, annotationProperty, Collections.singleton(ontology));
     }
-
 
     public OWLClass asOWLClass() {
         throw new OWLRuntimeException("Not an OWLClass!");
     }
 
-
     public OWLDataProperty asOWLDataProperty() {
         throw new OWLRuntimeException("Not a data property!");
     }
-
 
     public OWLDatatype asOWLDatatype() {
         return this;
     }
 
-
     public OWLNamedIndividual asOWLNamedIndividual() {
         throw new OWLRuntimeException("Not an individual!");
     }
 
-
     public OWLObjectProperty asOWLObjectProperty() {
         throw new OWLRuntimeException("Not an object property");
     }
-
 
     public boolean isOWLClass() {
         return false;
@@ -227,7 +215,6 @@ public class OWLDatatypeHGDB extends OWLObjectHGDB implements OWLDatatype {
     public boolean isOWLDatatype() {
         return true;
     }
-
 
     public boolean isOWLNamedIndividual() {
         return false;
@@ -250,7 +237,6 @@ public class OWLDatatypeHGDB extends OWLObjectHGDB implements OWLDatatype {
         visitor.visit(this);
     }
 
-
     public void accept(OWLDataVisitor visitor) {
         visitor.visit(this);
     }
@@ -259,11 +245,9 @@ public class OWLDatatypeHGDB extends OWLObjectHGDB implements OWLDatatype {
         visitor.visit(this);
     }
 
-
     public void accept(OWLNamedObjectVisitor visitor) {
         visitor.visit(this);
     }
-
 
     public <O> O accept(OWLEntityVisitorEx<O> visitor) {
         return visitor.visit(this);
@@ -272,7 +256,6 @@ public class OWLDatatypeHGDB extends OWLObjectHGDB implements OWLDatatype {
     public <O> O accept(OWLDataVisitorEx<O> visitor) {
         return visitor.visit(this);
     }
-
 
     public <O> O accept(OWLObjectVisitorEx<O> visitor) {
         return visitor.visit(this);
@@ -291,7 +274,6 @@ public class OWLDatatypeHGDB extends OWLObjectHGDB implements OWLDatatype {
         return iri.compareTo(((OWLDatatype) object).getIRI());
     }
 
-
     public Set<OWLAxiom> getReferencingAxioms(OWLOntology ontology) {
         return ontology.getReferencingAxioms(this);
     }
@@ -299,5 +281,4 @@ public class OWLDatatypeHGDB extends OWLObjectHGDB implements OWLDatatype {
     public Set<OWLAxiom> getReferencingAxioms(OWLOntology ontology, boolean includeImports) {
         return ontology.getReferencingAxioms(this, includeImports);
     }
-
 }
