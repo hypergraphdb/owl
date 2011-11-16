@@ -191,7 +191,7 @@ public class OWLSubPropertyChainAxiomHGDB extends OWLPropertyAxiomHGDB implement
 		if (i == 0) {
 			superPropertyHandle = null;
 		} else {
-			propertyHandlesChain.set(i - 1, null);
+			propertyHandlesChain.remove(i - 1);
 		}
 	}
 }
