@@ -109,7 +109,7 @@ public abstract class OWLNaryBooleanClassExpressionHGDB extends OWLAnonymousClas
 	@Override
 	public void notifyTargetRemoved(int i) {
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
-		operandHandles.set(i, null);  
+		operandHandles.remove(i);  
 	}
 
 }
