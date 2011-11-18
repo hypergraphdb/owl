@@ -105,7 +105,7 @@ public interface HGDBOntologyInternals {
 
 	public void removeAxiomsByType(AxiomType<?> type, OWLAxiom axiom);
 
-	Map<OWLAxiom, Set<OWLAxiom>> getLogicalAxiom2AnnotatedAxiomMap();
+	//2011.11.17 Map<OWLAxiom, Set<OWLAxiom>> getLogicalAxiom2AnnotatedAxiomMap();
 
 	Set<OWLAxiom> getLogicalAxiom2AnnotatedAxiom(OWLAxiom ax);
 
