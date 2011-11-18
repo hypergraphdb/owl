@@ -6,6 +6,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGQuery.hg;
+import org.hypergraphdb.app.owl.type.link.AxiomAnnotatedBy;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
@@ -13,12 +16,26 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.util.CollectionFactory;
 import org.semanticweb.owlapi.util.NNF;
-
+/**
+ * OWLAxiomHGDB.
+ * 
+ * OWLAnnotations are expected to be connected in the graph by AxiomAnnotatedBy Links,
+ * which must exist once the axiom was stored.
+ * 
+ * @author Thomas Hilpold (CIAO/Miami-Dade County)
+ * @created Nov 18, 2011
+ */
 public abstract class OWLAxiomHGDB extends OWLObjectHGDB implements OWLAxiom
 {
     private OWLAxiom nnf;
 
-    private final Set<OWLAnnotation> annotations;
+    //private final Set<OWLAnnotation> annotations;
+    private Set<OWLAnnotation> annotations;
+    
+    /**
+     * Switch indicating that we (lazily)loaded the annotations from the graph once.
+     */
+    private boolean annotationsLoaded = false;
     
     public OWLAxiomHGDB() {
     	this(Collections.<OWLAnnotation>emptySet());
@@ -32,12 +49,30 @@ public abstract class OWLAxiomHGDB extends OWLObjectHGDB implements OWLAxiom
             this.annotations = Collections.emptySet();
         }
     }
-
+    				
     public boolean isAnnotated() {
         return !annotations.isEmpty();
     }
 
-    public Set<OWLAnnotation> getAnnotations() {
+    /**
+     * This axiom might have been created by our datafactory or loaded from the graph.
+     * If we were loaded from the graph we will have an atomhandle set and we will try to load the annotations from the graph once and 
+     * switch annotationsLoaded to true.
+     * The only drawback here is, that we might be created by DF, then stored in the graph and then asked for annotations.
+     * In this sequence, we take a performance penalty as we already know the annotations but query the graph unnecessarily anyways.
+     *
+     */
+    @SuppressWarnings("unchecked")
+	public Set<OWLAnnotation> getAnnotations() {
+    	if (!annotationsLoaded && getAtomHandle() != null) {
+        	HGHandle atomHandle = getAtomHandle(); 
+    		annotationsLoaded = true;
+    		annotations = new TreeSet<OWLAnnotation>();
+   			annotations.addAll((Collection<? extends OWLAnnotation>) hg.getAll(getHyperGraph(), 
+   					hg.and(hg.type(AxiomAnnotatedBy.class),
+   					hg.incident(atomHandle))));   			
+   			annotations = CollectionFactory.getCopyOnRequestSet(annotations);
+    	} // else keep annotations. which might be set by the datafactory.
         return annotations;
     }
 
