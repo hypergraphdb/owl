@@ -22,6 +22,8 @@ import org.semanticweb.owlapi.util.NNF;
  * OWLAnnotations are expected to be connected in the graph by AxiomAnnotatedBy Links,
  * which must exist once the axiom was stored.
  * 
+ * Annotations will be loaded from the graph, when the handle of the axiom is set.
+ *
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 18, 2011
  */
@@ -33,9 +35,12 @@ public abstract class OWLAxiomHGDB extends OWLObjectHGDB implements OWLAxiom
     private Set<OWLAnnotation> annotations;
     
     /**
-     * Switch indicating that we (lazily)loaded the annotations from the graph once.
+     * Switch indicating that the annotations shall be loaded from the graph on setAtomHandle(..).
+     * (As opposed to being set in the constructor already.)
+     * True by default, should be false after axiom get's added to an ontology (to prevent loading known annotations) or 
+     * after the axiom was created by HG and the annotations were loaded.
      */
-    private boolean annotationsLoaded = false;
+    private boolean loadAnnotations = true;
     
     public OWLAxiomHGDB() {
     	this(Collections.<OWLAnnotation>emptySet());
@@ -48,35 +53,65 @@ public abstract class OWLAxiomHGDB extends OWLObjectHGDB implements OWLAxiom
         else {
             this.annotations = Collections.emptySet();
         }
-    }
-    				
-    public boolean isAnnotated() {
+    }    		
+
+	/**
+	 * @return the loadAnnotations
+	 */
+	public boolean isLoadAnnotations() {
+		return loadAnnotations;
+	}
+
+	/**
+	 * @param loadAnnotations false, if loading annotations from graph should not take place.
+	 */
+	public void setLoadAnnotations(boolean loadAnnotations) {
+		this.loadAnnotations = loadAnnotations;
+	}
+
+	public boolean isAnnotated() {
         return !annotations.isEmpty();
     }
 
-    /**
-     * This axiom might have been created by our datafactory or loaded from the graph.
-     * If we were loaded from the graph we will have an atomhandle set and we will try to load the annotations from the graph once and 
-     * switch annotationsLoaded to true.
-     * The only drawback here is, that we might be created by DF, then stored in the graph and then asked for annotations.
-     * In this sequence, we take a performance penalty as we already know the annotations but query the graph unnecessarily anyways.
-     *
-     */
     @SuppressWarnings("unchecked")
 	public Set<OWLAnnotation> getAnnotations() {
-    	if (!annotationsLoaded && getAtomHandle() != null) {
-        	HGHandle atomHandle = getAtomHandle(); 
-    		annotationsLoaded = true;
-    		annotations = new TreeSet<OWLAnnotation>();
-   			annotations.addAll((Collection<? extends OWLAnnotation>) hg.getAll(getHyperGraph(), 
-   					hg.and(hg.type(AxiomAnnotatedBy.class),
-   					hg.incident(atomHandle))));   			
-   			annotations = CollectionFactory.getCopyOnRequestSet(annotations);
-    	} // else keep annotations. which might be set by the datafactory.
         return annotations;
     }
+    
+    /**
+     * This axiom might have been created by our datafactory or loaded from the graph.
+     * If this axiom was loaded from the graph it will have an atomhandle set and we will try to load the annotations from the graph once and 
+     * switch annotationsLoaded to true.
+     * The only drawback here is, that this axiom might be created by DF, then stored in the graph.
+     * In this sequence, we take a performance penalty as we already know the annotations but query the graph unnecessarily anyways.
+     */
+    protected void loadAnnotationsFromGraph() {
+    	if (getAtomHandle() == null) throw new IllegalStateException("Atomhandle null.");
+    	if (getHyperGraph() == null) throw new IllegalStateException("Hypergraph null.");
+    	HGHandle atomHandle = getAtomHandle(); 
+		annotations = new TreeSet<OWLAnnotation>();
+		annotations.addAll((Collection<? extends OWLAnnotation>) hg.<OWLAnnotation>getAll(getHyperGraph(), 
+				hg.apply(hg.targetAt(getHyperGraph(), 1), //1 .. Annotation, 0 .. Axiom for AxiomAnnotatedBy
+				hg.and(hg.type(AxiomAnnotatedBy.class),
+				hg.incident(atomHandle)))
+				)); //apply / getAll   			
+		annotations = CollectionFactory.getCopyOnRequestSet(annotations);
+    }
 
-    public Set<OWLAnnotation> getAnnotations(OWLAnnotationProperty annotationProperty) {
+    /* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.core.OWLObjectHGDB#setAtomHandle(org.hypergraphdb.HGHandle)
+	 */
+	@Override
+	public void setAtomHandle(HGHandle handle) {
+		if (getHyperGraph() == null) throw new IllegalStateException("Hypergraph null.");
+		super.setAtomHandle(handle);
+		if (loadAnnotations) {
+			loadAnnotationsFromGraph();
+			loadAnnotations = false;
+		}
+	}
+
+	public Set<OWLAnnotation> getAnnotations(OWLAnnotationProperty annotationProperty) {
         if (annotations.isEmpty()) {
             return annotations;
         }
