@@ -117,9 +117,9 @@ public interface HGDBOntologyInternals {
 
 	Set<OWLClassAxiom> getGeneralClassAxioms();
 
-	void addGeneralClassAxioms(OWLClassAxiom ax);
+	//2011.11.21 void addGeneralClassAxioms(OWLClassAxiom ax);
 
-	void removeGeneralClassAxioms(OWLClassAxiom ax);
+	//2011.11.21 void removeGeneralClassAxioms(OWLClassAxiom ax);
 
 	Set<OWLSubPropertyChainOfAxiom> getPropertyChainSubPropertyAxioms();
 
