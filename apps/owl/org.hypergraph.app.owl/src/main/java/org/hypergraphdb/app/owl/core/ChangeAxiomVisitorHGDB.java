@@ -47,7 +47,6 @@ import org.semanticweb.owlapi.model.OWLAnnotationPropertyRangeAxiom;
 import org.semanticweb.owlapi.model.OWLAsymmetricObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLAxiomVisitor;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLDataPropertyDomainAxiom;
 import org.semanticweb.owlapi.model.OWLDataPropertyRangeAxiom;
@@ -109,7 +108,7 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
 //                oi.addToIndexedSet(subClass, oi.getClassAxiomsByClass(), axiom);
             }
             else { //anonymous
-                oi.addGeneralClassAxioms(axiom);
+                //oi.addGeneralClassAxioms(axiom);
             }
 //            if (!axiom.getSuperClass().isAnonymous()) {
 //                //2010.10.06 removed           	
@@ -125,7 +124,7 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
 //                oi.removeAxiomFromSet(subClass, oi.getClassAxiomsByClass(), axiom, true);
             }
             else {
-                oi.removeGeneralClassAxioms(axiom);
+                //oi.removeGeneralClassAxioms(axiom);
             }
 //            if (!axiom.getSuperClass().isAnonymous()) {
 //				2010.10.06 removd
@@ -170,34 +169,34 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
     public void visit(OWLDisjointClassesAxiom axiom) {
         if (addAxiom) {
             oi.addAxiomsByType(DISJOINT_CLASSES, axiom);
-            boolean allAnon = true;
-            // Index against each named class in the axiom
-            for (OWLClassExpression desc : axiom.getClassExpressions()) {
-                if (!desc.isAnonymous()) {
-//                    OWLClass cls = (OWLClass) desc;
-//2010.10.13 removed                    oi.addToIndexedSet(cls, oi.getDisjointClassesAxiomsByClass(), axiom);
-//2010.10.06 removed                    oi.addToIndexedSet(cls, oi.getClassAxiomsByClass(), axiom);
-                    allAnon = false;
-                }
-            }
-            if (allAnon) {
-                oi.addGeneralClassAxioms(axiom);
-            }
+//            boolean allAnon = true;
+//            // Index against each named class in the axiom
+//            for (OWLClassExpression desc : axiom.getClassExpressions()) {
+//                if (!desc.isAnonymous()) {
+////                    OWLClass cls = (OWLClass) desc;
+////2010.10.13 removed                    oi.addToIndexedSet(cls, oi.getDisjointClassesAxiomsByClass(), axiom);
+////2010.10.06 removed                    oi.addToIndexedSet(cls, oi.getClassAxiomsByClass(), axiom);
+//                    allAnon = false;
+//                }
+//            }
+//            if (allAnon) {
+//                oi.addGeneralClassAxioms(axiom);
+//            }
         }
         else {
             oi.removeAxiomsByType(DISJOINT_CLASSES, axiom);
-            boolean allAnon = true;
-            for (OWLClassExpression desc : axiom.getClassExpressions()) {
-                if (!desc.isAnonymous()) {
-//                    OWLClass cls = (OWLClass) desc;
-//2010.10.13 removed                    oi.removeAxiomFromSet(cls, oi.getDisjointClassesAxiomsByClass(), axiom, true);
-//2010.10.06 removed                    oi.removeAxiomFromSet(cls, oi.getClassAxiomsByClass(), axiom, true);
-                    allAnon = false;
-                }
-            }
-            if (allAnon) {
-                oi.removeGeneralClassAxioms(axiom);
-            }
+//            boolean allAnon = true;
+//            for (OWLClassExpression desc : axiom.getClassExpressions()) {
+//                if (!desc.isAnonymous()) {
+////                    OWLClass cls = (OWLClass) desc;
+////2010.10.13 removed                    oi.removeAxiomFromSet(cls, oi.getDisjointClassesAxiomsByClass(), axiom, true);
+////2010.10.06 removed                    oi.removeAxiomFromSet(cls, oi.getClassAxiomsByClass(), axiom, true);
+//                    allAnon = false;
+//                }
+//            }
+//            if (allAnon) {
+//                oi.removeGeneralClassAxioms(axiom);
+//            }
         }
     }
 
@@ -519,31 +518,31 @@ public class ChangeAxiomVisitorHGDB implements OWLAxiomVisitor {
     public void visit(OWLEquivalentClassesAxiom axiom) {
         if (addAxiom) {
             oi.addAxiomsByType(EQUIVALENT_CLASSES, axiom);
-            boolean allAnon = true;
-            for (OWLClassExpression desc : axiom.getClassExpressions()) {
-                if (!desc.isAnonymous()) {
-//2010.10.13 removed                    oi.addToIndexedSet((OWLClass) desc, oi.getEquivalentClassesAxiomsByClass(), axiom);
-//2010.10.06                    oi.addToIndexedSet((OWLClass) desc, oi.getClassAxiomsByClass(), axiom);
-                    allAnon = false;
-                }
-            }
-            if (allAnon) {
-                oi.addGeneralClassAxioms(axiom);
-            }
+//            boolean allAnon = true;
+//            for (OWLClassExpression desc : axiom.getClassExpressions()) {
+//                if (!desc.isAnonymous()) {
+////2010.10.13 removed                    oi.addToIndexedSet((OWLClass) desc, oi.getEquivalentClassesAxiomsByClass(), axiom);
+////2010.10.06                    oi.addToIndexedSet((OWLClass) desc, oi.getClassAxiomsByClass(), axiom);
+//                    allAnon = false;
+//                }
+//            }
+//            if (allAnon) {
+//                oi.addGeneralClassAxioms(axiom);
+//            }
         }
         else {
             oi.removeAxiomsByType(EQUIVALENT_CLASSES, axiom);
-            boolean allAnon = true;
-            for (OWLClassExpression desc : axiom.getClassExpressions()) {
-                if (!desc.isAnonymous()) {
-//2010.10.13 removed                    oi.removeAxiomFromSet((OWLClass) desc, oi.getEquivalentClassesAxiomsByClass(), axiom, true);
-//2010.10.06 removed                    oi.removeAxiomFromSet((OWLClass) desc, oi.getClassAxiomsByClass(), axiom, true);
-                    allAnon = false;
-                }
-            }
-            if (allAnon) {
-                oi.removeGeneralClassAxioms(axiom);
-            }
+//            boolean allAnon = true;
+//            for (OWLClassExpression desc : axiom.getClassExpressions()) {
+//                if (!desc.isAnonymous()) {
+////2010.10.13 removed                    oi.removeAxiomFromSet((OWLClass) desc, oi.getEquivalentClassesAxiomsByClass(), axiom, true);
+////2010.10.06 removed                    oi.removeAxiomFromSet((OWLClass) desc, oi.getClassAxiomsByClass(), axiom, true);
+//                    allAnon = false;
+//                }
+//            }
+//            if (allAnon) {
+//                oi.removeGeneralClassAxioms(axiom);
+//            }
         }
     }
 
