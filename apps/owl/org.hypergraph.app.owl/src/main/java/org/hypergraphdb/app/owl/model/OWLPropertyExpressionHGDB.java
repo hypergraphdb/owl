@@ -133,7 +133,8 @@ public abstract class OWLPropertyExpressionHGDB<R extends OWLPropertyRange, P ex
 
     protected abstract Set<? extends OWLNaryPropertyAxiom<P>> getDisjointPropertiesAxioms(OWLOntology ontology);
 
-    private <P extends OWLPropertyExpression<?,?>> Set<P> getProperties(Set<? extends OWLNaryPropertyAxiom<P>> axioms) {
+    @SuppressWarnings("hiding")
+	private <P extends OWLPropertyExpression<?,?>> Set<P> getProperties(Set<? extends OWLNaryPropertyAxiom<P>> axioms) {
         Set<P> result = new TreeSet<P>();
         for (OWLNaryPropertyAxiom<P> axiom : axioms) {
             result.addAll(axiom.getProperties());

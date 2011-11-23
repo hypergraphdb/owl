@@ -58,7 +58,8 @@ public abstract class OWLCardinalityRestrictionHGDB<R extends OWLPropertyRange, 
                 if(!(obj instanceof OWLCardinalityRestriction)) {
                     return false;
                 }
-                OWLCardinalityRestriction<R, P, F> other = (OWLCardinalityRestriction<R, P, F>) obj;
+                @SuppressWarnings("unchecked")
+				OWLCardinalityRestriction<R, P, F> other = (OWLCardinalityRestriction<R, P, F>) obj;
                 return other.getCardinality() == cardinality &&
                         other.getFiller().equals(getFiller());
             }
@@ -68,7 +69,8 @@ public abstract class OWLCardinalityRestrictionHGDB<R extends OWLPropertyRange, 
 
     @Override
 	final protected int compareObjectOfSameType(OWLObject object) {
-        OWLCardinalityRestriction<R, P, F> other = (OWLCardinalityRestriction<R, P, F>) object;
+        @SuppressWarnings("unchecked")
+		OWLCardinalityRestriction<R, P, F> other = (OWLCardinalityRestriction<R, P, F>) object;
         int diff = getProperty().compareTo(other.getProperty());
         if (diff != 0) {
             return diff;
