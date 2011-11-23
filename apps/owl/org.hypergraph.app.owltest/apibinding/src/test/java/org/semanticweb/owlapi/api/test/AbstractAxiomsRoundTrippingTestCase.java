@@ -43,6 +43,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
+import org.hypergraphdb.app.owl.HGDBOntologyFormat;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -98,6 +99,10 @@ public abstract class AbstractAxiomsRoundTrippingTestCase extends AbstractRoundT
     @Override
     public void testManchesterOWLSyntax() throws Exception {
         super.testManchesterOWLSyntax();
+    }
+
+    public void testHyperGraphRoundTrip() throws Exception {
+        super.testHyperGraphRoundTrip();
     }
 
     protected abstract Set<? extends OWLAxiom> createAxioms();

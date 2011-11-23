@@ -40,6 +40,8 @@
 package org.semanticweb.owlapi.apibinding;
 
 
+import javax.swing.JOptionPane;
+
 import org.coode.owlapi.functionalparser.OWLFunctionalSyntaxParserFactory;
 import org.coode.owlapi.functionalrenderer.OWLFunctionalSyntaxOntologyStorer;
 import org.coode.owlapi.latex.LatexOntologyStorer;
@@ -68,6 +70,7 @@ import de.uulm.ecs.ai.owlapi.krssparser.KRSS2OWLParserFactory;
 import de.uulm.ecs.ai.owlapi.krssrenderer.KRSS2OWLSyntaxOntologyStorer;
 
 /**
+ * Based on:
  * Author: Matthew Horridge<br>
  * The University Of Manchester<br>
  * Bio-Health Informatics Group<br>
@@ -76,8 +79,10 @@ import de.uulm.ecs.ai.owlapi.krssrenderer.KRSS2OWLSyntaxOntologyStorer;
  * Provides a point of convenience for creating an <code>OWLOntologyManager</code>
  * with commonly required features (such as an RDF parser for example).
  */
-public class OWLManager {
+public class OWLManagerHG {
 
+	private static int ontologyManagerCounter = 0;
+	
     static {
         // Register useful parsers
         OWLParserFactoryRegistry registry = OWLParserFactoryRegistry.getInstance();
@@ -90,7 +95,6 @@ public class OWLManager {
         registry.registerParserFactory(new RDFXMLParserFactory());
     }
 
-
     /**
      * Creates an OWL ontology manager that is configured with standard parsers,
      * storeres etc.
@@ -101,7 +105,13 @@ public class OWLManager {
         return createOWLOntologyManager(getOWLDataFactory());
     }
 
-
+    private static void ontologyManagerCreated() {
+    	ontologyManagerCounter ++;
+    	String message =" Created OWLOntologyManger Number: " + ontologyManagerCounter;
+    	System.out.println(message);
+    	//JOptionPane.showConfirmDialog(null, message);
+    }
+    
     /**
      * Creates an OWL ontology manager that is configured with standard parsers,
      * storeres etc.
@@ -121,13 +131,12 @@ public class OWLManager {
         ontologyManager.addOntologyStorer(new TurtleOntologyStorer());
         ontologyManager.addOntologyStorer(new LatexOntologyStorer());
         ontologyManager.addOntologyStorer(new HGDBStorer());
-
         ontologyManager.addIRIMapper(new NonMappingOntologyIRIMapper());
-
         ontologyManager.addOntologyFactory(new EmptyInMemOWLOntologyFactory());
         ontologyManager.addOntologyFactory(new ParsableOWLOntologyFactory());
-
         ontologyManager.addOntologyFactory(new HGDBOntologyFactory());
+        
+    	ontologyManagerCreated();
 
         return ontologyManager;
     }

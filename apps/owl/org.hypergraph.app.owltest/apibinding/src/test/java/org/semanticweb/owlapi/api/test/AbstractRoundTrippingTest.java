@@ -41,6 +41,8 @@ package org.semanticweb.owlapi.api.test;
 
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
 import org.coode.owlapi.turtle.TurtleOntologyFormat;
+import org.hypergraphdb.app.owl.HGDBOntologyFactory;
+import org.hypergraphdb.app.owl.HGDBOntologyFormat;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
 import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
 import org.semanticweb.owlapi.io.StringDocumentTarget;
@@ -88,6 +90,10 @@ public abstract class AbstractRoundTrippingTest extends AbstractOWLAPITestCase {
 
     public void testManchesterOWLSyntax() throws Exception {
         roundTripOntology(ont, new ManchesterOWLSyntaxOntologyFormat());
+    }
+
+    public void testHyperGraphRoundTrip() throws Exception {
+        roundTripOntology(ont, new HGDBOntologyFormat());
     }
 
     @Override
