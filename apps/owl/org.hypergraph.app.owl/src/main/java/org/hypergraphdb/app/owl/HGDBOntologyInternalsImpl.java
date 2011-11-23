@@ -5,12 +5,10 @@ import static org.semanticweb.owlapi.util.CollectionFactory.createSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.logging.Logger;
@@ -95,12 +93,15 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	// hilpold protected Set<OWLImportsDeclaration> importsDeclarations;
-	// 2011.11.17 protected Set<OWLAnnotation> ontologyAnnotations; // recursive??
+	// 2011.11.17 protected Set<OWLAnnotation> ontologyAnnotations; //
+	// recursive??
 	// protected Map<AxiomType<?>, Set<OWLAxiom>> axiomsByType; removed
 	// 2011.10.06
-	//2011.11.17 protected Map<OWLAxiom, Set<OWLAxiom>> logicalAxiom2AnnotatedAxiomMap;
-	//2011.11.21 protected Set<OWLClassAxiom> generalClassAxioms;
-	//2011.11.07 protected Set<OWLSubPropertyChainOfAxiom> propertyChainSubPropertyAxioms;
+	// 2011.11.17 protected Map<OWLAxiom, Set<OWLAxiom>>
+	// logicalAxiom2AnnotatedAxiomMap;
+	// 2011.11.21 protected Set<OWLClassAxiom> generalClassAxioms;
+	// 2011.11.07 protected Set<OWLSubPropertyChainOfAxiom>
+	// propertyChainSubPropertyAxioms;
 
 	// protected Map<OWLClass, Set<OWLAxiom>> owlClassReferences;
 	// protected Map<OWLObjectProperty, Set<OWLAxiom>>
@@ -118,25 +119,25 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	// Set<OWLDeclarationAxiom>> declarationsByEntity;
 
 	public HGDBOntologyInternalsImpl() {
-		//initMaps();
+		// initMaps();
 	}
 
-//	protected void initMaps() {
-		// this.importsDeclarations = createSet();
-		// this.ontologyAnnotations = createSet();
-		// this.axiomsByType = createMap();
-		// this.logicalAxiom2AnnotatedAxiomMap = createMap();
-		// this.generalClassAxioms = createSet();
-		// this.propertyChainSubPropertyAxioms = createSet();
-		// this.owlClassReferences = createMap();
-		// this.owlObjectPropertyReferences = createMap();
-		// this.owlDataPropertyReferences = createMap();
-		// this.owlIndividualReferences = createMap();
-		// this.owlAnonymousIndividualReferences = createMap();
-		// this.owlDatatypeReferences = createMap();
-		// this.owlAnnotationPropertyReferences = createMap();
-		// this.declarationsByEntity = createMap();
-//	}
+	// protected void initMaps() {
+	// this.importsDeclarations = createSet();
+	// this.ontologyAnnotations = createSet();
+	// this.axiomsByType = createMap();
+	// this.logicalAxiom2AnnotatedAxiomMap = createMap();
+	// this.generalClassAxioms = createSet();
+	// this.propertyChainSubPropertyAxioms = createSet();
+	// this.owlClassReferences = createMap();
+	// this.owlObjectPropertyReferences = createMap();
+	// this.owlDataPropertyReferences = createMap();
+	// this.owlIndividualReferences = createMap();
+	// this.owlAnonymousIndividualReferences = createMap();
+	// this.owlDatatypeReferences = createMap();
+	// this.owlAnnotationPropertyReferences = createMap();
+	// this.declarationsByEntity = createMap();
+	// }
 
 	// BORIS
 	// public Set<OWLAxiom> getAxiomsByType(AxiomType t)
@@ -229,14 +230,17 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		return getReturnSet(axiomsOneType);
 		// return (Set<T>) getAxioms(axiomType, axiomsByType, false);
 	}
+
 	/**
-	 * Anonymousindividuals have an ID that must be unique in the context of an ontology.
-	 * DataFactoryHGDB cannot prevent creation of n AnonI with the same ID.
+	 * Anonymousindividuals have an ID that must be unique in the context of an
+	 * ontology. DataFactoryHGDB cannot prevent creation of n AnonI with the
+	 * same ID.
 	 * 
 	 */
 	public Set<OWLAxiom> getReferencingAxioms(OWLAnonymousIndividual individual) {
-		//TODO we know here, that this might not be in our onto; still an equal object might.
-		HGHandle h = findAnonymousIndividual(individual);		
+		// TODO we know here, that this might not be in our onto; still an equal
+		// object might.
+		HGHandle h = findAnonymousIndividual(individual);
 		if (h == null || !ontology.isMember(h))
 			return getReturnSet(null);
 		else {
@@ -247,18 +251,16 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		// return getReturnSet(getAxioms(individual,
 		// owlAnonymousIndividualReferences, false));
 	}
-	
+
 	public HGHandle findAnonymousIndividual(final OWLAnonymousIndividual individual) {
 		HGHandle iHandle = graph.getTransactionManager().transact(new Callable<HGHandle>() {
 			public HGHandle call() {
-				HGHandle h = ontology.findOne(hg.and(
-						hg.type(OWLAnonymousIndividualHGDB.class), 
-						hg.eq(individual)));
+				HGHandle h = ontology.findOne(hg.and(hg.type(OWLAnonymousIndividualHGDB.class), hg.eq(individual)));
 				return h;
-				}
+			}
 		});
 		return iHandle;
-	}	
+	}
 
 	/**
 	 * 2011.10.13: return only axioms in Ontology!
@@ -341,8 +343,9 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	/**
-	 * Initial call: Handle should be entity. Recursive calls will ascend only on
-	 * OWLClassExpression, OWLObjectPropertyExpression, OWLDataRange, OWLLiteral and OWLFacetRestriction.
+	 * Initial call: Handle should be entity. Recursive calls will ascend only
+	 * on OWLClassExpression, OWLObjectPropertyExpression, OWLDataRange,
+	 * OWLLiteral and OWLFacetRestriction.
 	 * 
 	 * @param h
 	 *            Handle (Entity intially, ClassExpressionHandle,
@@ -356,8 +359,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	 *             ClassExpressions.
 	 */
 	private void collectOntologyAxiomsRecursive(HGHandle atomHandle, List<OWLAxiom> axiomList) {
-		if (DBG)
-			System.out.print("*" + recLevel);
+		if (DBG) System.out.print("*" + recLevel);
 		if (atomHandle == null) {
 			return;
 		} else {
@@ -372,11 +374,8 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 					} else {
 						// we have no cycles up incidence sets starting
 						// on an entity.
-						if (!(o instanceof OWLClassExpression 
-								|| o instanceof OWLObjectPropertyExpression 
-								|| o instanceof OWLDataRange 
-								|| o instanceof OWLLiteral 
-								|| o instanceof OWLFacetRestriction)) {
+						if (!(o instanceof OWLClassExpression || o instanceof OWLObjectPropertyExpression
+								|| o instanceof OWLDataRange || o instanceof OWLLiteral || o instanceof OWLFacetRestriction)) {
 							throw new IllegalStateException("We encountered an unexpected object in an incidenceset:"
 									+ o);
 						}
@@ -399,26 +398,21 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	 * @return true as soon as one axiom in the ontology is found.
 	 */
 	private boolean hasOntologyAxiomsRecursive(HGHandle atomHandle) {
-		if (DBG)
-			System.out.print("*" + recLevel);
+		if (DBG) System.out.print("*" + recLevel);
 		IncidenceSet iSet = graph.getIncidenceSet(atomHandle);
 		for (HGHandle incidentAtomHandle : iSet) {
 			Object o = graph.get(incidentAtomHandle);
 			if (o != null) {
 				if (o instanceof OWLAxiom) {
 					if (ontology.isMember(incidentAtomHandle)) {
-						if (DBG)
-							System.out.println("\r\nFound axiom recursive: " + o);
+						if (DBG) System.out.println("\r\nFound axiom recursive: " + o);
 						return true;
 					} // else ignore axiom not part of our onto.
 				} else {
 					// we have no cycles up incidence sets starting
 					// on an entity.
-					if (!(o instanceof OWLClassExpression 
-							|| o instanceof OWLObjectPropertyExpression 
-							|| o instanceof OWLDataRange 
-							|| o instanceof OWLLiteral 
-							|| o instanceof OWLFacetRestriction)) {
+					if (!(o instanceof OWLClassExpression || o instanceof OWLObjectPropertyExpression
+							|| o instanceof OWLDataRange || o instanceof OWLLiteral || o instanceof OWLFacetRestriction)) {
 						throw new IllegalStateException("We encountered an unexpected object in an incidenceset:" + o);
 					}
 					recLevel++;
@@ -433,7 +427,6 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		return false;
 	}
 
-	
 	// hilpold
 	public Set<OWLDeclarationAxiom> getDeclarationAxioms(OWLEntity entity) {
 		// is entity in graph, fail if not?
@@ -537,9 +530,9 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		Set<OWLAnnotation> s;
 		s = getReturnSet(l);
 		if (s.size() != l.size()) throw new IllegalStateException("Set contract broken.");
-		return s; 
+		return s;
 	}
-	
+
 	public boolean containsOntologyAnnotation(OWLAnnotation ann) {
 		HGHandle annotationHandle = graph.getHandle(ann);
 		return ontology.isMember(annotationHandle);
@@ -548,7 +541,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	public boolean addOntologyAnnotation(OWLAnnotation ann) {
 		HGHandle annotationHandle = graph.getHandle(ann);
 		if (annotationHandle == null) throw new IllegalStateException("annotationHandle null");
-		boolean contains = containsOntologyAnnotation(ann); 
+		boolean contains = containsOntologyAnnotation(ann);
 		if (!contains) {
 			ontology.add(annotationHandle);
 		}
@@ -564,10 +557,9 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	public boolean containsAxiom(final OWLAxiom axiom) {
-		if (axiom == null)
-			throw new NullPointerException("axiom");
+		if (axiom == null) throw new NullPointerException("axiom");
 		HGHandle h = graph.getHandle(axiom);
-		return h != null ? ontology.isMember(h) : findEqualAxiom(axiom) != null;
+		return h != null ? ontology.isMember(h) || findEqualAxiom(axiom) != null : findEqualAxiom(axiom) != null;
 		// //TODO will not work 2011.10.13; must rely on equals code in axiom
 		// HGHandle axiomHandle = graph.getHandle(axiom);
 		// // true iff found in graph and in ontology
@@ -587,8 +579,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	 *         to the given axiom.
 	 */
 	protected OWLAxiom findEqualAxiom(OWLAxiom axiom) {
-		if (axiom == null)
-			throw new NullPointerException("axiom");
+		if (axiom == null) throw new NullPointerException("axiom");
 		// TODO this is expensive !! Maybe implement a complex search condition
 		// based on equals in each axiom type.
 		// Boris had ideas about bottom up search and parallel search.
@@ -678,8 +669,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		} else {
 			axiomsOneTypeCount = ontology.count(hg.type(hgdbAxiomClass));
 		}
-		if (axiomsOneTypeCount > Integer.MAX_VALUE)
-			throw new ArithmeticException("long Count > int Max");
+		if (axiomsOneTypeCount > Integer.MAX_VALUE) throw new ArithmeticException("long Count > int Max");
 		return (int) axiomsOneTypeCount;
 		// Set<OWLAxiom> axioms = axiomsByType.get(axiomType);
 		// if (axioms == null) {
@@ -705,8 +695,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 
 	public int getLogicalAxiomCount() {
 		long count = ontology.count(getLogicalAxiomQuery());
-		if (count > Integer.MAX_VALUE)
-			throw new ArithmeticException("count > int max");
+		if (count > Integer.MAX_VALUE) throw new ArithmeticException("count > int max");
 		return (int) count;
 		// int count = 0;
 		// for (AxiomType<?> type : AXIOM_TYPES) {
@@ -744,30 +733,30 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 					public Boolean call() {
 						OWLAxiomHGDB axiomHGDB = (OWLAxiomHGDB) axiom;
 						axiomHGDB.setLoadAnnotations(false);
-						if (DBG)
-							ontology.printGraphStats("Before AddAxiom");
+						if (DBG) ontology.printGraphStats("Before AddAxiom");
 						// hilpold 2011.10.06 adding to graph here instead of
 						// previously in Datafactory
 						HGHandle axiomHandle = graph.add(axiom);
 						ontology.add(axiomHandle);
 						//
-						// OWLAnnotation handling (== AxiomAnnotatedBy links added to graph)
+						// OWLAnnotation handling (== AxiomAnnotatedBy links
+						// added to graph)
 						//
 						Set<OWLAnnotation> annos = axiom.getAnnotations();
-						for (OWLAnnotation anno :  annos) {
+						for (OWLAnnotation anno : annos) {
 							HGHandle annoHandle = graph.getHandle(anno);
 							if (annoHandle == null) throw new IllegalStateException("AnnotationHandle null.");
-							if (hg.findOne(graph, hg.and(
-									hg.type(AxiomAnnotatedBy.class), 
-									hg.orderedLink(axiomHandle, annoHandle))) != null) {
-								// we already have a link between the given axiom and current annotation.
-								throw new IllegalStateException("Added axiom with existing AxiomAnnotatedLink to annotation " + anno);
+							if (hg.findOne(graph,
+									hg.and(hg.type(AxiomAnnotatedBy.class), hg.orderedLink(axiomHandle, annoHandle))) != null) {
+								// we already have a link between the given
+								// axiom and current annotation.
+								throw new IllegalStateException(
+										"Added axiom with existing AxiomAnnotatedLink to annotation " + anno);
 							}
 							AxiomAnnotatedBy link = new AxiomAnnotatedBy(axiomHandle, annoHandle);
 							graph.add(link);
 						}
-						if (DBG)
-							ontology.printGraphStats("After AddAxiom");
+						if (DBG) ontology.printGraphStats("After AddAxiom");
 						return true;
 					}
 				});
@@ -782,12 +771,11 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		if (DBG) {
 			log.info("REMOVE Axiom: " + axiom.getClass().getSimpleName() + " Type: " + type);
 		}
-		//if (AxiomTypeToHGDBMap.getAxiomClassHGDB(type) != null) {
+		// if (AxiomTypeToHGDBMap.getAxiomClassHGDB(type) != null) {
 		graph.getTransactionManager().transact(new Callable<Boolean>() {
 			public Boolean call() {
 				boolean removedSuccess = false;
-				if (DBG)
-					ontology.printGraphStats("Before RemoveAxiom");
+				if (DBG) ontology.printGraphStats("Before RemoveAxiom");
 				// get the axiom handle or find an equal axiom in the
 				// ontology.
 				HGHandle axiomHandle = graph.getHandle(axiom);
@@ -800,10 +788,9 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 					//
 					// 1. remove AxiomAnnotatedBy links from graph
 					//
-					List<HGHandle> annoLinkHandles = hg.findAll(graph, hg.and(
-							hg.type(AxiomAnnotatedBy.class), 
-							hg.incident(axiomHandle)));
-					for (HGHandle annoLinkHandle :  annoLinkHandles) {
+					List<HGHandle> annoLinkHandles = hg.findAll(graph,
+							hg.and(hg.type(AxiomAnnotatedBy.class), hg.incident(axiomHandle)));
+					for (HGHandle annoLinkHandle : annoLinkHandles) {
 						graph.remove(annoLinkHandle);
 					}
 					//
@@ -811,48 +798,105 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 					//
 					ontology.remove(axiomHandle);
 					removedSuccess = graph.remove(axiomHandle);
-					if (DBG)
-						ontology.printGraphStats("After  RemoveAxiom");
+					if (DBG) ontology.printGraphStats("After  RemoveAxiom");
 					// if it pointed to an entity, entity incidence is -1
 				}
 				return removedSuccess;
 			}
 		});
-//		} else {
-//			throw new IllegalStateException("Unknown axiom : " + axiom);
-//			// log.warning("NOT YET IMPLEMENTED: " + axiom.getClass().getSimpleName());
-//			// removeAxiomFromSet(type, axiomsByType, axiom, true);
-//		}
+		// } else {
+		// throw new IllegalStateException("Unknown axiom : " + axiom);
+		// // log.warning("NOT YET IMPLEMENTED: " +
+		// axiom.getClass().getSimpleName());
+		// // removeAxiomFromSet(type, axiomsByType, axiom, true);
+		// }
 	}
 
-//2011.11.17	public Map<OWLAxiom, Set<OWLAxiom>> getLogicalAxiom2AnnotatedAxiomMap() {
-//		return new HashMap<OWLAxiom, Set<OWLAxiom>>(this.logicalAxiom2AnnotatedAxiomMap);
-//	}
+	// 2011.11.17 public Map<OWLAxiom, Set<OWLAxiom>>
+	// getLogicalAxiom2AnnotatedAxiomMap() {
+	// return new HashMap<OWLAxiom,
+	// Set<OWLAxiom>>(this.logicalAxiom2AnnotatedAxiomMap);
+	// }
+	//
+	// public Set<OWLAxiom> getLogicalAxiom2AnnotatedAxiom(OWLAxiom ax) {
+	// //2011.11.17 return
+	// getReturnSet(logicalAxiom2AnnotatedAxiomMap.get(ax.getAxiomWithoutAnnotations()));
+	// Set<OWLAxiom> s = new HashSet<OWLAxiom>();
+	// return s;
+	// }
 
-	public Set<OWLAxiom> getLogicalAxiom2AnnotatedAxiom(OWLAxiom ax) {
-		//2011.11.17 return getReturnSet(logicalAxiom2AnnotatedAxiomMap.get(ax.getAxiomWithoutAnnotations()));
-		Set<OWLAxiom> s = new HashSet<OWLAxiom>();
-		return s;
+	// public void addLogicalAxiom2AnnotatedAxiomMap(OWLAxiom ax) {
+	// //2011.11.17 addToIndexedSet(ax.getAxiomWithoutAnnotations(),
+	// logicalAxiom2AnnotatedAxiomMap, ax);
+	// }
+
+	// public void removeLogicalAxiom2AnnotatedAxiomMap(OWLAxiom ax) {
+	// //2011.11.17 removeAxiomFromSet(ax.getAxiomWithoutAnnotations(),
+	// logicalAxiom2AnnotatedAxiomMap, ax, true);
+	// }
+
+	//
+	// public boolean containsLogicalAxiom2AnnotatedAxiomMap(OWLAxiom ax) {
+	// //2011.11.17 return
+	// logicalAxiom2AnnotatedAxiomMap.containsKey(ax.getAxiomWithoutAnnotations());
+	// return false;
+	// }
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.hypergraphdb.app.owl.HGDBOntologyInternals#containsAxiomIgnoreAnnotations
+	 * (org.semanticweb.owlapi.model.OWLAxiom)
+	 */
+	@Override
+	public boolean containsAxiomIgnoreAnnotations(OWLAxiom axiom) {
+		if (axiom == null) throw new NullPointerException("axiom");
+		// TODO this is expensive !! Maybe implement a complex search condition
+		// based on equals in each axiom type.
+		boolean foundAxiom = false;
+		Class<?> hgdbType = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiom.getAxiomType());
+		List<OWLAxiomHGDB> axiomsOneTypeInOnto = ontology.getAll(hg.type(hgdbType));
+		// Find by axiom.equal (expensive)
+		Iterator<OWLAxiomHGDB> i = axiomsOneTypeInOnto.iterator();
+		while (!foundAxiom && i.hasNext()) {
+			foundAxiom = axiom.equalsIgnoreAnnotations(i.next());
+		}
+		return foundAxiom;
 	}
 
-	public void addLogicalAxiom2AnnotatedAxiomMap(OWLAxiom ax) {
-		//2011.11.17 addToIndexedSet(ax.getAxiomWithoutAnnotations(), logicalAxiom2AnnotatedAxiomMap, ax);
-	}
-
-	public void removeLogicalAxiom2AnnotatedAxiomMap(OWLAxiom ax) {
-		//2011.11.17 removeAxiomFromSet(ax.getAxiomWithoutAnnotations(), logicalAxiom2AnnotatedAxiomMap, ax, true);
-	}
-
-	public boolean containsLogicalAxiom2AnnotatedAxiomMap(OWLAxiom ax) {
-		//2011.11.17 return logicalAxiom2AnnotatedAxiomMap.containsKey(ax.getAxiomWithoutAnnotations());
-		return false;
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.hypergraphdb.app.owl.HGDBOntologyInternals#getAxiomsIgnoreAnnotations
+	 * (org.semanticweb.owlapi.model.OWLAxiom)
+	 */
+	@Override
+	public Set<OWLAxiom> getAxiomsIgnoreAnnotations(OWLAxiom axiom) {
+		if (axiom == null) throw new NullPointerException("axiom");
+		// TODO this is expensive !! Maybe implement a complex search condition
+		// based on equals in each axiom type.
+		Set<OWLAxiom> foundAxioms = new HashSet<OWLAxiom>();
+		Class<?> hgdbType = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiom.getAxiomType());
+		List<OWLAxiomHGDB> axiomsOneTypeInOnto = ontology.getAll(hg.type(hgdbType));
+		// Find by axiom.equal (expensive)
+		Iterator<OWLAxiomHGDB> i = axiomsOneTypeInOnto.iterator();
+		while (i.hasNext()) {
+			OWLAxiomHGDB curAxiom = i.next();
+			if (axiom.equalsIgnoreAnnotations(curAxiom)) {
+				foundAxioms.add(curAxiom);
+			}
+		}
+		return foundAxioms;
 	}
 
 	/**
-	 * THIS IS IN THERE (Based on ChangeAxiomVisitor behaviour):
-	 * A) OWLSubClassOfAxiom, where axiom.getSubClass().isAnonymous()
-	 * B) OWLDisjointClassesAxiom, where all axiom.getClassExpressions() are anonymous.
-	 * C) OWLEquivalentClassesAxiom, where all axiom.getClassExpressions() are anonymous.
+	 * THIS IS IN THERE (Based on ChangeAxiomVisitor behaviour): A)
+	 * OWLSubClassOfAxiom, where axiom.getSubClass().isAnonymous() B)
+	 * OWLDisjointClassesAxiom, where all axiom.getClassExpressions() are
+	 * anonymous. C) OWLEquivalentClassesAxiom, where all
+	 * axiom.getClassExpressions() are anonymous.
 	 */
 	public Set<OWLClassAxiom> getGeneralClassAxioms() {
 		List<OWLClassAxiom> s = graph.getTransactionManager().transact(new Callable<List<OWLClassAxiom>>() {
@@ -872,13 +916,13 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 				}
 				for (OWLEquivalentClassesAxiomHGDB axiom : equivalentClassesAxioms) {
 					if (allAnonymous(axiom.getClassExpressions())) generalClassAxioms.add(axiom);
-				}				
+				}
 				return generalClassAxioms;
 			};
-			
+
 			public boolean allAnonymous(Set<OWLClassExpression> classExpressions) {
 				boolean anon = true;
-				Iterator<OWLClassExpression> i = classExpressions.iterator(); 
+				Iterator<OWLClassExpression> i = classExpressions.iterator();
 				while (anon && i.hasNext()) {
 					anon = i.next().isAnonymous();
 				}
@@ -886,29 +930,31 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 			}
 		}, HGTransactionConfig.READONLY);
 		return getReturnSet(s);
-		//return getReturnSet(this.generalClassAxioms);
+		// return getReturnSet(this.generalClassAxioms);
 	}
 
-//	public void addGeneralClassAxioms(OWLClassAxiom ax) {
-//		this.generalClassAxioms.add(ax);
-//	}
-//
-//	public void removeGeneralClassAxioms(OWLClassAxiom ax) {
-//		this.generalClassAxioms.remove(ax);
-//	}
+	// public void addGeneralClassAxioms(OWLClassAxiom ax) {
+	// this.generalClassAxioms.add(ax);
+	// }
+	//
+	// public void removeGeneralClassAxioms(OWLClassAxiom ax) {
+	// this.generalClassAxioms.remove(ax);
+	// }
 
 	public Set<OWLSubPropertyChainOfAxiom> getPropertyChainSubPropertyAxioms() {
 		return getAxiomsInternal(AxiomType.SUB_PROPERTY_CHAIN_OF);
-		//return getReturnSet(this.propertyChainSubPropertyAxioms);
+		// return getReturnSet(this.propertyChainSubPropertyAxioms);
 	}
 
-//	public void addPropertyChainSubPropertyAxioms(OWLSubPropertyChainOfAxiom ax) {
-//		this.propertyChainSubPropertyAxi oms.add(ax);
-//	}
+	// public void addPropertyChainSubPropertyAxioms(OWLSubPropertyChainOfAxiom
+	// ax) {
+	// this.propertyChainSubPropertyAxi oms.add(ax);
+	// }
 
-//	public void removePropertyChainSubPropertyAxioms(OWLSubPropertyChainOfAxiom ax) {
-//		this.propertyChainSubPropertyAxioms.remove(ax);
-//	}
+	// public void
+	// removePropertyChainSubPropertyAxioms(OWLSubPropertyChainOfAxiom ax) {
+	// this.propertyChainSubPropertyAxioms.remove(ax);
+	// }
 
 	// public Map<OWLClass, Set<OWLAxiom>> getOwlClassReferences() {
 	// return new HashMap<OWLClass, Set<OWLAxiom>>(this.owlClassReferences);
