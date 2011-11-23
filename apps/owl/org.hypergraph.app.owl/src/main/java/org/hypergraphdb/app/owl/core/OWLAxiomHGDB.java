@@ -27,8 +27,8 @@ import org.semanticweb.owlapi.util.NNF;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 18, 2011
  */
-public abstract class OWLAxiomHGDB extends OWLObjectHGDB implements OWLAxiom
-{
+public abstract class OWLAxiomHGDB extends OWLObjectHGDB implements OWLAxiom {
+	
     private OWLAxiom nnf;
 
     //private final Set<OWLAnnotation> annotations;
@@ -73,7 +73,6 @@ public abstract class OWLAxiomHGDB extends OWLObjectHGDB implements OWLAxiom
         return !annotations.isEmpty();
     }
 
-    @SuppressWarnings("unchecked")
 	public Set<OWLAnnotation> getAnnotations() {
         return annotations;
     }
@@ -173,7 +172,6 @@ public abstract class OWLAxiomHGDB extends OWLObjectHGDB implements OWLAxiom
         return merged;
     }
 
-
     @Override
 	public boolean equals(Object obj) {
         if (!super.equals(obj)) {
@@ -186,11 +184,9 @@ public abstract class OWLAxiomHGDB extends OWLObjectHGDB implements OWLAxiom
         return annotations.equals(other.getAnnotations());
     }
 
-
     public Set<OWLEntity> getReferencedEntities() {
     	return getSignature();
     }
-
 
     public OWLAxiom getNNF() {
         if (nnf == null) {
@@ -199,5 +195,4 @@ public abstract class OWLAxiomHGDB extends OWLObjectHGDB implements OWLAxiom
         }
         return nnf;
     }
-
 }
