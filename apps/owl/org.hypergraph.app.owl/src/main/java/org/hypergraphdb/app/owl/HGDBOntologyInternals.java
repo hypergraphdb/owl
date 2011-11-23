@@ -107,13 +107,19 @@ public interface HGDBOntologyInternals {
 
 	//2011.11.17 Map<OWLAxiom, Set<OWLAxiom>> getLogicalAxiom2AnnotatedAxiomMap();
 
-	Set<OWLAxiom> getLogicalAxiom2AnnotatedAxiom(OWLAxiom ax);
+	//2011.11.23 boolean containsLogicalAxiom2AnnotatedAxiomMap(OWLAxiom ax);
+	
+	//2011.11.23 Set<OWLAxiom> getLogicalAxiom2AnnotatedAxiom(OWLAxiom ax);
 
-	void addLogicalAxiom2AnnotatedAxiomMap(OWLAxiom ax);
+	boolean containsAxiomIgnoreAnnotations(OWLAxiom ax);
 
-	void removeLogicalAxiom2AnnotatedAxiomMap(OWLAxiom ax);
+	Set<OWLAxiom> getAxiomsIgnoreAnnotations(OWLAxiom ax);
 
-	boolean containsLogicalAxiom2AnnotatedAxiomMap(OWLAxiom ax);
+
+	//void addLogicalAxiom2AnnotatedAxiomMap(OWLAxiom ax);
+
+	//void removeLogicalAxiom2AnnotatedAxiomMap(OWLAxiom ax);
+
 
 	Set<OWLClassAxiom> getGeneralClassAxioms();
 
