@@ -28,7 +28,6 @@ public abstract class OWLPropertyExpressionHGDB<R extends OWLPropertyRange, P ex
         return result;
     }
 
-
     public Set<R> getRanges(Set<OWLOntology> ontologies) {
         Set<R> result = new TreeSet<R>();
         for (OWLOntology ont : ontologies) {
@@ -36,7 +35,6 @@ public abstract class OWLPropertyExpressionHGDB<R extends OWLPropertyRange, P ex
         }
         return result;
     }
-
 
     public Set<OWLClassExpression> getDomains(OWLOntology ontology) {
         Set<OWLClassExpression> result = new TreeSet<OWLClassExpression>();
@@ -46,7 +44,6 @@ public abstract class OWLPropertyExpressionHGDB<R extends OWLPropertyRange, P ex
         return result;
     }
 
-
     public Set<OWLClassExpression> getDomains(Set<OWLOntology> ontologies) {
         Set<OWLClassExpression> result = new TreeSet<OWLClassExpression>();
         for (OWLOntology ont : ontologies) {
@@ -54,7 +51,6 @@ public abstract class OWLPropertyExpressionHGDB<R extends OWLPropertyRange, P ex
         }
         return result;
     }
-
 
     public Set<P> getSuperProperties(OWLOntology ontology) {
         Set<P> result = new TreeSet<P>();
@@ -64,7 +60,6 @@ public abstract class OWLPropertyExpressionHGDB<R extends OWLPropertyRange, P ex
         return result;
     }
 
-
     public Set<P> getSuperProperties(Set<OWLOntology> ontologies) {
         Set<P> results = new TreeSet<P>();
         for (OWLOntology ont : ontologies) {
@@ -72,7 +67,6 @@ public abstract class OWLPropertyExpressionHGDB<R extends OWLPropertyRange, P ex
         }
         return results;
     }
-
 
     public Set<P> getSubProperties(OWLOntology ontology) {
         Set<P> results = new TreeSet<P>();
@@ -82,7 +76,6 @@ public abstract class OWLPropertyExpressionHGDB<R extends OWLPropertyRange, P ex
         return results;
     }
 
-
     public Set<P> getSubProperties(Set<OWLOntology> ontologies) {
         Set<P> result = new TreeSet<P>();
         for (OWLOntology ont : ontologies) {
@@ -91,14 +84,11 @@ public abstract class OWLPropertyExpressionHGDB<R extends OWLPropertyRange, P ex
         return result;
     }
 
-
     protected abstract Set<? extends OWLSubPropertyAxiom<P>> getSubPropertyAxiomsForRHS(OWLOntology ont);
-
 
     public Set<P> getEquivalentProperties(OWLOntology ontology) {
         return getProperties(getEquivalentPropertiesAxioms(ontology));
     }
-
 
     public Set<P> getEquivalentProperties(Set<OWLOntology> ontologies) {
         Set<P> result = new TreeSet<P>();
@@ -107,7 +97,6 @@ public abstract class OWLPropertyExpressionHGDB<R extends OWLPropertyRange, P ex
         }
         return result;
     }
-
 
     public Set<P> getDisjointProperties(OWLOntology ontology) {
         return getProperties(getDisjointPropertiesAxioms(ontology));
@@ -121,7 +110,6 @@ public abstract class OWLPropertyExpressionHGDB<R extends OWLPropertyRange, P ex
         }
         return result;
     }
-
 
     protected abstract Set<? extends OWLPropertyDomainAxiom<?>> getDomainAxioms(OWLOntology ontology);
 
@@ -143,7 +131,6 @@ public abstract class OWLPropertyExpressionHGDB<R extends OWLPropertyRange, P ex
         return result;
     }
 
-
     @Override
 	public boolean equals(Object obj) {
         if (super.equals(obj)) {
@@ -151,5 +138,4 @@ public abstract class OWLPropertyExpressionHGDB<R extends OWLPropertyRange, P ex
         }
         return false;
     }
-
 }
