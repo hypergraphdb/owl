@@ -589,9 +589,11 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 */
 	public boolean containsAxiomIgnoreAnnotations(OWLAxiom axiom) {
 		if (axiom.isAnnotated()) {
-			return internals.containsLogicalAxiom2AnnotatedAxiomMap(axiom);
+			//2011.11.23 return internals.containsLogicalAxiom2AnnotatedAxiomMap(axiom);
+			return internals.containsAxiomIgnoreAnnotations(axiom);
 		} else {
-			return containsAxiom(axiom) || internals.containsLogicalAxiom2AnnotatedAxiomMap(axiom);
+			//return containsAxiom(axiom) || internals.containsLogicalAxiom2AnnotatedAxiomMap(axiom);
+			return containsAxiom(axiom) || internals.containsAxiomIgnoreAnnotations(axiom);
 		}
 	}
 
@@ -639,7 +641,8 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		if (containsAxiom(axiom)) {
 			result.add(axiom);
 		}
-		Set<OWLAxiom> annotated = internals.getLogicalAxiom2AnnotatedAxiom(axiom);
+		//2011.11.23 Set<OWLAxiom> annotated = internals.getLogicalAxiom2AnnotatedAxiom(axiom);
+		Set<OWLAxiom> annotated = internals.getAxiomsIgnoreAnnotations(axiom);
 		if (annotated != null) {
 			result.addAll(annotated);
 		}
@@ -1761,9 +1764,9 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 			}
 			//internals.addOwlAnonymousIndividualReferences(ind, axiom);
 		}
-		if (axiom.isAnnotated()) {
-			internals.addLogicalAxiom2AnnotatedAxiomMap(axiom);
-		}
+//		if (axiom.isAnnotated()) {
+//			internals.addLogicalAxiom2AnnotatedAxiomMap(axiom);
+//		}
 		if (DBG) printGraphStats("After HandleAxAdded");		
 	}
 
@@ -1833,9 +1836,9 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 			}
 			//internals.removeOwlAnonymousIndividualReferences(ind, axiom);
 		}
-		if (axiom.isAnnotated()) {
-			internals.removeLogicalAxiom2AnnotatedAxiomMap(axiom);
-		}
+//		if (axiom.isAnnotated()) {
+//			internals.removeLogicalAxiom2AnnotatedAxiomMap(axiom);
+//		}
 		if (DBG) printGraphStats("After HandleAxRemoved");
 	}
 
