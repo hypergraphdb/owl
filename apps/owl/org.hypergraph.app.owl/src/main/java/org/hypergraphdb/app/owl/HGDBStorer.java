@@ -4,8 +4,12 @@ import java.io.IOException;
 import java.util.Set;
 
 import org.semanticweb.owlapi.io.OWLOntologyDocumentTarget;
+import org.semanticweb.owlapi.model.AddImport;
+import org.semanticweb.owlapi.model.AddOntologyAnnotation;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLMutableOntology;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChangeException;
@@ -48,6 +52,14 @@ public class HGDBStorer implements OWLOntologyStorer {
 			newOnto.applyChange (new SetOntologyID(newOnto, ontology.getOntologyID ()));
 			final Set<OWLAxiom> axioms = ontology.getAxioms ();
 			manager.addAxioms (newOnto, axioms);
+			//Add Ontology Annotations
+			for (OWLAnnotation a : ontology.getAnnotations()) {
+				manager.applyChange(new AddOntologyAnnotation(newOnto, a));			
+			}
+			//Add Import Declarations
+			for (OWLImportsDeclaration i : ontology.getImportsDeclarations()) {
+				manager.applyChange(new AddImport(newOnto, i));			
+			}
 			//no need to store in HG, already done by createOntology.
 		}
 		catch (final OWLOntologyCreationException e)
