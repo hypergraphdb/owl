@@ -46,9 +46,12 @@ public class AxiomTypeToHGDBMap {
 	 * 
 	 * @param axiomType
 	 * @return a non abstract subclass of OWLAxiomHGDB that is implementing HGLink
+	 * @throws IllegalArgumentException if no class for axiomtype could be found.
 	 */
 	public static Class<? extends OWLAxiomHGDB> getAxiomClassHGDB(AxiomType<? extends OWLAxiom> axiomType) {
-		return m.get(axiomType);
+		Class<? extends OWLAxiomHGDB> c = m.get(axiomType);
+		if (c == null) throw new IllegalArgumentException("no class for axiomType : " + axiomType);		
+		return c;
 	}
 	
 	/**
@@ -56,9 +59,12 @@ public class AxiomTypeToHGDBMap {
 	 * 
 	 * @param axiomClassHGDB
 	 * @return AxiomType
+	 * @throws IllegalArgumentException if no axiomtype for axiomClassHGDB could be found.
 	 */
 	public static AxiomType<? extends OWLAxiom> getAxiomType( Class<? extends OWLAxiomHGDB> axiomClassHGDB) {
-		return mReverse.get(axiomClassHGDB);
+		AxiomType<? extends OWLAxiom> t = mReverse.get(axiomClassHGDB);
+		if (t == null) throw new IllegalArgumentException("no axiomtype for axiomClassHGDB : " + axiomClassHGDB);
+		return t;
 	}
 	
 	/**
@@ -119,7 +125,7 @@ public class AxiomTypeToHGDBMap {
         addToMap(AxiomType.ANNOTATION_PROPERTY_RANGE, OWLAnnotationPropertyRangeAxiomHGDB.class);
         addToMap(AxiomType.HAS_KEY, OWLHasKeyAxiomHGDB.class);
         //39 Axiom types total 
-        System.out.println("AxiomTypeMapToHGDB Initialized: " + m.size() + " mappings defined.");
+        //System.out.println("AxiomTypeMapToHGDB Initialized: " + m.size() + " mappings defined.");
 	}	
 	
 	/**
@@ -137,16 +143,17 @@ public class AxiomTypeToHGDBMap {
 	private static void initializeLogicalAxiomSet() {
 		for (AxiomType<?> type : AXIOM_TYPES) {
 			if (type.isLogical()) {
-				System.out.println("LOGICAL AXIOM: " + type);
+				//System.out.println("LOGICAL AXIOM: " + type);
 				if (m.containsKey(type)) {
 					logicalAxiomTypesHGDB.add(m.get(type)); 
 				} else {
 					//not yet defined in initialize
+					throw new IllegalStateException("logical axiomtype not found in m.");
 				}
 			}
 		}
 		//Make unmodifiable after init.
 		logicalAxiomTypesHGDB = Collections.unmodifiableSet(logicalAxiomTypesHGDB);
-		System.out.println("LogicalAxiomTypesHGDB Initialized, size : " + logicalAxiomTypesHGDB.size());
+		//System.out.println("LogicalAxiomTypesHGDB Initialized, size : " + logicalAxiomTypesHGDB.size());
 	}
 }
