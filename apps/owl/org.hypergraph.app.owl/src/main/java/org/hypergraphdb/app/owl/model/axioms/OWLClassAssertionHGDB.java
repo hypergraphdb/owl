@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl.model.axioms;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
@@ -31,6 +32,10 @@ public class OWLClassAssertionHGDB extends OWLIndividualAxiomHGDB implements HGL
 	private HGHandle individualHandle; // index 0
 
     private HGHandle classExpressionHandle; // index 1
+
+    public OWLClassAssertionHGDB(HGHandle...args) {
+    	this(args[0], args[1], Collections.<OWLAnnotation>emptySet());
+    }
 
     public OWLClassAssertionHGDB(HGHandle individual, HGHandle classExpression, Collection<? extends OWLAnnotation> annotations) {
     	//OWLIndividual individual, OWLClassExpression classExpression, Collection<? extends OWLAnnotation> annotations
