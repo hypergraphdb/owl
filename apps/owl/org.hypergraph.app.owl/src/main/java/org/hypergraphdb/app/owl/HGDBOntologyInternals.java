@@ -1,7 +1,6 @@
 package org.hypergraphdb.app.owl;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
@@ -49,7 +48,6 @@ import org.semanticweb.owlapi.model.OWLLogicalAxiom;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNegativeDataPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLNegativeObjectPropertyAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyDomainAxiom;
@@ -366,9 +364,9 @@ public interface HGDBOntologyInternals {
 	 *            The set of axioms that the axiom should be added to. May be
 	 *            <code>null</code>.
 	 */
-	<K extends OWLAxiom> void addAxiomToSet(K axiom, Set<K> axioms);
+	//<K extends OWLAxiom> void addAxiomToSet(K axiom, Set<K> axioms);
 
-	<K extends OWLAxiom> void removeAxiomFromSet(K axiom, Set<K> axioms);
+	//<K extends OWLAxiom> void removeAxiomFromSet(K axiom, Set<K> axioms);
 
 	/**
 	 * Adds an axiom to a set contained in a map, which maps some key (e.g. an
@@ -382,7 +380,7 @@ public interface HGDBOntologyInternals {
 	 * @param axiom
 	 *            The axiom to be added
 	 */
-	<K, V extends OWLAxiom> void addToIndexedSet(K key, Map<K, Set<V>> map, V axiom);
+	//<K, V extends OWLAxiom> void addToIndexedSet(K key, Map<K, Set<V>> map, V axiom);
 
 	/**
 	 * Removes an axiom from a set of axioms, which is the value for a specified
@@ -398,11 +396,11 @@ public interface HGDBOntologyInternals {
 	 *            Specifies whether or not the indexed set should be removed
 	 *            from the map if it is empty after removing the specified axiom
 	 */
-	<K, V extends OWLAxiom> void removeAxiomFromSet(K key, Map<K, Set<V>> map, V axiom, boolean removeSetIfEmpty);
+	//<K, V extends OWLAxiom> void removeAxiomFromSet(K key, Map<K, Set<V>> map, V axiom, boolean removeSetIfEmpty);
 
 	<E> Set<E> getReturnSet(Set<E> set);
 
-	<K extends OWLObject, V extends OWLAxiom> Set<V> getAxioms(K key, Map<K, Set<V>> map);
+	//<K extends OWLObject, V extends OWLAxiom> Set<V> getAxioms(K key, Map<K, Set<V>> map);
 
 	Set<OWLDeclarationAxiom> getDeclarationAxioms(OWLEntity entity);
 
