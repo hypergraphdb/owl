@@ -28,7 +28,7 @@ public class HypergraphSimpleTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		HGDBOntologyRepository r = new HGDBOntologyRepository();
+		HGDBOntologyRepository r = HGDBOntologyRepository.getInstance();
 		graph = r.getHyperGraph();
 	}
 
