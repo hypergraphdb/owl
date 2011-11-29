@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.HGLink;
 import org.hypergraphdb.app.owl.core.HGChangeableLink;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLIndividual;
