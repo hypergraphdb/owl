@@ -17,7 +17,7 @@ public class HGDBOntologyManager extends ProtegeOWLOntologyManager
 	public HGDBOntologyManager(OWLDataFactoryHGDB dataFactory) {
 		super(dataFactory);						
 		//Make sure there is an application, a graph, et.c.
-		ontologyRepository = new HGDBOntologyRepository(); 
+		ontologyRepository = HGDBOntologyRepository.getInstance(); 
 		dataFactory.setHyperGraph(ontologyRepository.getHyperGraph());
 	}
 	
