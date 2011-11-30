@@ -1,0 +1,14 @@
+
+Environment: 
+* Eclemma 1.5.3 Class files instrumented in place / needs clean later.
+* Eclipse Eclipse Java EE IDE for Web Developers.
+  Version: Helios Service Release 2
+  Build id: 20110301-1815
+* 
+Test Duration: 
+1096 secs.
+
+Results:
+Errors: 0
+Failures: 0
+
