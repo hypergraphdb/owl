@@ -3,12 +3,18 @@ package org.hypergraphdb.app.owl;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.coode.owlapi.functionalparser.OWLFunctionalSyntaxParserFactory;
 import org.coode.owlapi.functionalrenderer.OWLFunctionalSyntaxOntologyStorer;
 import org.coode.owlapi.latex.LatexOntologyStorer;
+import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxParserFactory;
+import org.coode.owlapi.obo.parser.OBOParserFactory;
 import org.coode.owlapi.obo.renderer.OBOFlatFileOntologyStorer;
 import org.coode.owlapi.owlxml.renderer.OWLXMLOntologyStorer;
+import org.coode.owlapi.owlxmlparser.OWLXMLParserFactory;
 import org.coode.owlapi.rdf.rdfxml.RDFXMLOntologyStorer;
+import org.coode.owlapi.rdfxml.parser.RDFXMLParserFactory;
 import org.coode.owlapi.turtle.TurtleOntologyStorer;
+import org.hypergraphdb.HGConfiguration;
 import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
@@ -21,8 +27,11 @@ import org.hypergraphdb.app.owl.query.OWLEntityIsBuiltIn;
 import org.hypergraphdb.app.owl.test.TestData;
 import org.hypergraphdb.app.owl.type.TypeUtils;
 import org.hypergraphdb.app.owl.util.Path;
+import org.hypergraphdb.handle.SequentialUUIDHandleFactory;
 import org.hypergraphdb.query.HGQueryCondition;
+import org.hypergraphdb.storage.BDBConfig;
 import org.hypergraphdb.util.HGUtils;
+import org.semanticweb.owlapi.io.OWLParserFactoryRegistry;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -38,6 +47,8 @@ import org.semanticweb.owlapi.util.NonMappingOntologyIRIMapper;
 import uk.ac.manchester.cs.owl.owlapi.EmptyInMemOWLOntologyFactory;
 import uk.ac.manchester.cs.owl.owlapi.ParsableOWLOntologyFactory;
 import uk.ac.manchester.cs.owl.owlapi.mansyntaxrenderer.ManchesterOWLSyntaxOntologyStorer;
+import uk.ac.manchester.cs.owl.owlapi.turtle.parser.TurtleOntologyParserFactory;
+import de.uulm.ecs.ai.owlapi.krssparser.KRSS2OWLParserFactory;
 import de.uulm.ecs.ai.owlapi.krssrenderer.KRSS2OWLSyntaxOntologyStorer;
 
 /**
@@ -56,20 +67,28 @@ public class HGDBOntologyRepository {
 	/**
 	 * Set this to >0 to create Test Ontologies Data on startup.
 	 */
-	public static final int ENSURE_TEST_ONTOLOGY_COUNT = 3; 
+	public static final int ENSURE_TEST_ONTOLOGY_COUNT = 0; 
 	
 	/**
 	 * Preliminary fixed location of a hypergraph instance. 
 	 */
 	public static final String HYPERGRAPH_DB_LOCATION = "c:/temp/protegedb";
 	
+	private static HGDBOntologyRepository instance = null;
 
 	private HyperGraph graph; 
 		
+	public static HGDBOntologyRepository getInstance() {
+		if (instance == null) {
+			instance = new HGDBOntologyRepository();
+		}
+		return instance;
+	}
+	
     /**
 	 * @param graph
 	 */
-	public HGDBOntologyRepository() {
+	private HGDBOntologyRepository() {
 		initialize();
 		if (graph.isOpen()) {
 			printAllOntologies();
@@ -95,7 +114,15 @@ public class HGDBOntologyRepository {
 	 * Ensures a HypergraphDB at the HYPERGRAPH_DB_LOCATION.
 	 */
 	public void ensureHypergraph() {
-		graph = HGEnvironment.get(HYPERGRAPH_DB_LOCATION);
+		HGConfiguration config = new HGConfiguration();
+		config.setUseSystemAtomAttributes(false);
+		BDBConfig bdbConfig = (BDBConfig)config.getStoreImplementation().getConfiguration();
+		// Change the storage cache from the 20MB default to 500MB
+		bdbConfig.getEnvironmentConfig().setCacheSize(500*1024*1024);
+		SequentialUUIDHandleFactory handleFactory =
+            new SequentialUUIDHandleFactory(System.currentTimeMillis(), 0);
+		config.setHandleFactory(handleFactory);		
+		graph = HGEnvironment.get(HYPERGRAPH_DB_LOCATION, config);
 		long nrOfAtoms = hg.count(graph, hg.all());
 		log.info("Hypergraph contains " + nrOfAtoms + " Atoms");
 	}
@@ -180,8 +207,7 @@ public class HGDBOntologyRepository {
 	public boolean deleteOntology(OWLOntologyID ontologyId) {
 		//printAllOntologies();
 		HGHandle ontologyHandle = getOntologyHandleByID(ontologyId);
-		//Currently Ontology AND NOT Incidence List
-		return graph.remove(ontologyHandle, true);
+		return graph.remove(ontologyHandle);
 	}
 		
 	public HGHandle addOntology(HGDBOntology ontology) {
@@ -390,9 +416,21 @@ public class HGDBOntologyRepository {
 		ontologyManager.addOntologyFactory (new EmptyInMemOWLOntologyFactory());
 		ontologyManager.addOntologyFactory (new ParsableOWLOntologyFactory());
 		ontologyManager.addOntologyFactory (new HGDBOntologyFactory ());
-
 		return ontologyManager;
 	}	
 	
+    static {
+		//2011.11.29 Parsers to load from files:		
+        // Register useful parsers
+        OWLParserFactoryRegistry registry = OWLParserFactoryRegistry.getInstance();
+        registry.registerParserFactory(new ManchesterOWLSyntaxParserFactory());
+        registry.registerParserFactory(new KRSS2OWLParserFactory());
+        registry.registerParserFactory(new OBOParserFactory());
+        registry.registerParserFactory(new TurtleOntologyParserFactory());
+        registry.registerParserFactory(new OWLFunctionalSyntaxParserFactory());
+        registry.registerParserFactory(new OWLXMLParserFactory());
+        registry.registerParserFactory(new RDFXMLParserFactory());
+    }
+
 
 }
