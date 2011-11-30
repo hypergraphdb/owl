@@ -9,6 +9,7 @@ import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.management.HGApplication;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
+import org.hypergraphdb.app.owl.model.OWLAnnotationPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLClassHGDB;
 import org.hypergraphdb.app.owl.model.OWLDataPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLDatatypeHGDB;
@@ -19,6 +20,7 @@ import org.hypergraphdb.app.owl.type.OWLImportsDeclarationType;
 import org.hypergraphdb.app.owl.type.OWLNamedObjectType;
 import org.hypergraphdb.app.owl.type.OntologyIDType;
 import org.hypergraphdb.app.owl.type.TypeUtils;
+import org.hypergraphdb.indexing.ByPartIndexer;
 import org.hypergraphdb.type.HGAtomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -176,10 +178,28 @@ public class HGDBApplication extends HGApplication
 	public void install(HyperGraph graph)
 	{
 		registerAllAtomTypes(graph);
+		registerIndices(graph);
 		ensureBuiltInObjects(graph);
 		//registerAllLinkTypes(graph);
 		if (DBG) printAllTypes(graph);
 		
+	}
+
+	/**
+	 * @param graph
+	 */
+	private void registerIndices(HyperGraph graph) {
+		HGHandle[] typeHandlesNamedObjectsWithIRIBeanProperty = new HGHandle[] {
+				graph.getTypeSystem().getTypeHandle(OWLClassHGDB.class),
+				graph.getTypeSystem().getTypeHandle(OWLDatatypeHGDB.class),
+				graph.getTypeSystem().getTypeHandle(OWLAnnotationPropertyHGDB.class),
+				graph.getTypeSystem().getTypeHandle(OWLDataPropertyHGDB.class),
+				graph.getTypeSystem().getTypeHandle(OWLObjectPropertyHGDB.class)
+		};
+		for (HGHandle typeHandle : typeHandlesNamedObjectsWithIRIBeanProperty) {
+			ByPartIndexer bpI = new ByPartIndexer(typeHandle, "IRI");
+			graph.getIndexManager().register(bpI);
+		}
 	}
 
 	/**
