@@ -27,6 +27,8 @@ import org.semanticweb.owlapi.model.OWLNamedObject;
  * OWLNamedObjectType.
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  * @created Oct 3, 2011
+ * 
+ * 2011.11.30 Optimizing this class (keep IRI typehandle) changed Load time of County ontology (1MB) from FunctionalSyntaxFile from 4m45sec to 1m45sec.
  */
 public class OWLNamedObjectType extends HGAtomTypeBase implements HGCompositeType {
 	
@@ -127,35 +129,48 @@ public class OWLNamedObjectType extends HGAtomTypeBase implements HGCompositeTyp
 	@Override
 	public HGProjection getProjection(String dimensionName) {
 		if (DIM_IRI.equals(dimensionName))
-			return new HGProjection() {
-
-				@Override
-				public int[] getLayoutPath() {
-					return null;
-				}
-
-				@Override
-				public String getName() {
-					return DIM_IRI;
-				}
-
-				@Override
-				public HGHandle getType() {
-					return graph.getTypeSystem().getTypeHandle(IRI.class);
-				}
-
-				@Override
-				public void inject(Object atomValue, Object value) {
-				}
-
-				@Override
-				public Object project(Object atomValue) {
-					return ((OWLNamedObject)atomValue).getIRI();
-				}
-			};		
+			return projection;
 		else
 			throw new IllegalArgumentException();
 	}
+	
+	//2011.11.30 OPTIMIZATION (Projection was created each time before, led to loading class each time.)
+	HGProjection projection = new HGProjection() {
+
+		@Override
+		public int[] getLayoutPath() {
+			return null;
+		}
+
+		@Override
+		public String getName() {
+			return DIM_IRI;
+		}
+
+		//2011.11.30 OPTIMIZATION hilpold
+		//Based on profiling results that showed wasted time with classloading.
+		
+		HGHandle typeHandle = null;
+		
+		@Override
+		public HGHandle getType() {
+			if (typeHandle == null) {
+			 typeHandle = graph.getTypeSystem().getTypeHandle(IRI.class);
+			 System.out.print("|");
+			}
+			return typeHandle;
+			//OLD return graph.getTypeSystem().getTypeHandle(IRI.class);
+		}
+
+		@Override
+		public void inject(Object atomValue, Object value) {
+		}
+
+		@Override
+		public Object project(Object atomValue) {
+			return ((OWLNamedObject)atomValue).getIRI();
+		}
+	};		
 
 
 }
