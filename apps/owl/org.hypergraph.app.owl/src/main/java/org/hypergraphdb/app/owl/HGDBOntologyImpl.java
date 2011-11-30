@@ -151,257 +151,11 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	}
 
 	public void ensureInternals() {
-		// try to find it
-		if (graph == null || handle == null)
-			throw new IllegalStateException("Must have graph and handle");
-//		List<HGDBOntologyInternalsImpl> l = hg.getAll(
-//				graph,
-//				hg.apply(
-//						hg.targetAt(graph, 1),
-//						hg.and(hg.type(HGDBOntologyInternalsLink.class),
-//								hg.orderedLink(handle, hg.anyHandle()))));
-//		if (l.size() > 1)
-//			throw new IllegalStateException("Must not have more than one internals");
-//		if (l.size() == 1) {
-//			internals = l.get(0);
-//		} else {
-			// create new
-			// save link to find it next time.
-			internals = new HGDBOntologyInternalsImpl();
-			//HGHandle iTypehandle = graph.getTypeSystem().getTypeHandle(internals.getClass());
-			//HGHandle internalsHandle = graph.add(internals);
-			//HGDBOntologyInternalsLink link = new HGDBOntologyInternalsLink(handle, internalsHandle);
-			//HGHandle linkHandle = graph.add(link);
-			//this.add(internalsHandle);
-			//this.add(linkHandle);
-			//graph.add(new HGDBOntologyInternalsLink(handle, iHandle));
-			// internals and link added.
-//		}
+		if (graph == null || handle == null) throw new IllegalStateException("Must have graph and handle");
+		internals = new HGDBOntologyInternalsImpl();
 		((HGGraphHolder)internals).setHyperGraph(graph);
 		internals.setOntologyHyperNode(this);
-		// internals must have handle.
 	}
-
-	// protected HGHandle findHandle(OWLObject instance)
-	// {
-	// HGHandle h = manager.getHyperGraph().getHandle(instance);
-	// if (h != null)
-	// return h;
-	// else
-	// return hg.findOne(manager.getHyperGraph(),
-	// hg.guessUniquenessCondition(manager.getHyperGraph(), instance));
-	// }
-	//
-
-	// public boolean containsAnnotationPropertyInSignature(IRI iri)
-	// {
-	// return iri == null ? false :
-	// containsObject(manager.getOWLDataFactory().getOWLAnnotationProperty(iri));
-	// }
-	//
-	// public boolean containsAnnotationPropertyInSignature(IRI propIRI, final
-	// boolean includeImportsClosure)
-	// {
-	// for (final OWLOntology owlOntology: getOntologies
-	// (includeImportsClosure))
-	// {
-	// if (owlOntology.containsAnnotationPropertyInSignature (propIRI))
-	// return true;
-	// }
-	// return false;
-	// }
-	//
-	// public boolean containsAxiom(OWLAxiom axiom)
-	// {
-	// return hg.findOne(manager.getHyperGraph(),
-	// hg.guessUniquenessCondition(manager.getHyperGraph(), axiom)) != null;
-	// }
-	//
-	// public boolean containsAxiom(OWLAxiom axiom, boolean
-	// includeImportsClosure)
-	// {
-	// for (final OWLOntology owlOntology: getOntologies(includeImportsClosure))
-	// {
-	// if (owlOntology.containsAxiom (axiom))
-	// return true;
-	// }
-	// return false;
-	// }
-	//
-	// public boolean containsAxiomIgnoreAnnotations(OWLAxiom axiom)
-	// {
-	// if (axiom == null)
-	// return false;
-	//
-	// HGQueryCondition cond =
-	// hg.guessUniquenessCondition(manager.getHyperGraph(), axiom);
-	// return hg.findOne(manager.getHyperGraph(),
-	// hg.and(hg.not(hg.typePlus(OWLAnnotationAxiom.class)), cond)) != null;
-	// }
-	//
-	// public boolean containsAxiomIgnoreAnnotations(OWLAxiom axiom, final
-	// boolean includeImportsClosure)
-	// {
-	// for (final OWLOntology owlOntology: getOntologies
-	// (includeImportsClosure))
-	// {
-	// if (owlOntology.containsAxiomIgnoreAnnotations (axiom))
-	// return true;
-	// }
-	// return false;
-	// }
-	//
-	// public boolean containsClassInSignature(IRI iri)
-	// {
-	// return iri == null ? false :
-	// containsObject(manager.getOWLDataFactory().getOWLClass(iri));
-	// }
-	//
-	// public boolean containsClassInSignature(IRI owlClassIRI, final boolean
-	// includeImportsClosure)
-	// {
-	// for (final OWLOntology owlOntology: getOntologies
-	// (includeImportsClosure))
-	// {
-	// if (owlOntology.containsClassInSignature (owlClassIRI))
-	// return true;
-	// }
-	// return false;
-	// }
-	//
-	// public boolean containsDataPropertyInSignature(IRI iri)
-	// {
-	// return iri == null ? false :
-	// containsObject(manager.getOWLDataFactory().getOWLDataProperty(iri));
-	// }
-	//
-	// public boolean containsDataPropertyInSignature(IRI propIRI, final boolean
-	// includeImportsClosure)
-	// {
-	// for (final OWLOntology owlOntology: getOntologies
-	// (includeImportsClosure))
-	// {
-	// if (owlOntology.containsDataPropertyInSignature (propIRI))
-	// return true;
-	// }
-	// return false;
-	// }
-	//
-	// public boolean containsDatatypeInSignature(IRI iri)
-	// {
-	// return iri == null ? false :
-	// containsObject(manager.getOWLDataFactory().getOWLDatatype(iri));
-	// }
-	//
-	// public boolean containsDatatypeInSignature(IRI datatypeIRI, final boolean
-	// includeImportsClosure)
-	// {
-	// for (final OWLOntology owlOntology: getOntologies(includeImportsClosure))
-	// {
-	// if (owlOntology.containsDatatypeInSignature (datatypeIRI))
-	// return true;
-	// }
-	// return false;
-	// }
-	//
-	// public boolean containsEntityInSignature(OWLEntity entity)
-	// {
-	// return containsObject(entity);
-	// }
-	//
-	// public boolean containsEntityInSignature(IRI iri)
-	// {
-	// // this is a TODO: we need appropriate complex type for the iri to be a
-	// RW property.
-	// //return hg.findOne(manager.getHyperGraph(),
-	// hg.and(hg.typePlus(OWLEntity.class), hg.eq("iri", iri)));
-	// return false;
-	// }
-	//
-	// public boolean containsEntityInSignature(OWLEntity owlEntity, final
-	// boolean includeImportsClosure)
-	// {
-	// for (final OWLOntology owlOntology: this.getOntologies
-	// (includeImportsClosure))
-	// {
-	// if (owlOntology.containsEntityInSignature (owlEntity))
-	// return true;
-	// }
-	// return false;
-	// }
-	//
-	// public boolean containsEntityInSignature(IRI entityIRI, final boolean
-	// includeImportsClosure)
-	// {
-	// for (final OWLOntology owlOntology: this.getOntologies
-	// (includeImportsClosure))
-	// {
-	// if (owlOntology.containsEntityInSignature (entityIRI))
-	// return true;
-	// }
-	// return false;
-	// }
-	//
-	// public boolean containsIndividualInSignature(final IRI individualIRI)
-	// {
-	// return individualIRI == null ? false :
-	// containsObject(manager.getOWLDataFactory().getOWLNamedIndividual
-	// (individualIRI));
-	// }
-	//
-	// public boolean containsIndividualInSignature(final IRI individualIRI,
-	// final boolean includeImportsClosure)
-	// {
-	// for (final OWLOntology owlOntology: this.getOntologies
-	// (includeImportsClosure))
-	// {
-	// if (owlOntology.containsIndividualInSignature (individualIRI))
-	// return true;
-	// }
-	// return false;
-	// }
-	//
-	// public boolean containsObjectPropertyInSignature(final IRI propIRI)
-	// {
-	// return propIRI == null ? false :
-	// containsObject(manager.getOWLDataFactory().getOWLObjectProperty
-	// (propIRI));
-	// }
-	//
-	// public boolean containsObjectPropertyInSignature(final IRI propIRI, final
-	// boolean includeImportsClosure)
-	// {
-	// for (final OWLOntology owlOntology: this.getOntologies
-	// (includeImportsClosure))
-	// {
-	// if (owlOntology.containsObjectPropertyInSignature (propIRI))
-	// return true;
-	// }
-	// return false;
-	// }
-	//
-	// @SuppressWarnings("unchecked")
-	// public Set<OWLAnnotationAssertionAxiom>
-	// getAnnotationAssertionAxioms(OWLAnnotationSubject entity)
-	// {
-	// HashSet<OWLAnnotationAssertionAxiom> S = new
-	// HashSet<OWLAnnotationAssertionAxiom>();
-	// HGHandle entityHandle = findHandle(entity);
-	// if (entityHandle != null)
-	// S.addAll((List<OWLAnnotationAssertionAxiom>)(List<?>)hg.getAll(manager.getHyperGraph(),
-	// hg.and(hg.type(OWLAnnotationAssertionAxiomImpl.class),
-	// hg.orderedLink(hg.anyHandle(), entityHandle, hg.anyHandle()))));
-	// return S;
-	// }
-	//
-	// public Set<OWLAnnotationProperty> getAnnotationPropertiesInSignature()
-	// {
-	// HashSet<OWLAnnotationProperty> S = new HashSet<OWLAnnotationProperty>();
-	// S.addAll((List<OWLAnnotationProperty>)
-	// (List<?>)hg.getAll(manager.getHyperGraph(),
-	// hg.type(OWLAnnotationPropertyImpl.class)));
-	// return S;
-	// }
 
 	@HGIgnore
 	public OWLOntologyManager getOWLOntologyManager() {
@@ -1657,9 +1411,9 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 			if (!id.equals(ontologyID)) {
 				appliedChanges.add(change);
 				ontologyID = id;
+				graph.update(HGDBOntologyImpl.this);
 			}
 		}
-
 
 		public void visit(AddImport change) {
 			// TODO change this to be done inside
@@ -2094,9 +1848,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		return getNrOfAtoms() - getNrOfLinks();
 	}
 
-
 	//
 	// END HGGraphHolder, HGHandleHolder Interface
 	// ----------------------------------------------------------------------
-
 }
