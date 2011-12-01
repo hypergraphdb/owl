@@ -46,20 +46,38 @@ public class OWLNamedObjectType extends HGAtomTypeBase implements HGCompositeTyp
 	//public static final String DIM_URI = "URI";
 	public static final List<String> DIMENSIONS = Collections.unmodifiableList(Arrays.asList(
 			DIM_IRI));
-	public Class<? extends OWLNamedObject> type;
+	private Class<? extends OWLNamedObject> type;
 	
 	public OWLNamedObjectType() {
+		//default constructor needed for types.
 	}
 	
-//2011.12.01 replaced with def construtor	public OWLNamedObjectType(Class<? extends OWLNamedObject> type) {
-//		this.type = type;
-//	}
-
 	/**
 	 * @return the type
 	 */
 	public Class<? extends OWLNamedObject> getType() {
 		return type;
+	}
+
+	/**
+	 * @param type the type to set
+	 */
+	public void setTypeByName(String canonicalName) {		
+		try {
+			Class<?> c = Class.forName(canonicalName);
+			//Will throw class cast exception, if cast fails:
+			this.type = c.asSubclass(OWLNamedObject.class); 
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			throw new RuntimeException("Class Not FOUND", e);
+		}
+	}
+
+	/**
+	 * @return the type
+	 */
+	public String getTypeByName() {
+		return type.getCanonicalName();
 	}
 
 	/**
@@ -94,21 +112,6 @@ public class OWLNamedObjectType extends HGAtomTypeBase implements HGCompositeTyp
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
-//		if (type.equals(OWLAnnotationPropertyHGDB.class)) {
-//			return new OWLAnnotationPropertyHGDB(iri);
-//		} else if (type.equals(OWLClassHGDB.class)) {
-//			return new OWLClassHGDB(iri);
-//		} else if (type.equals(OWLDatatypeHGDB.class)) {
-//			return new OWLDatatypeHGDB(iri);
-//		} else if (type.equals(OWLNamedIndividualHGDB.class)) {
-//			return new OWLNamedIndividualHGDB(iri);
-//		} else if (type.equals(OWLDataPropertyHGDB.class)) {
-//			return new OWLDataPropertyHGDB(iri);
-//		} else if (type.equals(OWLObjectPropertyHGDB.class)) {
-//			return new OWLObjectPropertyHGDB(iri);
-//		} else {
-//			throw new IllegalStateException("Could not create object. OWLNamedObject subclass not recognized:" + type);
-//		}
 	}
 
 	public void release(HGPersistentHandle handle) {
@@ -151,6 +154,10 @@ public class OWLNamedObjectType extends HGAtomTypeBase implements HGCompositeTyp
 			throw new IllegalArgumentException();
 	}
 	
+	//
+	// HG Projection for IRI domain
+	//
+	
 	//2011.11.30 OPTIMIZATION (Projection was created each time before, led to loading class each time.)
 	HGProjection projection = new HGProjection() {
 
@@ -173,6 +180,8 @@ public class OWLNamedObjectType extends HGAtomTypeBase implements HGCompositeTyp
 		public HGHandle getType() {
 			if (typeHandle == null || !graph.isLoaded(typeHandle)) {
 			 typeHandle = graph.getTypeSystem().getTypeHandle(IRI.class);
+			 graph.freeze(typeHandle);
+			 graph.freeze(graph.getHandle(OWLNamedObjectType.this));
 			 System.out.print("|");
 			}
 			return typeHandle;
@@ -188,6 +197,4 @@ public class OWLNamedObjectType extends HGAtomTypeBase implements HGCompositeTyp
 			return ((OWLNamedObject)atomValue).getIRI();
 		}
 	};		
-
-
 }
