@@ -4,6 +4,7 @@ import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 
 import org.coode.owlapi.functionalparser.OWLFunctionalSyntaxParserFactory;
@@ -33,6 +34,7 @@ import org.hypergraphdb.app.owl.util.Path;
 import org.hypergraphdb.handle.SequentialUUIDHandleFactory;
 import org.hypergraphdb.query.HGQueryCondition;
 import org.hypergraphdb.storage.BDBConfig;
+import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.hypergraphdb.util.HGUtils;
 import org.semanticweb.owlapi.io.OWLParserFactoryRegistry;
 import org.semanticweb.owlapi.model.IRI;
@@ -120,11 +122,11 @@ public class HGDBOntologyRepository {
 		HGConfiguration config = new HGConfiguration();
 		config.setUseSystemAtomAttributes(false);
 		BDBConfig bdbConfig = (BDBConfig)config.getStoreImplementation().getConfiguration();
-		// Change the storage cache from the 20MB default to 50MB
-		bdbConfig.getEnvironmentConfig().setCacheSize(50*1024*1024);
-		//SequentialUUIDHandleFactory handleFactory =
-        //    new SequentialUUIDHandleFactory(System.currentTimeMillis(), 0);
-		//config.setHandleFactory(handleFactory);		
+		// Change the storage cache from the 20MB default to 150MB
+		bdbConfig.getEnvironmentConfig().setCacheSize(150*1024*1024);
+		SequentialUUIDHandleFactory handleFactory =
+            new SequentialUUIDHandleFactory(System.currentTimeMillis(), 0);
+		config.setHandleFactory(handleFactory);		
 		graph = HGEnvironment.get(HYPERGRAPH_DB_LOCATION, config);
 		long nrOfAtoms = hg.count(graph, hg.all());
 		log.info("Hypergraph contains " + nrOfAtoms + " Atoms");
@@ -157,7 +159,15 @@ public class HGDBOntologyRepository {
 	}
 	
 	public List<HGDBOntology> getOntologies() {
-		return hg.getAll(graph, hg.type(HGDBOntologyImpl.class));
+		//2011.12.01 HGException: Transaction configured as read-only was used to modify data!
+		//Therefore wrapped in normal transaction.
+		return graph.getTransactionManager().transact(new Callable<List<HGDBOntology>>() {
+			public List<HGDBOntology>call() {
+				return hg.getAll(graph, hg.type(HGDBOntologyImpl.class));
+			}
+		}, HGTransactionConfig.DEFAULT);
+		// USE: HGTransactionConfig.READONLY); and ensure >0 ontos in graph to see HGException
+		// Transaction configured as read-only was used to modify data!
 	}
 	
 	/**
@@ -255,27 +265,28 @@ public class HGDBOntologyRepository {
 	public void printStatistics() {
 		Date now = new Date();
 		DecimalFormat f = new DecimalFormat("##########");
-		System.out.println("******************************************************");
-		System.out.println("* Hypergraph stats for location : " + graph.getLocation());
-		System.out.println("* At : " + DateFormat.getDateTimeInstance().format(now));
-		System.out.println("* TOTAL ATOMS : " + f.format(getNrOfAtoms()));
-		System.out.println("*       LINKS : " + f.format(getNrOfLinks()));
-		System.out.println("* !Link ATOMS : " + f.format(getNrOfNonLinkAtoms()));
-		System.out.println("*      AXIOMS : " + f.format(getNrOfAtomsByTypePlus(OWLAxiom.class)));
-		System.out.println("*    ENTITIES : " + f.format(getNrOfAtomsByTypePlus(OWLEntity.class)));
-		System.out.println("******************************************************");	
+		System.out.println("*************** HYPERGRAPH STATISTICS ***************");
+		System.out.println("* Location     : " + graph.getLocation());
+		System.out.println("* Now is       : " + DateFormat.getDateTimeInstance().format(now));
+		System.out.println("*       LINKS  : " + f.format(getNrOfLinks()));
+		System.out.println("* NoLink ATOMS : " + f.format(getNrOfNonLinkAtoms()));
+		System.out.println("* TOTAL ATOMS  : " + f.format(getNrOfAtoms()));
+		System.out.println("*                                                   *");
+		System.out.println("*      AXIOMS  : " + f.format(getNrOfAtomsByTypePlus(OWLAxiom.class)));
+		System.out.println("*    ENTITIES  : " + f.format(getNrOfAtomsByTypePlus(OWLEntity.class)));
+		System.out.println("*****************************************************");	
 	}
 
 	public void printAllOntologies() {
 		List<HGDBOntology> l = getOntologies();
+		System.out.println("************* ONTOLOGIES IN HYPERGRAPH REPOSITORY *************");		
 		for (HGDBOntology hgdbMutableOntology : l) {
 			printOntology(hgdbMutableOntology);
 		}			
 	}
-	
-	
+		
 	public void printOntology(HGDBOntology hgdbMutableOntology ) {
-		System.out.println("------");		
+		System.out.println("----------------------------------------------------------------------");		
 		System.out.println("DD IRI" + hgdbMutableOntology.getOntologyID().getDefaultDocumentIRI());
 		System.out.println("ON IRI" + hgdbMutableOntology.getOntologyID().getOntologyIRI());
 		System.out.println("V  IRI" + hgdbMutableOntology.getOntologyID().getVersionIRI());		
@@ -414,8 +425,7 @@ public class HGDBOntologyRepository {
 	 * @param dataFactory The data factory to use
 	 * @return <code>OWLDBOntologyManager</code>
 	 */
-	public static HGDBOntologyManager createOWLOntologyManager (final OWLDataFactoryHGDB dataFactory)
-	{
+	public static HGDBOntologyManager createOWLOntologyManager (final OWLDataFactoryHGDB dataFactory) {
 		final HGDBOntologyManager ontologyManager = new HGDBOntologyManager(dataFactory);
 		ontologyManager.addOntologyStorer (new RDFXMLOntologyStorer());
 		ontologyManager.addOntologyStorer (new OWLXMLOntologyStorer());
@@ -447,6 +457,4 @@ public class HGDBOntologyRepository {
         registry.registerParserFactory(new OWLXMLParserFactory());
         registry.registerParserFactory(new RDFXMLParserFactory());
     }
-
-
 }
