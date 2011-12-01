@@ -19,11 +19,12 @@ import org.semanticweb.owlapi.model.IRI;
 
 
 /**
- * OWLNamedIndividualType.
+ * Deprecated OWLNamedIndividualType.
  * 
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  * @created Sep 28, 2011
  */
+@Deprecated
 public class OWLNamedIndividualHGDBType extends HGAtomTypeBase implements HGCompositeType {
 	public static final String DIM_IRI = "IRI";
 	public static final String DIM_URI = "URI";
