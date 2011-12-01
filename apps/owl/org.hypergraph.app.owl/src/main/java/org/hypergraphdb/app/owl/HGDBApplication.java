@@ -152,10 +152,13 @@ public class HGDBApplication extends HGApplication
 		for (Class<? extends OWLNamedObject> c : OWLNamedObjectType.OWL_NAMED_OBJECT_TYPES_HGDB) {
 			if (typeSystem.getTypeHandleIfDefined(c) == null) {
 				//marker
-				HGPersistentHandle typeHandle = graph.getHandleFactory().makeHandle();
-				HGAtomType type = new OWLNamedObjectType(c);
-				type.setHyperGraph(graph);
-				typeSystem.addPredefinedType(typeHandle,type, c);
+				//HGPersistentHandle typeHandle = graph.getHandleFactory().makeHandle();
+				OWLNamedObjectType type = new OWLNamedObjectType();				
+				type.setType(c);
+				type.setHyperGraph(graph);				
+				HGHandle typeHandle = graph.add(type);
+				typeSystem.setTypeForClass(typeHandle, c);
+				//typeSystem.addPredefinedType(typeHandle,type, c);
 				log.info("OWLNamedObjectType registered: " + c.getSimpleName());
 				graph.getTypeSystem().assertSubtype(oWLNamedObjectTypeHandle, typeHandle);
 				graph.getTypeSystem().assertSubtype(owlEntityTypeHandle, typeHandle);
@@ -170,7 +173,6 @@ public class HGDBApplication extends HGApplication
 		//assert(owlEntityType.subsumes(owlEntityType, oWLNamedObjectType));
 	}
 		
-
 	//
 	// HGApplication interface 
 	//
@@ -194,7 +196,8 @@ public class HGDBApplication extends HGApplication
 				graph.getTypeSystem().getTypeHandle(OWLDatatypeHGDB.class),
 				graph.getTypeSystem().getTypeHandle(OWLAnnotationPropertyHGDB.class),
 				graph.getTypeSystem().getTypeHandle(OWLDataPropertyHGDB.class),
-				graph.getTypeSystem().getTypeHandle(OWLObjectPropertyHGDB.class)
+				graph.getTypeSystem().getTypeHandle(OWLObjectPropertyHGDB.class),
+				graph.getTypeSystem().getTypeHandle(OWLNamedIndividualHGDB.class)
 		};
 		for (HGHandle typeHandle : typeHandlesNamedObjectsWithIRIBeanProperty) {
 			ByPartIndexer bpI = new ByPartIndexer(typeHandle, "IRI");
@@ -225,13 +228,14 @@ public class HGDBApplication extends HGApplication
 	 */
 	private void ensureBuiltInObjects(HyperGraph graph) {
 		OWLDataFactoryHGDB df = new OWLDataFactoryHGDB();
-		OWLClass thing = df.getOWLThing(); //this returns a constant 
-		OWLClass nothing = df.getOWLNothing(); //this returns a constant
+		df.setHyperGraph(graph);
+		OWLClass thing = df.getOWLThing(); //this returns no longer a constant 
+		OWLClass nothing = df.getOWLNothing(); //this returns no longer a constant
 		//WARNING OWLDataProperty topData = df.getOWLTopDataProperty(); //this returns a different object each call		
-		if (graph.getHandle(thing) == null) {
-			graph.add(thing);
-			graph.add(nothing);
-		}
+		//if (graph.getHandle(thing) == null) {
+		//	graph.add(thing);
+		//	graph.add(nothing);
+		//}
 		assert(graph.getHandle(nothing) != null);
 		assert(graph.getHandle(thing) != null);
 	}
