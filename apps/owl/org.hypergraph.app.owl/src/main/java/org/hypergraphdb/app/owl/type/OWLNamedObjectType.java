@@ -29,6 +29,7 @@ import org.semanticweb.owlapi.model.OWLNamedObject;
  * @created Oct 3, 2011
  * 
  * 2011.11.30 Optimizing this class (keep IRI typehandle) changed Load time of County ontology (1MB) from FunctionalSyntaxFile from 4m45sec to 1m45sec.
+ * 2011.12.01 Added default constructor, HG could not instantiate type.
  */
 public class OWLNamedObjectType extends HGAtomTypeBase implements HGCompositeType {
 	
@@ -47,11 +48,27 @@ public class OWLNamedObjectType extends HGAtomTypeBase implements HGCompositeTyp
 			DIM_IRI));
 	public Class<? extends OWLNamedObject> type;
 	
-	
-	public OWLNamedObjectType(Class<? extends OWLNamedObject> type) {
-		this.type = type;
+	public OWLNamedObjectType() {
 	}
 	
+//2011.12.01 replaced with def construtor	public OWLNamedObjectType(Class<? extends OWLNamedObject> type) {
+//		this.type = type;
+//	}
+
+	/**
+	 * @return the type
+	 */
+	public Class<? extends OWLNamedObject> getType() {
+		return type;
+	}
+
+	/**
+	 * @param type the type to set
+	 */
+	public void setType(Class<? extends OWLNamedObject> type) {
+		this.type = type;
+	}
+
 	public Object make(HGPersistentHandle handle, LazyRef<HGHandle[]> targetSet,
 			IncidenceSetRef incidenceSet) {
 		HGHandle[] layout = graph.getStore().getLink(handle);
@@ -154,7 +171,7 @@ public class OWLNamedObjectType extends HGAtomTypeBase implements HGCompositeTyp
 		
 		@Override
 		public HGHandle getType() {
-			if (typeHandle == null) {
+			if (typeHandle == null || !graph.isLoaded(typeHandle)) {
 			 typeHandle = graph.getTypeSystem().getTypeHandle(IRI.class);
 			 System.out.print("|");
 			}
