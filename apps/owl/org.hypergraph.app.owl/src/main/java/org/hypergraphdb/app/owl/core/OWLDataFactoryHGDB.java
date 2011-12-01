@@ -13,7 +13,6 @@ import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.model.OWLAnnotationHGDB;
 import org.hypergraphdb.app.owl.model.OWLAnonymousIndividualHGDB;
-import org.hypergraphdb.app.owl.model.OWLClassHGDB;
 import org.hypergraphdb.app.owl.model.OWLDataComplementOfHGDB;
 import org.hypergraphdb.app.owl.model.OWLDataIntersectionOfHGDB;
 import org.hypergraphdb.app.owl.model.OWLDataOneOfHGDB;
@@ -123,9 +122,9 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	
 	private static OWLDataFactoryHGDB instance = new OWLDataFactoryHGDB();
 
-	private static OWLClass OWL_THING = new OWLClassHGDB(OWLRDFVocabulary.OWL_THING.getIRI());
+	//private static OWLClass OWL_THING = new OWLClassHGDB(OWLRDFVocabulary.OWL_THING.getIRI());
 
-	private static OWLClass OWL_NOTHING = new OWLClassHGDB(OWLRDFVocabulary.OWL_NOTHING.getIRI());
+	//private static OWLClass OWL_NOTHING = new OWLClassHGDB(OWLRDFVocabulary.OWL_NOTHING.getIRI());
 
 	protected OWLDataFactoryInternalsHGDB data;
 
@@ -221,11 +220,13 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	}
 
 	public OWLClass getOWLThing() {
-		return OWL_THING;
+		return getOWLClass(OWLRDFVocabulary.OWL_THING.getIRI());
+		//return OWL_THING;
 	}
 
 	public OWLClass getOWLNothing() {
-		return OWL_NOTHING;
+		return getOWLClass(OWLRDFVocabulary.OWL_NOTHING.getIRI());
+		//return OWL_NOTHING;
 	}
 
 	public OWLDataProperty getOWLBottomDataProperty() {
@@ -821,7 +822,7 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	}
 
 	public OWLObjectExactCardinality getOWLObjectExactCardinality(int cardinality, OWLObjectPropertyExpression property) {
-		HGHandle OWL_THING_Handle = graph.getHandle(OWL_THING);
+		HGHandle OWL_THING_Handle = graph.getHandle(getOWLThing());
 		HGHandle propertyHandle = graph.getHandle(property);
 		OWLObjectExactCardinality o = new OWLObjectExactCardinalityHGDB(propertyHandle, cardinality, OWL_THING_Handle);
 		graph.add(o);
@@ -846,7 +847,7 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	}
 
 	public OWLObjectMinCardinality getOWLObjectMinCardinality(int cardinality, OWLObjectPropertyExpression property) {
-		HGHandle OWL_THING_Handle = graph.getHandle(OWL_THING);
+		HGHandle OWL_THING_Handle = graph.getHandle(getOWLThing());
 		HGHandle propertyHandle = graph.getHandle(property);
 		OWLObjectMinCardinality o = new OWLObjectMinCardinalityHGDB(propertyHandle, cardinality, OWL_THING_Handle);
 		graph.add(o);
@@ -870,7 +871,7 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	}
 
 	public OWLObjectMaxCardinality getOWLObjectMaxCardinality(int cardinality, OWLObjectPropertyExpression property) {
-		HGHandle OWL_THING_Handle = graph.getHandle(OWL_THING);
+		HGHandle OWL_THING_Handle = graph.getHandle(getOWLThing());
 		HGHandle propertyHandle = graph.getHandle(property);
 		OWLObjectMaxCardinality o = new OWLObjectMaxCardinalityHGDB(propertyHandle, cardinality, OWL_THING_Handle);
 		graph.add(o);
@@ -2260,7 +2261,7 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	protected HGHandle getOrFindOWLEntityHandleInGraph(OWLEntity e) {
 		HGHandle eHandle = graph.getHandle(e);
 		if (eHandle == null) {
-			eHandle = hg.getOne(graph, hg.and(hg.type(e.getClass()), hg.eq("IRI", e.getIRI())));
+			eHandle = hg.findOne(graph, hg.and(hg.type(e.getClass()), hg.eq("IRI", e.getIRI())));
 		}
 		return eHandle;
 	}
