@@ -8,7 +8,7 @@ public class HGDBOntologyFormat extends OWLOntologyFormat {
 	
 	@Override
 	public String toString() {
-		return "Hypergraph Ontology Format class:" + getClass().getCanonicalName();
+		return "Hypergraph Database Backend";
 	}
 	
 }
