@@ -47,7 +47,11 @@ public class HGDBStorer implements OWLOntologyStorer {
 		}
 		try
 		{
+			//documentIRI shall start with hgdb://
 			final OWLMutableOntology newOnto = (OWLMutableOntology) manager.createOntology (documentIRI);
+			if (!(newOnto instanceof HGDBOntologyImpl)) {
+				throw new IllegalStateException("We did not get a HGDBOntologyImpl, but : " + newOnto);
+			}
 			//Set ID
 			newOnto.applyChange (new SetOntologyID(newOnto, ontology.getOntologyID ()));
 			final Set<OWLAxiom> axioms = ontology.getAxioms ();

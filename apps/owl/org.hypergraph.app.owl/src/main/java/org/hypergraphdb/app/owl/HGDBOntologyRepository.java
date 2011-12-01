@@ -1,5 +1,8 @@
 package org.hypergraphdb.app.owl;
 
+import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -62,7 +65,7 @@ public class HGDBOntologyRepository {
 	
 	private Logger log = Logger.getLogger(HGDBOntologyRepository.class.getName());
 
-	public static final boolean DROP_HYPERGRAPH_ON_START = true;
+	public static final boolean DROP_HYPERGRAPH_ON_START = false;
 
 	/**
 	 * Set this to >0 to create Test Ontologies Data on startup.
@@ -117,11 +120,11 @@ public class HGDBOntologyRepository {
 		HGConfiguration config = new HGConfiguration();
 		config.setUseSystemAtomAttributes(false);
 		BDBConfig bdbConfig = (BDBConfig)config.getStoreImplementation().getConfiguration();
-		// Change the storage cache from the 20MB default to 500MB
-		bdbConfig.getEnvironmentConfig().setCacheSize(500*1024*1024);
-		SequentialUUIDHandleFactory handleFactory =
-            new SequentialUUIDHandleFactory(System.currentTimeMillis(), 0);
-		config.setHandleFactory(handleFactory);		
+		// Change the storage cache from the 20MB default to 50MB
+		bdbConfig.getEnvironmentConfig().setCacheSize(50*1024*1024);
+		//SequentialUUIDHandleFactory handleFactory =
+        //    new SequentialUUIDHandleFactory(System.currentTimeMillis(), 0);
+		//config.setHandleFactory(handleFactory);		
 		graph = HGEnvironment.get(HYPERGRAPH_DB_LOCATION, config);
 		long nrOfAtoms = hg.count(graph, hg.all());
 		log.info("Hypergraph contains " + nrOfAtoms + " Atoms");
@@ -249,6 +252,19 @@ public class HGDBOntologyRepository {
 //  List<HGAtomType> l = hg.getAll(graph, hg.apply(hg.targetAt(graph, 1), hg.and(hg.type(HGSubsumes.class), hg.orderedLink(th, hg.anyHandle()))));
 //	log.info("Removing " + l.size() + " disconnected non builtin OWLEntities from graph.");
 //	return l.size();
+	public void printStatistics() {
+		Date now = new Date();
+		DecimalFormat f = new DecimalFormat("##########");
+		System.out.println("******************************************************");
+		System.out.println("* Hypergraph stats for location : " + graph.getLocation());
+		System.out.println("* At : " + DateFormat.getDateTimeInstance().format(now));
+		System.out.println("* TOTAL ATOMS : " + f.format(getNrOfAtoms()));
+		System.out.println("*       LINKS : " + f.format(getNrOfLinks()));
+		System.out.println("* !Link ATOMS : " + f.format(getNrOfNonLinkAtoms()));
+		System.out.println("*      AXIOMS : " + f.format(getNrOfAtomsByTypePlus(OWLAxiom.class)));
+		System.out.println("*    ENTITIES : " + f.format(getNrOfAtomsByTypePlus(OWLEntity.class)));
+		System.out.println("******************************************************");	
+	}
 
 	public void printAllOntologies() {
 		List<HGDBOntology> l = getOntologies();

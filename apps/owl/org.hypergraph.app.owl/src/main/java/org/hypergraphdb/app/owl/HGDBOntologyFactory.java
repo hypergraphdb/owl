@@ -59,7 +59,7 @@ public class HGDBOntologyFactory implements OWLOntologyFactory {
 			return ontology;
 		} else {
 			logger.severe("Ontology with documentIRI" + documentIRI + " already exists.");
-			return null;
+			throw new IllegalStateException("Ontology already Exists + " + documentIRI);
 		}
 	}
 

@@ -34,7 +34,7 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
  * @created Sep 28, 2011
  */
 public class OWLDataFactoryInternalsHGDB {
-	public static boolean DBG = true;
+	public static boolean DBG = false;
 	
     //private WeakHashMap<IRI, WeakReference<? extends OWLEntity>> classesByURI;
     //private final WeakHashMap<IRI, WeakReference<? extends OWLEntity>> objectPropertiesByURI;
