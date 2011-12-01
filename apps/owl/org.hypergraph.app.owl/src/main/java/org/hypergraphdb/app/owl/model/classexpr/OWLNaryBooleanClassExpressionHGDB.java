@@ -2,6 +2,7 @@ package org.hypergraphdb.app.owl.model.classexpr;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -25,7 +26,7 @@ public abstract class OWLNaryBooleanClassExpressionHGDB extends OWLAnonymousClas
 
     public OWLNaryBooleanClassExpressionHGDB(HGHandle...args) {
     	// no duplicates allowed
-    	assert(new TreeSet<HGHandle>(Arrays.asList(args)).size() == args.length);
+    	assert(new HashSet<HGHandle>(Arrays.asList(args)).size() == args.length);
     	operandHandles = Arrays.asList(args);
     }
 
