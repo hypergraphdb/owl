@@ -15,6 +15,15 @@ public class StopWatch {
 	private long start;	
 	NumberFormat secFormat = new DecimalFormat("####00.00");
 	
+
+	public StopWatch() {
+		//do nothing
+	}
+	
+	public StopWatch(boolean start) {
+		if (start) start();
+	}
+
 	public void start() {
 		start = System.nanoTime();
 	}
@@ -26,11 +35,10 @@ public class StopWatch {
 		return stop(s, start);
 	}
 
-	public double stop(String s, long starttime) {		
-		double secs = (System.nanoTime() - starttime) / 1E9d;
+	public double stop(String s, long startTimeNano) {		
+		double secs = (System.nanoTime() - startTimeNano) / 1E9d;
 		if (s != null) System.out.println(s + " " + secFormat.format(secs) + " secs");
 		start();
 		return secs;
 	}
-
 }

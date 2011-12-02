@@ -112,7 +112,7 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology, HGGraphHolder,
 		HGHandleHolder {
 	
-	public static boolean DBG = true; //Switches LOG string creation on or off.
+	public static boolean DBG = false; //Switches LOG string creation on or off.
 
 	protected Logger log = Logger.getLogger(this.getClass().getCanonicalName());
 

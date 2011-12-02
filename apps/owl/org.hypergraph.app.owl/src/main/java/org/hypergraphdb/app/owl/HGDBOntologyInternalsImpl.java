@@ -77,7 +77,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	/**
 	 * Switches LOG string creation on or off.
 	 */
-	public static boolean DBG = true;
+	public static boolean DBG = false;
 
 	/**
 	 * recursion level/depth for getReferencingAxioms.
@@ -752,7 +752,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		if (DBG) {
 			log.info("ADD Axiom: " + axiom.getClass().getSimpleName() + "Type: " + type);
 		}
-		if (containsAxiom(axiom)) {
+		if (false && containsAxiom(axiom)) {
 			log.severe("DUPLICATE AXIOM WILL NOT BE ADDED TO ONTOLOGY");
 			throw new IllegalStateException("Tried to add duplicate axiom in ontology: " + axiom);
 			// A graph may contain duplicates, an ontology not.

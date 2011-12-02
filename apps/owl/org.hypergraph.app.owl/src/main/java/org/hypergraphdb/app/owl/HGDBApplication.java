@@ -15,12 +15,14 @@ import org.hypergraphdb.app.owl.model.OWLDataPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLDatatypeHGDB;
 import org.hypergraphdb.app.owl.model.OWLNamedIndividualHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectPropertyHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
 import org.hypergraphdb.app.owl.type.IRIType;
 import org.hypergraphdb.app.owl.type.OWLImportsDeclarationType;
 import org.hypergraphdb.app.owl.type.OWLNamedObjectType;
 import org.hypergraphdb.app.owl.type.OntologyIDType;
 import org.hypergraphdb.app.owl.type.TypeUtils;
 import org.hypergraphdb.indexing.ByPartIndexer;
+import org.hypergraphdb.indexing.ByTargetIndexer;
 import org.hypergraphdb.type.HGAtomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -67,8 +69,7 @@ public class HGDBApplication extends HGApplication
 		registerTypeOntologyID(graph);
 		registerTypeOWLImportsDeclaration(graph);
 		//All Entity types:
-		registerTypeOWLNamedObjectTypesHGDB(graph);
-		
+		registerTypeOWLNamedObjectTypesHGDB(graph);		
 	}
 	
 //	/**
@@ -191,6 +192,9 @@ public class HGDBApplication extends HGApplication
 	 * @param graph
 	 */
 	private void registerIndices(HyperGraph graph) {
+		//
+		// BY_PART_INDEXERS "IRI"
+		//
 		HGHandle[] typeHandlesNamedObjectsWithIRIBeanProperty = new HGHandle[] {
 				graph.getTypeSystem().getTypeHandle(OWLClassHGDB.class),
 				graph.getTypeSystem().getTypeHandle(OWLDatatypeHGDB.class),
@@ -203,6 +207,14 @@ public class HGDBApplication extends HGApplication
 			ByPartIndexer bpI = new ByPartIndexer(typeHandle, "IRI");
 			graph.getIndexManager().register(bpI);
 		}
+		//
+		// BY_TARGET_INDEXERS
+		//
+		ByTargetIndexer subClass0 = new ByTargetIndexer(graph.getTypeSystem().getTypeHandle(OWLSubClassOfAxiomHGDB.class), 1);
+		ByTargetIndexer subClass1 = new ByTargetIndexer(graph.getTypeSystem().getTypeHandle(OWLSubClassOfAxiomHGDB.class), 1);
+		graph.getIndexManager().register(subClass0);
+		graph.getIndexManager().register(subClass1);
+		
 	}
 
 	/**

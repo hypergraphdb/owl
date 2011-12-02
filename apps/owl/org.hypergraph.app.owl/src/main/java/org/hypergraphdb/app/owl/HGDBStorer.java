@@ -1,8 +1,10 @@
 package org.hypergraphdb.app.owl;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.Set;
 
+import org.hypergraphdb.app.owl.test.StopWatch;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentTarget;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
@@ -51,7 +53,8 @@ public class HGDBStorer implements OWLOntologyStorer {
 	@Override
 	public void storeOntology(OWLOntologyManager manager, OWLOntology ontology, IRI documentIRI,
 			OWLOntologyFormat ontologyFormat) throws OWLOntologyStorageException, IOException {
-		System.out.println("HGDBStorer.storeOntology");
+		System.out.println("HGDBStorer.storeOntology ");
+		StopWatch stopWatch = new StopWatch(true);
 		if (!(ontologyFormat instanceof HGDBOntologyFormat)) {
 			throw new OWLOntologyStorageException("illegal format, need HGDBOntologyFormat, was "
 					+ ontologyFormat.getClass());
@@ -81,6 +84,7 @@ public class HGDBStorer implements OWLOntologyStorer {
 		} catch (final OWLOntologyChangeException e) {
 			throw new OWLOntologyStorageException(e);
 		}
+		stopWatch.stop("Done: HGDBStorer.storeOntology ");
 	}
 
 	/*
