@@ -4,13 +4,12 @@ Bundle-Name: HypergraphDB Owl-API Backend
 Bundle-SymbolicName: org.hypergraph.app.owl;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-ClassPath: .,
- build/classes,
- lib/hgdbfull.jar,
  lib/hgdbmanagement.jar,
  lib/native,
  lib/jars/db.jar,
  lib/jars/smack.jar,
- lib/jars/smackx.jar
+ lib/jars/smackx.jar,
+ lib/hypergraphdb.jar
 Export-Package: 
  org.hypergraphdb;
   uses:="org.hypergraphdb.storage,
@@ -27,13 +26,21 @@ Export-Package:
  org.hypergraphdb.annotation,
  org.hypergraphdb.app.management;uses:="org.hypergraphdb",
  org.hypergraphdb.app.owl;
-  uses:="org.semanticweb.owlapi.apibinding,
+  uses:="org.hypergraphdb.app.owl.util,
+   org.hypergraphdb.app.owl.core,
+   org.semanticweb.owlapi.model,
+   org.hypergraphdb.query,
    org.semanticweb.owlapi.io,
    org.protege.owlapi.model,
+   org.hypergraphdb,
+   org.hypergraphdb.app.management",
+ org.hypergraphdb.app.owl.core;
+  uses:="org.hypergraphdb.atom,
+   uk.ac.manchester.cs.owl.owlapi,
+   org.semanticweb.owlapi.vocab,
    org.semanticweb.owlapi.model,
-   org.hypergraphdb.app.management,
-   org.hypergraphdb",
- org.hypergraphdb.app.owl.core;uses:="org.semanticweb.owlapi.model,org.hypergraphdb",
+   org.hypergraphdb,
+   org.hypergraphdb.app.owl",
  org.hypergraphdb.app.owl.model;
   uses:="org.semanticweb.owlapi.vocab,
    org.hypergraphdb.app.owl.core,
@@ -56,47 +63,6 @@ Export-Package:
  org.hypergraphdb.handle;uses:="org.hypergraphdb",
  org.hypergraphdb.indexing;uses:="org.hypergraphdb.storage,org.hypergraphdb",
  org.hypergraphdb.maintenance;uses:="org.hypergraphdb",
- org.hypergraphdb.peer;
-  uses:="org.hypergraphdb.storage,
-   org.hypergraphdb.peer.cact,
-   org.hypergraphdb.query,
-   org.hypergraphdb.peer.workflow,
-   org.hypergraphdb.util,
-   new org.hypergraphdb.peer,
-   org.hypergraphdb.peer.log,
-   org.hypergraphdb.algorithms,
-   org.hypergraphdb",
- org.hypergraphdb.peer.bootstrap;uses:="org.hypergraphdb.peer",
- org.hypergraphdb.peer.cact;
-  uses:="org.hypergraphdb.util,
-   org.hypergraphdb.storage,
-   org.hypergraphdb.peer,
-   org.hypergraphdb.algorithms,
-   org.hypergraphdb,
-   org.hypergraphdb.query,
-   org.hypergraphdb.peer.workflow",
- org.hypergraphdb.peer.log;
-  uses:="org.hypergraphdb.storage,
-   org.hypergraphdb.peer,
-   org.hypergraphdb,
-   org.hypergraphdb.query",
- org.hypergraphdb.peer.protocol;uses:="org.hypergraphdb.peer,org.hypergraphdb.peer.serializer",
- org.hypergraphdb.peer.replication;
-  uses:="org.hypergraphdb.peer,
-   org.hypergraphdb.peer.log,
-   org.hypergraphdb,
-   org.hypergraphdb.query,
-   org.hypergraphdb.peer.workflow",
- org.hypergraphdb.peer.serializer;uses:="org.hypergraphdb,org.hypergraphdb.peer.protocol",
- org.hypergraphdb.peer.workflow;uses:="org.hypergraphdb.peer,org.hypergraphdb,org.hypergraphdb.query",
- org.hypergraphdb.peer.xmpp;
-  uses:="org.hypergraphdb.peer,
-   org.jivesoftware.smackx.muc,
-   org.jivesoftware.smack.filter,
-   org.jivesoftware.smack,
-   new org.hypergraphdb.peer.xmpp,
-   org.jivesoftware.smack.packet,
-   org.jivesoftware.smackx.filetransfer",
  org.hypergraphdb.query;uses:="org.hypergraphdb.util,org.hypergraphdb.algorithms,org.hypergraphdb",
  org.hypergraphdb.query.cond2qry;uses:="new org.hypergraphdb.query.cond2qry,org.hypergraphdb,org.hypergraphdb.query",
  org.hypergraphdb.query.impl;
