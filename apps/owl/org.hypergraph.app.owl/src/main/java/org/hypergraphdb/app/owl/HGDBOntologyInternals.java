@@ -41,6 +41,7 @@ import org.semanticweb.owlapi.model.OWLFunctionalObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLHasKeyAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLIndividual;
+import org.semanticweb.owlapi.model.OWLIndividualAxiom;
 import org.semanticweb.owlapi.model.OWLInverseFunctionalObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLInverseObjectPropertiesAxiom;
 import org.semanticweb.owlapi.model.OWLIrreflexiveObjectPropertyAxiom;
@@ -513,5 +514,11 @@ public interface HGDBOntologyInternals {
 	Set<OWLLogicalAxiom> getLogicalAxioms();
 
 	int getLogicalAxiomCount();
+
+	/**
+	 * @param individual
+	 * @return
+	 */
+	Set<OWLIndividualAxiom> getOWLIndividualAxioms(OWLIndividual individual);
 
 }
