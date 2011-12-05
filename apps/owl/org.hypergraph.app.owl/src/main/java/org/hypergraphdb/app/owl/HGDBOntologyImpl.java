@@ -835,15 +835,17 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	}
 
 	public Set<OWLIndividualAxiom> getAxioms(final OWLIndividual individual) {
-		final Set<OWLIndividualAxiom> result = createSet();
-		result.addAll(getClassAssertionAxioms(individual));
-		result.addAll(getObjectPropertyAssertionAxioms(individual));
-		result.addAll(getDataPropertyAssertionAxioms(individual));
-		result.addAll(getNegativeObjectPropertyAssertionAxioms(individual));
-		result.addAll(getNegativeDataPropertyAssertionAxioms(individual));
-		result.addAll(getSameIndividualAxioms(individual));
-		result.addAll(getDifferentIndividualAxioms(individual));
-		return result;
+		return internals.getOWLIndividualAxioms(individual);
+//2011.12.05 optimized
+//		final Set<OWLIndividualAxiom> result = createSet();
+//		result.addAll(getClassAssertionAxioms(individual));
+//		result.addAll(getObjectPropertyAssertionAxioms(individual));
+//		result.addAll(getDataPropertyAssertionAxioms(individual));
+//		result.addAll(getNegativeObjectPropertyAssertionAxioms(individual));
+//		result.addAll(getNegativeDataPropertyAssertionAxioms(individual));
+//		result.addAll(getSameIndividualAxioms(individual));
+//		result.addAll(getDifferentIndividualAxioms(individual));
+//		return result;
 	}
 
 	public Set<OWLDatatypeDefinitionAxiom> getAxioms(OWLDatatype datatype) {
