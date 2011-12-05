@@ -611,18 +611,59 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		// based on equals in each axiom type.
 		// Boris had ideas about bottom up search and parallel search.
 		// Called by OWLCellrenderer true will render an entity in bold font.
-		return graph.getTransactionManager().transact(new Callable<OWLAxiom>() {
-			public OWLAxiom call() {
-				OWLAxiom foundAxiom = null;
-				Class<?> hgdbType = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiom.getAxiomType());
-				List<OWLAxiom> axiomsOneTypeInOnto = ontology.getAll(hg.type(hgdbType));
-				// Find by axiom.equal (expensive)
-				int i = axiomsOneTypeInOnto.indexOf(axiom);
-				if (i != -1) {
-					foundAxiom = axiomsOneTypeInOnto.get(i);
+		if (axiom.getAxiomType() == AxiomType.DECLARATION) {
+			//optimized find
+			return findEqualDeclarationAxiom((OWLDeclarationAxiom)axiom);
+		} else {
+			return graph.getTransactionManager().transact(new Callable<OWLAxiom>() {
+				public OWLAxiom call() {
+					OWLAxiom foundAxiom = null;				
+					Class<?> hgdbType = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiom.getAxiomType());
+					List<OWLAxiom> axiomsOneTypeInOnto = ontology.getAll(hg.type(hgdbType));
+					// Find by axiom.equal (expensive)
+					int i = axiomsOneTypeInOnto.indexOf(axiom);
+					if (i != -1) {
+						foundAxiom = axiomsOneTypeInOnto.get(i);
+					}
+					return foundAxiom;
+				}}, HGTransactionConfig.READONLY);
+		}
+	}
+	
+	private OWLDeclarationAxiomHGDB findEqualDeclarationAxiom(final OWLDeclarationAxiom axiom) {
+		//FROM OWLDeclarationAxiomHGDB
+		//public boolean equals(Object obj) {
+		//  if (super.equals(obj)) {
+	    //    if (obj instanceof OWLDeclarationAxiom) {
+	    //      return ((OWLDeclarationAxiom) obj).getEntity().equals(getEntity());
+	    //    }
+		//  }
+	    //  return false;
+	    //}
+		//Strategy: find Entity by IRI (indexed), find DeclarationAxiom in (direct) incidence set.
+		final OWLEntity owlEntity = axiom.getEntity();		
+		return graph.getTransactionManager().transact(new Callable<OWLDeclarationAxiomHGDB>() {
+			public OWLDeclarationAxiomHGDB call() {
+				HGHandle owlEntityHandle;
+				owlEntityHandle = graph.getHandle(owlEntity);
+				if (owlEntityHandle == null) {
+					owlEntityHandle = hg.findOne(graph, hg.and(hg.type(owlEntity.getClass()), hg.eq("IRI", owlEntity.getIRI())));
 				}
-				return foundAxiom;
-			}}, HGTransactionConfig.READONLY);
+				if (owlEntityHandle != null) {
+					IncidenceSet iSet = graph.getIncidenceSet(owlEntityHandle);
+					for (HGHandle incidentAtomHandle : iSet) {
+						Object o = graph.get(incidentAtomHandle);
+						if (o != null) {
+							if (o instanceof OWLDeclarationAxiom) {
+								if (ontology.isMember(incidentAtomHandle)) {
+									return (OWLDeclarationAxiomHGDB)o;
+								} // else not this ontology.
+							} // else other Link.
+						}// else incidentAtomHandle not in cache! 
+					} 
+				}// else no entity found
+				return null;
+			}});
 	}
 
 	public int getAxiomCount() {
@@ -1024,6 +1065,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		return containsOWLEntityOntology(c.getIRI(), OWLClassHGDB.class);
 	}
 
+	
 	// public void removeOwlObjectPropertyReferences(OWLObjectProperty p,
 	// OWLAxiom ax) {
 	// removeAxiomFromSet(p, owlObjectPropertyReferences, ax, true);
