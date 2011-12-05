@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.type.link.AxiomAnnotatedBy;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -27,7 +28,7 @@ import org.semanticweb.owlapi.util.NNF;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 18, 2011
  */
-public abstract class OWLAxiomHGDB extends OWLObjectHGDB implements OWLAxiom {
+public abstract class OWLAxiomHGDB extends OWLObjectHGDB implements OWLAxiom, HGLink {
 	
     private OWLAxiom nnf;
 
