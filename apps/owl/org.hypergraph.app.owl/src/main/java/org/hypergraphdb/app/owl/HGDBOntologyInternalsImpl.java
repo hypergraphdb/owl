@@ -448,7 +448,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 				final HGHandle entityHandle = graph.getHandle(entity);
 				// 	All links of type OWLDeclarationAxiom in the incidence set of
 				// OWLEntity.
-				List<OWLDeclarationAxiom> l = hg.<OWLDeclarationAxiom>getAll(graph, hg.and(hg.type(OWLDeclarationAxiomHGDB.class), hg.incident(entityHandle)));
+				List<OWLDeclarationAxiom> l = ontology.<OWLDeclarationAxiom>getAll(hg.and(hg.type(OWLDeclarationAxiomHGDB.class), hg.incident(entityHandle)));
 				Set<OWLDeclarationAxiom> s = getReturnSet(l);
 				if (l.size() != s.size()) throw new IllegalStateException("Set contract broken.");
 				return s;
