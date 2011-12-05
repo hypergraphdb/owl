@@ -11,7 +11,9 @@ import java.util.TreeSet;
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGHandleHolder;
+import org.hypergraphdb.HGTypeHolder;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.type.HGAtomType;
 import org.semanticweb.owlapi.io.ToStringRenderer;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -30,19 +32,36 @@ import org.semanticweb.owlapi.util.OWLEntityCollector;
 import org.semanticweb.owlapi.util.OWLObjectTypeIndexProvider;
 
 
-public abstract class OWLObjectHGDB implements OWLObject, HGGraphHolder, HGHandleHolder
+public abstract class OWLObjectHGDB implements OWLObject, HGGraphHolder, HGHandleHolder, HGTypeHolder<HGAtomType>
 {
 	private HyperGraph graph;
 	private HGHandle handle;
 	private final OWLDataFactory dataFactory;
 	private int hashCode = 0;
 	private Set<OWLEntity> signature;
-
+	private HGAtomType hgAtomType;
+	
 	public OWLObjectHGDB() {
 		this.dataFactory = OWLDataFactoryHGDB.getInstance();
 		
 		//Boris Map<String, OWLDataFactory> owlFactoryByGraph = ...dataFactory.
 		
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.HGTypeHolder#getAtomType()
+	 */
+	@Override
+	public HGAtomType getAtomType() {
+		return hgAtomType;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.HGTypeHolder#setAtomType(java.lang.Object)
+	 */
+	@Override
+	public void setAtomType(HGAtomType atomType) {
+		hgAtomType = atomType;		
 	}
 
 	public OWLDataFactory getOWLDataFactory() {
