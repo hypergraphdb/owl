@@ -145,7 +145,6 @@ public class HGDBApplication extends HGApplication
 			log.info("HG OwlImportsDeclaration/Impl type registered.");
 		}
 	}
-	@SuppressWarnings("deprecation")
 	private void registerTypeOWLNamedObjectTypesHGDB(HyperGraph graph) {
 		HGTypeSystem typeSystem = graph.getTypeSystem();
 		HGHandle oWLNamedObjectTypeHandle = graph.getTypeSystem().getTypeHandle(OWLNamedObject.class);
