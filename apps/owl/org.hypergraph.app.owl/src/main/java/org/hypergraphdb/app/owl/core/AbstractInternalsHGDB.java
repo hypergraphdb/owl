@@ -5,15 +5,14 @@ import static org.semanticweb.owlapi.util.CollectionFactory.createSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.Lock;
+import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.IncidenceSet;
-import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyImpl;
@@ -24,7 +23,6 @@ import org.hypergraphdb.app.owl.model.axioms.OWLClassAssertionHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDataPropertyAssertionAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDataPropertyDomainAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDataPropertyRangeAxiomHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLDeclarationAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDifferentIndividualsAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDisjointClassesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDisjointDataPropertiesAxiomHGDB;
@@ -49,6 +47,7 @@ import org.hypergraphdb.app.owl.model.axioms.OWLSameIndividualAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubDataPropertyOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubObjectPropertyOfAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLSymmetricObjectPropertyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLTransitiveObjectPropertyAxiomHGDB;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -64,13 +63,11 @@ import org.semanticweb.owlapi.model.OWLDataPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLDataPropertyDomainAxiom;
 import org.semanticweb.owlapi.model.OWLDataPropertyExpression;
 import org.semanticweb.owlapi.model.OWLDataPropertyRangeAxiom;
-import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLDifferentIndividualsAxiom;
 import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
 import org.semanticweb.owlapi.model.OWLDisjointDataPropertiesAxiom;
 import org.semanticweb.owlapi.model.OWLDisjointObjectPropertiesAxiom;
 import org.semanticweb.owlapi.model.OWLDisjointUnionAxiom;
-import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLEquivalentDataPropertiesAxiom;
 import org.semanticweb.owlapi.model.OWLEquivalentObjectPropertiesAxiom;
@@ -96,9 +93,6 @@ import org.semanticweb.owlapi.model.OWLSubDataPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSymmetricObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
-import org.semanticweb.owlapi.util.CollectionFactory;
-
-import uk.ac.manchester.cs.owl.owlapi.InitVisitorFactory;
 
 /**
  * AbstractInternalsHGDB.
@@ -106,7 +100,6 @@ import uk.ac.manchester.cs.owl.owlapi.InitVisitorFactory;
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  * @created Sep 29, 2011
  */
-@SuppressWarnings("deprecation")
 public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HGGraphHolder {
 
 	protected HyperGraph graph;
@@ -182,35 +175,35 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 
 	protected abstract <T extends OWLAxiom> Set<T> getAxiomsInternal(AxiomType<T> axiomType);
 
-	// NOTE: the parameter is reassigned inside the method, the field that is
-	// passed in is not modified in the original object
-	protected <K extends OWLObject, V extends OWLAxiom> Map<K, Set<V>> fill(Map<K, Set<V>> map, AxiomType<V> type,
-			InitVisitorFactory.InitVisitor<K> visitor) {
-		map = createMap();
-		for (V ax : getAxiomsInternal(type)) {
-			K key = ax.accept(visitor);
-			if (key != null) {
-				addToIndexedSet(key, map, ax);
-			}
-		}
-		return map;
-	}
+//	// NOTE: the parameter is reassigned inside the method, the field that is
+//	// passed in is not modified in the original object
+//	protected <K extends OWLObject, V extends OWLAxiom> Map<K, Set<V>> fill(Map<K, Set<V>> map, AxiomType<V> type,
+//			InitVisitorFactory.InitVisitor<K> visitor) {
+//		map = createMap();
+//		for (V ax : getAxiomsInternal(type)) {
+//			K key = ax.accept(visitor);
+//			if (key != null) {
+//				addToIndexedSet(key, map, ax);
+//			}
+//		}
+//		return map;
+//	}
+//
+//	// NOTE: the parameter is reassigned inside the method, the field that is
+//	// passed in is not modified in the original object
+//	protected <K extends OWLObject, V extends OWLAxiom> Map<K, Set<V>> fill(Map<K, Set<V>> map, AxiomType<V> type,
+//			InitVisitorFactory.InitCollectionVisitor<K> visitor) {
+//		map = createMap();
+//		for (V ax : getAxiomsInternal(type)) {
+//			Collection<K> keys = ax.accept(visitor);
+//			for (K key : keys) {
+//				addToIndexedSet(key, map, ax);
+//			}
+//		}
+//		return map;
+//	}
 
-	// NOTE: the parameter is reassigned inside the method, the field that is
-	// passed in is not modified in the original object
-	protected <K extends OWLObject, V extends OWLAxiom> Map<K, Set<V>> fill(Map<K, Set<V>> map, AxiomType<V> type,
-			InitVisitorFactory.InitCollectionVisitor<K> visitor) {
-		map = createMap();
-		for (V ax : getAxiomsInternal(type)) {
-			Collection<K> keys = ax.accept(visitor);
-			for (K key : keys) {
-				addToIndexedSet(key, map, ax);
-			}
-		}
-		return map;
-	}
-
-	protected enum Maps {
+//	protected enum Maps {
 		// SubClassAxiomsByLHS {
 		// @Override
 		// public void initMap(AbstractInternalsHGDB impl) {
@@ -560,76 +553,76 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 		//				}
 		//			}
 		//		},
-		ImportsDeclarations {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-			}
-		},
-		OntologyAnnotations {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-			}
-		},
-		AxiomsByType {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-			}
-		},
-		LogicalAxiom2AnnotatedAxiomMap {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-			}
-		},
-		GeneralClassAxioms {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-			}
-		},
-		PropertyChainSubPropertyAxioms {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-			}
-		},
-		OwlClassReferences {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-			}
-		},
-		OwlObjectPropertyReferences {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-			}
-		},
-		OwlDataPropertyReferences {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-			}
-		},
-		OwlIndividualReferences {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-			}
-		},
-		OwlAnonymousIndividualReferences {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-			}
-		},
-		OwlDatatypeReferences {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-			}
-		},
-		OwlAnnotationPropertyReferences {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-			}
-		},
-		DeclarationsByEntity {
-			@Override
-			public void initMap(AbstractInternalsHGDB impl) {
-			}
-		}; // ,
+//		ImportsDeclarations {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//			}
+//		},
+//		OntologyAnnotations {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//			}
+//		},
+//		AxiomsByType {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//			}
+//		},
+//		LogicalAxiom2AnnotatedAxiomMap {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//			}
+//		},
+//		GeneralClassAxioms {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//			}
+//		},
+//		PropertyChainSubPropertyAxioms {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//			}
+//		},
+//		OwlClassReferences {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//			}
+//		},
+//		OwlObjectPropertyReferences {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//			}
+//		},
+//		OwlDataPropertyReferences {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//			}
+//		},
+//		OwlIndividualReferences {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//			}
+//		},
+//		OwlAnonymousIndividualReferences {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//			}
+//		},
+//		OwlDatatypeReferences {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//			}
+//		},
+//		OwlAnnotationPropertyReferences {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//			}
+//		},
+//		DeclarationsByEntity {
+//			@Override
+//			public void initMap(AbstractInternalsHGDB impl) {
+//			}
+//		}; // ,
 			// lazy init
 			// ClassAxiomsByClass {
 		// @Override
@@ -677,140 +670,140 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 		// }
 		// }
 		// };
-		public abstract void initMap(AbstractInternalsHGDB impl);
+		//public abstract void initMap(AbstractInternalsHGDB impl);
 
-		/**
-		 * locking variant of the init code
-		 */
-		public void initMap(AbstractInternalsHGDB impl, Lock l, Object field) {
-			// if (field == null) {
-			// System.out
-			// .println("OWLOntologyImplInternalsDefaultImpl.Maps.initMap() lock "+this);
-			l.lock();
-			try {
-				initMap(impl);
-			} finally {
-				l.unlock();
-			}
-			// }
-			// else {
-			// System.out
-			// .println("OWLOntologyImplInternalsDefaultImpl.Maps.initMap() NOT LOCKED");
-			// initMap(impl);
-			// }
-		}
+//		/**
+//		 * locking variant of the init code
+//		 */
+//		public void initMap(AbstractInternalsHGDB impl, Lock l, Object field) {
+//			// if (field == null) {
+//			// System.out
+//			// .println("OWLOntologyImplInternalsDefaultImpl.Maps.initMap() lock "+this);
+//			l.lock();
+//			try {
+//				initMap(impl);
+//			} finally {
+//				l.unlock();
+//			}
+//			// }
+//			// else {
+//			// System.out
+//			// .println("OWLOntologyImplInternalsDefaultImpl.Maps.initMap() NOT LOCKED");
+//			// initMap(impl);
+//			// }
+//		}
 
-		protected static final InitVisitorFactory.InitVisitor<OWLClass> classsubnamed = new InitVisitorFactory.InitVisitor<OWLClass>(
-				true, true);
-		protected static final InitVisitorFactory.InitVisitor<OWLClassExpression> classexpressions = new InitVisitorFactory.InitVisitor<OWLClassExpression>(
-				true, true);
-		protected static final InitVisitorFactory.InitVisitor<OWLClass> classsupernamed = new InitVisitorFactory.InitVisitor<OWLClass>(
-				false, true);
-		protected static final InitVisitorFactory.InitCollectionVisitor<OWLClass> classcollections = new InitVisitorFactory.InitCollectionVisitor<OWLClass>(
-				true);
-		protected static final InitVisitorFactory.InitCollectionVisitor<OWLObjectPropertyExpression> opcollections = new InitVisitorFactory.InitCollectionVisitor<OWLObjectPropertyExpression>(
-				true);
-		protected static final InitVisitorFactory.InitCollectionVisitor<OWLDataPropertyExpression> dpcollections = new InitVisitorFactory.InitCollectionVisitor<OWLDataPropertyExpression>(
-				true);
-		protected static final InitVisitorFactory.InitCollectionVisitor<OWLIndividual> icollections = new InitVisitorFactory.InitCollectionVisitor<OWLIndividual>(
-				true);
-		protected static final InitVisitorFactory.InitVisitor<OWLObjectPropertyExpression> opsubnamed = new InitVisitorFactory.InitVisitor<OWLObjectPropertyExpression>(
-				true, true);
-		protected static final InitVisitorFactory.InitVisitor<OWLObjectPropertyExpression> opsupernamed = new InitVisitorFactory.InitVisitor<OWLObjectPropertyExpression>(
-				false, true);
-		protected static final InitVisitorFactory.InitVisitor<OWLDataPropertyExpression> dpsubnamed = new InitVisitorFactory.InitVisitor<OWLDataPropertyExpression>(
-				true, true);
-		protected static final InitVisitorFactory.InitVisitor<OWLDataPropertyExpression> dpsupernamed = new InitVisitorFactory.InitVisitor<OWLDataPropertyExpression>(
-				false, true);
-		protected static final InitVisitorFactory.InitVisitor<OWLIndividual> individualsubnamed = new InitVisitorFactory.InitIndividualVisitor<OWLIndividual>(
-				true, true);
-		protected static final InitVisitorFactory.InitVisitor<OWLAnnotationSubject> annotsupernamed = new InitVisitorFactory.InitVisitor<OWLAnnotationSubject>(
-				true, true);
-	}
+//		protected static final InitVisitorFactory.InitVisitor<OWLClass> classsubnamed = new InitVisitorFactory.InitVisitor<OWLClass>(
+//				true, true);
+//		protected static final InitVisitorFactory.InitVisitor<OWLClassExpression> classexpressions = new InitVisitorFactory.InitVisitor<OWLClassExpression>(
+//				true, true);
+//		protected static final InitVisitorFactory.InitVisitor<OWLClass> classsupernamed = new InitVisitorFactory.InitVisitor<OWLClass>(
+//				false, true);
+//		protected static final InitVisitorFactory.InitCollectionVisitor<OWLClass> classcollections = new InitVisitorFactory.InitCollectionVisitor<OWLClass>(
+//				true);
+//		protected static final InitVisitorFactory.InitCollectionVisitor<OWLObjectPropertyExpression> opcollections = new InitVisitorFactory.InitCollectionVisitor<OWLObjectPropertyExpression>(
+//				true);
+//		protected static final InitVisitorFactory.InitCollectionVisitor<OWLDataPropertyExpression> dpcollections = new InitVisitorFactory.InitCollectionVisitor<OWLDataPropertyExpression>(
+//				true);
+//		protected static final InitVisitorFactory.InitCollectionVisitor<OWLIndividual> icollections = new InitVisitorFactory.InitCollectionVisitor<OWLIndividual>(
+//				true);
+//		protected static final InitVisitorFactory.InitVisitor<OWLObjectPropertyExpression> opsubnamed = new InitVisitorFactory.InitVisitor<OWLObjectPropertyExpression>(
+//				true, true);
+//		protected static final InitVisitorFactory.InitVisitor<OWLObjectPropertyExpression> opsupernamed = new InitVisitorFactory.InitVisitor<OWLObjectPropertyExpression>(
+//				false, true);
+//		protected static final InitVisitorFactory.InitVisitor<OWLDataPropertyExpression> dpsubnamed = new InitVisitorFactory.InitVisitor<OWLDataPropertyExpression>(
+//				true, true);
+//		protected static final InitVisitorFactory.InitVisitor<OWLDataPropertyExpression> dpsupernamed = new InitVisitorFactory.InitVisitor<OWLDataPropertyExpression>(
+//				false, true);
+//		protected static final InitVisitorFactory.InitVisitor<OWLIndividual> individualsubnamed = new InitVisitorFactory.InitIndividualVisitor<OWLIndividual>(
+//				true, true);
+//		protected static final InitVisitorFactory.InitVisitor<OWLAnnotationSubject> annotsupernamed = new InitVisitorFactory.InitVisitor<OWLAnnotationSubject>(
+//				true, true);
+//	}
 
 	public AbstractInternalsHGDB() {
 
 	}
 
-	protected <K, V> Map<K, V> createMap() {
-		return CollectionFactory.createMap();
-	}
+//	protected <K, V> Map<K, V> createMap() {
+//		return CollectionFactory.createMap();
+//	}
 
-	/**
-	 * A convenience method that adds an axiom to a set, but checks that the set
-	 * isn't null before the axiom is added. This is needed because many of the
-	 * indexing sets are built lazily.
-	 * 
-	 * @param axiom
-	 *            The axiom to be added.
-	 * @param axioms
-	 *            The set of axioms that the axiom should be added to. May be
-	 *            <code>null</code>.
-	 */
-	public <K extends OWLAxiom> void addAxiomToSet(K axiom, Set<K> axioms) {
-		if (axioms != null && axiom != null) {
-			axioms.add(axiom);
-		}
-	}
+//	/**
+//	 * A convenience method that adds an axiom to a set, but checks that the set
+//	 * isn't null before the axiom is added. This is needed because many of the
+//	 * indexing sets are built lazily.
+//	 * 
+//	 * @param axiom
+//	 *            The axiom to be added.
+//	 * @param axioms
+//	 *            The set of axioms that the axiom should be added to. May be
+//	 *            <code>null</code>.
+//	 */
+//	public <K extends OWLAxiom> void addAxiomToSet(K axiom, Set<K> axioms) {
+//		if (axioms != null && axiom != null) {
+//			axioms.add(axiom);
+//		}
+//	}
 
-	public <K extends OWLAxiom> void removeAxiomFromSet(K axiom, Set<K> axioms) {
-		if (axioms != null) {
-			axioms.remove(axiom);
-		}
-	}
+//	public <K extends OWLAxiom> void removeAxiomFromSet(K axiom, Set<K> axioms) {
+//		if (axioms != null) {
+//			axioms.remove(axiom);
+//		}
+//	}
 
-	/**
-	 * Adds an axiom to a set contained in a map, which maps some key (e.g. an
-	 * entity such as and individual, class etc.) to the set of axioms.
-	 * 
-	 * @param key
-	 *            The key that indexes the set of axioms
-	 * @param map
-	 *            The map, which maps the key to a set of axioms, to which the
-	 *            axiom will be added.
-	 * @param axiom
-	 *            The axiom to be added
-	 */
-	public <K, V extends OWLAxiom> void addToIndexedSet(K key, Map<K, Set<V>> map, V axiom) {
-		if (map == null) {
-			return;
-		}
-		Set<V> axioms = map.get(key);
-		if (axioms == null) {
-			axioms = createSet();
-			map.put(key, axioms);
-		}
-		axioms.add(axiom);
-	}
+//	/**
+//	 * Adds an axiom to a set contained in a map, which maps some key (e.g. an
+//	 * entity such as and individual, class etc.) to the set of axioms.
+//	 * 
+//	 * @param key
+//	 *            The key that indexes the set of axioms
+//	 * @param map
+//	 *            The map, which maps the key to a set of axioms, to which the
+//	 *            axiom will be added.
+//	 * @param axiom
+//	 *            The axiom to be added
+//	 */
+//	public <K, V extends OWLAxiom> void addToIndexedSet(K key, Map<K, Set<V>> map, V axiom) {
+//		if (map == null) {
+//			return;
+//		}
+//		Set<V> axioms = map.get(key);
+//		if (axioms == null) {
+//			axioms = createSet();
+//			map.put(key, axioms);
+//		}
+//		axioms.add(axiom);
+//	}
 
-	/**
-	 * Removes an axiom from a set of axioms, which is the value for a specified
-	 * key in a specified map.
-	 * 
-	 * @param key
-	 *            The key that indexes the set of axioms.
-	 * @param map
-	 *            The map, which maps keys to sets of axioms.
-	 * @param axiom
-	 *            The axiom to remove from the set of axioms.
-	 * @param removeSetIfEmpty
-	 *            Specifies whether or not the indexed set should be removed
-	 *            from the map if it is empty after removing the specified axiom
-	 */
-	public <K, V extends OWLAxiom> void removeAxiomFromSet(K key, Map<K, Set<V>> map, V axiom, boolean removeSetIfEmpty) {
-		if (map == null) {
-			return;
-		}
-		Set<V> axioms = map.get(key);
-		if (axioms != null) {
-			axioms.remove(axiom);
-			if (removeSetIfEmpty) {
-				if (axioms.isEmpty()) {
-					map.remove(key);
-				}
-			}
-		}
-	}
+//	/**
+//	 * Removes an axiom from a set of axioms, which is the value for a specified
+//	 * key in a specified map.
+//	 * 
+//	 * @param key
+//	 *            The key that indexes the set of axioms.
+//	 * @param map
+//	 *            The map, which maps keys to sets of axioms.
+//	 * @param axiom
+//	 *            The axiom to remove from the set of axioms.
+//	 * @param removeSetIfEmpty
+//	 *            Specifies whether or not the indexed set should be removed
+//	 *            from the map if it is empty after removing the specified axiom
+//	 */
+//	public <K, V extends OWLAxiom> void removeAxiomFromSet(K key, Map<K, Set<V>> map, V axiom, boolean removeSetIfEmpty) {
+//		if (map == null) {
+//			return;
+//		}
+//		Set<V> axioms = map.get(key);
+//		if (axioms != null) {
+//			axioms.remove(axiom);
+//			if (removeSetIfEmpty) {
+//				if (axioms.isEmpty()) {
+//					map.remove(key);
+//				}
+//			}
+//		}
+//	}
 
 	public <E> Set<E> getReturnSet(Set<E> set) {
 		if (set == null) {
@@ -836,52 +829,55 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 		return createSet(collection);
 	}
 
-	public <K extends OWLObject, V extends OWLAxiom> Set<V> getAxioms(K key, Map<K, Set<V>> map) {
-		Set<V> axioms = map.get(key);
-		if (axioms != null) {
-			return CollectionFactory.getCopyOnRequestSet(axioms);
-		} else {
-			return Collections.emptySet();
-		}
-	}
+//	public <K extends OWLObject, V extends OWLAxiom> Set<V> getAxioms(K key, Map<K, Set<V>> map) {
+//		Set<V> axioms = map.get(key);
+//		if (axioms != null) {
+//			return CollectionFactory.getCopyOnRequestSet(axioms);
+//		} else {
+//			return Collections.emptySet();
+//		}
+//	}
 
-	protected <K, V extends OWLAxiom> Set<V> getAxioms(K key, Map<K, Set<V>> map, boolean create) {
-		Set<V> axioms = map.get(key);
-		if (axioms == null) {
-			if (create) {
-				axioms = createSet();
-				map.put(key, axioms);
-			} else {
-				axioms = Collections.emptySet();
-			}
-		} else {
-			axioms = CollectionFactory.getCopyOnRequestSet(axioms);
-		}
-		return axioms;
-	}
+//	protected <K, V extends OWLAxiom> Set<V> getAxioms(K key, Map<K, Set<V>> map, boolean create) {
+//		Set<V> axioms = map.get(key);
+//		if (axioms == null) {
+//			if (create) {
+//				axioms = createSet();
+//				map.put(key, axioms);
+//			} else {
+//				axioms = Collections.emptySet();
+//			}
+//		} else {
+//			axioms = CollectionFactory.getCopyOnRequestSet(axioms);
+//		}
+//		return axioms;
+//	}
 
 	public Set<OWLSubClassOfAxiom> getSubClassAxiomsForSubClass(OWLClass cls) {
-		HGHandle clsHandle = graph.getHandle(cls);
-		List<OWLSubClassOfAxiom> l = new ArrayList<OWLSubClassOfAxiom>();
-		if (clsHandle != null) {
-			IncidenceSet iSet = graph.getIncidenceSet(clsHandle);
-			for (HGHandle incidentAtomHandle : iSet) {
-				Object o = graph.get(incidentAtomHandle);
-				if (o != null) {
-					if (o instanceof OWLSubClassOfAxiom && ontology.isMember(incidentAtomHandle)) {
-						OWLSubClassOfAxiomHGDB sc = (OWLSubClassOfAxiomHGDB)o;
-						//Is it a superclass in the relationship
-						if (clsHandle.equals(sc.getTargetAt(0))) {
-							l.add(sc);
-						} // else not superclass.
-					} // else other Link or other axiom.
-				} // else incidentAtomHandle not in cache! 
-			} 
-		} else {
-			String msg = ("ClassHandle null. Graph.getHandle(" + cls + ") in getSubClassAxiomsForSubClass(OWLClass) returned null");
-			throw new IllegalStateException(msg);
-		}
-		return getReturnSet(l);
+		//index 0 Is it a subclass in the relationship, 1 superclass
+		return findAxiomsInIncidenceSet(cls, OWLSubClassOfAxiomHGDB.class, 0);
+		
+//		HGHandle clsHandle = graph.getHandle(cls);
+//		List<OWLSubClassOfAxiom> l = new ArrayList<OWLSubClassOfAxiom>();
+//		if (clsHandle != null) {
+//			IncidenceSet iSet = graph.getIncidenceSet(clsHandle);
+//			for (HGHandle incidentAtomHandle : iSet) {
+//				Object o = graph.get(incidentAtomHandle);
+//				if (o != null) {
+//					if (o instanceof OWLSubClassOfAxiom && ontology.isMember(incidentAtomHandle)) {
+//						OWLSubClassOfAxiomHGDB sc = (OWLSubClassOfAxiomHGDB)o;
+//						//Is it a superclass in the relationship
+//						if (clsHandle.equals(sc.getTargetAt(0))) {
+//							l.add(sc);
+//						} // else not superclass.
+//					} // else other Link or other axiom.
+//				} // else incidentAtomHandle not in cache! 
+//			} 
+//		} else {
+//			String msg = ("ClassHandle null. Graph.getHandle(" + cls + ") in getSubClassAxiomsForSubClass(OWLClass) returned null");
+//			throw new IllegalStateException(msg);
+//		}
+//		return getReturnSet(l);
 	}	
 
 //2011.12.05 Optimized implementation added for	public Set<OWLSubClassOfAxiom> getSubClassAxiomsForSubClass(OWLClass cls) {
@@ -895,412 +891,497 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 //	}
 
 	public Set<OWLSubClassOfAxiom> getSubClassAxiomsForSuperClass(OWLClass cls) {
-		HGHandle clsHandle = graph.getHandle(cls);
-		List<OWLSubClassOfAxiom> l = ontology.getAll(hg.and(hg.type(OWLSubClassOfAxiomHGDB.class)
 		// subclass 0, superClass 1
-				, hg.orderedLink(hg.anyHandle(), clsHandle)));
-		return getReturnSet(l);
-		// Maps.SubClassAxiomsByRHS.initMap(this);
-		// return getReturnSet(getAxioms(cls, subClassAxiomsByRHS));
+		return findAxiomsInIncidenceSet(cls, OWLSubClassOfAxiomHGDB.class, 1);
+
+//		HGHandle clsHandle = graph.getHandle(cls);
+//		List<OWLSubClassOfAxiom> l = ontology.getAll(hg.and(hg.type(OWLSubClassOfAxiomHGDB.class)
+//		// subclass 0, superClass 1
+//				, hg.orderedLink(hg.anyHandle(), clsHandle)));
+//		return getReturnSet(l);
+//		// Maps.SubClassAxiomsByRHS.initMap(this);
+//		// return getReturnSet(getAxioms(cls, subClassAxiomsByRHS));
 	}
 
-	public Set<OWLEquivalentClassesAxiom> getEquivalentClassesAxioms(OWLClass cls) {
-		HGHandle clsHandle = graph.getHandle(cls);
-		List<OWLEquivalentClassesAxiom> l = ontology.getAll(hg.and(hg.type(OWLEquivalentClassesAxiomHGDB.class),
-				hg.incident(clsHandle)));
-		return getReturnSet(l);
+	public Set<OWLEquivalentClassesAxiom> getEquivalentClassesAxioms(OWLClass cls) {		
+		return findAxiomsInIncidenceSet(cls, OWLEquivalentClassesAxiomHGDB.class);
+//		HGHandle clsHandle = graph.getHandle(cls);
+//		List<OWLEquivalentClassesAxiom> l = ontology.getAll(hg.and(hg.type(OWLEquivalentClassesAxiomHGDB.class),
+//				hg.incident(clsHandle)));
+//		return getReturnSet(l);
 		// Maps.EquivalentClassesAxiomsByClass.initMap(this);
 		// return getReturnSet(getAxioms(cls, equivalentClassesAxiomsByClass));
 	}
 
 	public Set<OWLDisjointClassesAxiom> getDisjointClassesAxioms(OWLClass cls) {
-		HGHandle clsHandle = graph.getHandle(cls);
-		List<OWLDisjointClassesAxiom> l = ontology.getAll(hg.and(hg.type(OWLDisjointClassesAxiomHGDB.class),
-				hg.incident(clsHandle)));
-		return getReturnSet(l);
+		return findAxiomsInIncidenceSet(cls, OWLDisjointClassesAxiomHGDB.class);
+//		HGHandle clsHandle = graph.getHandle(cls);
+//		List<OWLDisjointClassesAxiom> l = ontology.getAll(hg.and(hg.type(OWLDisjointClassesAxiomHGDB.class),
+//				hg.incident(clsHandle)));
+//		return getReturnSet(l);
 		// Maps.DisjointClassesAxiomsByClass.initMap(this);
 		// return getReturnSet(getAxioms(cls, disjointClassesAxiomsByClass));
 	}
 
 	public Set<OWLDisjointUnionAxiom> getDisjointUnionAxioms(OWLClass cls) {
-		HGHandle clsHandle = graph.getHandle(cls);
-		List<OWLDisjointUnionAxiom> l = ontology.getAll(hg.and(hg.type(OWLDisjointUnionAxiomHGDB.class),
-				hg.incident(clsHandle)));
-		return getReturnSet(l);
-		// Maps.DisjointUnionAxiomsByClass.initMap(this);
-		// return getReturnSet(getAxioms(owlClass,
-		// getDisjointUnionAxiomsByClass()));
+		return findAxiomsInIncidenceSet(cls, OWLDisjointUnionAxiomHGDB.class);				
+//		HGHandle clsHandle = graph.getHandle(cls);
+//		List<OWLDisjointUnionAxiom> l = ontology.getAll(hg.and(hg.type(OWLDisjointUnionAxiomHGDB.class),
+//				hg.incident(clsHandle)));
+//		return getReturnSet(l);
+//		// Maps.DisjointUnionAxiomsByClass.initMap(this);
+//		// return getReturnSet(getAxioms(owlClass,
+//		// getDisjointUnionAxiomsByClass()));
 	}
 
 	public Set<OWLHasKeyAxiom> getHasKeyAxioms(OWLClass cls) {
-		HGHandle clsHandle = graph.getHandle(cls);
-		List<OWLHasKeyAxiom> l = ontology.getAll(hg.and(hg.type(OWLHasKeyAxiomHGDB.class),
-				hg.link(clsHandle)));
-		return getReturnSet(l);
-//		Maps.HasKeyAxiomsByClass.initMap(this);
-//		return getReturnSet(getAxioms(cls, getHasKeyAxiomsByClass()));
+		return findAxiomsInIncidenceSet(cls, OWLHasKeyAxiomHGDB.class);				
+//		HGHandle clsHandle = graph.getHandle(cls);
+//		List<OWLHasKeyAxiom> l = ontology.getAll(hg.and(hg.type(OWLHasKeyAxiomHGDB.class),
+//				hg.link(clsHandle)));
+//		return getReturnSet(l);
+////		Maps.HasKeyAxiomsByClass.initMap(this);
+////		return getReturnSet(getAxioms(cls, getHasKeyAxiomsByClass()));
 	}
 
 	// Object properties
 	public Set<OWLSubObjectPropertyOfAxiom> getObjectSubPropertyAxiomsForSubProperty(
 			OWLObjectPropertyExpression property) {
-		HGHandle propertyHandle = graph.getHandle(property);
-		List<OWLSubObjectPropertyOfAxiom> l = ontology.getAll(hg.and(hg.type(OWLSubObjectPropertyOfAxiomHGDB.class)
 		// subclass 0, superClass 1
-				, hg.orderedLink(propertyHandle, hg.anyHandle())));
-		return getReturnSet(l);
-		// Maps.ObjectSubPropertyAxiomsByLHS.initMap(this);
-		// return getReturnSet(getAxioms(property,
-		// getObjectSubPropertyAxiomsByLHS()));
+		return findAxiomsInIncidenceSet(property, OWLSubObjectPropertyOfAxiomHGDB.class, 0);				
+//		HGHandle propertyHandle = graph.getHandle(property);
+//		List<OWLSubObjectPropertyOfAxiom> l = ontology.getAll(hg.and(hg.type(OWLSubObjectPropertyOfAxiomHGDB.class)
+//				// subclass 0, superClass 1
+//				, hg.orderedLink(propertyHandle, hg.anyHandle())));
+//		return getReturnSet(l);
+////		 Maps.ObjectSubPropertyAxiomsByLHS.initMap(this);
+////		 return getReturnSet(getAxioms(property,
+////		 getObjectSubPropertyAxiomsByLHS()));
 	}
 
 	public Set<OWLSubObjectPropertyOfAxiom> getObjectSubPropertyAxiomsForSuperProperty(
 			OWLObjectPropertyExpression property) {
-		HGHandle propertyHandle = graph.getHandle(property);
-		List<OWLSubObjectPropertyOfAxiom> l = ontology.getAll(hg.and(hg.type(OWLSubObjectPropertyOfAxiomHGDB.class)
 		// subclass 0, superClass 1
-				, hg.orderedLink(hg.anyHandle(), propertyHandle)));
-		return getReturnSet(l);
-		// Maps.ObjectSubPropertyAxiomsByRHS.initMap(this);
-		// return getReturnSet(getAxioms(property,
-		// getObjectSubPropertyAxiomsByRHS()));
+		return findAxiomsInIncidenceSet(property, OWLSubObjectPropertyOfAxiomHGDB.class, 1);				
+		
+//		HGHandle propertyHandle = graph.getHandle(property);
+//		List<OWLSubObjectPropertyOfAxiom> l = ontology.getAll(hg.and(hg.type(OWLSubObjectPropertyOfAxiomHGDB.class)
+//		// subclass 0, superClass 1
+//				, hg.orderedLink(hg.anyHandle(), propertyHandle)));
+//		return getReturnSet(l);
+//		// Maps.ObjectSubPropertyAxiomsByRHS.initMap(this);
+//		// return getReturnSet(getAxioms(property,
+//		// getObjectSubPropertyAxiomsByRHS()));
 	}
 
 	public Set<OWLObjectPropertyDomainAxiom> getObjectPropertyDomainAxioms(OWLObjectPropertyExpression property) {
-		// Maps.ObjectPropertyDomainAxiomsByProperty.initMap(this);
-		HGHandle propertyHandle = graph.getHandle(property);
-		List<OWLObjectPropertyDomainAxiom> l = ontology.getAll(hg.and(hg.type(OWLObjectPropertyDomainAxiomHGDB.class)
 		// property 0, domain 1
-				, hg.orderedLink(propertyHandle, hg.anyHandle())));
-		return getReturnSet(l);
-		// return getReturnSet(getAxioms(property,
-		// getObjectPropertyDomainAxiomsByProperty()));
+		return findAxiomsInIncidenceSet(property, OWLObjectPropertyDomainAxiomHGDB.class, 0);				
+
+//		// Maps.ObjectPropertyDomainAxiomsByProperty.initMap(this);
+//		HGHandle propertyHandle = graph.getHandle(property);
+//		List<OWLObjectPropertyDomainAxiom> l = ontology.getAll(hg.and(hg.type(OWLObjectPropertyDomainAxiomHGDB.class)
+//		// property 0, domain 1
+//				, hg.orderedLink(propertyHandle, hg.anyHandle())));
+//		return getReturnSet(l);
+//		// return getReturnSet(getAxioms(property,
+//		// getObjectPropertyDomainAxiomsByProperty()));
 	}
 
 	public Set<OWLObjectPropertyRangeAxiom> getObjectPropertyRangeAxioms(OWLObjectPropertyExpression property) {
-		HGHandle propertyHandle = graph.getHandle(property);
-		List<OWLObjectPropertyRangeAxiom> l = ontology.getAll(hg.and(hg.type(OWLObjectPropertyRangeAxiomHGDB.class)
 		// property 0, range 1
-				, hg.orderedLink(propertyHandle, hg.anyHandle())));
-		return getReturnSet(l);
-		// Maps.ObjectPropertyRangeAxiomsByProperty.initMap(this);
-		// return getReturnSet(getAxioms(property,
-		// getObjectPropertyRangeAxiomsByProperty()));
+		return findAxiomsInIncidenceSet(property, OWLObjectPropertyRangeAxiomHGDB.class, 0);				
+		
+//		HGHandle propertyHandle = graph.getHandle(property);
+//		List<OWLObjectPropertyRangeAxiom> l = ontology.getAll(hg.and(hg.type(OWLObjectPropertyRangeAxiomHGDB.class)
+//		// property 0, range 1
+//				, hg.orderedLink(propertyHandle, hg.anyHandle())));
+//		return getReturnSet(l);
+//		// Maps.ObjectPropertyRangeAxiomsByProperty.initMap(this);
+//		// return getReturnSet(getAxioms(property,
+//		// getObjectPropertyRangeAxiomsByProperty()));
 	}
 
 	public Set<OWLInverseObjectPropertiesAxiom> getInverseObjectPropertyAxioms(OWLObjectPropertyExpression property) {
-		HGHandle propertyHandle = graph.getHandle(property);
-		List<OWLInverseObjectPropertiesAxiom> l = ontology.getAll(hg.and(
-				hg.type(OWLInverseObjectPropertiesAxiomHGDB.class)
-				// first 0, second 1, return any
-				, hg.link(propertyHandle)));
-		return getReturnSet(l);
-		// Maps.InversePropertyAxiomsByProperty.initMap(this);
-		// return getReturnSet(getAxioms(property,
-		// getInversePropertyAxiomsByProperty()));
+		//return any index
+		return findAxiomsInIncidenceSet(property, OWLInverseObjectPropertiesAxiomHGDB.class);				
+//		HGHandle propertyHandle = graph.getHandle(property);
+//		List<OWLInverseObjectPropertiesAxiom> l = ontology.getAll(hg.and(
+//				hg.type(OWLInverseObjectPropertiesAxiomHGDB.class)
+//				// first 0, second 1, return any
+//				, hg.link(propertyHandle)));
+//		return getReturnSet(l);
+//		// Maps.InversePropertyAxiomsByProperty.initMap(this);
+//		// return getReturnSet(getAxioms(property,
+//		// getInversePropertyAxiomsByProperty()));
 	}
 
 	public Set<OWLEquivalentObjectPropertiesAxiom> getEquivalentObjectPropertiesAxioms(
 			OWLObjectPropertyExpression property) {
-		HGHandle propertyHandle = graph.getHandle(property);
-		List<OWLEquivalentObjectPropertiesAxiom> l = ontology.getAll(hg.and(
-				hg.type(OWLEquivalentObjectPropertiesAxiomHGDB.class)
-				// properties 0...arity
-				, hg.link(propertyHandle)));
-		return getReturnSet(l);
-		// Maps.EquivalentObjectPropertyAxiomsByProperty.initMap(this);
-		// return getReturnSet(getAxioms(property,
-		// getEquivalentObjectPropertyAxiomsByProperty()));
+		//return any
+		return findAxiomsInIncidenceSet(property, OWLEquivalentObjectPropertiesAxiomHGDB.class);				
+//		HGHandle propertyHandle = graph.getHandle(property);
+//		List<OWLEquivalentObjectPropertiesAxiom> l = ontology.getAll(hg.and(
+//				hg.type(OWLEquivalentObjectPropertiesAxiomHGDB.class)
+//				// properties 0...arity
+//				, hg.link(propertyHandle)));
+//		return getReturnSet(l);
+//		// Maps.EquivalentObjectPropertyAxiomsByProperty.initMap(this);
+//		// return getReturnSet(getAxioms(property,
+//		// getEquivalentObjectPropertyAxiomsByProperty()));
 	}
 
 	public Set<OWLDisjointObjectPropertiesAxiom> getDisjointObjectPropertiesAxioms(OWLObjectPropertyExpression property) {
-		HGHandle propertyHandle = graph.getHandle(property);
-		List<OWLDisjointObjectPropertiesAxiom> l = ontology.getAll(hg.and(
-				hg.type(OWLDisjointObjectPropertiesAxiomHGDB.class)
-				// properties 0...arity
-				, hg.link(propertyHandle)));
-		return getReturnSet(l);
-		// Maps.DisjointObjectPropertyAxiomsByProperty.initMap(this);
-		// return getReturnSet(getAxioms(property,
-		// getDisjointObjectPropertyAxiomsByProperty()));
+		//return any
+		return findAxiomsInIncidenceSet(property, OWLDisjointObjectPropertiesAxiomHGDB.class);				
+//		HGHandle propertyHandle = graph.getHandle(property);
+//		List<OWLDisjointObjectPropertiesAxiom> l = ontology.getAll(hg.and(
+//				hg.type(OWLDisjointObjectPropertiesAxiomHGDB.class)
+//				// properties 0...arity
+//				, hg.link(propertyHandle)));
+//		return getReturnSet(l);
+//		// Maps.DisjointObjectPropertyAxiomsByProperty.initMap(this);
+//		// return getReturnSet(getAxioms(property,
+//		// getDisjointObjectPropertyAxiomsByProperty()));
 	}
 
 	public Set<OWLFunctionalObjectPropertyAxiom> getFunctionalObjectPropertyAxioms(OWLObjectPropertyExpression property) {
-		HGHandle propertyHandle = graph.getHandle(property);
-		List<OWLFunctionalObjectPropertyAxiom> l = ontology.getAll(hg.and(
-				hg.type(OWLFunctionalObjectPropertyAxiomHGDB.class)
-				// property 0 arity 1
-				, hg.link(propertyHandle)));
-		return getReturnSet(l);
-		// Maps.FunctionalObjectPropertyAxiomsByProperty.initMap(this);
-		// return getReturnSet(getAxioms(property,
-		// getFunctionalObjectPropertyAxiomsByProperty()));
+		//return any, arity is 1
+		return findAxiomsInIncidenceSet(property, OWLFunctionalObjectPropertyAxiomHGDB.class);				
+		
+//		HGHandle propertyHandle = graph.getHandle(property);
+//		List<OWLFunctionalObjectPropertyAxiom> l = ontology.getAll(hg.and(
+//				hg.type(OWLFunctionalObjectPropertyAxiomHGDB.class)
+//				// property 0 arity 1
+//				, hg.link(propertyHandle)));
+//		return getReturnSet(l);
+//		// Maps.FunctionalObjectPropertyAxiomsByProperty.initMap(this);
+//		// return getReturnSet(getAxioms(property,
+//		// getFunctionalObjectPropertyAxiomsByProperty()));
 	}
 
 	public Set<OWLInverseFunctionalObjectPropertyAxiom> getInverseFunctionalObjectPropertyAxioms(
 			OWLObjectPropertyExpression property) {
-		HGHandle propertyHandle = graph.getHandle(property);
-		List<OWLInverseFunctionalObjectPropertyAxiom> l = ontology.getAll(hg.and(
-				hg.type(OWLInverseFunctionalObjectPropertyAxiomHGDB.class)
-				// property 0 arity 1
-				, hg.link(propertyHandle)));
-		return getReturnSet(l);
-		// Maps.InverseFunctionalPropertyAxiomsByProperty.initMap(this);
-		// return getReturnSet(getAxioms(property,
-		// getInverseFunctionalPropertyAxiomsByProperty()));
+		//return any, arity is 1
+		return findAxiomsInIncidenceSet(property, OWLInverseFunctionalObjectPropertyAxiomHGDB.class);				
+//		HGHandle propertyHandle = graph.getHandle(property);
+//		List<OWLInverseFunctionalObjectPropertyAxiom> l = ontology.getAll(hg.and(
+//				hg.type(OWLInverseFunctionalObjectPropertyAxiomHGDB.class)
+//				// property 0 arity 1
+//				, hg.link(propertyHandle)));
+//		return getReturnSet(l);
+//		// Maps.InverseFunctionalPropertyAxiomsByProperty.initMap(this);
+//		// return getReturnSet(getAxioms(property,
+//		// getInverseFunctionalPropertyAxiomsByProperty()));
 	}
 
 	public Set<OWLSymmetricObjectPropertyAxiom> getSymmetricObjectPropertyAxioms(OWLObjectPropertyExpression property) {
-		HGHandle propertyHandle = graph.getHandle(property);
-		List<OWLSymmetricObjectPropertyAxiom> l = ontology.getAll(hg.and(hg.type(OWLSymmetricObjectPropertyAxiom.class)
-		// property 0 arity 1
-				, hg.link(propertyHandle)));
-		return getReturnSet(l);
-		// Maps.SymmetricPropertyAxiomsByProperty.initMap(this);
-		// return getReturnSet(getAxioms(property,
-		// getSymmetricPropertyAxiomsByProperty()));
+		//return any, arity is 1
+		return findAxiomsInIncidenceSet(property, OWLSymmetricObjectPropertyAxiomHGDB.class);				
+//		HGHandle propertyHandle = graph.getHandle(property);
+//		List<OWLSymmetricObjectPropertyAxiom> l = ontology.getAll(hg.and(hg.type(OWLSymmetricObjectPropertyAxiom.class)
+//		// property 0 arity 1
+//				, hg.link(propertyHandle)));
+//		return getReturnSet(l);
+//		// Maps.SymmetricPropertyAxiomsByProperty.initMap(this);
+//		// return getReturnSet(getAxioms(property,
+//		// getSymmetricPropertyAxiomsByProperty()));
 	}
 
 	public Set<OWLAsymmetricObjectPropertyAxiom> getAsymmetricObjectPropertyAxioms(OWLObjectPropertyExpression property) {
-		HGHandle propertyHandle = graph.getHandle(property);
-		List<OWLAsymmetricObjectPropertyAxiom> l = ontology.getAll(hg.and(
-				hg.type(OWLAsymmetricObjectPropertyAxiomHGDB.class)
-				// property 0 arity 1
-				, hg.link(propertyHandle)));
-		return getReturnSet(l);
-		// Maps.AsymmetricPropertyAxiomsByProperty.initMap(this);
-		// return getReturnSet(getAxioms(property,
-		// getAsymmetricPropertyAxiomsByProperty()));
+		//return any, arity is 1
+		return findAxiomsInIncidenceSet(property, OWLAsymmetricObjectPropertyAxiomHGDB.class);				
+
+//		HGHandle propertyHandle = graph.getHandle(property);
+//		List<OWLAsymmetricObjectPropertyAxiom> l = ontology.getAll(hg.and(
+//				hg.type(OWLAsymmetricObjectPropertyAxiomHGDB.class)
+//				// property 0 arity 1
+//				, hg.link(propertyHandle)));
+//		return getReturnSet(l);
+//		// Maps.AsymmetricPropertyAxiomsByProperty.initMap(this);
+//		// return getReturnSet(getAxioms(property,
+//		// getAsymmetricPropertyAxiomsByProperty()));
 	}
 
 	public Set<OWLReflexiveObjectPropertyAxiom> getReflexiveObjectPropertyAxioms(OWLObjectPropertyExpression property) {
-		HGHandle propertyHandle = graph.getHandle(property);
-		List<OWLReflexiveObjectPropertyAxiom> l = ontology.getAll(hg.and(
-				hg.type(OWLReflexiveObjectPropertyAxiomHGDB.class)
-				// property 0 arity 1
-				, hg.link(propertyHandle)));
-		return getReturnSet(l);
-		// Maps.ReflexivePropertyAxiomsByProperty.initMap(this);
-		// return getReturnSet(getAxioms(property,
-		// getReflexivePropertyAxiomsByProperty()));
+		//return any, arity is 1
+		return findAxiomsInIncidenceSet(property, OWLReflexiveObjectPropertyAxiomHGDB.class);				
+//		HGHandle propertyHandle = graph.getHandle(property);
+//		List<OWLReflexiveObjectPropertyAxiom> l = ontology.getAll(hg.and(
+//				hg.type(OWLReflexiveObjectPropertyAxiomHGDB.class)
+//				// property 0 arity 1
+//				, hg.link(propertyHandle)));
+//		return getReturnSet(l);
+//		// Maps.ReflexivePropertyAxiomsByProperty.initMap(this);
+//		// return getReturnSet(getAxioms(property,
+//		// getReflexivePropertyAxiomsByProperty()));
 	}
 
 	public Set<OWLIrreflexiveObjectPropertyAxiom> getIrreflexiveObjectPropertyAxioms(
 			OWLObjectPropertyExpression property) {
-		HGHandle propertyHandle = graph.getHandle(property);
-		List<OWLIrreflexiveObjectPropertyAxiom> l = ontology.getAll(hg.and(
-				hg.type(OWLIrreflexiveObjectPropertyAxiomHGDB.class)
-				// property 0 arity 1
-				, hg.link(propertyHandle)));
-		return getReturnSet(l);
-		// Maps.IrreflexivePropertyAxiomsByProperty.initMap(this);
-		// return getReturnSet(getAxioms(property,
-		// getIrreflexivePropertyAxiomsByProperty()));
+		//return any, arity is 1
+		return findAxiomsInIncidenceSet(property, OWLIrreflexiveObjectPropertyAxiomHGDB.class);				
+//		HGHandle propertyHandle = graph.getHandle(property);
+//		List<OWLIrreflexiveObjectPropertyAxiom> l = ontology.getAll(hg.and(
+//				hg.type(OWLIrreflexiveObjectPropertyAxiomHGDB.class)
+//				// property 0 arity 1
+//				, hg.link(propertyHandle)));
+//		return getReturnSet(l);
+//		// Maps.IrreflexivePropertyAxiomsByProperty.initMap(this);
+//		// return getReturnSet(getAxioms(property,
+//		// getIrreflexivePropertyAxiomsByProperty()));
 	}
 
 	public Set<OWLTransitiveObjectPropertyAxiom> getTransitiveObjectPropertyAxioms(OWLObjectPropertyExpression property) {
-		HGHandle propertyHandle = graph.getHandle(property);
-		List<OWLTransitiveObjectPropertyAxiom> l = ontology.getAll(hg.and(
-				hg.type(OWLTransitiveObjectPropertyAxiomHGDB.class)
-				// property 0 arity 1
-				, hg.link(propertyHandle)));
-		return getReturnSet(l);
-		// Maps.TransitivePropertyAxiomsByProperty.initMap(this);
-		// return getReturnSet(getAxioms(property,
-		// getTransitivePropertyAxiomsByProperty()));
+		//return any, arity is 1
+		return findAxiomsInIncidenceSet(property, OWLTransitiveObjectPropertyAxiomHGDB.class);				
+//		HGHandle propertyHandle = graph.getHandle(property);
+//		List<OWLTransitiveObjectPropertyAxiom> l = ontology.getAll(hg.and(
+//				hg.type(OWLTransitiveObjectPropertyAxiomHGDB.class)
+//				// property 0 arity 1
+//				, hg.link(propertyHandle)));
+//		return getReturnSet(l);
+//		// Maps.TransitivePropertyAxiomsByProperty.initMap(this);
+//		// return getReturnSet(getAxioms(property,
+//		// getTransitivePropertyAxiomsByProperty()));
 	}
 
 	public Set<OWLFunctionalDataPropertyAxiom> getFunctionalDataPropertyAxioms(OWLDataPropertyExpression property) {
-		HGHandle propertyHandle = graph.getHandle(property);
-		List<OWLFunctionalDataPropertyAxiom> l = ontology.getAll(hg.and(
-				hg.type(OWLFunctionalDataPropertyAxiomHGDB.class)
-				// property 0 arity 1
-				, hg.link(propertyHandle)));
-		return getReturnSet(l);
-		// Maps.FunctionalDataPropertyAxiomsByProperty.initMap(this);
-		// return getReturnSet(getAxioms(property, getFunctionalDataPropertyAxiomsByProperty()));
+		//return any, arity is 1
+		return findAxiomsInIncidenceSet(property, OWLFunctionalDataPropertyAxiomHGDB.class);				
+//		HGHandle propertyHandle = graph.getHandle(property);
+//		List<OWLFunctionalDataPropertyAxiom> l = ontology.getAll(hg.and(
+//				hg.type(OWLFunctionalDataPropertyAxiomHGDB.class)
+//				// property 0 arity 1
+//				, hg.link(propertyHandle)));
+//		return getReturnSet(l);
+//		// Maps.FunctionalDataPropertyAxiomsByProperty.initMap(this);
+//		// return getReturnSet(getAxioms(property, getFunctionalDataPropertyAxiomsByProperty()));
 	}
 
 	public Set<OWLSubDataPropertyOfAxiom> getDataSubPropertyAxiomsForSubProperty(OWLDataProperty lhsProperty) {
-		HGHandle lhsPropertyHandle = graph.getHandle(lhsProperty);
-		List<OWLSubDataPropertyOfAxiom> l = ontology.getAll(hg.and(hg.type(OWLSubDataPropertyOfAxiomHGDB.class)
 		// subclass 0, superClass 1
-				, hg.orderedLink(lhsPropertyHandle, hg.anyHandle())));
-		return getReturnSet(l);
-		// Maps.DataSubPropertyAxiomsByLHS.initMap(this);
-		// return getReturnSet(getAxioms(lhsProperty,
-		// getDataSubPropertyAxiomsByLHS()));
+		return findAxiomsInIncidenceSet(lhsProperty, OWLSubDataPropertyOfAxiomHGDB.class, 0);				
+//		HGHandle lhsPropertyHandle = graph.getHandle(lhsProperty);
+//		List<OWLSubDataPropertyOfAxiom> l = ontology.getAll(hg.and(hg.type(OWLSubDataPropertyOfAxiomHGDB.class)
+//		// subclass 0, superClass 1
+//				, hg.orderedLink(lhsPropertyHandle, hg.anyHandle())));
+//		return getReturnSet(l);
+//		// Maps.DataSubPropertyAxiomsByLHS.initMap(this);
+//		// return getReturnSet(getAxioms(lhsProperty,
+//		// getDataSubPropertyAxiomsByLHS()));
 	}
 
 	public Set<OWLSubDataPropertyOfAxiom> getDataSubPropertyAxiomsForSuperProperty(OWLDataPropertyExpression property) {
-		HGHandle propertyHandle = graph.getHandle(property);
-		List<OWLSubDataPropertyOfAxiom> l = ontology.getAll(hg.and(hg.type(OWLSubDataPropertyOfAxiomHGDB.class)
 		// subclass 0, superClass 1
-				, hg.orderedLink(hg.anyHandle(), propertyHandle)));
-		return getReturnSet(l);
-		// Maps.DataSubPropertyAxiomsByRHS.initMap(this);
-		// return getReturnSet(getAxioms(property,
-		// getDataSubPropertyAxiomsByRHS()));
+		return findAxiomsInIncidenceSet(property, OWLSubDataPropertyOfAxiomHGDB.class, 1);				
+//		HGHandle propertyHandle = graph.getHandle(property);
+//		List<OWLSubDataPropertyOfAxiom> l = ontology.getAll(hg.and(hg.type(OWLSubDataPropertyOfAxiomHGDB.class)
+//		// subclass 0, superClass 1
+//				, hg.orderedLink(hg.anyHandle(), propertyHandle)));
+//		return getReturnSet(l);
+//		// Maps.DataSubPropertyAxiomsByRHS.initMap(this);
+//		// return getReturnSet(getAxioms(property,
+//		// getDataSubPropertyAxiomsByRHS()));
 	}
 
 	public Set<OWLDataPropertyDomainAxiom> getDataPropertyDomainAxioms(OWLDataProperty property) {
-		HGHandle propertyHandle = graph.getHandle(property);
-		List<OWLDataPropertyDomainAxiom> l = ontology.getAll(hg.and(hg.type(OWLDataPropertyDomainAxiomHGDB.class)
-		// OWLDataPropertyExpression property 0, OWLDataPropertyExpression
-		// domain 1
-				, hg.orderedLink(propertyHandle, hg.anyHandle())));
-		return getReturnSet(l);
-		// Maps.DataPropertyDomainAxiomsByProperty.initMap(this);
-		// return getReturnSet(getAxioms(property,
-		// getDataPropertyDomainAxiomsByProperty()));
+		// OWLDataPropertyExpression property 0, OWLDataPropertyExpression domain 1
+		return findAxiomsInIncidenceSet(property, OWLDataPropertyDomainAxiomHGDB.class, 0);				
+//		HGHandle propertyHandle = graph.getHandle(property);
+//		List<OWLDataPropertyDomainAxiom> l = ontology.getAll(hg.and(hg.type(OWLDataPropertyDomainAxiomHGDB.class)
+//		// OWLDataPropertyExpression property 0, OWLDataPropertyExpression
+//		// domain 1
+//				, hg.orderedLink(propertyHandle, hg.anyHandle())));
+//		return getReturnSet(l);
+//		// Maps.DataPropertyDomainAxiomsByProperty.initMap(this);
+//		// return getReturnSet(getAxioms(property,
+//		// getDataPropertyDomainAxiomsByProperty()));
 	}
 
 	public Set<OWLDataPropertyRangeAxiom> getDataPropertyRangeAxioms(OWLDataProperty property) {
-		HGHandle propertyHandle = graph.getHandle(property);
-		List<OWLDataPropertyRangeAxiom> l = ontology.getAll(hg.and(hg.type(OWLDataPropertyRangeAxiomHGDB.class)
 		// OWLDataPropertyExpression property 0, OWLDataRange range 1
-				, hg.orderedLink(propertyHandle, hg.anyHandle())));
-		return getReturnSet(l);
-		// Maps.DataPropertyRangeAxiomsByProperty.initMap(this);
-		// return getReturnSet(getAxioms(property,
-		// getDataPropertyRangeAxiomsByProperty()));
+		return findAxiomsInIncidenceSet(property, OWLDataPropertyRangeAxiomHGDB.class, 0);				
+//		HGHandle propertyHandle = graph.getHandle(property);
+//		List<OWLDataPropertyRangeAxiom> l = ontology.getAll(hg.and(hg.type(OWLDataPropertyRangeAxiomHGDB.class)
+//		// OWLDataPropertyExpression property 0, OWLDataRange range 1
+//				, hg.orderedLink(propertyHandle, hg.anyHandle())));
+//		return getReturnSet(l);
+//		// Maps.DataPropertyRangeAxiomsByProperty.initMap(this);
+//		// return getReturnSet(getAxioms(property,
+//		// getDataPropertyRangeAxiomsByProperty()));
 	}
 
 	public Set<OWLEquivalentDataPropertiesAxiom> getEquivalentDataPropertiesAxioms(OWLDataProperty property) {
-		HGHandle propertyHandle = graph.getHandle(property);
-		List<OWLEquivalentDataPropertiesAxiom> l = ontology.getAll(hg.and(
-				hg.type(OWLEquivalentDataPropertiesAxiomHGDB.class)
-				// Set<? extends OWLDataPropertyExpression> properties 0
-				, hg.link(propertyHandle)));
-		return getReturnSet(l);
-
-		// Maps.EquivalentDataPropertyAxiomsByProperty.initMap(this);
-		// return getReturnSet(getAxioms(property,
-		// getEquivalentDataPropertyAxiomsByProperty()));
+		// any target
+		return findAxiomsInIncidenceSet(property, OWLEquivalentDataPropertiesAxiomHGDB.class);				
+//		HGHandle propertyHandle = graph.getHandle(property);
+//		List<OWLEquivalentDataPropertiesAxiom> l = ontology.getAll(hg.and(
+//				hg.type(OWLEquivalentDataPropertiesAxiomHGDB.class)
+//				// Set<? extends OWLDataPropertyExpression> properties 0
+//				, hg.link(propertyHandle)));
+//		return getReturnSet(l);
+//
+//		// Maps.EquivalentDataPropertyAxiomsByProperty.initMap(this);
+//		// return getReturnSet(getAxioms(property,
+//		// getEquivalentDataPropertyAxiomsByProperty()));
 	}
 
 	public Set<OWLDisjointDataPropertiesAxiom> getDisjointDataPropertiesAxioms(OWLDataProperty property) {
-		HGHandle propertyHandle = graph.getHandle(property);
-		List<OWLDisjointDataPropertiesAxiom> l = ontology.getAll(hg.and(
-				hg.type(OWLDisjointDataPropertiesAxiomHGDB.class)
-				// Set<? extends OWLDataPropertyExpression> properties 0
-				, hg.link(propertyHandle)));
-		return getReturnSet(l);
-//		Maps.DisjointDataPropertyAxiomsByProperty.initMap(this);
-//		return getReturnSet(getAxioms(property, getDisjointDataPropertyAxiomsByProperty()));
+		// any target
+		return findAxiomsInIncidenceSet(property, OWLDisjointDataPropertiesAxiomHGDB.class);				
+//		HGHandle propertyHandle = graph.getHandle(property);
+//		List<OWLDisjointDataPropertiesAxiom> l = ontology.getAll(hg.and(
+//				hg.type(OWLDisjointDataPropertiesAxiomHGDB.class)
+//				// Set<? extends OWLDataPropertyExpression> properties 0
+//				, hg.link(propertyHandle)));
+//		return getReturnSet(l);
+////		Maps.DisjointDataPropertyAxiomsByProperty.initMap(this);
+////		return getReturnSet(getAxioms(property, getDisjointDataPropertyAxiomsByProperty()));
 	}
 
 	public Set<OWLClassAssertionAxiom> getClassAssertionAxioms(OWLIndividual individual) {
-		HGHandle individualHandle = graph.getHandle(individual);
-		List<OWLClassAssertionAxiom> l = ontology.getAll(hg.and(
-				hg.type(OWLClassAssertionHGDB.class)
-				// individualHandle index 0, classExpressionHandle index 1 
-				, hg.orderedLink(individualHandle, hg.anyHandle())));
-		return getReturnSet(l);
-//		Maps.ClassAssertionAxiomsByIndividual.initMap(this);
-//		return getReturnSet(getAxioms(individual, getClassAssertionAxiomsByIndividual()));
+		// individualHandle index 0, classExpressionHandle index 1
+		return findAxiomsInIncidenceSet(individual, OWLClassAssertionHGDB.class, 0);				
+//		HGHandle individualHandle = graph.getHandle(individual);
+//		List<OWLClassAssertionAxiom> l = ontology.getAll(hg.and(
+//				hg.type(OWLClassAssertionHGDB.class)
+//				// individualHandle index 0, classExpressionHandle index 1 
+//				, hg.orderedLink(individualHandle, hg.anyHandle())));
+//		return getReturnSet(l);
+////		Maps.ClassAssertionAxiomsByIndividual.initMap(this);
+////		return getReturnSet(getAxioms(individual, getClassAssertionAxiomsByIndividual()));
 	}
 
 	public Set<OWLClassAssertionAxiom> getClassAssertionAxioms(OWLClassExpression type) {
-		HGHandle typeHandle = graph.getHandle(type);
-		List<OWLClassAssertionAxiom> l = ontology.getAll(hg.and(
-				hg.type(OWLClassAssertionHGDB.class)
-				// individualHandle index 0, classExpressionHandle index 1 
-				, hg.orderedLink(hg.anyHandle(), typeHandle)));
-		return getReturnSet(l);
-//		Maps.ClassAssertionAxiomsByClass.initMap(this);
-//		return getReturnSet(getAxioms(type, getClassAssertionAxiomsByClass()));
+		// individualHandle index 0, classExpressionHandle index 1
+		return findAxiomsInIncidenceSet(type, OWLClassAssertionHGDB.class, 1);				
+//		HGHandle typeHandle = graph.getHandle(type);
+//		List<OWLClassAssertionAxiom> l = ontology.getAll(hg.and(
+//				hg.type(OWLClassAssertionHGDB.class)
+//				// individualHandle index 0, classExpressionHandle index 1 
+//				, hg.orderedLink(hg.anyHandle(), typeHandle)));
+//		return getReturnSet(l);
+////		Maps.ClassAssertionAxiomsByClass.initMap(this);
+////		return getReturnSet(getAxioms(type, getClassAssertionAxiomsByClass()));
+		
+//		BORIS: to demonstrate an idea:
+//		HGQuery q1 = null;
+//		
+//
+//		HGCompiledQuery q = HGQuery<SearchResult>.make("q1",graph, 
+//				hg.and(
+//		hg.type(OWLClassAssertionHGDB.class) 
+//		, hg.orderedLink(hg.anyHandle(), hg.param("type"))));
+//		
+//		q.set("type", ...).set("asdfasd",asdfasd).execute();
+//		HGQuery.query("q1").set("type", type).execute();
 	}
 
 	public Set<OWLDataPropertyAssertionAxiom> getDataPropertyAssertionAxioms(OWLIndividual individual) {
-		HGHandle individualHandle = graph.getHandle(individual);
-		List<OWLDataPropertyAssertionAxiom> l = ontology.getAll(hg.and(
-				hg.type(OWLDataPropertyAssertionAxiomHGDB.class)
-				//subjectHandle 0, propertyHandle 1, objectHandle 2
-				, hg.orderedLink(individualHandle, hg.anyHandle(), hg.anyHandle())));
-		return getReturnSet(l);						
-//		Maps.DataPropertyAssertionsByIndividual.initMap(this);
-//		return getReturnSet(getAxioms(individual, getDataPropertyAssertionsByIndividual()));
+		//subjectHandle 0, propertyHandle 1, objectHandle 2
+		return findAxiomsInIncidenceSet(individual, OWLDataPropertyAssertionAxiomHGDB.class, 0);				
+//		HGHandle individualHandle = graph.getHandle(individual);
+//		List<OWLDataPropertyAssertionAxiom> l = ontology.getAll(hg.and(
+//				hg.type(OWLDataPropertyAssertionAxiomHGDB.class)
+//				//subjectHandle 0, propertyHandle 1, objectHandle 2
+//				, hg.orderedLink(individualHandle, hg.anyHandle(), hg.anyHandle())));
+//		return getReturnSet(l);						
+////		Maps.DataPropertyAssertionsByIndividual.initMap(this);
+////		return getReturnSet(getAxioms(individual, getDataPropertyAssertionsByIndividual()));
 	}
 
 	public Set<OWLObjectPropertyAssertionAxiom> getObjectPropertyAssertionAxioms(OWLIndividual individual) {
-		HGHandle individualHandle = graph.getHandle(individual);
-		List<OWLObjectPropertyAssertionAxiom> l = ontology.getAll(hg.and(
-				hg.type(OWLObjectPropertyAssertionAxiomHGDB.class)
-				//subjectHandle 0, propertyHandle 1, objectHandle 2
-				, hg.orderedLink(individualHandle, hg.anyHandle(), hg.anyHandle())));
-		return getReturnSet(l);				
-//		Maps.ObjectPropertyAssertionsByIndividual.initMap(this);
-//		return getReturnSet(getAxioms(individual, getObjectPropertyAssertionsByIndividual()));
+		//subjectHandle 0, propertyHandle 1, objectHandle 2
+		return findAxiomsInIncidenceSet(individual, OWLObjectPropertyAssertionAxiomHGDB.class, 0);				
+//		HGHandle individualHandle = graph.getHandle(individual);
+//		List<OWLObjectPropertyAssertionAxiom> l = ontology.getAll(hg.and(
+//				hg.type(OWLObjectPropertyAssertionAxiomHGDB.class)
+//				//subjectHandle 0, propertyHandle 1, objectHandle 2
+//				, hg.orderedLink(individualHandle, hg.anyHandle(), hg.anyHandle())));
+//		return getReturnSet(l);				
+////		Maps.ObjectPropertyAssertionsByIndividual.initMap(this);
+////		return getReturnSet(getAxioms(individual, getObjectPropertyAssertionsByIndividual()));
 	}
 
 	public Set<OWLNegativeObjectPropertyAssertionAxiom> getNegativeObjectPropertyAssertionAxioms(
 			OWLIndividual individual) {
-		HGHandle individualHandle = graph.getHandle(individual);
-		List<OWLNegativeObjectPropertyAssertionAxiom> l = ontology.getAll(hg.and(
-				hg.type(OWLNegativeObjectPropertyAssertionAxiomHGDB.class)
-				//subjectHandle 0, propertyHandle 1, objectHandle 2
-				, hg.orderedLink(individualHandle, hg.anyHandle(), hg.anyHandle())));
-		return getReturnSet(l);				
-//		Maps.NegativeObjectPropertyAssertionAxiomsByIndividual.initMap(this);
-//		return getReturnSet(getAxioms(individual, getNegativeObjectPropertyAssertionAxiomsByIndividual()));
+		//subjectHandle 0, propertyHandle 1, objectHandle 2
+		return findAxiomsInIncidenceSet(individual, OWLNegativeObjectPropertyAssertionAxiomHGDB.class, 0);				
+//		HGHandle individualHandle = graph.getHandle(individual);
+//		List<OWLNegativeObjectPropertyAssertionAxiom> l = ontology.getAll(hg.and(
+//				hg.type(OWLNegativeObjectPropertyAssertionAxiomHGDB.class)
+//				//subjectHandle 0, propertyHandle 1, objectHandle 2
+//				, hg.orderedLink(individualHandle, hg.anyHandle(), hg.anyHandle())));
+//		return getReturnSet(l);				
+////		Maps.NegativeObjectPropertyAssertionAxiomsByIndividual.initMap(this);
+////		return getReturnSet(getAxioms(individual, getNegativeObjectPropertyAssertionAxiomsByIndividual()));
 	}
 
 	public Set<OWLNegativeDataPropertyAssertionAxiom> getNegativeDataPropertyAssertionAxioms(OWLIndividual individual) {
-		HGHandle individualHandle = graph.getHandle(individual);
-		List<OWLNegativeDataPropertyAssertionAxiom> l = ontology.getAll(hg.and(
-				hg.type(OWLNegativeDataPropertyAssertionAxiomHGDB.class)
-				//subjectHandle 0, propertyHandle 1, objectHandle 2
-				, hg.orderedLink(individualHandle, hg.anyHandle(), hg.anyHandle())));
-		return getReturnSet(l);								
-//		Maps.NegativeDataPropertyAssertionAxiomsByIndividual.initMap(this);
-//		return getReturnSet(getAxioms(individual, getNegativeDataPropertyAssertionAxiomsByIndividual()));
+		//subjectHandle 0, propertyHandle 1, objectHandle 2
+		return findAxiomsInIncidenceSet(individual, OWLNegativeDataPropertyAssertionAxiomHGDB.class, 0);				
+//		HGHandle individualHandle = graph.getHandle(individual);
+//		List<OWLNegativeDataPropertyAssertionAxiom> l = ontology.getAll(hg.and(
+//				hg.type(OWLNegativeDataPropertyAssertionAxiomHGDB.class)
+//				//subjectHandle 0, propertyHandle 1, objectHandle 2
+//				, hg.orderedLink(individualHandle, hg.anyHandle(), hg.anyHandle())));
+//		return getReturnSet(l);								
+////		Maps.NegativeDataPropertyAssertionAxiomsByIndividual.initMap(this);
+////		return getReturnSet(getAxioms(individual, getNegativeDataPropertyAssertionAxiomsByIndividual()));
 	}
 
 	public Set<OWLSameIndividualAxiom> getSameIndividualAxioms(OWLIndividual individual) {
-		HGHandle individualHandle = graph.getHandle(individual);
-		List<OWLSameIndividualAxiom> l = ontology.getAll(hg.and(
-				hg.type(OWLSameIndividualAxiomHGDB.class)
-				// List<HGHandle> individualsHandles 
-				, hg.link(individualHandle)));
-		return getReturnSet(l);		
-//		Maps.SameIndividualsAxiomsByIndividual.initMap(this);
-//		return getReturnSet(getAxioms(individual, getSameIndividualsAxiomsByIndividual()));
+		//any target
+		return findAxiomsInIncidenceSet(individual, OWLSameIndividualAxiomHGDB.class);				
+//		HGHandle individualHandle = graph.getHandle(individual);
+//		List<OWLSameIndividualAxiom> l = ontology.getAll(hg.and(
+//				hg.type(OWLSameIndividualAxiomHGDB.class)
+//				// List<HGHandle> individualsHandles 
+//				, hg.link(individualHandle)));
+//		return getReturnSet(l);		
+////		Maps.SameIndividualsAxiomsByIndividual.initMap(this);
+////		return getReturnSet(getAxioms(individual, getSameIndividualsAxiomsByIndividual()));
 	}
 
 	public Set<OWLDifferentIndividualsAxiom> getDifferentIndividualAxioms(OWLIndividual individual) {
-		HGHandle individualHandle = graph.getHandle(individual);
-		List<OWLDifferentIndividualsAxiom> l = ontology.getAll(hg.and(
-				hg.type(OWLDifferentIndividualsAxiomHGDB.class)
-				// List<HGHandle> individualsHandles 
-				, hg.link(individualHandle)));
-		return getReturnSet(l);
-//		Maps.DifferentIndividualsAxiomsByIndividual.initMap(this);
-//		return getReturnSet(getAxioms(individual, getDifferentIndividualsAxiomsByIndividual()));
+		//any target
+		return findAxiomsInIncidenceSet(individual, OWLDifferentIndividualsAxiomHGDB.class);				
+//		HGHandle individualHandle = graph.getHandle(individual);
+//		List<OWLDifferentIndividualsAxiom> l = ontology.getAll(hg.and(
+//				hg.type(OWLDifferentIndividualsAxiomHGDB.class)
+//				// List<HGHandle> individualsHandles 
+//				, hg.link(individualHandle)));
+//		return getReturnSet(l);
+////		Maps.DifferentIndividualsAxiomsByIndividual.initMap(this);
+////		return getReturnSet(getAxioms(individual, getDifferentIndividualsAxiomsByIndividual()));
 	}
 
 	public Set<OWLAnnotationAssertionAxiom> getAnnotationAssertionAxiomsBySubject(OWLAnnotationSubject subject) {
-		HGHandle subjectHandle = graph.getHandle(subject);
-		List<OWLAnnotationAssertionAxiom> l = new ArrayList<OWLAnnotationAssertionAxiom>();
-		if (subjectHandle != null) {
-			IncidenceSet iSet = graph.getIncidenceSet(subjectHandle);
-			for (HGHandle incidentAtomHandle : iSet) {
-				Object o = graph.get(incidentAtomHandle);
-				if (o != null) {
-					if (o instanceof OWLAnnotationAssertionAxiom && ontology.isMember(incidentAtomHandle)) {
-						OWLAnnotationAssertionAxiomHGDB axS = (OWLAnnotationAssertionAxiomHGDB)o;
-						//subjectHandle 0, propertyHandle 1, valueHandle 2
-						if (subjectHandle.equals(axS.getTargetAt(0))) {
-							l.add(axS);
-						} // else not subject.
-					} // else other Link or other axiom.
-				} // else incidentAtomHandle not in cache! 
-			} 
-		} else {
-			String msg = ("SubjectHandle null. Graph.getHandle(" + subject + ") in getAnnotationAssertionAxiomsBySubject(OWLAnnotationSubject) returned null");
-			throw new IllegalStateException(msg);
-		}
-		return getReturnSet(l);
+		//index subjectHandle 0, propertyHandle 1, valueHandle 2.
+		return findAxiomsInIncidenceSet(subject, OWLAnnotationAssertionAxiomHGDB.class, 0);
+		
+//		HGHandle subjectHandle = graph.getHandle(subject);
+//		List<OWLAnnotationAssertionAxiom> l = new ArrayList<OWLAnnotationAssertionAxiom>();
+//		if (subjectHandle != null) {
+//			IncidenceSet iSet = graph.getIncidenceSet(subjectHandle);
+//			for (HGHandle incidentAtomHandle : iSet) {
+//				Object o = graph.get(incidentAtomHandle);
+//				if (o != null) {
+//					if (o instanceof OWLAnnotationAssertionAxiom && ontology.isMember(incidentAtomHandle)) {
+//						OWLAnnotationAssertionAxiomHGDB axS = (OWLAnnotationAssertionAxiomHGDB)o;
+//						
+//						if (subjectHandle.equals(axS.getTargetAt(0))) {
+//							l.add(axS);
+//						} // else not subject.
+//					} // else other Link or other axiom.
+//				} // else incidentAtomHandle not in cache! 
+//			} 
+//		} else {
+//			String msg = ("SubjectHandle null. Graph.getHandle(" + subject + ") in getAnnotationAssertionAxiomsBySubject(OWLAnnotationSubject) returned null");
+//			throw new IllegalStateException(msg);
+//		}
+//		return getReturnSet(l);
 	}
 
 //	public Set<OWLAnnotationAssertionAxiom> getAnnotationAssertionAxiomsBySubjectOLD(OWLAnnotationSubject subject) {
@@ -1392,7 +1473,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 						OWLIndividualAxiom ax = (OWLIndividualAxiom) o;
 						if (ontology.isMember(incidentAtomHandle)) {								
 							//check for 
-							if (isDefiningOWLIndividualAxiom(ax, individualHandle)) {
+							if (isDefiningOWLIndividualAxiomFor(ax, individualHandle)) {
 								l.add(ax);
 							}//else not defining
 						} // else not this ontology.
@@ -1414,7 +1495,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	 * @param individualHandle
 	 * @return
 	 */
-	private boolean isDefiningOWLIndividualAxiom(OWLIndividualAxiom ax, HGHandle individualHandle) {
+	private boolean isDefiningOWLIndividualAxiomFor(OWLIndividualAxiom ax, HGHandle individualHandle) {
 		boolean returnValue; 
 		if (ax instanceof OWLClassAssertionHGDB) {
 			OWLClassAssertionHGDB axS = (OWLClassAssertionHGDB)ax;
@@ -1659,34 +1740,74 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	// HELPER 
 	//
 	/**
-	 * Traverses the incidence set (directly, not recursively) and returns all Axioms in the ontology and of the giventype, 
+	 * Iterates over the incidence set (directly, not recursively) of the given entity and returns all Axioms in the ontology and of the giventype, 
 	 * who's target at index targetIndex equals the handle to the entity.
 	 */
-	private Set<OWLAxiomHGDB> findAxiomsInIncidenceSet(OWLEntity entity, Class<OWLAxiomHGDB> type, int targetIndex) {
-		HGHandle entityHandle = graph.getHandle(entity);
-		List<OWLAxiomHGDB> l = new ArrayList<OWLAxiomHGDB>();
-		if (entityHandle != null) {
-			IncidenceSet iSet = graph.getIncidenceSet(entityHandle);
-			for (HGHandle incidentAtomHandle : iSet) {
-				Object o = graph.get(incidentAtomHandle);
-				if (o != null) {
-					if (type.isAssignableFrom(o.getClass()) && ontology.isMember(incidentAtomHandle)) {
-						OWLAxiomHGDB axHGDB = (OWLAxiomHGDB)o;
-						//Is entity at the given target position?
-						if (entityHandle.equals(axHGDB.getTargetAt(targetIndex))) {
-							l.add(axHGDB);
-						} // else not superclass.
-					} // else other Link or other axiom.
-				} // else incidentAtomHandle not in cache! 
-			} 
-		} else {
-			String msg = ("entityHandle null. Graph.getHandle(" + entity + ") in findAxiomsInIncidenceSet(OWLEntity) returned null");
-			throw new IllegalStateException(msg);
-		}
-		return getReturnSet(l);
+	private <T extends OWLAxiomHGDB, S extends OWLAxiom> Set<S> findAxiomsInIncidenceSet(OWLObject entity, Class<T> axiomTypeHGDB, int targetIndex) {
+		return findAxiomsInIncidenceSetImpl(entity, axiomTypeHGDB, targetIndex);
 	}
 
-//	private Set<OWLAxiomHGDB> findAxiomsInIncidenceSet(OWLEntity e, Class<OWLAxiomHGDB> type, int targetIndex, boolean anyTarget) {
-//		
-//	}
+	/**
+	 * Iterates over the incidence set (directly, not recursively) of the given entity and returns all Axioms in the ontology and of the giventype, 
+	 * who's targetset contains one (or more) targets that equal the handle to the entity.
+	 * @param <T>
+	 * @param entity
+	 * @param axiomTypeHGDB
+	 * @return 
+	 */
+	private <T extends OWLAxiomHGDB, S extends OWLAxiom> Set<S> findAxiomsInIncidenceSet(OWLObject entity, Class<T> axiomTypeHGDB) {
+		return findAxiomsInIncidenceSetImpl(entity, axiomTypeHGDB, -1);
+	}
+
+	/**
+	 * findAxiomsInIncidenceSetImpl finds all matching axioms in the incidenceset of a given OWLObject (Typically entity).
+	 * @param <T> the hgdb axiom storage type. 
+	 * @param entity
+	 * @param axiomTypeHGDB
+	 * @param targetIndex the index to check or -1. -1 looks for the first matching target in the incidence set. 
+	 * @param anyTarget 
+	 * @return
+	 */
+	private <T extends OWLAxiomHGDB, S extends OWLAxiom> Set<S> findAxiomsInIncidenceSetImpl(final OWLObject entity, final Class<T> axiomTypeHGDB, final int targetIndex) {
+		return graph.getTransactionManager().transact(new Callable<Set<S>>() {
+			public Set<S> call() {
+				HGHandle entityHandle = graph.getHandle(entity);
+				//Initial Size of Hashset performance critical
+				Set<S> s = new HashSet<S>();
+				if (entityHandle == null) {
+					String msg = ("entityHandle null. Graph.getHandle(" + entity + ") in findAxiomsInIncidenceSet(OWLEntity) returned null");
+					throw new IllegalStateException(msg);
+				}
+				IncidenceSet iSet = graph.getIncidenceSet(entityHandle);
+				for (HGHandle incidentAtomHandle : iSet) {
+					Object o = graph.get(incidentAtomHandle);
+					if (o != null) {
+						if (axiomTypeHGDB.isAssignableFrom(o.getClass()) && ontology.isMember(incidentAtomHandle)) {
+							OWLAxiomHGDB axHGDB = (OWLAxiomHGDB)o;
+							if (targetIndex == -1) {
+								// find first target
+								boolean foundEntityInTargetSet = false;
+								int i = 0;
+								while (!foundEntityInTargetSet && i < axHGDB.getArity()) {
+									foundEntityInTargetSet = entityHandle.equals(axHGDB.getTargetAt(i));
+									if (foundEntityInTargetSet) {
+										if (!s.add((S) axHGDB)) {
+											throw new IllegalStateException("Duplicate Axiom found");
+										}
+									} 							
+									i++;
+								}
+							} else { // check only targetIndex
+								if (entityHandle.equals(axHGDB.getTargetAt(targetIndex))) {
+									if (!s.add((S) axHGDB)) {
+										throw new IllegalStateException("Duplicate Axiom found");
+									}
+								} // else entity not the target at the specified targetIndex.
+							} 
+						} // else other Link or other axiom.
+					} // else incidentAtomHandle not in cache! 
+				} 
+				return s;	
+			}});
+	}
 }
