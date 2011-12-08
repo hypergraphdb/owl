@@ -24,7 +24,7 @@ public class OWLObjectUnionOfHGDB extends OWLNaryBooleanClassExpressionHGDB impl
     public OWLObjectUnionOfHGDB(HGHandle...args) {
     	super(args);
     	// no duplicates allowed
-    	assert(new TreeSet<HGHandle>(Arrays.asList(args)).size() == args.length);
+    	assert(new HashSet<HGHandle>(Arrays.asList(args)).size() == args.length);
     }
 
     public OWLObjectUnionOfHGDB(Set<? extends HGHandle> operands) {
