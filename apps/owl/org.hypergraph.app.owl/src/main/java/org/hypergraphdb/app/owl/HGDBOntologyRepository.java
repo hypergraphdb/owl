@@ -1,5 +1,6 @@
 package org.hypergraphdb.app.owl;
 
+import java.io.File;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.util.Date;
@@ -75,17 +76,41 @@ public class HGDBOntologyRepository {
 	public static final int ENSURE_TEST_ONTOLOGY_COUNT = 0; 
 	
 	/**
-	 * Preliminary fixed location of a hypergraph instance. 
+	 * Default location of the hypergraph instance. 
 	 */
-	public static final String HYPERGRAPH_DB_LOCATION = "c:/temp/protegedb";
+	public static final String DEFAULT_HYPERGRAPH_DB_LOCATION = "c:/temp/protegedb";
+	
+	private static String hypergraphDBLocation = DEFAULT_HYPERGRAPH_DB_LOCATION;
 	
 	private static HGDBOntologyRepository instance = null;
 
 	private HyperGraph graph; 
-		
+			
+	/**
+	 * @return the hypergraphDBLocation
+	 */
+	public static String getHypergraphDBLocation() {
+		return hypergraphDBLocation;
+	}
+
+	/**
+	 * @param hypergraphDBLocation the hypergraphDBLocation to set
+	 * @throws IllegalStateException if the instance was already created.
+	 * @throws IllegalStateException if string is no directory, no read, no write or not exists.
+	 */
+	public static void setHypergraphDBLocation(String hypergraphDBLocation) {
+		if(instance != null) throw new IllegalStateException("Cannot set db location because of life instance.");
+		File f = new File(hypergraphDBLocation);
+		if (!f.isDirectory()) throw new IllegalStateException("HGDB Location not a directory: " + hypergraphDBLocation);
+		if (!f.canRead()) throw new IllegalStateException("HGDB Location cannot be read: " + hypergraphDBLocation);
+		if (!f.canWrite()) throw new IllegalStateException("HGDB Location cannot be written to: " + hypergraphDBLocation);
+		if (!f.exists()) throw new IllegalStateException("HGDB Location does not exist: " + hypergraphDBLocation);	
+		HGDBOntologyRepository.hypergraphDBLocation = hypergraphDBLocation;		
+	}
+
 	public static HGDBOntologyRepository getInstance() {
 		if (instance == null) {
-			instance = new HGDBOntologyRepository();
+			instance = new HGDBOntologyRepository(hypergraphDBLocation);
 		}
 		return instance;
 	}
@@ -93,8 +118,8 @@ public class HGDBOntologyRepository {
     /**
 	 * @param graph
 	 */
-	private HGDBOntologyRepository() {
-		initialize();
+	private HGDBOntologyRepository(String hypergraphDBLocation) {
+		initialize(hypergraphDBLocation);
 		if (graph.isOpen()) {
 			printAllOntologies();
 		} else {
@@ -103,11 +128,11 @@ public class HGDBOntologyRepository {
 			
 	}
 	
-	public void initialize() {
+	public void initialize(String location) {
 		if (DROP_HYPERGRAPH_ON_START) {
-			dropHypergraph();
+			dropHypergraph(location);
 		}
-		ensureHypergraph();
+		ensureHypergraph(location);
 		//we have a graph here.
 		HGManagement.ensureInstalled(graph, HGDBApplication.getInstance());	
 		if (ENSURE_TEST_ONTOLOGY_COUNT > 0) {
@@ -118,7 +143,7 @@ public class HGDBOntologyRepository {
 	/** 
 	 * Ensures a HypergraphDB at the HYPERGRAPH_DB_LOCATION.
 	 */
-	public void ensureHypergraph() {
+	protected void ensureHypergraph(String location) {
 		HGConfiguration config = new HGConfiguration();
 		config.setUseSystemAtomAttributes(false);
 		BDBConfig bdbConfig = (BDBConfig)config.getStoreImplementation().getConfiguration();
@@ -127,15 +152,19 @@ public class HGDBOntologyRepository {
 		SequentialUUIDHandleFactory handleFactory =
             new SequentialUUIDHandleFactory(System.currentTimeMillis(), 0);
 		config.setHandleFactory(handleFactory);		
-		graph = HGEnvironment.get(HYPERGRAPH_DB_LOCATION, config);
+		graph = HGEnvironment.get(location, config);
 		long nrOfAtoms = hg.count(graph, hg.all());
 		log.info("Hypergraph contains " + nrOfAtoms + " Atoms");
 	}
 
-	public void dropHypergraph() {
-		HGUtils.dropHyperGraphInstance(HYPERGRAPH_DB_LOCATION);	
+	protected void dropHypergraph(String location) {
+		HGUtils.dropHyperGraphInstance(location);	
 	}
 	
+	public void dropHypergraph() {
+		String location = graph.getLocation();
+		dropHypergraph(location);
+	}
 
 	
 	/**
