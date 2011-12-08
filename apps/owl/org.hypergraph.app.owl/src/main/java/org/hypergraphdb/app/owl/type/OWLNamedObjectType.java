@@ -180,8 +180,9 @@ public class OWLNamedObjectType extends HGAtomTypeBase implements HGCompositeTyp
 		public HGHandle getType() {
 			if (typeHandle == null || !graph.isLoaded(typeHandle)) {
 			 typeHandle = graph.getTypeSystem().getTypeHandle(IRI.class);
-			 graph.freeze(typeHandle);
-			 graph.freeze(graph.getHandle(OWLNamedObjectType.this));
+			 //TODO 2011.12.07 Freeze early, so it does not happen during a Readonly transaction
+			 //graph.freeze(typeHandle);
+			 //graph.freeze(graph.getHandle(OWLNamedObjectType.this));
 			 System.out.print("|");
 			}
 			return typeHandle;
