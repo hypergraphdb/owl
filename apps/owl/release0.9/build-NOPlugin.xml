@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." name="HyperGraphDB OWL-API Backend" default="owl-jar">
+	<description>HyperGraphDB OWL-API Backend Application </description>
+    
+	<!-- never use empty build dir!! -->
+    <property name="build" value="build"/>
+    <property name="jars" value="dist"/>
+    <property name="debug" value="on"/>
+    <property name="httpProxy" value="proxy.miamidade.gov"/>
+    <property name="httpPort" value="80"/>
+	
+	<path id="owl-classpath">
+        <fileset dir="lib">
+            <include name="**/*.jar"/>
+        </fileset>    
+        <fileset dir="../.">
+            <include name="**/*.jar"/>
+        </fileset>
+		<pathelement path="${java.class.path}" />
+	</path>
+
+    <target name="init">
+		<mkdir dir="${build}"/>
+		<mkdir dir="${jars}"/>
+    </target>
+
+    <target name="owl-jar" depends="init" description="Build Owl Jar">
+		<javac source="1.5" classpathref="owl-classpath" debug="${debug}" destdir="${build}/classes" srcdir="src/main/java"/>
+		<jar basedir="${build}/classes" excludes="javadoc/**" jarfile="${jars}/hgdbowlapi-bin.jar"/>
+	</target>
+
+    <target name="owl-doc" depends="owl-jar" description="Build Owl Jar with doc">
+	    <javadoc sourcepath="src/main/java" destdir="${build}/javadoc" classpathref="owl-classpath">	    	
+	    	<arg value="-J-Dhttp.proxyHost=${httpProxy}"/>
+	    	<arg value="-J-Dhttp.proxyPort=${httpPort}"/>
+
+            <link href="http://www.hypergraphdb.org/docs/javadoc"/>
+        </javadoc>
+		<jar basedir="${build}/javadoc" jarfile="${jars}/hgdbowlapi-doc.jar"/>
+	</target>
+
+	<target description="clean up" name="clean">
+		<delete>
+			<fileset dir="${build}/classes">
+				<include name="*.jar"/>
+				<include name="*.class"/>
+			</fileset>
+    		<fileset dir="${build}/javadoc">
+			</fileset>
+			<fileset dir="${dist}">
+				<include name="*.jar"/>
+			</fileset>
+		</delete>
+	</target>
+</project>
