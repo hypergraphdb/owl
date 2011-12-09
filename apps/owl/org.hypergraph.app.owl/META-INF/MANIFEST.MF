@@ -2,97 +2,48 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: HypergraphDB Owl-API Backend
 Bundle-SymbolicName: org.hypergraph.app.owl;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 0.9.0.qualifier
 Bundle-ClassPath: .,
  lib/hgdbmanagement.jar,
- lib/native,
+ lib/hypergraphdb.jar,
  lib/jars/db.jar,
  lib/jars/smack.jar,
  lib/jars/smackx.jar,
- lib/hypergraphdb.jar
+ lib/native
+ 
+Bundle-NativeCode: /lib/native/libdb_java50.dll; /lib/native/libdb50.dll; osname=win32; processor=x86, 
+ /lib/native/amd64/libdb_java50.dll; /lib/native/amd64/libdb50.dll; osname=win32; processor=amd64
+ 
 Export-Package: 
- org.hypergraphdb;
-  uses:="org.hypergraphdb.storage,
-   org.hypergraphdb.cache,
-   org.hypergraphdb.query,
-   org.hypergraphdb.atom,
-   org.hypergraphdb.util,
-   org.hypergraphdb.indexing,
-   org.hypergraphdb.event,
-   org.hypergraphdb.type,
-   org.hypergraphdb.transaction,
-   org.hypergraphdb.handle",
- org.hypergraphdb.algorithms;uses:="org.hypergraphdb.util,org.hypergraphdb,org.hypergraphdb.query",
+ org.hypergraphdb,
+ org.hypergraphdb.algorithms,
  org.hypergraphdb.annotation,
- org.hypergraphdb.app.management;uses:="org.hypergraphdb",
- org.hypergraphdb.app.owl;
-  uses:="org.hypergraphdb.app.owl.util,
-   org.hypergraphdb.app.owl.core,
-   org.semanticweb.owlapi.model,
-   org.hypergraphdb.query,
-   org.semanticweb.owlapi.io,
-   org.protege.owlapi.model,
-   org.hypergraphdb,
-   org.hypergraphdb.app.management",
- org.hypergraphdb.app.owl.core;
-  uses:="org.hypergraphdb.atom,
-   uk.ac.manchester.cs.owl.owlapi,
-   org.semanticweb.owlapi.vocab,
-   org.semanticweb.owlapi.model,
-   org.hypergraphdb,
-   org.hypergraphdb.app.owl",
- org.hypergraphdb.app.owl.model;
-  uses:="org.semanticweb.owlapi.vocab,
-   org.hypergraphdb.app.owl.core,
-   org.semanticweb.owlapi.model,
-   org.hypergraphdb",
- org.hypergraphdb.app.owl.type;uses:="org.hypergraphdb.type,org.hypergraphdb",
- org.hypergraphdb.app.owl.util;uses:="org.semanticweb.owlapi.model",
- org.hypergraphdb.atom;
-  uses:="org.hypergraphdb.util,
-   org.hypergraphdb.type,
-   org.hypergraphdb,
-   org.hypergraphdb.query",
+ org.hypergraphdb.app.management,
+ org.hypergraphdb.app.owl,
+ org.hypergraphdb.app.owl.core,
+ org.hypergraphdb.app.owl.model,
+ org.hypergraphdb.app.owl.type,
+ org.hypergraphdb.app.owl.util,
+ org.hypergraphdb.atom,
  org.hypergraphdb.atom.impl,
- org.hypergraphdb.cache;
-  uses:="org.hypergraphdb.util,
-   org.hypergraphdb.transaction,
-   org.hypergraphdb,
-   org.hypergraphdb.handle",
- org.hypergraphdb.event;uses:="org.hypergraphdb.transaction,org.hypergraphdb",
- org.hypergraphdb.handle;uses:="org.hypergraphdb",
- org.hypergraphdb.indexing;uses:="org.hypergraphdb.storage,org.hypergraphdb",
- org.hypergraphdb.maintenance;uses:="org.hypergraphdb",
- org.hypergraphdb.query;uses:="org.hypergraphdb.util,org.hypergraphdb.algorithms,org.hypergraphdb",
- org.hypergraphdb.query.cond2qry;uses:="new org.hypergraphdb.query.cond2qry,org.hypergraphdb,org.hypergraphdb.query",
- org.hypergraphdb.query.impl;
-  uses:="org.hypergraphdb.util,
-   org.hypergraphdb.algorithms,
-   org.hypergraphdb,
-   org.hypergraphdb.query",
- org.hypergraphdb.storage;
-  uses:="org.hypergraphdb.util,
-   org.hypergraphdb.transaction,
-   com.sleepycat.db,
-   org.hypergraphdb,
-   com.sleepycat.bind.tuple",
- org.hypergraphdb.transaction;
-  uses:="org.hypergraphdb.util,
-   org.hypergraphdb.cache,
-   org.hypergraphdb,
-   com.sleepycat.db",
- org.hypergraphdb.type;
-  uses:="org.hypergraphdb.atom,
-   org.hypergraphdb.storage,
-   org.hypergraphdb.type.javaprimitive,
-   org.hypergraphdb",
- org.hypergraphdb.type.javaprimitive;uses:="org.hypergraphdb.storage,org.hypergraphdb.type,org.hypergraphdb",
- org.hypergraphdb.util;uses:="new org.hypergraphdb.util,org.hypergraphdb,javax.management"
+ org.hypergraphdb.cache,
+ org.hypergraphdb.event,
+ org.hypergraphdb.handle,
+ org.hypergraphdb.indexing,
+ org.hypergraphdb.maintenance,
+ org.hypergraphdb.query,
+ org.hypergraphdb.query.cond2qry,
+ org.hypergraphdb.query.impl,
+ org.hypergraphdb.storage,
+ org.hypergraphdb.transaction,
+ org.hypergraphdb.type,
+ org.hypergraphdb.type.javaprimitive,
+ org.hypergraphdb.util
 Bundle-ActivationPolicy: lazy
-Require-Bundle: org.semanticweb.owl.owlapi;bundle-version="3.2.3",
- org.junit4;bundle-version="4.8.1",
- org.protege.editor.owl
+Require-Bundle: org.semanticweb.owl.owlapi;bundle-version="3.2.3"
 Bundle-Vendor: Miami-Dade CIAO/eSolutions
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Import-Package: org.hypergraphdb.app.owl,
+Import-Package: javax.management,
+ org.hypergraphdb.app.management,
+ org.hypergraphdb.app.owl,
  org.protege.owlapi.model
