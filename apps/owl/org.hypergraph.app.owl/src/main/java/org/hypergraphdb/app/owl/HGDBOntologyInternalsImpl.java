@@ -656,7 +656,11 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 						if (o != null) {
 							if (o instanceof OWLDeclarationAxiom) {
 								if (ontology.isMember(incidentAtomHandle)) {
-									return (OWLDeclarationAxiomHGDB)o;
+									//TODO 2011.12.08 BUGFIX contains ignores Annotations
+									OWLDeclarationAxiomHGDB axO = (OWLDeclarationAxiomHGDB)o;
+									if (axiom.equals(axO)) {
+										return (OWLDeclarationAxiomHGDB)o;
+									} //else almost, maybe annotations did not match.
 								} // else not this ontology.
 							} // else other Link.
 						}// else incidentAtomHandle not in cache! 
