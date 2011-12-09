@@ -70,7 +70,8 @@ public class DifferentPhysicalURISameOntologyIRITestCase extends AbstractOWLAPIT
             fail("Expected an exception to say that the ontology already exists");
         }
         //2011.11.03 catch (OWLOntologyAlreadyExistsException e) {
-        catch (RuntimeException e) {
+        //2011.12.08 using original exception instead of RuntimeException.
+        catch (OWLOntologyAlreadyExistsException e) {
             System.out.println("Caught expected ontology already exists exception: " + e);
             System.out.println("Cause: " + e.getCause());
         }
