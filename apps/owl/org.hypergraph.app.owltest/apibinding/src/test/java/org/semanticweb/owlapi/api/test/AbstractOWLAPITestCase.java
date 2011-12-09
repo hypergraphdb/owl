@@ -305,6 +305,7 @@ public abstract class AbstractOWLAPITestCase extends TestCase {
         axioms1 = normaliser1.getNormalisedAxioms(axioms1);
         AnonymousIndividualsNormaliser normaliser2 = new AnonymousIndividualsNormaliser(manager.getOWLDataFactory());
         axioms2 = normaliser2.getNormalisedAxioms(axioms2);
+        try {
         if (!axioms1.equals(axioms2)) {
         	StringBuilder sb = new StringBuilder();
             for (OWLAxiom ax : axioms1) {
@@ -327,8 +328,10 @@ public abstract class AbstractOWLAPITestCase extends TestCase {
         assertEquals(ont.getAnnotations(), ont2.getAnnotations());
         //
         //REMOVE ONTOLOGY FROM GRAPH
-        man.removeOntology(ont2);
-        man.getOntologyRepository().deleteOntology(ont2.getOntologyID());
+        } finally {
+        	man.removeOntology(ont2);
+        	man.getOntologyRepository().deleteOntology(ont2.getOntologyID());
+        }
         
         return ont2;
     }
