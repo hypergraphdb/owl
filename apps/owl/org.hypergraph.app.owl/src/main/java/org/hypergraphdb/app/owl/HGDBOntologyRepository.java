@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl;
 
 import java.io.File;
+import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.util.Date;
@@ -110,6 +111,7 @@ public class HGDBOntologyRepository {
 
 	public static HGDBOntologyRepository getInstance() {
 		if (instance == null) {
+			System.out.println("HGDB REPOSITORY AT: " + hypergraphDBLocation);
 			instance = new HGDBOntologyRepository(hypergraphDBLocation);
 		}
 		return instance;
@@ -300,10 +302,25 @@ public class HGDBOntologyRepository {
 		System.out.println("*       LINKS  : " + f.format(getNrOfLinks()));
 		System.out.println("* NoLink ATOMS : " + f.format(getNrOfNonLinkAtoms()));
 		System.out.println("* TOTAL ATOMS  : " + f.format(getNrOfAtoms()));
-		System.out.println("*                                                   *");
+		System.out.println("*                                                   ");
 		System.out.println("*      AXIOMS  : " + f.format(getNrOfAtomsByTypePlus(OWLAxiom.class)));
 		System.out.println("*    ENTITIES  : " + f.format(getNrOfAtomsByTypePlus(OWLEntity.class)));
 		System.out.println("*****************************************************");	
+	}
+
+	public void printStatistics(PrintWriter w) {
+		Date now = new Date();
+		DecimalFormat f = new DecimalFormat("##########");
+		w.println("*************** HYPERGRAPH STATISTICS ***************");
+		w.println("* Location     : " + graph.getLocation());
+		w.println("* Now is       : " + DateFormat.getDateTimeInstance().format(now));
+		w.println("*       LINKS  : " + f.format(getNrOfLinks()));
+		w.println("* NoLink ATOMS : " + f.format(getNrOfNonLinkAtoms()));
+		w.println("* TOTAL ATOMS  : " + f.format(getNrOfAtoms()));
+		w.println("*                                                   ");
+		w.println("*      AXIOMS  : " + f.format(getNrOfAtomsByTypePlus(OWLAxiom.class)));
+		w.println("*    ENTITIES  : " + f.format(getNrOfAtomsByTypePlus(OWLEntity.class)));
+		w.println("*****************************************************");	
 	}
 
 	public void printAllOntologies() {
@@ -316,10 +333,10 @@ public class HGDBOntologyRepository {
 		
 	public void printOntology(HGDBOntology hgdbMutableOntology ) {
 		System.out.println("----------------------------------------------------------------------");		
-		System.out.println("DD IRI" + hgdbMutableOntology.getOntologyID().getDefaultDocumentIRI());
-		System.out.println("ON IRI" + hgdbMutableOntology.getOntologyID().getOntologyIRI());
-		System.out.println("V  IRI" + hgdbMutableOntology.getOntologyID().getVersionIRI());		
-		System.out.println("DOCIRI" + hgdbMutableOntology.getDocumentIRI());		
+		System.out.println("DD IRI " + hgdbMutableOntology.getOntologyID().getDefaultDocumentIRI());
+		System.out.println("ON IRI " + hgdbMutableOntology.getOntologyID().getOntologyIRI());
+		System.out.println("V  IRI " + hgdbMutableOntology.getOntologyID().getVersionIRI());		
+		System.out.println("DOCIRI " + hgdbMutableOntology.getDocumentIRI());		
 	}
 	
 	/**
