@@ -68,7 +68,7 @@ public class HGDBOntologyFactory implements OWLOntologyFactory {
 			OWLOntologyDocumentSource documentSource,
 			OWLOntologyCreationHandler handler)
 			throws OWLOntologyCreationException {
-		logger.info("HGDB loadOWLOntology");
+		logger.info("HGDB loadOWLOntology from " + documentSource.getDocumentIRI());
 		if (!canCreateFromDocumentIRI(documentSource.getDocumentIRI())) {
 			throw new OWLOntologyCreationException("Wrong scheme. Need:" + HGDB_SCHEME);
 		}
