@@ -6,6 +6,6 @@
 	<classpathentry kind="src" path="apibinding/src/test/resources"/>
 	<classpathentry kind="src" path="apibinding/src/test/java"/>
 	<classpathentry kind="lib" path="/41org.protege.editor.owl/lib/protege-owlapi-extensions.jar" sourcepath="C:/_CiRM/workspaceecI/Protege4Libraries/owlapi-extensions/trunk/src/main/java"/>
-	<classpathentry kind="lib" path="/org.hypergraph.app.owl/lib/hgdbfull.jar"/>
+	<classpathentry kind="lib" path="/org.hypergraph.app.owl/lib/hypergraphdb.jar" sourcepath="/hypergraphdb/core/src/java"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
