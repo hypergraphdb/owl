@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src/main/java"/>
-	<classpathentry kind="src" path="hgcorejava"/>
-	<classpathentry kind="src" path="config"/>
 	<classpathentry exported="true" kind="lib" path="lib/jars/db.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jars/smack.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jars/smackx.jar"/>
-	<classpathentry exported="true" kind="lib" path="build/classes/"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/hgdbmanagement.jar" sourcepath="C:/_CiRM/workspaceecI/hypergraphdb/apps/management/src/java"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
-	<classpathentry kind="lib" path="/41org.protege.editor.owl/lib/protege-owlapi-extensions.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="lib/hypergraphdb.jar"/>
+	<classpathentry kind="lib" path="lib/hgdbmanagement.jar"/>
+	<classpathentry kind="lib" path="/41org.protege.editor.owl/lib/protege-owlapi-extensions.jar" sourcepath="C:/_CiRM/workspaceecI/Protege4Libraries/owlapi-extensions/trunk/src/main/java"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

@@ -25,21 +25,4 @@
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>org.eclipse.pde.PluginNature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>config</name>
-			<type>2</type>
-			<location>C:/_CiRM/workspaceMD/hypergraphdb/core/src/config</location>
-		</link>
-		<link>
-			<name>hgcorejava</name>
-			<type>2</type>
-			<location>C:/_CiRM/workspaceMD/hypergraphdb/core/src/java</location>
-		</link>
-		<link>
-			<name>src-2</name>
-			<type>2</type>
-			<location>C:/_CiRM/workspaceMD/hypergraphdb/core/src/config</location>
-		</link>
-	</linkedResources>
 </projectDescription>
