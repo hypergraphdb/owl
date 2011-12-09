@@ -1,0 +1,49 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: HypergraphDB Owl-API Backend
+Bundle-SymbolicName: org.hypergraph.app.owl;singleton:=true
+Bundle-Version: 0.9.0.qualifier
+Bundle-ClassPath: .,
+ lib/hgdbmanagement.jar,
+ lib/hypergraphdb.jar,
+ lib/jars/db.jar,
+ lib/jars/smack.jar,
+ lib/jars/smackx.jar,
+ lib/native
+ 
+Bundle-NativeCode: /lib/native/libdb_java50.dll; /lib/native/libdb50.dll; osname=win32; processor=x86, 
+ /lib/native/amd64/libdb_java50.dll; /lib/native/amd64/libdb50.dll; osname=win32; processor=amd64
+ 
+Export-Package: 
+ org.hypergraphdb,
+ org.hypergraphdb.algorithms,
+ org.hypergraphdb.annotation,
+ org.hypergraphdb.app.management,
+ org.hypergraphdb.app.owl,
+ org.hypergraphdb.app.owl.core,
+ org.hypergraphdb.app.owl.model,
+ org.hypergraphdb.app.owl.type,
+ org.hypergraphdb.app.owl.util,
+ org.hypergraphdb.atom,
+ org.hypergraphdb.atom.impl,
+ org.hypergraphdb.cache,
+ org.hypergraphdb.event,
+ org.hypergraphdb.handle,
+ org.hypergraphdb.indexing,
+ org.hypergraphdb.maintenance,
+ org.hypergraphdb.query,
+ org.hypergraphdb.query.cond2qry,
+ org.hypergraphdb.query.impl,
+ org.hypergraphdb.storage,
+ org.hypergraphdb.transaction,
+ org.hypergraphdb.type,
+ org.hypergraphdb.type.javaprimitive,
+ org.hypergraphdb.util
+Bundle-ActivationPolicy: lazy
+Require-Bundle: org.semanticweb.owl.owlapi;bundle-version="3.2.3"
+Bundle-Vendor: Miami-Dade CIAO/eSolutions
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Import-Package: javax.management,
+ org.hypergraphdb.app.management,
+ org.hypergraphdb.app.owl,
+ org.protege.owlapi.model

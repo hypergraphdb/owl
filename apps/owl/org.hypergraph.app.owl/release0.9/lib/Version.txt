@@ -1,0 +1,10 @@
+HYPERGRAPHDB LATEST FROM TRUNK USED 
+LAST UPDATE: 2011.09.13 17:41 PM
+
+hgdbfull.jar comes from TRUNK/HEAD 
+hypergraphdb/core
+
+native libraries do not get built.
+
+
+
