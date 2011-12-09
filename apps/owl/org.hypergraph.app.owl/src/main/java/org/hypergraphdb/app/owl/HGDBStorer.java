@@ -1,26 +1,23 @@
 package org.hypergraphdb.app.owl;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.Set;
 
 import org.hypergraphdb.app.owl.test.StopWatch;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentTarget;
+import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
-import org.semanticweb.owlapi.model.OWLMutableOntology;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChangeException;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLOntologyStorer;
-import org.semanticweb.owlapi.model.SetOntologyID;
 
 /**
  * HGDBStorer.
@@ -53,34 +50,42 @@ public class HGDBStorer implements OWLOntologyStorer {
 	@Override
 	public void storeOntology(OWLOntologyManager manager, OWLOntology ontology, IRI documentIRI,
 			OWLOntologyFormat ontologyFormat) throws OWLOntologyStorageException, IOException {
+		//Store ontology using low level API but do not make known to OntologyManager.
 		System.out.println("HGDBStorer.storeOntology ");
+		HGDBOntologyManager man = (HGDBOntologyManager) manager;
+		HGDBOntologyRepository repo =  man.getOntologyRepository();
 		StopWatch stopWatch = new StopWatch(true);
 		if (!(ontologyFormat instanceof HGDBOntologyFormat)) {
 			throw new OWLOntologyStorageException("illegal format, need HGDBOntologyFormat, was "
 					+ ontologyFormat.getClass());
-		}
+		}	
 		try {
 			// documentIRI shall start with hgdb://
-			final OWLMutableOntology newOnto = (OWLMutableOntology) manager.createOntology(documentIRI);
-			if (!(newOnto instanceof HGDBOntologyImpl)) {
-				throw new IllegalStateException("We did not get a HGDBOntologyImpl, but : " + newOnto);
-			}
+			//2011.12.08 Do not use the manager to create the ontology.
+			// as we do not load it here and don't want it to know about the new onto yet.
+			//
+			// final OWLMutableOntology newOnto = (OWLMutableOntology) manager.createOntology(documentIRI);
+			final HGDBOntology newOnto = repo.createOWLOntology(ontology.getOntologyID(), documentIRI); 
+//			if (!(newOnto instanceof HGDBOntologyImpl)) {
+//				throw new IllegalStateException("We did not get a HGDBOntologyImpl, but : " + newOnto);
+//			}
 			// Set ID
-			newOnto.applyChange(new SetOntologyID(newOnto, ontology.getOntologyID()));
+			//Done on creation ! newOnto.applyChange(new SetOntologyID(newOnto, ontology.getOntologyID()));
 			final Set<OWLAxiom> axioms = ontology.getAxioms();
-			manager.addAxioms(newOnto, axioms);
+			for (OWLAxiom axiom : axioms) {
+				newOnto.applyChange(new AddAxiom(newOnto, axiom));
+			}
+			//manager.addAxioms(newOnto, axioms);
 			// Add Ontology Annotations
 			for (OWLAnnotation a : ontology.getAnnotations()) {
-				manager.applyChange(new AddOntologyAnnotation(newOnto, a));
+				newOnto.applyChange(new AddOntologyAnnotation(newOnto, a));
 			}
 			// Add Import Declarations
 			for (OWLImportsDeclaration i : ontology.getImportsDeclarations()) {
-				manager.applyChange(new AddImport(newOnto, i));
+				newOnto.applyChange(new AddImport(newOnto, i));
 			}
 			// no need to store in HG, already done by createOntology.
 			// TODO after storage, we need to use it.
-		} catch (final OWLOntologyCreationException e) {
-			throw new OWLOntologyStorageException(e);
 		} catch (final OWLOntologyChangeException e) {
 			throw new OWLOntologyStorageException(e);
 		}
