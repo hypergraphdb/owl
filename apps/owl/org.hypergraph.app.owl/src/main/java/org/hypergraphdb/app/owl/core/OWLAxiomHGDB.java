@@ -9,6 +9,7 @@ import java.util.TreeSet;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HGQuery.hg;
+import org.hypergraphdb.annotation.HGIgnore;
 import org.hypergraphdb.app.owl.type.link.AxiomAnnotatedBy;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -59,6 +60,7 @@ public abstract class OWLAxiomHGDB extends OWLObjectHGDB implements OWLAxiom, HG
 	/**
 	 * @return the loadAnnotations
 	 */
+	@HGIgnore
 	public boolean isLoadAnnotations() {
 		return loadAnnotations;
 	}
@@ -66,6 +68,7 @@ public abstract class OWLAxiomHGDB extends OWLObjectHGDB implements OWLAxiom, HG
 	/**
 	 * @param loadAnnotations false, if loading annotations from graph should not take place.
 	 */
+	@HGIgnore
 	public void setLoadAnnotations(boolean loadAnnotations) {
 		this.loadAnnotations = loadAnnotations;
 	}
