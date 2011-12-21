@@ -1853,4 +1853,10 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	//
 	// END HGGraphHolder, HGHandleHolder Interface
 	// ----------------------------------------------------------------------
+
+	@Override
+	public String toString() {
+		return "Ontology(" + getOntologyID() + ")"; 
+	}
+
 }
