@@ -194,11 +194,21 @@ public class HGDBOntologyRepository {
 		//Therefore wrapped in normal transaction.
 		return graph.getTransactionManager().transact(new Callable<List<HGDBOntology>>() {
 			public List<HGDBOntology>call() {
-				return hg.getAll(graph, hg.type(HGDBOntologyImpl.class));
+				//2011.12.20 added condition OntologyId not null.
+				return hg.getAll(graph, hg.and(hg.type(HGDBOntologyImpl.class), hg.not(hg.eq("ontologyID", null))));
 			}
 		}, HGTransactionConfig.DEFAULT);
 		// USE: HGTransactionConfig.READONLY); and ensure >0 ontos in graph to see HGException
 		// Transaction configured as read-only was used to modify data!
+	}
+
+	public List<HGDBOntology> getDeletedOntologies() {
+		//for cleanup
+		return graph.getTransactionManager().transact(new Callable<List<HGDBOntology>>() {
+			public List<HGDBOntology>call() {
+				return hg.getAll(graph, hg.and(hg.type(HGDBOntologyImpl.class), hg.eq("ontologyID", null)));
+			}
+		}, HGTransactionConfig.DEFAULT);
 	}
 	
 	/**
@@ -250,8 +260,19 @@ public class HGDBOntologyRepository {
 	
 	public boolean deleteOntology(OWLOntologyID ontologyId) {
 		//printAllOntologies();
+		// 2011.12.20 hilpold we just set the ontology ID and DocumentIRI to null 
+		// so cleanup can remove it later and we remain responsive. 
+		boolean ontologyFound;
 		HGHandle ontologyHandle = getOntologyHandleByID(ontologyId);
-		return graph.remove(ontologyHandle);
+		ontologyFound = ontologyHandle != null;
+		if (ontologyFound) {
+			HGDBOntology o = graph.get(ontologyHandle);
+			o.setOntologyID(null);
+			o.setDocumentIRI(null);
+			graph.replace(ontologyHandle, o);
+		}
+		return ontologyFound;
+		//return graph.remove(ontologyHandle);
 	}
 		
 	public HGHandle addOntology(HGDBOntology ontology) {
