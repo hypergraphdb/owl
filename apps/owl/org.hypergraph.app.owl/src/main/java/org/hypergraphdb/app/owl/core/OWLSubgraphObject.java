@@ -163,7 +163,9 @@ public abstract class OWLSubgraphObject extends HGSubgraph implements OWLObject,
 
 	@Override
 	public String toString() {
-		return ToStringRenderer.getInstance().getRendering(this);
+		//2011.12.21 this counting axioms took too long.
+		//return ToStringRenderer.getInstance().getRendering(this);
+		return super.toString(); 
 	}
 
 	public boolean isTopEntity() {
