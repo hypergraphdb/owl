@@ -82,7 +82,9 @@ public class OWLLiteralHGDB extends OWLObjectHGDB implements OWLLiteral, HGLink 
 	public String getLiteral() {
         return literal;
     }
-    
+    //TODO hilpold 2011.12.19
+	// As this is immutable -> set this value on load or cache it.
+	// this leads to expensive Databaseoperations.
     public boolean isRDFPlainLiteral() {
         return getDatatype().equals(getOWLDataFactory().getRDFPlainLiteral());
     }
