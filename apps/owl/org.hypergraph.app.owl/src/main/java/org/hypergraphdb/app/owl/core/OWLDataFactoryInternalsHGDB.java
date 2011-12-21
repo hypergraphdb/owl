@@ -1,5 +1,7 @@
 package org.hypergraphdb.app.owl.core;
 
+import java.util.HashMap;
+
 import org.hypergraphdb.HGException;
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
@@ -12,6 +14,7 @@ import org.hypergraphdb.app.owl.model.OWLDataPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLDatatypeHGDB;
 import org.hypergraphdb.app.owl.model.OWLNamedIndividualHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectPropertyHGDB;
+import org.hypergraphdb.util.Pair;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -21,6 +24,7 @@ import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 /**
  * OWLDataFactoryInternalsHGDB.
@@ -34,7 +38,24 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
  * @created Sep 28, 2011
  */
 public class OWLDataFactoryInternalsHGDB {
+	
 	public static boolean DBG = false;
+	
+	/**
+	 *  Cache counter for testing - remove before release
+	 */
+	public static volatile long CACHE_PUT = 0;
+
+	/**
+	 *  Cache counter for testing - remove before release
+	 */
+	public static volatile long CACHE_HIT = 0;
+	
+	/**
+	 *  Cache counter for testing - remove before release
+	 */
+	public static volatile long CACHE_MISS = 0;
+	
 	
     //private WeakHashMap<IRI, WeakReference<? extends OWLEntity>> classesByURI;
     //private final WeakHashMap<IRI, WeakReference<? extends OWLEntity>> objectPropertiesByURI;
@@ -42,10 +63,14 @@ public class OWLDataFactoryInternalsHGDB {
     //private final WeakHashMap<IRI, WeakReference<? extends OWLEntity>> datatypesByURI;
     //private final WeakHashMap<IRI, WeakReference<? extends OWLEntity>> individualsByURI;
     //private final WeakHashMap<IRI, WeakReference<? extends OWLEntity>> annotationPropertiesByURI;
+	
+	private final HashMap<Pair<IRI, Class<? extends OWLEntity>>, OWLEntity> builtinByIRICache;
+	
     private final OWLDataFactoryHGDB factory;
 
     public OWLDataFactoryInternalsHGDB(OWLDataFactoryHGDB f) {
         factory = f;
+        builtinByIRICache = new HashMap<Pair<IRI, Class<? extends OWLEntity>>, OWLEntity>(OWLRDFVocabulary.BUILT_IN_VOCABULARY_IRIS.size() * 6 + 1);
         //classesByURI = new WeakHashMap<IRI, WeakReference<? extends OWLEntity>>();
         //objectPropertiesByURI = new WeakHashMap<IRI, WeakReference<? extends OWLEntity>>();
         //dataPropertiesByURI = new WeakHashMap<IRI, WeakReference<? extends OWLEntity>>();
@@ -176,7 +201,19 @@ public class OWLDataFactoryInternalsHGDB {
     @SuppressWarnings("unchecked")
 	private <V extends OWLEntity> OWLEntity ensureCreateEntityInDatabase(Class<V> entityType, IRI iri, BuildableObjects buildable) {
     	HyperGraph graph = factory.getHyperGraph();
-    	V e = hg.getOne(graph, hg.and(hg.type(entityType), hg.eq("IRI", iri)));
+    	boolean isBuiltin = OWLRDFVocabulary.BUILT_IN_VOCABULARY_IRIS.contains(iri);
+    	//check builtin cache
+    	V e;
+    	if (isBuiltin) {
+    		e = (V)builtinByIRICache.get(new Pair<IRI, Class<V>>(iri, entityType));
+    		if (e != null) {
+    			CACHE_HIT ++;
+    			assert (e.getClass().equals(entityType));
+    			return e;
+    		}
+    	}
+    	CACHE_MISS ++;
+    	e = hg.getOne(graph, hg.and(hg.type(entityType), hg.eq("IRI", iri)));
     	if (e == null) {
     		e = (V)buildable.build(factory, iri);
     		if (!entityType.isAssignableFrom(e.getClass())) throw new HGException("Built object type must be same or subclass of type " + entityType);
@@ -184,6 +221,12 @@ public class OWLDataFactoryInternalsHGDB {
     		if (DBG) System.out.println("FACTINTERN CREATED/ADDED ENTITY: " + e + " type: " + e.getClass().getSimpleName() );
     		graph.add(e);
     	}
+		//Cache put if BUILTIN and cache miss.
+		if (isBuiltin) {
+			//assert (!builtinByIRICache.containsKey(iri);
+			CACHE_PUT ++;
+			builtinByIRICache.put(new Pair<IRI, Class<? extends OWLEntity>>(iri, entityType), e);    			
+		}    	
 		//Handle and graph guaranteed to be set on add or get. 
 		return e;
 	}
