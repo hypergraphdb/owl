@@ -64,13 +64,13 @@ public class OWLDataFactoryInternalsHGDB {
     //private final WeakHashMap<IRI, WeakReference<? extends OWLEntity>> individualsByURI;
     //private final WeakHashMap<IRI, WeakReference<? extends OWLEntity>> annotationPropertiesByURI;
 	
-	private final HashMap<Pair<IRI, Class<? extends OWLEntity>>, OWLEntity> builtinByIRICache;
+	private final HashMap<Pair<IRI, Class<? extends OWLEntity>>, OWLEntity> builtinByIRIClassPairCache;
 	
     private final OWLDataFactoryHGDB factory;
 
     public OWLDataFactoryInternalsHGDB(OWLDataFactoryHGDB f) {
         factory = f;
-        builtinByIRICache = new HashMap<Pair<IRI, Class<? extends OWLEntity>>, OWLEntity>(OWLRDFVocabulary.BUILT_IN_VOCABULARY_IRIS.size() * 6 + 1);
+        builtinByIRIClassPairCache = new HashMap<Pair<IRI, Class<? extends OWLEntity>>, OWLEntity>(OWLRDFVocabulary.BUILT_IN_VOCABULARY_IRIS.size() * 6 + 1);
         //classesByURI = new WeakHashMap<IRI, WeakReference<? extends OWLEntity>>();
         //objectPropertiesByURI = new WeakHashMap<IRI, WeakReference<? extends OWLEntity>>();
         //dataPropertiesByURI = new WeakHashMap<IRI, WeakReference<? extends OWLEntity>>();
@@ -205,7 +205,7 @@ public class OWLDataFactoryInternalsHGDB {
     	//check builtin cache
     	V e;
     	if (isBuiltin) {
-    		e = (V)builtinByIRICache.get(new Pair<IRI, Class<V>>(iri, entityType));
+    		e = (V)builtinByIRIClassPairCache.get(new Pair<IRI, Class<V>>(iri, entityType));
     		if (e != null) {
     			CACHE_HIT ++;
     			assert (e.getClass().equals(entityType));
@@ -223,9 +223,9 @@ public class OWLDataFactoryInternalsHGDB {
     	}
 		//Cache put if BUILTIN and cache miss.
 		if (isBuiltin) {
-			//assert (!builtinByIRICache.containsKey(iri);
+			//assert (!builtinByIRIClassPairCache.containsKey(iri);
 			CACHE_PUT ++;
-			builtinByIRICache.put(new Pair<IRI, Class<? extends OWLEntity>>(iri, entityType), e);    			
+			builtinByIRIClassPairCache.put(new Pair<IRI, Class<? extends OWLEntity>>(iri, entityType), e);    			
 		}    	
 		//Handle and graph guaranteed to be set on add or get. 
 		return e;
