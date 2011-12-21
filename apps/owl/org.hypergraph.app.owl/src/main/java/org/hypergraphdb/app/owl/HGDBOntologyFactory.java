@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFactory;
@@ -80,6 +81,12 @@ public class HGDBOntologyFactory implements OWLOntologyFactory {
 		//TODO Intercept creation? Set a manager in HG Type?
 		o.setOWLOntologyManager(manager);
 		logger.info("Loaded: Ontology" + o.getOntologyID());
+		//
+		// Resolve Imports
+		//
+		for (OWLImportsDeclaration importDecl : o.getImportsDeclarations()) {
+			manager.makeLoadImportRequest(importDecl);
+		}
 		handler.ontologyCreated(o);	
 		return o;
 	}
