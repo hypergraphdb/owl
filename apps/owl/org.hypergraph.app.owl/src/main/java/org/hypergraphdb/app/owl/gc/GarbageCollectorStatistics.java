@@ -7,4 +7,118 @@ package org.hypergraphdb.app.owl.gc;
  */
 public class GarbageCollectorStatistics {
 
+	private int totalAtoms = 0;
+	
+	private int ontologies = 0;
+		
+	private int axioms = 0;
+
+	/**
+	 * A counter for instances, when gc encounters an axiom that was found as a member of one deleted ontology, 
+	 * but not removable, because it's incidence set contained one or more other ontologies.
+	 * e.g. if an axiom is part of 3 ontologies to be deleted and no other, this counter will be 2 
+	 * for this axiom and the axiom will be deleted on removal of the last ontology.
+	 */
+	private int axiomNotRemovableCases = 0;
+
+	private int entities = 0;
+
+	/**
+	 * includes:
+	 * - OWLClassExpressionHGDB (not CN, named Class)
+	 * - (I) OWLDataRange (not R, named data prop)
+	 * - OwlFacetRestrictionHGDB
+	 * - OWLLiteralHGBD
+	 * - OWLObjectPropertyExpression (not PN, OWLObjectPropery)
+	 * - SWRLAtomHGDB
+	 * - SWRLIndividualArgument
+	 * - SWRLLiteralArgument
+	 * - SWRLVariable
+	 */
+	private int otherObjects = 0;
+
+	/**
+	 * @return the totalAtoms
+	 */
+	public int getTotalAtoms() {
+		return totalAtoms;
+	}
+
+	/**
+	 * @param totalAtoms the totalAtoms to set
+	 */
+	public void setTotalAtoms(int totalAtoms) {
+		this.totalAtoms = totalAtoms;
+	}
+
+	/**
+	 * @return the ontologies
+	 */
+	public int getOntologies() {
+		return ontologies;
+	}
+
+	/**
+	 * @param ontologies the ontologies to set
+	 */
+	public void setOntologies(int ontologies) {
+		this.ontologies = ontologies;
+	}
+
+	/**
+	 * @return the axioms
+	 */
+	public int getAxioms() {
+		return axioms;
+	}
+
+	/**
+	 * @param axioms the axioms to set
+	 */
+	public void setAxioms(int axioms) {
+		this.axioms = axioms;
+	}
+
+	/**
+	 * @return the axiomNotRemovableCases
+	 */
+	public int getAxiomNotRemovableCases() {
+		return axiomNotRemovableCases;
+	}
+
+	/**
+	 * @param axiomNotRemovableCases the axiomNotRemovableCases to set
+	 */
+	public void setAxiomNotRemovableCases(int axiomNotRemovableCases) {
+		this.axiomNotRemovableCases = axiomNotRemovableCases;
+	}
+
+	/**
+	 * @return the entities
+	 */
+	public int getEntities() {
+		return entities;
+	}
+
+	/**
+	 * @param entities the entities to set
+	 */
+	public void setEntities(int entities) {
+		this.entities = entities;
+	}
+
+	/**
+	 * @return the otherObjects
+	 */
+	public int getOtherObjects() {
+		return otherObjects;
+	}
+
+	/**
+	 * @param otherObjects the otherObjects to set
+	 */
+	public void setOtherObjects(int otherObjects) {
+		this.otherObjects = otherObjects;
+	}
+	
 }
