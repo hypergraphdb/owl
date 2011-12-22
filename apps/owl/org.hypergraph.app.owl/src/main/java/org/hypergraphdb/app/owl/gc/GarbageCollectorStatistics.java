@@ -14,7 +14,7 @@ public class GarbageCollectorStatistics {
 	private int axioms = 0;
 
 	/**
-	 * A counter for instances, when gc encounters an axiom that was found as a member of one deleted ontology, 
+	 * A counter for cases, when gc encounters an axiom that was found as a member of one deleted ontology, 
 	 * but not removable, because it's incidence set contained one or more other ontologies.
 	 * e.g. if an axiom is part of 3 ontologies to be deleted and no other, this counter will be 2 
 	 * for this axiom and the axiom will be deleted on removal of the last ontology.
