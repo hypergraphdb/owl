@@ -92,8 +92,9 @@ public class OWLNamedObjectType extends HGAtomTypeBase implements HGCompositeTyp
 		HGHandle[] layout = graph.getStore().getLink(handle);
 		IRI iri = graph.get(layout[0]);
 		Constructor<? extends OWLNamedObject> constructor = null;
-		if (iri == null)
-			throw new NullPointerException("IRI missing for OwlNamedObject at " + handle);
+		if (iri == null) {
+			//TODO throw new NullPointerException("IRI missing for OwlNamedObject at " + handle);
+		}
 		//
 		//using reflection
 		if (OWL_NAMED_OBJECT_TYPES_HGDB.contains(type)) {

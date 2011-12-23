@@ -145,4 +145,9 @@ public class GarbageCollectorStatistics {
 		otherObjects ++;
 	}
 	
+	public String toString() {
+		return "Total: " + totalAtoms + ", axioms: " + axioms +  ", entities: " + entities 
+		+ " other: " + otherObjects + "\n  NRAxioms: " + axiomNotRemovableCases;
+	}
+	
 }

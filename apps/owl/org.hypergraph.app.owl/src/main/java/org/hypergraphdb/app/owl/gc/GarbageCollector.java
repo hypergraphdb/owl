@@ -13,6 +13,7 @@ import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
 import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
 import org.hypergraphdb.app.owl.query.OWLEntityIsBuiltIn;
+import org.hypergraphdb.app.owl.test.StopWatch;
 import org.hypergraphdb.app.owl.type.link.AxiomAnnotatedBy;
 import org.hypergraphdb.app.owl.type.link.ImportDeclarationLink;
 import org.hypergraphdb.util.Pair;
@@ -29,6 +30,8 @@ import org.semanticweb.owlapi.model.OWLOntology;
  * @created Dec 20, 2011
  */
 public class GarbageCollector {
+	
+	public StopWatch stopWatch = new StopWatch();
 	
 	/**
 	 * A full GC run entails running:
@@ -144,8 +147,13 @@ public class GarbageCollector {
 
 	public void collectRemovedOntologies(GarbageCollectorStatistics stats, boolean analyzeOnly) {
 		List<HGDBOntology> delOntos =  repository.getDeletedOntologies();
+		int i = 0;
 		for (HGDBOntology delOnto : delOntos) {
+			i++;
+			stopWatch.start();
 			collectRemovedOntology(delOnto, stats, analyzeOnly);
+			stopWatch.stop("Ontology collection ("+ i + " of " + delOntos.size() + "): ");
+			System.out.println("Stats now: " +  stats.toString());
 		}
 		// 
 	}
@@ -222,13 +230,17 @@ public class GarbageCollector {
 	 * ie. are not members in any subgraph.
 	 */
 	public void collectAxioms(GarbageCollectorStatistics stats, boolean analyzeOnly) {
+		stopWatch.start();		
 		List<HGHandle> handlesToRemove = hg.findAll(graph, hg.and(
 					hg.typePlus(OWLAxiomHGDB.class),
 					hg.disconnected())
 				);
+		stopWatch.stop("Disconnected Axiom query time: Found: " + handlesToRemove.size() + " Duration:");
 		for (HGHandle h: handlesToRemove) {
 			collectAxiomInternal(h, stats, true, analyzeOnly);
 		}
+		stopWatch.stop("Disconnected Axiom collection time: ");
+		System.out.println("Stats now: " + stats.toString());
 	}
 	
 	/**
@@ -304,7 +316,7 @@ public class GarbageCollector {
 			} else if (atom instanceof OWLObjectHGDB) {
 				stats.increaseOtherObjects();
 			} else if (atom instanceof IRI) {
-				//we'll ecounter those as linked to by Annotations and AnnotationAxioms as
+				//we'll encounter those as linked to by Annotations and AnnotationAxioms as
 				//an OWLAnnotationValue can be an IRI.
 				stats.increaseOtherObjects();
 			} else {
@@ -343,15 +355,19 @@ public class GarbageCollector {
 	 * @param stats
 	 */
 	public void collectOtherObjects(GarbageCollectorStatistics stats, boolean analyzeOnly) {
+		stopWatch.start();
 		List<HGHandle> handlesToRemove = hg.findAll(graph, hg.and(
 				hg.disconnected(),
 				hg.typePlus(OWLObjectHGDB.class),
 				hg.not(hg.typePlus(OWLEntity.class)),
 				hg.not(hg.type(OWLAxiomHGDB.class)))
 			);
+		stopWatch.stop("Disconnected Others query time: Found: " + handlesToRemove.size() + " Duration:");
 		for (HGHandle h: handlesToRemove) {
 			collectOWLObjectsByDFSInternal(h, stats, analyzeOnly);
 		}
+		stopWatch.stop("Disconnected Others collection time: ");
+		System.out.println("Stats now: " + stats.toString());		
 	}
 	
 	/**
@@ -360,11 +376,13 @@ public class GarbageCollector {
 	 * @param stats
 	 */
 	public void collectEntities(GarbageCollectorStatistics stats, boolean analyzeOnly) {
+		stopWatch.start();
 		List<HGHandle> handlesToRemove = hg.findAll(graph, hg.and(
 					hg.typePlus(OWLEntity.class),
 					hg.disconnected(),
 					hg.not(new OWLEntityIsBuiltIn()))
 				);
+		stopWatch.stop("Disconnected Entities query time: Found: " + handlesToRemove.size() + " Duration:");
 		if (!analyzeOnly) {
 			int successRemoveCounter = 0;
 			for (HGHandle h: handlesToRemove) {
@@ -374,6 +392,7 @@ public class GarbageCollector {
 			}
 			if (successRemoveCounter != handlesToRemove.size()) throw new IllegalStateException("successRemoveCounter != handles.size()");
 			stats.setEntities(stats.getEntities() + successRemoveCounter);
+			stopWatch.stop("Disconnected Entities collection time: ");
 		} else {
 			stats.setEntities(stats.getEntities() + handlesToRemove.size());
 		}
