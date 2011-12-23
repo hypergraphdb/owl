@@ -4,29 +4,24 @@ import java.util.List;
 import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.IncidenceSet;
-import org.hypergraphdb.algorithms.DefaultALGenerator;
-import org.hypergraphdb.algorithms.HGBreadthFirstTraversal;
 import org.hypergraphdb.algorithms.HGDepthFirstTraversal;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
 import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
 import org.hypergraphdb.app.owl.query.OWLEntityIsBuiltIn;
-import org.hypergraphdb.app.owl.type.TypeUtils;
 import org.hypergraphdb.app.owl.type.link.AxiomAnnotatedBy;
 import org.hypergraphdb.app.owl.type.link.ImportDeclarationLink;
-import org.hypergraphdb.util.HGUtils;
 import org.hypergraphdb.util.Pair;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.RemoveAxiom;
 
 /**
  * GarbageCollector.
@@ -65,7 +60,7 @@ public class GarbageCollector {
 	
 	
 	/**
-	 * Begins collection at all disconnected OWLObjectHGDB, except those implementing OLWEntity or subclasses of OWLAxiomHGDB.
+	 * Begins collection at all disconnected OWLObjectHGDB and IRI atoms (OWLAnnotationValue), except those implementing OLWEntity or subclasses of OWLAxiomHGDB.
 	 * These objects are never member in any ontology.
 	 * Each object, all reachable dependent objects, and entities with an otherwise empty incidence set will be removed.
 	 * Those include:
@@ -177,7 +172,7 @@ public class GarbageCollector {
 			if (is.size() != 1) throw new IllegalStateException();
 			//remove ImportDeclarationLink
 			HGHandle importDeclLinkHandle = is.first();
-			ImportDeclarationLink importDeclLink = graph.get(importsDeclarationHandle);
+			ImportDeclarationLink importDeclLink = graph.get(importDeclLinkHandle);
 			if (!analyzeOnly) {
 				onto.remove(importDeclLinkHandle);
 				onto.remove(importsDeclarationHandle);
@@ -281,6 +276,9 @@ public class GarbageCollector {
 		while (dfs.hasNext()) {
 			Pair<HGHandle, HGHandle> p = dfs.next();
 			HGHandle targetHandle = p.getSecond();
+			//if (dfs.isVisited(targetHandle)) {
+			//	throw new IllegalStateException("DFS Object already visited: " + graph.get(targetHandle));
+			//}
 			if (canRemoveAnalyze(targetHandle, p.getFirst(), stats)) {
 				if (!analyzeOnly) {
 					graph.remove(targetHandle);				
@@ -305,13 +303,16 @@ public class GarbageCollector {
 				stats.increaseEntities();
 			} else if (atom instanceof OWLObjectHGDB) {
 				stats.increaseOtherObjects();
+			} else if (atom instanceof IRI) {
+				//we'll ecounter those as linked to by Annotations and AnnotationAxioms as
+				//an OWLAnnotationValue can be an IRI.
+				stats.increaseOtherObjects();
 			} else {
-				System.err.println("Encountered unknown atom during DFS GC: " + atom);
+				System.err.println("Encountered unknown atom during DFS GC: " +  atom.getClass() + " Object: " + atom);
 			}
 		}
 		return canRemove;		
-	}
-	
+	}	
 	
 	/**
 	 * Asserts that axiom may be removed.
@@ -377,8 +378,7 @@ public class GarbageCollector {
 			stats.setEntities(stats.getEntities() + handlesToRemove.size());
 		}
 	}	
-	
-	
+		
 	/**
 	 * @return the graph
 	 */
