@@ -29,6 +29,8 @@ import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.management.HGManagement;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
+import org.hypergraphdb.app.owl.gc.GarbageCollector;
+import org.hypergraphdb.app.owl.gc.GarbageCollectorStatistics;
 import org.hypergraphdb.app.owl.query.OWLEntityIsBuiltIn;
 import org.hypergraphdb.app.owl.test.TestData;
 import org.hypergraphdb.app.owl.type.TypeUtils;
@@ -86,6 +88,8 @@ public class HGDBOntologyRepository {
 	private static HGDBOntologyRepository instance = null;
 
 	private HyperGraph graph; 
+	
+	private GarbageCollector garbageCollector;
 			
 	/**
 	 * @return the hypergraphDBLocation
@@ -139,7 +143,8 @@ public class HGDBOntologyRepository {
 		HGManagement.ensureInstalled(graph, HGDBApplication.getInstance());	
 		if (ENSURE_TEST_ONTOLOGY_COUNT > 0) {
 			TestData.ensureTestData(this, ENSURE_TEST_ONTOLOGY_COUNT);			
-		}		
+		}
+		garbageCollector = new GarbageCollector(this);
 	}
 
 	/** 
@@ -280,35 +285,43 @@ public class HGDBOntologyRepository {
 		return graph.add(ontology);
 	}
 	
-	/**
-	 * Deletes all OWLEntities that are not referenced by any axioms (disconnected), 
-	 * and not built-in entities.
-	 * 
-	 * @return
-	 */
-	public int cleanUpOwlEntities() {
-		//TODO remove this expensive debug output
-		HGHandle typeHandle = graph.getTypeSystem().getTypeHandle(OWLEntity.class);
-		TypeUtils.printAllSubtypes(graph, graph.getTypeSystem().getType(typeHandle));
-		
-		int successRemoveCounter = 0;
-		List<HGHandle> handlesToRemove = hg.findAll(graph, hg.and(
-					hg.typePlus(OWLEntity.class),
-					hg.disconnected(),
-					hg.not(new OWLEntityIsBuiltIn()))
-				);
-		for (HGHandle h: handlesToRemove) {
-			if (DBG) {
-				Object o = graph.get(h);
-				log.info("Removing: " + o + " : " + o.getClass().getSimpleName());
-			}
-			if (graph.remove(h)) {
-				successRemoveCounter ++;
-			}
-		}
-		if (successRemoveCounter != handlesToRemove.size()) throw new IllegalStateException("successRemoveCounter != handles.size()");
-		return successRemoveCounter;
+	public GarbageCollectorStatistics runGarbageCollector() {
+		return garbageCollector.runGC();		
 	}
+
+	public GarbageCollector getGC() {
+		return garbageCollector;		
+	}
+	
+//	/**
+//	 * Deletes all OWLEntities that are not referenced by any axioms (disconnected), 
+//	 * and not built-in entities.
+//	 * 
+//	 * @return
+//	 */
+//	public int cleanUpOwlEntities() {
+//		//TODO remove this expensive debug output
+//		HGHandle typeHandle = graph.getTypeSystem().getTypeHandle(OWLEntity.class);
+//		TypeUtils.printAllSubtypes(graph, graph.getTypeSystem().getType(typeHandle));
+//		
+//		int successRemoveCounter = 0;
+//		List<HGHandle> handlesToRemove = hg.findAll(graph, hg.and(
+//					hg.typePlus(OWLEntity.class),
+//					hg.disconnected(),
+//					hg.not(new OWLEntityIsBuiltIn()))
+//				);
+//		for (HGHandle h: handlesToRemove) {
+//			if (DBG) {
+//				Object o = graph.get(h);
+//				log.info("Removing: " + o + " : " + o.getClass().getSimpleName());
+//			}
+//			if (graph.remove(h)) {
+//				successRemoveCounter ++;
+//			}
+//		}
+//		if (successRemoveCounter != handlesToRemove.size()) throw new IllegalStateException("successRemoveCounter != handles.size()");
+//		return successRemoveCounter;
+//	}
 
 //Boris idea:	    HGHandle th = graph.getTypeSystem().getTypeHandle(OWLEntity.class);
 //  List<HGAtomType> l = hg.getAll(graph, hg.apply(hg.targetAt(graph, 1), hg.and(hg.type(HGSubsumes.class), hg.orderedLink(th, hg.anyHandle()))));

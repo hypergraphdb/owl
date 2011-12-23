@@ -51,6 +51,10 @@ public class GarbageCollectorStatistics {
 		this.totalAtoms = totalAtoms;
 	}
 
+	public void increaseTotalAtoms() {
+		totalAtoms++;
+	}
+	
 	/**
 	 * @return the ontologies
 	 */
@@ -64,7 +68,11 @@ public class GarbageCollectorStatistics {
 	public void setOntologies(int ontologies) {
 		this.ontologies = ontologies;
 	}
-
+	
+	public void increaseOntologies() {
+		ontologies++;
+	}
+	
 	/**
 	 * @return the axioms
 	 */
@@ -79,6 +87,10 @@ public class GarbageCollectorStatistics {
 		this.axioms = axioms;
 	}
 
+	public void increaseAxioms() {
+		axioms ++;
+	}
+	
 	/**
 	 * @return the axiomNotRemovableCases
 	 */
@@ -89,10 +101,14 @@ public class GarbageCollectorStatistics {
 	/**
 	 * @param axiomNotRemovableCases the axiomNotRemovableCases to set
 	 */
-	public void setAxiomNotRemovableCases(int axiomNotRemovableCases) {
+	public void AxiomNotRemovableCases(int axiomNotRemovableCases) {
 		this.axiomNotRemovableCases = axiomNotRemovableCases;
 	}
 
+	public void increaseAxiomNotRemovableCases() {
+		axiomNotRemovableCases ++;
+	}
+	
 	/**
 	 * @return the entities
 	 */
@@ -107,6 +123,10 @@ public class GarbageCollectorStatistics {
 		this.entities = entities;
 	}
 
+	public void increaseEntities() {
+		entities ++;
+	}
+
 	/**
 	 * @return the otherObjects
 	 */
@@ -119,6 +139,10 @@ public class GarbageCollectorStatistics {
 	 */
 	public void setOtherObjects(int otherObjects) {
 		this.otherObjects = otherObjects;
+	}
+
+	public void increaseOtherObjects() {
+		otherObjects ++;
 	}
 	
 }
