@@ -101,7 +101,7 @@ public class GarbageCollectorStatistics {
 	/**
 	 * @param axiomNotRemovableCases the axiomNotRemovableCases to set
 	 */
-	public void AxiomNotRemovableCases(int axiomNotRemovableCases) {
+	public void setAxiomNotRemovableCases(int axiomNotRemovableCases) {
 		this.axiomNotRemovableCases = axiomNotRemovableCases;
 	}
 
