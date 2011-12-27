@@ -194,7 +194,7 @@ public class HGDBApplication extends HGApplication
 		//
 		// BY_PART_INDEXERS "IRI"
 		//
-		HGHandle[] typeHandlesNamedObjectsWithIRIBeanProperty = new HGHandle[] {
+		HGHandle[] typeHandlesNamedObjectsWithIRIDimension = new HGHandle[] {
 				graph.getTypeSystem().getTypeHandle(OWLClassHGDB.class),
 				graph.getTypeSystem().getTypeHandle(OWLDatatypeHGDB.class),
 				graph.getTypeSystem().getTypeHandle(OWLAnnotationPropertyHGDB.class),
@@ -202,7 +202,7 @@ public class HGDBApplication extends HGApplication
 				graph.getTypeSystem().getTypeHandle(OWLObjectPropertyHGDB.class),
 				graph.getTypeSystem().getTypeHandle(OWLNamedIndividualHGDB.class)
 		};
-		for (HGHandle typeHandle : typeHandlesNamedObjectsWithIRIBeanProperty) {
+		for (HGHandle typeHandle : typeHandlesNamedObjectsWithIRIDimension) {
 			ByPartIndexer bpI = new ByPartIndexer(typeHandle, "IRI");
 			graph.getIndexManager().register(bpI);
 		}
