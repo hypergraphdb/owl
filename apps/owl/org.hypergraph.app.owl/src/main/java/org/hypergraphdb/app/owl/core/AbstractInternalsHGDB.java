@@ -50,6 +50,7 @@ import org.hypergraphdb.app.owl.model.axioms.OWLSubObjectPropertyOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSymmetricObjectPropertyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLTransitiveObjectPropertyAxiomHGDB;
 import org.semanticweb.owlapi.model.AxiomType;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationSubject;
 import org.semanticweb.owlapi.model.OWLAsymmetricObjectPropertyAxiom;
@@ -1359,7 +1360,12 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 
 	public Set<OWLAnnotationAssertionAxiom> getAnnotationAssertionAxiomsBySubject(OWLAnnotationSubject subject) {
 		//index subjectHandle 0, propertyHandle 1, valueHandle 2.
-		return findAxiomsInIncidenceSet(subject, OWLAnnotationAssertionAxiomHGDB.class, 0);
+		if (subject instanceof IRI && graph.getHandle(subject) == null) {
+			return Collections.emptySet();
+		}
+		else {
+			return findAxiomsInIncidenceSet(subject, OWLAnnotationAssertionAxiomHGDB.class, 0);
+		}
 		
 //		HGHandle subjectHandle = graph.getHandle(subject);
 //		List<OWLAnnotationAssertionAxiom> l = new ArrayList<OWLAnnotationAssertionAxiom>();
@@ -1775,7 +1781,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 				//Initial Size of Hashset performance critical
 				Set<S> s = new HashSet<S>();
 				if (entityHandle == null) {
-					String msg = ("entityHandle null. Graph.getHandle(" + entity + ") in findAxiomsInIncidenceSet(OWLEntity) returned null");
+					String msg = ("entityHandle null. Graph.getHandle(" + entity + " Class: " + entity.getClass() + ") in findAxiomsInIncidenceSet(OWLEntity) returned null");
 					throw new IllegalStateException(msg);
 				}
 				IncidenceSet iSet = graph.getIncidenceSet(entityHandle);
