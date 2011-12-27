@@ -12,6 +12,7 @@ import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
 import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
+import org.hypergraphdb.app.owl.query.AnySubgraphMemberCondition;
 import org.hypergraphdb.app.owl.query.OWLEntityIsBuiltIn;
 import org.hypergraphdb.app.owl.test.StopWatch;
 import org.hypergraphdb.app.owl.type.link.AxiomAnnotatedBy;
@@ -52,7 +53,7 @@ public class GarbageCollector {
 	public static final int MODE_DELETED_ONTOLOGIES = 1;
 
 	/**
-	 *  Begins collection at all axioms that are not member in any ontology.
+	 *  Begins collection at all axioms that are not member in any ontology and are disconnected.
 	 *  Each axiom, all reachable dependent objects, and entities with an otherwise empty incidence set will be removed.
 	 *  A) they were created by DF and never added to an onto
 	 *  B) they were removed from the last ontology in which they were member.
@@ -128,6 +129,9 @@ public class GarbageCollector {
 				collectAxioms(stats, analyzeOnly);
 				collectOtherObjects(stats, analyzeOnly);
 				collectEntities(stats, analyzeOnly);
+			};break;
+			case MODE_DELETED_ONTOLOGIES: {
+				collectRemovedOntologies(stats, analyzeOnly);
 			};break;
 			case MODE_DISCONNECTED_AXIOMS: {
 				collectAxioms(stats, analyzeOnly);
@@ -233,7 +237,8 @@ public class GarbageCollector {
 		stopWatch.start();		
 		List<HGHandle> handlesToRemove = hg.findAll(graph, hg.and(
 					hg.typePlus(OWLAxiomHGDB.class),
-					hg.disconnected())
+					hg.disconnected(),
+					hg.not(new AnySubgraphMemberCondition(graph)))
 				);
 		stopWatch.stop("Disconnected Axiom query time: Found: " + handlesToRemove.size() + " Duration:");
 		for (HGHandle h: handlesToRemove) {
@@ -285,26 +290,36 @@ public class GarbageCollector {
 	protected void collectOWLObjectsByDFSInternal(HGHandle linkHandle, GarbageCollectorStatistics stats, boolean analyzeOnly) {
 		TargetSetALGenerator tsAlg = new TargetSetALGenerator(graph);
 		HGDepthFirstTraversal dfs = new HGDepthFirstTraversal(linkHandle, tsAlg);
+		boolean linkHandleReturned = false;
 		while (dfs.hasNext()) {
 			Pair<HGHandle, HGHandle> p = dfs.next();
 			HGHandle targetHandle = p.getSecond();
-			//if (dfs.isVisited(targetHandle)) {
-			//	throw new IllegalStateException("DFS Object already visited: " + graph.get(targetHandle));
-			//}
 			if (canRemoveAnalyze(targetHandle, p.getFirst(), stats)) {
 				if (!analyzeOnly) {
 					graph.remove(targetHandle);				
 				}
 				//stats were already updated on canRemoveAnalyze
 			}
-		}	
+			if (targetHandle.getPersistent().equals(linkHandle.getPersistent())) linkHandleReturned = true;
+		}
+		if (linkHandleReturned) System.out.println("I GOT THE LINK HANDLE FROM DFS");// throw new IllegalStateException("Error during traversal");
+		//DFS does not return linkHandle!
+		if (canRemoveAnalyze(linkHandle, null, stats)) {
+			if (!analyzeOnly) {
+				graph.remove(linkHandle);
+			}
+		}
 	}
 	
 	protected boolean canRemoveAnalyze(HGHandle atomHandle, HGHandle parent, GarbageCollectorStatistics stats) {
 		Object atom = graph.get(atomHandle);
 		IncidenceSet is = graph.getIncidenceSet(atomHandle);
 		//empty, if we deleted parent already, or only parent => safe to delete		
-		boolean canRemove = (is.isEmpty() || (is.size() == 1 && is.first().equals(parent)));
+		boolean canRemove = (is.isEmpty() || (is.size() == 1 && (is.first().equals(parent)) || parent == null));
+		if (atom == null) {
+			System.out.println("Atom null for handle: " + atomHandle);
+			canRemove = false;
+		}
 		if (canRemove) {
 			stats.increaseTotalAtoms();
 			if (atom instanceof OWLOntology) {
@@ -313,11 +328,12 @@ public class GarbageCollector {
 				stats.increaseAxioms();
 			} else if (atom instanceof OWLEntity) {
 				stats.increaseEntities();
-			} else if (atom instanceof OWLObjectHGDB) {
-				stats.increaseOtherObjects();
 			} else if (atom instanceof IRI) {
+				System.out.println("Encountered IRI during DFS: " + atom);
 				//we'll encounter those as linked to by Annotations and AnnotationAxioms as
 				//an OWLAnnotationValue can be an IRI.
+				stats.increaseIris();
+			} else if (atom instanceof OWLObjectHGDB) {
 				stats.increaseOtherObjects();
 			} else {
 				System.err.println("Encountered unknown atom during DFS GC: " +  atom.getClass() + " Object: " + atom);
@@ -326,8 +342,9 @@ public class GarbageCollector {
 		return canRemove;		
 	}	
 	
+	//TODO THIS IS WRONG!!
 	/**
-	 * Asserts that axiom may be removed.
+	 * Asserts that axiom may be removed. THIS IS WRONG !!!!!!!
 	 * @param axiomHandle
 	 * @param enforceDisconnected if true and incidenseset not empty => Exception; if false no exception, incicdence set size <= 1 ok. 
 	 * @return true if axiom has appropriate incidence set for being collected.
@@ -360,10 +377,14 @@ public class GarbageCollector {
 				hg.disconnected(),
 				hg.typePlus(OWLObjectHGDB.class),
 				hg.not(hg.typePlus(OWLEntity.class)),
-				hg.not(hg.type(OWLAxiomHGDB.class)))
+				hg.not(hg.typePlus(OWLAxiomHGDB.class)))
 			);
 		stopWatch.stop("Disconnected Others query time: Found: " + handlesToRemove.size() + " Duration:");
 		for (HGHandle h: handlesToRemove) {
+			Object o = graph.get(h); 
+			if (o instanceof IRI) {
+				System.out.println("Should not have found IRI (check query types): " + o);
+			} 
 			collectOWLObjectsByDFSInternal(h, stats, analyzeOnly);
 		}
 		stopWatch.stop("Disconnected Others collection time: ");
@@ -380,8 +401,9 @@ public class GarbageCollector {
 		List<HGHandle> handlesToRemove = hg.findAll(graph, hg.and(
 					hg.typePlus(OWLEntity.class),
 					hg.disconnected(),
-					hg.not(new OWLEntityIsBuiltIn()))
-				);
+					hg.not(new OWLEntityIsBuiltIn()),
+					hg.not(new AnySubgraphMemberCondition(graph)))
+					);
 		stopWatch.stop("Disconnected Entities query time: Found: " + handlesToRemove.size() + " Duration:");
 		if (!analyzeOnly) {
 			int successRemoveCounter = 0;
@@ -392,9 +414,11 @@ public class GarbageCollector {
 			}
 			if (successRemoveCounter != handlesToRemove.size()) throw new IllegalStateException("successRemoveCounter != handles.size()");
 			stats.setEntities(stats.getEntities() + successRemoveCounter);
+			stats.setTotalAtoms(stats.getTotalAtoms() + successRemoveCounter);
 			stopWatch.stop("Disconnected Entities collection time: ");
 		} else {
 			stats.setEntities(stats.getEntities() + handlesToRemove.size());
+			stats.setTotalAtoms(stats.getTotalAtoms() + handlesToRemove.size());
 		}
 	}	
 		
