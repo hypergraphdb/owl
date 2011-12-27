@@ -1,5 +1,6 @@
 package org.hypergraphdb.app.owl.gc;
 
+
 /**
  * GarbageCollectorStatistics.
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
@@ -22,6 +23,13 @@ public class GarbageCollectorStatistics {
 	private int axiomNotRemovableCases = 0;
 
 	private int entities = 0;
+
+	/**
+	 * Iris might be encountered asOWLAnnotationSubject, OWLAnnotationValue, SWRLPredicate.
+	 * They are also used in OWLNamedObjectType as disconnected atoms that make, store and release refer to:
+	 * these must be collected with their instantiated type object (e.g. OWLClass x) and are not counted here.
+	 */
+	private int iris = 0;
 
 	/**
 	 * includes:
@@ -128,6 +136,24 @@ public class GarbageCollectorStatistics {
 	}
 
 	/**
+	 * @return the iris
+	 */
+	public int getIris() {
+		return iris;
+	}
+
+	/**
+	 * @param iris the iris to set
+	 */
+	public void setIris(int iris) {
+		this.iris = iris;
+	}
+
+	public void increaseIris() {
+		iris ++;
+	}
+
+	/**
 	 * @return the otherObjects
 	 */
 	public int getOtherObjects() {
@@ -147,7 +173,7 @@ public class GarbageCollectorStatistics {
 	
 	public String toString() {
 		return "Total: " + totalAtoms + ", axioms: " + axioms +  ", entities: " + entities 
-		+ " other: " + otherObjects + "\n  NRAxioms: " + axiomNotRemovableCases;
+		+ ", iris: " + iris + ", other: " + otherObjects + "\n  NRAxioms: " + axiomNotRemovableCases;
 	}
 	
 }
