@@ -25,9 +25,13 @@ public class GarbageCollectorStatistics {
 	private int entities = 0;
 
 	/**
-	 * Iris might be encountered asOWLAnnotationSubject, OWLAnnotationValue, SWRLPredicate.
-	 * They are also used in OWLNamedObjectType as disconnected atoms that make, store and release refer to:
-	 * these must be collected with their instantiated type object (e.g. OWLClass x) and are not counted here.
+	 * Iris might be encountered asOWLAnnotationSubject, OWLAnnotationValue,
+	 * SWRLPredicate. One IRI atom is shared between all OWLNamedObjectType
+	 * Objects (not in incidence set!!) and also shared between all uses as
+	 * OWLAnnoationSub/ and Value. SWRLPredicate needs to be checked in OWLDataFactory. They are also used in
+	 * OWLNamedObjectType as disconnected atoms that make, store and release
+	 * refer to: these must be collected with their instantiated type object
+	 * (e.g. OWLClass x) and are not counted here.
 	 */
 	private int iris = 0;
 
