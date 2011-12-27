@@ -209,7 +209,7 @@ public class HGDBApplication extends HGApplication
 		//
 		// BY_TARGET_INDEXERS
 		//
-		ByTargetIndexer subClass0 = new ByTargetIndexer(graph.getTypeSystem().getTypeHandle(OWLSubClassOfAxiomHGDB.class), 1);
+		ByTargetIndexer subClass0 = new ByTargetIndexer(graph.getTypeSystem().getTypeHandle(OWLSubClassOfAxiomHGDB.class), 0);
 		ByTargetIndexer subClass1 = new ByTargetIndexer(graph.getTypeSystem().getTypeHandle(OWLSubClassOfAxiomHGDB.class), 1);
 		graph.getIndexManager().register(subClass0);
 		graph.getIndexManager().register(subClass1);
