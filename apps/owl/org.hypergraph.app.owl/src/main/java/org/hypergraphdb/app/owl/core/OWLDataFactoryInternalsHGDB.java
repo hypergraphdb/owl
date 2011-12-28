@@ -232,6 +232,7 @@ public class OWLDataFactoryInternalsHGDB {
 	}
     
 	HGHandle findOrAddIRIHandle(IRI iri) {
+		//replace by assertAtom
     	HyperGraph graph = factory.getHyperGraph();
 		HGHandle iriHandle = hg.findOne(graph, hg.and(hg.type(IRI.class), hg.eq(iri)));
 		if (DBG) {
