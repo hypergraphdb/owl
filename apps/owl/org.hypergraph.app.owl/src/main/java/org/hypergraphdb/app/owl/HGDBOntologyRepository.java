@@ -357,6 +357,10 @@ public class HGDBOntologyRepository {
 		w.println("*****************************************************");	
 	}
 
+	public void printPerformanceStatistics(PrintWriter w) {
+		w.println(HGDBOntologyInternalsImpl.toStringPerfCounters());
+	}
+
 	public void printAllOntologies() {
 		List<HGDBOntology> l = getOntologies();
 		System.out.println("************* ONTOLOGIES IN HYPERGRAPH REPOSITORY *************");		
