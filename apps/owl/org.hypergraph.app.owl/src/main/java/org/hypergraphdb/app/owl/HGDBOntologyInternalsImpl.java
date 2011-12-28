@@ -21,7 +21,6 @@ import org.hypergraphdb.app.owl.core.AbstractInternalsHGDB;
 import org.hypergraphdb.app.owl.core.AxiomTypeToHGDBMap;
 import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
 import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
-import org.hypergraphdb.app.owl.gc.IncidenceSetALGenerator;
 import org.hypergraphdb.app.owl.model.OWLAnnotationHGDB;
 import org.hypergraphdb.app.owl.model.OWLAnnotationPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLAnonymousIndividualHGDB;
@@ -36,6 +35,7 @@ import org.hypergraphdb.app.owl.model.axioms.OWLEquivalentClassesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
 import org.hypergraphdb.app.owl.type.link.AxiomAnnotatedBy;
 import org.hypergraphdb.app.owl.type.link.ImportDeclarationLink;
+import org.hypergraphdb.app.owl.util.IncidenceSetALGenerator;
 import org.hypergraphdb.query.AtomTypeCondition;
 import org.hypergraphdb.query.HGQueryCondition;
 import org.hypergraphdb.query.Or;
@@ -1519,7 +1519,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		+ "\n   used by Signature            : " + PERFCOUNTER_FIND_BY_SIGNATURE
 		+ "\n   had to use slow equals scan  : " + PERFCOUNTER_FIND_EQUALS
 		+ "\n By Signature test onto member  : " + PERFCOUNTER_FIND_BY_SIGNATURE_ONTOLOGY_MEMBERS
-		+ "\n By Signature test slow equals:" + PERFCOUNTER_FIND_BY_SIGNATURE_EQUALS
+		+ "\n By Signature test slow equals: " + PERFCOUNTER_FIND_BY_SIGNATURE_EQUALS
 		+ "\n ---------------------------------\n";
 	}	
 }
