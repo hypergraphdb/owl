@@ -28,8 +28,8 @@ import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
 public class OWLEquivalentObjectPropertiesAxiomHGDB extends OWLNaryPropertyAxiomHGDB<OWLObjectPropertyExpression> implements OWLEquivalentObjectPropertiesAxiom {
     
     public OWLEquivalentObjectPropertiesAxiomHGDB(HGHandle...args){
-    	this(new TreeSet<HGHandle>(Arrays.asList(args)), Collections.<OWLAnnotation>emptySet());
-    	if (new TreeSet<HGHandle>(Arrays.asList(args)).size() != args.length) throw new IllegalArgumentException();
+    	this(new HashSet<HGHandle>(Arrays.asList(args)), Collections.<OWLAnnotation>emptySet());
+    	if (new HashSet<HGHandle>(Arrays.asList(args)).size() != args.length) throw new IllegalArgumentException();
     }
 
 	public OWLEquivalentObjectPropertiesAxiomHGDB(Set<HGHandle> properties, Collection<? extends OWLAnnotation> annotations) {
