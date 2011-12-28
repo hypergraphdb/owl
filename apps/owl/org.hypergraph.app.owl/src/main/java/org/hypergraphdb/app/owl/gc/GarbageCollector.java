@@ -17,6 +17,7 @@ import org.hypergraphdb.app.owl.query.OWLEntityIsBuiltIn;
 import org.hypergraphdb.app.owl.test.StopWatch;
 import org.hypergraphdb.app.owl.type.link.AxiomAnnotatedBy;
 import org.hypergraphdb.app.owl.type.link.ImportDeclarationLink;
+import org.hypergraphdb.app.owl.util.TargetSetALGenerator;
 import org.hypergraphdb.util.Pair;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
