@@ -3,8 +3,8 @@ package org.hypergraphdb.app.owl.model.axioms;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
 
 import org.hypergraphdb.HGHandle;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -24,8 +24,8 @@ import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
 public class OWLDisjointObjectPropertiesAxiomHGDB extends OWLNaryPropertyAxiomHGDB<OWLObjectPropertyExpression> implements OWLDisjointObjectPropertiesAxiom {
 	
     public OWLDisjointObjectPropertiesAxiomHGDB(HGHandle...args){
-    	this(new TreeSet<HGHandle>(Arrays.asList(args)), Collections.<OWLAnnotation>emptySet());
-    	if (new TreeSet<HGHandle>(Arrays.asList(args)).size() != args.length) throw new IllegalArgumentException("Duplicates in args not allowed. " + args);
+    	this(new HashSet<HGHandle>(Arrays.asList(args)), Collections.<OWLAnnotation>emptySet());
+    	if (new HashSet<HGHandle>(Arrays.asList(args)).size() != args.length) throw new IllegalArgumentException("Duplicates in args not allowed. " + args);
     }
 
 	public OWLDisjointObjectPropertiesAxiomHGDB(Set<HGHandle> properties, Collection<? extends OWLAnnotation> annotations) {
