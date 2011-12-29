@@ -181,7 +181,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	public boolean isEmpty() {
 		return graph.getTransactionManager().transact(new Callable<Boolean>() {
 			public Boolean call() {
-				boolean noAxioms = ontology.count(hg.typePlus(OWLAxiom.class)) == 0;
+				boolean noAxioms = ontology.count(hg.typePlus(OWLAxiomHGDB.class)) == 0;
 				return noAxioms && getOntologyAnnotations().isEmpty();
 			}}, HGTransactionConfig.READONLY);				
 		// Don't do this: ontology.isEmpty(); because Onto is considered empty
@@ -602,7 +602,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		return graph.getTransactionManager().transact(new Callable<Boolean>() {
 			public Boolean call() {
 				HGHandle h = graph.getHandle(axiom);
-				return h != null ? ontology.isMember(h) || findEqualAxiom(axiom) != null : findEqualAxiom(axiom) != null;
+				return h != null ? ontology.isMember(h) || findEqualAxiom(axiom, false) != null : findEqualAxiom(axiom, false) != null;
 			}}, HGTransactionConfig.READONLY);
 		// //TODO will not work 2011.10.13; must rely on equals code in axiom
 		// HGHandle axiomHandle = graph.getHandle(axiom);
@@ -624,31 +624,42 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	 * @return an axiom object that is guaranteed to be in the graph and equal
 	 *         to the given axiom.
 	 */
-	protected OWLAxiom findEqualAxiom(final OWLAxiom axiom) {
+	protected OWLAxiom findEqualAxiom(final OWLAxiom axiom, boolean ignoreAnnotations) {
 		if (axiom == null) throw new NullPointerException("axiom");
-		// Called by OWLCellrenderer true will render an entity in bold font.
 		if (axiom.getAxiomType() == AxiomType.DECLARATION) {
 			//optimized find
-			return findEqualDeclarationAxiom((OWLDeclarationAxiom)axiom);
+			return findEqualDeclarationAxiom((OWLDeclarationAxiom)axiom, ignoreAnnotations);
 		} else {
 			if (USE_CONTAINS_AXIOM_BY_IS) {
 				Set<OWLEntity> signature = axiom.getSignature();
 				if (!signature.isEmpty()) {
 					PERFCOUNTER_FIND_BY_SIGNATURE ++;
 					//Check incidence set of one signature entity!
-					return findEqualAxiomBySignature(axiom, signature);
+					return findEqualAxiomBySignature(axiom, signature, ignoreAnnotations);
 				}
 			} 
 			PERFCOUNTER_FIND_EQUALS ++;
-			// signature empty possible?
+			// signature empty possible?			
 			// expensive and slow O(N) equals search
 			OWLAxiom foundAxiom = null;				
 			Class<?> hgdbType = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiom.getAxiomType());
-			List<OWLAxiom> axiomsOneTypeInOnto = ontology.getAll(hg.type(hgdbType));
-			// Find by axiom.equal (expensive)
-			int i = axiomsOneTypeInOnto.indexOf(axiom);
-			if (i != -1) {
-				foundAxiom = axiomsOneTypeInOnto.get(i);
+			List<OWLAxiomHGDB> axiomsOneTypeInOnto = ontology.getAll(hg.type(hgdbType));
+			//expensive scan
+			if (ignoreAnnotations) {
+				// Find by axiom.equalsIgnoreAnnotations (expensive)
+				Iterator<OWLAxiomHGDB> i = axiomsOneTypeInOnto.iterator();
+				while (foundAxiom == null && i.hasNext()) {
+					OWLAxiomHGDB curAxiom = i.next();
+					if (axiom.equalsIgnoreAnnotations(curAxiom)) {
+						foundAxiom = curAxiom;
+					}
+				}
+			} else {
+				// Find by axiom.equal (expensive)
+				int i = axiomsOneTypeInOnto.indexOf(axiom);
+				if (i != -1) {
+					foundAxiom = axiomsOneTypeInOnto.get(i);
+				}
 			}
 			return foundAxiom;
 		}
@@ -668,7 +679,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	 * @param signature
 	 * @return
 	 */
-	private OWLAxiomHGDB findEqualAxiomBySignature(OWLAxiom axiom, Set<OWLEntity> signature) {
+	private OWLAxiomHGDB findEqualAxiomBySignature(OWLAxiom axiom, Set<OWLEntity> signature, boolean ignoreAnnotations) {
 		if (signature.isEmpty()) throw new IllegalArgumentException("Find Axiom by signature, signature empty not allowed.");
 		//Find signature object with small incidence set.
 		IncidenceSet curIS, lookupEntityIS = null;	
@@ -707,9 +718,17 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 					if (axiomCandidate.getAxiomType().equals(axiom.getAxiomType())) {
 						//types match, do expensive equals compare, loading all dependent objects.
 						PERFCOUNTER_FIND_BY_SIGNATURE_EQUALS ++;
-						if (axiom.equals(axiomCandidate)) {
-							foundAxiom = axiomCandidate;
-						} //else equals false, maybe annotations or sth else did not match
+						if (ignoreAnnotations) {
+							// compare excluding annotations
+							if (axiom.equalsIgnoreAnnotations(axiomCandidate)) {
+								foundAxiom = axiomCandidate;
+							} //else equalsIgnoreAnno false, sth else did not match
+						} else {
+							// compare including annotations
+							if (axiom.equals(axiomCandidate)) {
+								foundAxiom = axiomCandidate;
+							} //else equals false, maybe annotations or sth else did not match
+						}
 					} //else different types
 				} //else no axiomHGDB 
 			} //else not our member
@@ -722,17 +741,8 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	 * @param axiom
 	 * @return
 	 */
-	private OWLDeclarationAxiomHGDB findEqualDeclarationAxiom(OWLDeclarationAxiom axiom) {
-		//FROM OWLDeclarationAxiomHGDB
-		//public boolean equals(Object obj) {
-		//  if (super.equals(obj)) {
-	    //    if (obj instanceof OWLDeclarationAxiom) {
-	    //      return ((OWLDeclarationAxiom) obj).getEntity().equals(getEntity());
-	    //    }
-		//  }
-	    //  return false;
-	    //}
-		//Strategy: find Entity by IRI (indexed), find DeclarationAxiom in (direct) incidence set.
+	private OWLDeclarationAxiomHGDB findEqualDeclarationAxiom(OWLDeclarationAxiom axiom, boolean ignoreAnnotations) {
+		//Strategy: get/find Entity by IRI (indexed), find DeclarationAxiom in (direct) incidence set.
 		final OWLEntity owlEntity = axiom.getEntity();		
 		HGHandle owlEntityHandle;
 		owlEntityHandle = graph.getHandle(owlEntity);
@@ -742,18 +752,24 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		if (owlEntityHandle != null) {
 			IncidenceSet iSet = graph.getIncidenceSet(owlEntityHandle);
 			for (HGHandle incidentAtomHandle : iSet) {
-				Object o = graph.get(incidentAtomHandle);
-				if (o != null) {
-					if (o instanceof OWLDeclarationAxiom) {
-						if (ontology.isMember(incidentAtomHandle)) {
+				if (ontology.isMember(incidentAtomHandle)) {
+					Object o = graph.get(incidentAtomHandle);
+					if (o != null) {
+						if (o instanceof OWLDeclarationAxiom) {
 							//TODO 2011.12.08 BUGFIX contains ignores Annotations
 							OWLDeclarationAxiomHGDB axO = (OWLDeclarationAxiomHGDB)o;
-							if (axiom.equals(axO)) {
-								return (OWLDeclarationAxiomHGDB)o;
-							} //else almost, maybe annotations did not match.
-						} // else not this ontology.
-					} // else other Link.
-				}// else incidentAtomHandle not in cache! 
+							if (ignoreAnnotations) {
+								if (axiom.equalsIgnoreAnnotations(axO)) {
+									return (OWLDeclarationAxiomHGDB)o;
+								} //else 
+							} else {
+								if (axiom.equals(axO)) {
+									return (OWLDeclarationAxiomHGDB)o;
+								} //else almost, maybe annotations did not match.
+							}
+						} // other class  
+					} // else incidentAtomHandle not in cache!
+				}// else not this ontology. 
 			} 
 		}// else no entity found
 		return null;
@@ -945,7 +961,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 				if (axiomHandle == null || ontology.get(axiomHandle) == null) {
 					// Axiom null or not in ontology, try find an equal one
 					// in ontology
-					axiomHandle = graph.getHandle(findEqualAxiom(axiom));
+					axiomHandle = graph.getHandle(findEqualAxiom(axiom, false));
 				}
 				if (axiomHandle != null) {
 					//
@@ -1015,20 +1031,27 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	@Override
 	public boolean containsAxiomIgnoreAnnotations(final OWLAxiom axiom) {
 		if (axiom == null) throw new NullPointerException("axiom");
-		// TODO this is expensive !! Maybe implement a complex search condition
-		// based on equals in each axiom type.
+		PERFCOUNTER_FIND_AXIOM ++;
 		return graph.getTransactionManager().transact(new Callable<Boolean>() {
 			public Boolean call() {
-				boolean foundAxiom = false;
-				Class<?> hgdbType = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiom.getAxiomType());
-				List<OWLAxiomHGDB> axiomsOneTypeInOnto = ontology.getAll(hg.type(hgdbType));
-				// Find by axiom.equal (expensive)
-				Iterator<OWLAxiomHGDB> i = axiomsOneTypeInOnto.iterator();
-				while (!foundAxiom && i.hasNext()) {
-					foundAxiom = axiom.equalsIgnoreAnnotations(i.next());
-				}
-				return foundAxiom;
+				HGHandle h = graph.getHandle(axiom);
+				return h != null ? ontology.isMember(h) || findEqualAxiom(axiom, true) != null : findEqualAxiom(axiom, true) != null;
 			}}, HGTransactionConfig.READONLY);
+		//2011.12.29 
+//		// TODO this is expensive !! Maybe implement a complex search condition
+//		// based on equals in each axiom type.
+//		return graph.getTransactionManager().transact(new Callable<Boolean>() {
+//			public Boolean call() {				
+//				boolean foundAxiom = false;
+//				Class<?> hg  dbType = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiom.getAxiomType());
+//				List<OWLAxiomHGDB> axiomsOneTypeInOnto = ontology.getAll(hg.type(hgdbType));
+//				// Find by axiom.equal (expensive)
+//				Iterator<OWLAxiomHGDB> i = axiomsOneTypeInOnto.iterator();
+//				while (!foundAxiom && i.hasNext()) {
+//					foundAxiom = axiom.equalsIgnoreAnnotations(i.next());
+//				}
+//				return foundAxiom;
+//			}}, HGTransactionConfig.READONLY);
 	}
 
 	/*
