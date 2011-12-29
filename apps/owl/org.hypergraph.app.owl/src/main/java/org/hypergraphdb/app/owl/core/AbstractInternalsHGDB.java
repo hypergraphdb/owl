@@ -2,11 +2,9 @@ package org.hypergraphdb.app.owl.core;
 
 import static org.semanticweb.owlapi.util.CollectionFactory.createSet;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -18,6 +16,8 @@ import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyImpl;
 import org.hypergraphdb.app.owl.HGDBOntologyInternals;
 import org.hypergraphdb.app.owl.model.axioms.OWLAnnotationAssertionAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLAnnotationPropertyDomainAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLAnnotationPropertyRangeAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLAsymmetricObjectPropertyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLClassAssertionHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDataPropertyAssertionAxiomHGDB;
@@ -44,6 +44,7 @@ import org.hypergraphdb.app.owl.model.axioms.OWLObjectPropertyDomainAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLObjectPropertyRangeAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLReflexiveObjectPropertyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSameIndividualAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLSubAnnotationPropertyOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubDataPropertyOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubObjectPropertyOfAxiomHGDB;
@@ -52,6 +53,8 @@ import org.hypergraphdb.app.owl.model.axioms.OWLTransitiveObjectPropertyAxiomHGD
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLAnnotationAxiom;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationSubject;
 import org.semanticweb.owlapi.model.OWLAsymmetricObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -61,6 +64,7 @@ import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLDataPropertyAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLDataPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLDataPropertyDomainAxiom;
 import org.semanticweb.owlapi.model.OWLDataPropertyExpression;
 import org.semanticweb.owlapi.model.OWLDataPropertyRangeAxiom;
@@ -84,6 +88,7 @@ import org.semanticweb.owlapi.model.OWLNegativeDataPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLNegativeObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyDomainAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectPropertyRangeAxiom;
@@ -102,6 +107,7 @@ import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
  * @created Sep 29, 2011
  */
 public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HGGraphHolder {
+
 
 	protected HyperGraph graph;
 	protected HGDBOntologyImpl ontology;
@@ -1404,34 +1410,35 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	/**
 	 * See OWLOntology interface documentation.
 	 */
-	public Set<OWLClassAxiom> getAxioms(OWLClass cls) {		
-		HGHandle clsHandle = graph.getHandle(cls);
-		List<OWLClassAxiom> l = new ArrayList<OWLClassAxiom>();
-		if (clsHandle != null) {
-				IncidenceSet iSet = graph.getIncidenceSet(clsHandle);
-				for (HGHandle incidentAtomHandle : iSet) {
-					Object o = graph.get(incidentAtomHandle);
-					if (o != null) {
-						if (o instanceof OWLClassAxiom) {
-							if (ontology.isMember(incidentAtomHandle)) {
-								if (o instanceof OWLSubClassOfAxiomHGDB) {
-									OWLSubClassOfAxiomHGDB sc = (OWLSubClassOfAxiomHGDB)o;
-									//Is it a superclass in the relationship
-									if (clsHandle.equals(sc.getTargetAt(0))) {
-										l.add((OWLClassAxiom)o);
-									}
-								} else {
-									l.add((OWLClassAxiom)o);
-							} // else not this ontology.
-						} // else other Link.
-					} // else incidentAtomHandle not in cache! 
-				} 
-			}// else no entity found
-		} else {
-			String msg = ("ClassHandle null. Graph.getHandle(" + cls + ") in getAxioms(OWLClass) returned null");
-			throw new IllegalStateException(msg);
-		}
-		return getReturnSet(l);
+	public Set<OWLClassAxiom> getOWLClassAxioms(OWLClass cls) {		
+		return findAxiomsInIncidenceSetImplTwo(cls, classDefiningAxiomMatcher);
+//2011.12.29 old:		HGHandle clsHandle = graph.getHandle(cls);
+//		List<OWLClassAxiom> l = new ArrayList<OWLClassAxiom>();
+//		if (clsHandle != null) {
+//				IncidenceSet iSet = graph.getIncidenceSet(clsHandle);
+//				for (HGHandle incidentAtomHandle : iSet) {
+//					Object o = graph.get(incidentAtomHandle);
+//					if (o != null) {
+//						if (o instanceof OWLClassAxiom) {
+//							if (ontology.isMember(incidentAtomHandle)) {
+//								if (o instanceof OWLSubClassOfAxiomHGDB) {
+//									OWLSubClassOfAxiomHGDB sc = (OWLSubClassOfAxiomHGDB)o;
+//									//Is it a superclass in the relationship
+//									if (clsHandle.equals(sc.getTargetAt(0))) {
+//										l.add((OWLClassAxiom)o);
+//									}
+//								} else {
+//									l.add((OWLClassAxiom)o);
+//							} // else not this ontology.
+//						} // else other Link.
+//					} // else incidentAtomHandle not in cache! 
+//				} 
+//			}// else no entity found
+//		} else {
+//			String msg = ("ClassHandle null. Graph.getHandle(" + cls + ") in getAxioms(OWLClass) returned null");
+//			throw new IllegalStateException(msg);
+//		}
+//		return getReturnSet(l);
 	}
 
 //	/**
@@ -1468,71 +1475,32 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	 */
 	@Override
 	public Set<OWLIndividualAxiom> getOWLIndividualAxioms(OWLIndividual individual) {
-		HGHandle individualHandle = graph.getHandle(individual);
-		List<OWLIndividualAxiom> l = new ArrayList<OWLIndividualAxiom>();
-		if (individualHandle != null) {
-			IncidenceSet iSet = graph.getIncidenceSet(individualHandle);
-			for (HGHandle incidentAtomHandle : iSet) {
-				Object o = graph.get(incidentAtomHandle);
-				if (o != null) {
-					if (o instanceof OWLIndividualAxiom) {
-						OWLIndividualAxiom ax = (OWLIndividualAxiom) o;
-						if (ontology.isMember(incidentAtomHandle)) {								
-							//check for 
-							if (isDefiningOWLIndividualAxiomFor(ax, individualHandle)) {
-								l.add(ax);
-							}//else not defining
-						} // else not this ontology.
-					} // else other Link.
-				} // else incidentAtomHandle not in cache! 
-			} 
-		} else {
-			String msg = ("OWLIndividualHandle null. Graph.getHandle(" + individual + ") in getOWLIndividualAxioms(OWLIndividual) returned null");
-			throw new IllegalStateException(msg);
-		}
-		return getReturnSet(l);
+		return findAxiomsInIncidenceSetImplTwo(individual, individualDefiningAxiomMatcher);
+//		HGHandle individualHandle = graph.getHandle(individual);
+//		List<OWLIndividualAxiom> l = new ArrayList<OWLIndividualAxiom>();
+//		if (individualHandle != null) {
+//			IncidenceSet iSet = graph.getIncidenceSet(individualHandle);
+//			for (HGHandle incidentAtomHandle : iSet) {
+//				Object o = graph.get(incidentAtomHandle);
+//				if (o != null) {
+//					if (o instanceof OWLIndividualAxiom) {
+//						OWLIndividualAxiom ax = (OWLIndividualAxiom) o;
+//						if (ontology.isMember(incidentAtomHandle)) {								
+//							//check for 
+//							if (isDefiningOWLIndividualAxiomFor(ax, individualHandle)) {
+//								l.add(ax);
+//							}//else not defining
+//						} // else not this ontology.
+//					} // else other Link.
+//				} // else incidentAtomHandle not in cache! 
+//			} 
+//		} else {
+//			String msg = ("OWLIndividualHandle null. Graph.getHandle(" + individual + ") in getOWLIndividualAxioms(OWLIndividual) returned null");
+//			throw new IllegalStateException(msg);
+//		}
+//		return getReturnSet(l);
 	}
-	
-	/**
-	 * Determines if the given axiom is a defining axiom for the given individual.
-	 * This is the case, if it is the subject in an axiom, or the individual in a ClassAssertion or any particpant in a SameIndividual or DifferentIndividuals Axiom.
-	 * 
-	 * @param ax
-	 * @param individualHandle
-	 * @return
-	 */
-	private boolean isDefiningOWLIndividualAxiomFor(OWLIndividualAxiom ax, HGHandle individualHandle) {
-		boolean returnValue; 
-		if (ax instanceof OWLClassAssertionHGDB) {
-			OWLClassAssertionHGDB axS = (OWLClassAssertionHGDB)ax;
-			// individualHandle index 0, classExpressionHandle index 1 
-			returnValue = individualHandle.equals(axS.getTargetAt(0));
-		} else if (ax instanceof OWLObjectPropertyAssertionAxiomHGDB) {
-			OWLObjectPropertyAssertionAxiomHGDB axS = (OWLObjectPropertyAssertionAxiomHGDB)ax;
-			//subjectHandle 0, propertyHandle 1, objectHandle 2
-			returnValue = individualHandle.equals(axS.getTargetAt(0));			
-		} else if (ax instanceof OWLDataPropertyAssertionAxiomHGDB) {
-			OWLDataPropertyAssertionAxiomHGDB axS = (OWLDataPropertyAssertionAxiomHGDB)ax;
-			//subjectHandle 0, propertyHandle 1, objectHandle 2
-			returnValue = individualHandle.equals(axS.getTargetAt(0));			
-		} else if (ax instanceof OWLNegativeObjectPropertyAssertionAxiomHGDB) { 
-			OWLNegativeObjectPropertyAssertionAxiomHGDB axS = (OWLNegativeObjectPropertyAssertionAxiomHGDB)ax;
-			//subjectHandle 0, propertyHandle 1, objectHandle 2
-			returnValue = individualHandle.equals(axS.getTargetAt(0));			
-		} else if (ax instanceof OWLNegativeDataPropertyAssertionAxiomHGDB) { 
-			OWLNegativeDataPropertyAssertionAxiomHGDB axS = (OWLNegativeDataPropertyAssertionAxiomHGDB)ax;
-			//subjectHandle 0, propertyHandle 1, objectHandle 2
-			returnValue = individualHandle.equals(axS.getTargetAt(0));
-		} else if (ax instanceof OWLSameIndividualAxiomHGDB) { 
-			returnValue = true;
-		} else if (ax instanceof OWLDifferentIndividualsAxiomHGDB) {
-			returnValue = true;
-		} else {
-			throw new IllegalStateException("OWLIndividualAxiom : " + ax + " unknown.");
-		}
-		return returnValue;
-	}
-		
+			
 	// 2011.10.06 public Map<OWLClass, Set<OWLClassAxiom>>
 	// getClassAxiomsByClass() {
 	// return this.classAxiomsByClass;
@@ -1816,4 +1784,315 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 				return s;	
 			}});
 	}
+
+	/**
+	 * findAxiomsInIncidenceSetImpl finds all matching axioms in the incidenceset of a given OWLObject (Typically entity).
+	 * Uses a matcher that can analyze each incidence set axiom for multiple axiom types.
+	 * 
+	 * @param <S>
+	 * @param entity
+	 * @param axiomMatcher
+	 * @return
+	 */
+	private <S extends OWLAxiom> Set<S> findAxiomsInIncidenceSetImplTwo(final OWLObject entity, final DefiningAxiomMatcher axiomMatcher) {
+		return graph.getTransactionManager().transact(new Callable<Set<S>>() {
+			public Set<S> call() {
+				HGHandle entityHandle = graph.getHandle(entity);
+				//Initial Size of Hashset performance critical
+				Set<S> s = new HashSet<S>();
+				if (entityHandle == null) {
+					String msg = ("entityHandle null. Graph.getHandle(" + entity + " Class: " + entity.getClass() + ") in findAxiomsInIncidenceSet(OWLEntity) returned null");
+					throw new IllegalStateException(msg);
+				}
+				IncidenceSet iSet = graph.getIncidenceSet(entityHandle);
+				for (HGHandle incidentAtomHandle : iSet) {
+					if (ontology.isMember(incidentAtomHandle)) {
+						Object o = graph.get(incidentAtomHandle);
+						if (o instanceof OWLAxiomHGDB) {
+							OWLAxiomHGDB axHGDB = (OWLAxiomHGDB)o;
+							if (axiomMatcher.isDefiningAxiom(axHGDB, entityHandle)) {
+								s.add((S)axHGDB);
+							}
+						} // else not axiom.
+					} // else not member 
+				} 
+				return s;	
+			}});
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#getOWLDataPropertyAxioms(org.semanticweb.owlapi.model.OWLDataProperty)
+	 */
+	@Override
+	public Set<OWLDataPropertyAxiom> getOWLDataPropertyAxioms(OWLDataProperty prop) {
+		return findAxiomsInIncidenceSetImplTwo(prop, dataPropertyDefiningAxiomMatcher);
+		//2011.12.29 old implementation in *impl
+		//		final Set<OWLDataPropertyAxiom> result = createSet();
+		//		result.addAll(getDataPropertyDomainAxioms(prop));
+		//		result.addAll(getEquivalentDataPropertiesAxioms(prop));
+		//		result.addAll(getDisjointDataPropertiesAxioms(prop));
+		//		result.addAll(getDataPropertyRangeAxioms(prop));
+		//		result.addAll(getFunctionalDataPropertyAxioms(prop));
+		//		result.addAll(getDataSubPropertyAxiomsForSubProperty(prop));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#getOWLAnnotationPropertyAxioms(org.semanticweb.owlapi.model.OWLAnnotationProperty)
+	 */
+	@Override
+	public Set<OWLAnnotationAxiom> getOWLAnnotationPropertyAxioms(OWLAnnotationProperty prop) {
+		return findAxiomsInIncidenceSetImplTwo(prop, annotationPropertyDefiningAxiomMatcher);
+
+		//2011.12.29 old implementation in *impl
+		//		Set<OWLAnnotationAxiom> result = createSet();
+		//		for (OWLSubAnnotationPropertyOfAxiom ax : getAxioms(AxiomType.SUB_ANNOTATION_PROPERTY_OF)) {
+		//			if (ax.getSubProperty().equals(prop)) {
+		//				result.add(ax);
+		//			}
+		//		}
+		//		for (OWLAnnotationPropertyRangeAxiom ax : getAxioms(AxiomType.ANNOTATION_PROPERTY_RANGE)) {
+		//			if (ax.getProperty().equals(prop)) {
+		//				result.add(ax);
+		//			}
+		//		}
+		//		for (OWLAnnotationPropertyDomainAxiom ax : getAxioms(AxiomType.ANNOTATION_PROPERTY_DOMAIN)) {
+		//			if (ax.getProperty().equals(prop)) {
+		//				result.add(ax);
+		//			}
+		//		}
+		//		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#getOWLObjectPropertyExpressionAxioms(org.semanticweb.owlapi.model.OWLObjectPropertyExpression)
+	 */
+	@Override
+	public Set<OWLObjectPropertyAxiom> getOWLObjectPropertyExpressionAxioms(OWLObjectPropertyExpression prop) {
+		return findAxiomsInIncidenceSetImplTwo(prop, objectPropertyDefiningAxiomMatcher);
+		
+		//2011.12.29 old implementation in *impl
+		//		final Set<OWLObjectPropertyAxiom> result = createSet(50);
+		//
+		//				result.addAll(getAsymmetricObjectPropertyAxioms(prop));
+		//				result.addAll(getReflexiveObjectPropertyAxioms(prop));
+		//				result.addAll(getSymmetricObjectPropertyAxioms(prop));
+		//				result.addAll(getIrreflexiveObjectPropertyAxioms(prop));
+		//				result.addAll(getTransitiveObjectPropertyAxioms(prop));
+		//				result.addAll(getInverseFunctionalObjectPropertyAxioms(prop));
+		//				result.addAll(getFunctionalObjectPropertyAxioms(prop));
+		//				result.addAll(getInverseObjectPropertyAxioms(prop));
+		//				result.addAll(getObjectPropertyDomainAxioms(prop));
+		//				result.addAll(getEquivalentObjectPropertiesAxioms(prop));
+		//				result.addAll(getDisjointObjectPropertiesAxioms(prop));
+		//				result.addAll(getObjectPropertyRangeAxioms(prop));
+		//				result.addAll(getObjectSubPropertyAxiomsForSubProperty(prop));
+		//				return result;
+	}
+	
+	// ---------------------------------------------------------------------------------------------------------
+	//
+	//  DEFINING AXIOM MATCHERS 
+	//
+	//
+	
+	/**
+	 * DefiningAxiomMatcher determines if the given axiom is a defining axiom for the given entity.
+	 * These cases are defined by the manchester OWL API Implementation.
+	 * 
+	 * E.g. An SubClassAxiom is not a defining axiom for an OWLClass that is superclass in it.
+	 * 
+	 * @author Thomas Hilpold (CIAO/Miami-Dade County)
+	 * @created Dec 29, 2011
+	 */
+	public interface DefiningAxiomMatcher {
+		boolean isDefiningAxiom(OWLAxiomHGDB axiom, HGHandle entityHandle);
+	}	
+	
+	protected DefiningAxiomMatcher classDefiningAxiomMatcher = new DefiningAxiomMatcher() {
+		@Override
+		public boolean isDefiningAxiom(OWLAxiomHGDB axiom, HGHandle entityHandle) {
+			if (!(axiom instanceof OWLClassAxiom)) return false;
+			boolean returnValue;
+			if (axiom instanceof OWLSubClassOfAxiomHGDB) {
+				OWLSubClassOfAxiomHGDB axS = (OWLSubClassOfAxiomHGDB)axiom;
+				//Is it a subclass in the relationship
+				returnValue = (entityHandle.equals(axS.getTargetAt(0)));
+			} else {
+				returnValue = true;
+			}
+			return returnValue;	
+		}
+	};
+	
+	protected DefiningAxiomMatcher individualDefiningAxiomMatcher = new DefiningAxiomMatcher() {
+		@Override
+		public boolean isDefiningAxiom(OWLAxiomHGDB axiom, HGHandle entityHandle) {
+			boolean returnValue; 
+			if (axiom instanceof OWLClassAssertionHGDB) {
+				OWLClassAssertionHGDB axS = (OWLClassAssertionHGDB)axiom;
+				// individualHandle index 0, classExpressionHandle index 1 
+				returnValue = entityHandle.equals(axS.getTargetAt(0));
+			} else if (axiom instanceof OWLObjectPropertyAssertionAxiomHGDB) {
+				OWLObjectPropertyAssertionAxiomHGDB axS = (OWLObjectPropertyAssertionAxiomHGDB)axiom;
+				//subjectHandle 0, propertyHandle 1, objectHandle 2
+				returnValue = entityHandle.equals(axS.getTargetAt(0));			
+			} else if (axiom instanceof OWLDataPropertyAssertionAxiomHGDB) {
+				OWLDataPropertyAssertionAxiomHGDB axS = (OWLDataPropertyAssertionAxiomHGDB)axiom;
+				//subjectHandle 0, propertyHandle 1, objectHandle 2
+				returnValue = entityHandle.equals(axS.getTargetAt(0));			
+			} else if (axiom instanceof OWLNegativeObjectPropertyAssertionAxiomHGDB) { 
+				OWLNegativeObjectPropertyAssertionAxiomHGDB axS = (OWLNegativeObjectPropertyAssertionAxiomHGDB)axiom;
+				//subjectHandle 0, propertyHandle 1, objectHandle 2
+				returnValue = entityHandle.equals(axS.getTargetAt(0));			
+			} else if (axiom instanceof OWLNegativeDataPropertyAssertionAxiomHGDB) { 
+				OWLNegativeDataPropertyAssertionAxiomHGDB axS = (OWLNegativeDataPropertyAssertionAxiomHGDB)axiom;
+				//subjectHandle 0, propertyHandle 1, objectHandle 2
+				returnValue = entityHandle.equals(axS.getTargetAt(0));
+			} else if (axiom instanceof OWLSameIndividualAxiomHGDB) { 
+				returnValue = true;
+			} else if (axiom instanceof OWLDifferentIndividualsAxiomHGDB) {
+				returnValue = true;
+			} else {
+				throw new IllegalStateException("OWLIndividualAxiom : " + axiom + " unknown.");
+			}
+			return returnValue;
+		}		
+	};
+
+	protected DefiningAxiomMatcher dataPropertyDefiningAxiomMatcher = new DefiningAxiomMatcher() {
+		//2011.12.29 old implementation in *impl
+		//		final Set<OWLDataPropertyAxiom> result = createSet();
+		//		result.addAll(getDataPropertyDomainAxioms(prop));
+		//		result.addAll(getEquivalentDataPropertiesAxioms(prop));
+		//		result.addAll(getDisjointDataPropertiesAxioms(prop));
+		//		result.addAll(getDataPropertyRangeAxioms(prop));
+		//		result.addAll(getFunctionalDataPropertyAxioms(prop));
+		//		result.addAll(getDataSubPropertyAxiomsForSubProperty(prop));
+		@Override
+		public boolean isDefiningAxiom(OWLAxiomHGDB axiom, HGHandle entityHandle) {
+			if (!(axiom instanceof OWLDataPropertyAxiom)) return false;
+			boolean returnValue; 
+			if (axiom instanceof OWLDataPropertyDomainAxiomHGDB) {
+				OWLDataPropertyDomainAxiomHGDB axS = (OWLDataPropertyDomainAxiomHGDB)axiom;
+				// OWLDataPropertyExpression property 0, OWLDataPropertyExpression domain 1
+				returnValue = entityHandle.equals(axS.getTargetAt(0));
+			} else if (axiom instanceof OWLEquivalentDataPropertiesAxiomHGDB) {
+				returnValue = true;			
+			} else if (axiom instanceof OWLDisjointDataPropertiesAxiomHGDB) {
+				returnValue = true;			
+			} else if (axiom instanceof OWLDataPropertyRangeAxiomHGDB) { 
+				OWLDataPropertyRangeAxiomHGDB axS = (OWLDataPropertyRangeAxiomHGDB)axiom;
+				// OWLDataPropertyExpression property 0, OWLDataRange range 1
+				returnValue = entityHandle.equals(axS.getTargetAt(0));			
+			} else if (axiom instanceof OWLFunctionalDataPropertyAxiomHGDB) { 
+				returnValue = true;
+			} else if (axiom instanceof OWLSubDataPropertyOfAxiomHGDB) {
+				OWLSubDataPropertyOfAxiomHGDB axS = (OWLSubDataPropertyOfAxiomHGDB) axiom;
+				// subclass 0, superClass 1
+				returnValue = entityHandle.equals(axS.getTargetAt(0));
+			} else {
+				throw new IllegalStateException("OWLIndividualAxiom : " + axiom + " unknown.");
+			}
+			return returnValue;
+		}
+	};
+
+	protected DefiningAxiomMatcher objectPropertyDefiningAxiomMatcher = new DefiningAxiomMatcher() {
+		//		1		result.addAll(getAsymmetricObjectPropertyAxioms(prop));
+		//		2		result.addAll(getReflexiveObjectPropertyAxioms(prop));
+		//		3		result.addAll(getSymmetricObjectPropertyAxioms(prop));
+		//		4		result.addAll(getIrreflexiveObjectPropertyAxioms(prop));
+		//		5		result.addAll(getTransitiveObjectPropertyAxioms(prop));
+		//		6		result.addAll(getInverseFunctionalObjectPropertyAxioms(prop));
+		//		7		result.addAll(getFunctionalObjectPropertyAxioms(prop));
+		//		8		result.addAll(getInverseObjectPropertyAxioms(prop));
+		//		9		result.addAll(getObjectPropertyDomainAxioms(prop));
+		//		10		result.addAll(getEquivalentObjectPropertiesAxioms(prop));
+		//		11		result.addAll(getDisjointObjectPropertiesAxioms(prop));
+		//		12		result.addAll(getObjectPropertyRangeAxioms(prop));
+		//		13		result.addAll(getObjectSubPropertyAxiomsForSubProperty(prop));
+
+		@Override
+		public boolean isDefiningAxiom(OWLAxiomHGDB axiom, HGHandle entityHandle) {
+			if (!(axiom instanceof OWLObjectPropertyAxiom)) return false;
+			boolean returnValue; 
+			if (axiom instanceof OWLAsymmetricObjectPropertyAxiomHGDB) {
+				returnValue = true;
+			} else if (axiom instanceof OWLReflexiveObjectPropertyAxiomHGDB) {
+				returnValue = true;			
+			} else if (axiom instanceof OWLSymmetricObjectPropertyAxiomHGDB) {
+				returnValue = true;			
+			} else if (axiom instanceof OWLIrreflexiveObjectPropertyAxiomHGDB) { 
+				returnValue = true;			
+			} else if (axiom instanceof OWLTransitiveObjectPropertyAxiomHGDB) { 
+				returnValue = true;
+			} else if (axiom instanceof OWLInverseFunctionalObjectPropertyAxiomHGDB) {
+				returnValue = true;
+			} else if (axiom instanceof OWLFunctionalObjectPropertyAxiomHGDB) {
+				returnValue = true;
+			} else if (axiom instanceof OWLInverseObjectPropertiesAxiomHGDB) {
+				returnValue = true;
+			} else if (axiom instanceof OWLObjectPropertyDomainAxiomHGDB) {
+				OWLObjectPropertyDomainAxiomHGDB axS = (OWLObjectPropertyDomainAxiomHGDB) axiom;
+				// property 0, domain 1
+				returnValue = entityHandle.equals(axS.getTargetAt(0));
+			} else if (axiom instanceof OWLEquivalentObjectPropertiesAxiomHGDB) {
+				returnValue = true;
+			} else if (axiom instanceof OWLDisjointObjectPropertiesAxiomHGDB) {
+				returnValue = true;
+			} else if (axiom instanceof OWLObjectPropertyRangeAxiomHGDB) {
+				OWLObjectPropertyRangeAxiomHGDB axS = (OWLObjectPropertyRangeAxiomHGDB) axiom;
+				//// property 0, range 1
+				returnValue = entityHandle.equals(axS.getTargetAt(0));
+			} else if (axiom instanceof OWLSubObjectPropertyOfAxiomHGDB) {
+				OWLSubDataPropertyOfAxiomHGDB axS = (OWLSubDataPropertyOfAxiomHGDB) axiom;
+				//// subclass 0, superClass 1
+				returnValue = entityHandle.equals(axS.getTargetAt(0));
+			} else {
+				throw new IllegalStateException("OWLObjectPropertyAxiom : " + axiom + " unknown.");
+			}
+			return returnValue;
+		}
+	};
+
+	protected DefiningAxiomMatcher annotationPropertyDefiningAxiomMatcher = new DefiningAxiomMatcher() {
+		@Override
+		public boolean isDefiningAxiom(OWLAxiomHGDB axiom, HGHandle entityHandle) {
+			//		Set<OWLAnnotationAxiom> result = createSet();
+			//		for (OWLSubAnnotationPropertyOfAxiom ax : getAxioms(AxiomType.SUB_ANNOTATION_PROPERTY_OF)) {
+			//			if (ax.getSubProperty().equals(prop)) {
+			//				result.add(ax);
+			//			}
+			//		}
+			//		for (OWLAnnotationPropertyRangeAxiom ax : getAxioms(AxiomType.ANNOTATION_PROPERTY_RANGE)) {
+			//			if (ax.getProperty().equals(prop)) {
+			//				result.add(ax);
+			//			}
+			//		}
+			//		for (OWLAnnotationPropertyDomainAxiom ax : getAxioms(AxiomType.ANNOTATION_PROPERTY_DOMAIN)) {
+			//			if (ax.getProperty().equals(prop)) {
+			//				result.add(ax);
+			//			}
+			//		}
+			if (!(axiom instanceof OWLAnnotationAxiom || axiom instanceof OWLAnnotationAssertionAxiomHGDB)) return false;
+			boolean returnValue;
+			if (axiom instanceof OWLSubAnnotationPropertyOfAxiomHGDB) {
+				OWLSubAnnotationPropertyOfAxiomHGDB axS = (OWLSubAnnotationPropertyOfAxiomHGDB) axiom;
+				// sub  0, super 1
+				returnValue = entityHandle.equals(axS.getTargetAt(0));
+			} else if (axiom instanceof OWLAnnotationPropertyDomainAxiomHGDB) {
+				OWLAnnotationPropertyDomainAxiomHGDB axS = (OWLAnnotationPropertyDomainAxiomHGDB) axiom;
+				// property 0, range 1
+				returnValue = entityHandle.equals(axS.getTargetAt(0));
+			} else if (axiom instanceof OWLAnnotationPropertyRangeAxiomHGDB) {
+				OWLAnnotationPropertyRangeAxiomHGDB axS = (OWLAnnotationPropertyRangeAxiomHGDB) axiom;
+				// property 0, range 1
+				returnValue = entityHandle.equals(axS.getTargetAt(0));
+			} else {
+				throw new IllegalStateException("OWLAnnotationAxiom : " + axiom + " unknown.");
+			}			
+			return returnValue;			
+		}
+	};
+
 }
