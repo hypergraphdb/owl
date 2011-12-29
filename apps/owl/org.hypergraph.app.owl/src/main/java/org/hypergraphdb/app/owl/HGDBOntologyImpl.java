@@ -781,7 +781,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	}
 
 	public Set<OWLClassAxiom> getAxioms(final OWLClass cls) {
-		return internals.getAxioms(cls);
+		return internals.getOWLClassAxioms(cls);
 	}
 
 	public Set<OWLObjectPropertyAxiom> getAxioms(final OWLObjectPropertyExpression prop) {
