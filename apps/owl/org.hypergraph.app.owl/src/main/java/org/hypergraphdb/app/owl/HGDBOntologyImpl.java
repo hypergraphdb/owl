@@ -785,53 +785,56 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	}
 
 	public Set<OWLObjectPropertyAxiom> getAxioms(final OWLObjectPropertyExpression prop) {
-		final Set<OWLObjectPropertyAxiom> result = createSet(50);
-
-		result.addAll(getAsymmetricObjectPropertyAxioms(prop));
-		result.addAll(getReflexiveObjectPropertyAxioms(prop));
-		result.addAll(getSymmetricObjectPropertyAxioms(prop));
-		result.addAll(getIrreflexiveObjectPropertyAxioms(prop));
-		result.addAll(getTransitiveObjectPropertyAxioms(prop));
-		result.addAll(getInverseFunctionalObjectPropertyAxioms(prop));
-		result.addAll(getFunctionalObjectPropertyAxioms(prop));
-		result.addAll(getInverseObjectPropertyAxioms(prop));
-		result.addAll(getObjectPropertyDomainAxioms(prop));
-		result.addAll(getEquivalentObjectPropertiesAxioms(prop));
-		result.addAll(getDisjointObjectPropertiesAxioms(prop));
-		result.addAll(getObjectPropertyRangeAxioms(prop));
-		result.addAll(getObjectSubPropertyAxiomsForSubProperty(prop));
-		return result;
+		return internals.getOWLObjectPropertyExpressionAxioms(prop);
+//		final Set<OWLObjectPropertyAxiom> result = createSet(50);
+//
+//		result.addAll(getAsymmetricObjectPropertyAxioms(prop));
+//		result.addAll(getReflexiveObjectPropertyAxioms(prop));
+//		result.addAll(getSymmetricObjectPropertyAxioms(prop));
+//		result.addAll(getIrreflexiveObjectPropertyAxioms(prop));
+//		result.addAll(getTransitiveObjectPropertyAxioms(prop));
+//		result.addAll(getInverseFunctionalObjectPropertyAxioms(prop));
+//		result.addAll(getFunctionalObjectPropertyAxioms(prop));
+//		result.addAll(getInverseObjectPropertyAxioms(prop));
+//		result.addAll(getObjectPropertyDomainAxioms(prop));
+//		result.addAll(getEquivalentObjectPropertiesAxioms(prop));
+//		result.addAll(getDisjointObjectPropertiesAxioms(prop));
+//		result.addAll(getObjectPropertyRangeAxioms(prop));
+//		result.addAll(getObjectSubPropertyAxiomsForSubProperty(prop));
+//		return result;
 	}
 
 	public Set<OWLAnnotationAxiom> getAxioms(final OWLAnnotationProperty prop) {
-		Set<OWLAnnotationAxiom> result = createSet();
-		for (OWLSubAnnotationPropertyOfAxiom ax : getAxioms(AxiomType.SUB_ANNOTATION_PROPERTY_OF)) {
-			if (ax.getSubProperty().equals(prop)) {
-				result.add(ax);
-			}
-		}
-		for (OWLAnnotationPropertyRangeAxiom ax : getAxioms(AxiomType.ANNOTATION_PROPERTY_RANGE)) {
-			if (ax.getProperty().equals(prop)) {
-				result.add(ax);
-			}
-		}
-		for (OWLAnnotationPropertyDomainAxiom ax : getAxioms(AxiomType.ANNOTATION_PROPERTY_DOMAIN)) {
-			if (ax.getProperty().equals(prop)) {
-				result.add(ax);
-			}
-		}
-		return result;
+		return internals.getOWLAnnotationPropertyAxioms(prop);
+//		Set<OWLAnnotationAxiom> result = createSet();
+//		for (OWLSubAnnotationPropertyOfAxiom ax : getAxioms(AxiomType.SUB_ANNOTATION_PROPERTY_OF)) {
+//			if (ax.getSubProperty().equals(prop)) {
+//				result.add(ax);
+//			}
+//		}
+//		for (OWLAnnotationPropertyRangeAxiom ax : getAxioms(AxiomType.ANNOTATION_PROPERTY_RANGE)) {
+//			if (ax.getProperty().equals(prop)) {
+//				result.add(ax);
+//			}
+//		}
+//		for (OWLAnnotationPropertyDomainAxiom ax : getAxioms(AxiomType.ANNOTATION_PROPERTY_DOMAIN)) {
+//			if (ax.getProperty().equals(prop)) {
+//				result.add(ax);
+//			}
+//		}
+//		return result;
 	}
 
 	public Set<OWLDataPropertyAxiom> getAxioms(final OWLDataProperty prop) {
-		final Set<OWLDataPropertyAxiom> result = createSet();
-		result.addAll(getDataPropertyDomainAxioms(prop));
-		result.addAll(getEquivalentDataPropertiesAxioms(prop));
-		result.addAll(getDisjointDataPropertiesAxioms(prop));
-		result.addAll(getDataPropertyRangeAxioms(prop));
-		result.addAll(getFunctionalDataPropertyAxioms(prop));
-		result.addAll(getDataSubPropertyAxiomsForSubProperty(prop));
-		return result;
+		return internals.getOWLDataPropertyAxioms(prop);
+//		final Set<OWLDataPropertyAxiom> result = createSet();
+//		result.addAll(getDataPropertyDomainAxioms(prop));
+//		result.addAll(getEquivalentDataPropertiesAxioms(prop));
+//		result.addAll(getDisjointDataPropertiesAxioms(prop));
+//		result.addAll(getDataPropertyRangeAxioms(prop));
+//		result.addAll(getFunctionalDataPropertyAxioms(prop));
+//		result.addAll(getDataSubPropertyAxiomsForSubProperty(prop));
+//		return result;
 	}
 
 	public Set<OWLIndividualAxiom> getAxioms(final OWLIndividual individual) {
