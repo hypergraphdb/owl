@@ -3,7 +3,7 @@ package org.hypergraphdb.app.owl;
 import java.io.IOException;
 import java.util.Set;
 
-import org.hypergraphdb.app.owl.test.StopWatch;
+import org.hypergraphdb.app.owl.util.StopWatch;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentTarget;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
