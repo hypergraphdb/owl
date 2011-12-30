@@ -1744,6 +1744,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	 */
 	private <T extends OWLAxiomHGDB, S extends OWLAxiom> Set<S> findAxiomsInIncidenceSetImpl(final OWLObject entity, final Class<T> axiomTypeHGDB, final int targetIndex) {
 		return graph.getTransactionManager().transact(new Callable<Set<S>>() {
+			@SuppressWarnings("unchecked")
 			public Set<S> call() {
 				HGHandle entityHandle = graph.getHandle(entity);
 				//Initial Size of Hashset performance critical
@@ -1796,6 +1797,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	 */
 	private <S extends OWLAxiom> Set<S> findAxiomsInIncidenceSetImplTwo(final OWLObject entity, final DefiningAxiomMatcher axiomMatcher) {
 		return graph.getTransactionManager().transact(new Callable<Set<S>>() {
+			@SuppressWarnings("unchecked")
 			public Set<S> call() {
 				HGHandle entityHandle = graph.getHandle(entity);
 				//Initial Size of Hashset performance critical
@@ -1806,15 +1808,15 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 				}
 				IncidenceSet iSet = graph.getIncidenceSet(entityHandle);
 				for (HGHandle incidentAtomHandle : iSet) {
-					if (ontology.isMember(incidentAtomHandle)) {
-						Object o = graph.get(incidentAtomHandle);
-						if (o instanceof OWLAxiomHGDB) {
+					Object o = graph.get(incidentAtomHandle);
+					if (o instanceof OWLAxiomHGDB) {
+						if (ontology.isMember(incidentAtomHandle)) {
 							OWLAxiomHGDB axHGDB = (OWLAxiomHGDB)o;
 							if (axiomMatcher.isDefiningAxiom(axHGDB, entityHandle)) {
 								s.add((S)axHGDB);
 							}
-						} // else not axiom.
-					} // else not member 
+						} // else not member 
+					} // else not axiom.
 				} 
 				return s;	
 			}});
@@ -2045,7 +2047,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 				//// property 0, range 1
 				returnValue = entityHandle.equals(axS.getTargetAt(0));
 			} else if (axiom instanceof OWLSubObjectPropertyOfAxiomHGDB) {
-				OWLSubDataPropertyOfAxiomHGDB axS = (OWLSubDataPropertyOfAxiomHGDB) axiom;
+				OWLSubObjectPropertyOfAxiomHGDB axS = (OWLSubObjectPropertyOfAxiomHGDB) axiom;
 				//// subclass 0, superClass 1
 				returnValue = entityHandle.equals(axS.getTargetAt(0));
 			} else {
