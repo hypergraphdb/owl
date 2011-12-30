@@ -4,6 +4,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 
+import org.hypergraphdb.app.owl.util.StopWatch;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

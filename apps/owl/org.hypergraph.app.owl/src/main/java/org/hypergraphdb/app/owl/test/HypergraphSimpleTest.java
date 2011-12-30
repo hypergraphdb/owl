@@ -7,6 +7,7 @@ import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
+import org.hypergraphdb.app.owl.util.StopWatch;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
