@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGIndex;
+import org.hypergraphdb.HGPersistentHandle;
+import org.hypergraphdb.HGRandomAccessResult;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.IncidenceSet;
@@ -14,10 +17,11 @@ import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
 import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
 import org.hypergraphdb.app.owl.query.AnySubgraphMemberCondition;
 import org.hypergraphdb.app.owl.query.OWLEntityIsBuiltIn;
-import org.hypergraphdb.app.owl.test.StopWatch;
 import org.hypergraphdb.app.owl.type.link.AxiomAnnotatedBy;
 import org.hypergraphdb.app.owl.type.link.ImportDeclarationLink;
+import org.hypergraphdb.app.owl.util.StopWatch;
 import org.hypergraphdb.app.owl.util.TargetSetALGenerator;
+import org.hypergraphdb.atom.HGSubgraph;
 import org.hypergraphdb.util.Pair;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -202,25 +206,26 @@ public class GarbageCollector {
 		Set<OWLAxiom> axioms = onto.getAxioms();
 		for (OWLAxiom axiom : axioms) {
 			HGHandle axiomHandle = graph.getHandle(axiom);
-			//1. decrease incident set size of atom by this onto, must be zero now.
+			//1. remove axiom from Subgraph, index must be zero now for removal, 
+			//unless axiom is also member in other subgraphs/ontologies, which is possible dependent on how our API is used.
 			if (!analyzeOnly) {
 				onto.remove(axiomHandle);
 			}
 			//NO, following would remove axiom from graph as of 2011.12.23: onto.applyChange(new RemoveAxiom(onto, axiom));
 			//2. collect enfore zero incidence set, if not analyze, because we removed our onto from axiom incidence set in step 1. 
-			//TODO relax enfore constraint later, in case we have shared axioms!			
-			collectAxiomInternal(axiomHandle, stats, !analyzeOnly, analyzeOnly);
+			collectAxiomInternal(axiomHandle, stats, analyzeOnly);
 		}
-		//collect Ontology
+//		//collect Ontology
 		HGHandle ontoHandle = graph.getHandle(onto);
 		IncidenceSet ontoIS = graph.getIncidenceSet(ontoHandle);
-		System.out.println("Onto incidence set after removing content: (expected empty)");
-		int i = 0;
-		for (HGHandle h : ontoIS) {
-			i++;
-			System.out.println(" " + i + " " + graph.get(h).toString());
-		}
-		System.out.println("Onto incidence set END");
+		if (!ontoIS.isEmpty()) throw new IllegalStateException("GC: Ontology incidence set must be empty now, had size: " + ontoIS.size());
+//		System.out.println("Onto incidence set after removing content: (expected empty)");
+//		int i = 0;
+//		for (HGHandle h : ontoIS) {
+//			i++;
+//			System.out.println(" " + i + " " + graph.get(h).toString());
+//		}
+//		System.out.println("Onto incidence set END");
 		if (!analyzeOnly) {
 			//TODO What happens to the indices in onto.
 			//how do we make sure subgraph is empty.			
@@ -243,7 +248,7 @@ public class GarbageCollector {
 				);
 		stopWatch.stop("Disconnected Axiom query time: Found: " + handlesToRemove.size() + " Duration:");
 		for (HGHandle h: handlesToRemove) {
-			collectAxiomInternal(h, stats, true, analyzeOnly);
+			collectAxiomInternal(h, stats, analyzeOnly);
 		}
 		stopWatch.stop("Disconnected Axiom collection time: ");
 		System.out.println("Stats now: " + stats.toString());
@@ -251,35 +256,40 @@ public class GarbageCollector {
 	
 	/**
 	 * Removes one axiom and all reachable objects if possible.
+	 * If you are deleting an ontology, make sure you remove the axiom from the ontology before calling this method,
+	 * as this method expects the axiom not to be a member in any subgraph.
 	 * 
 	 * @param axiomHandle
 	 * @param stats
 	 * @param enforceDisconnected causes an exception, if axiom is not disconnected.
 	 * @param analyzeOnly
 	 */
-	protected void collectAxiomInternal(HGHandle axiomHandle, GarbageCollectorStatistics stats, boolean enforceDisconnected, boolean analyzeOnly) {
-		if (!assertAxiomIncidenceSetAppropriate(axiomHandle, enforceDisconnected)) {
+	protected void collectAxiomInternal(HGHandle axiomHandle, GarbageCollectorStatistics stats, boolean analyzeOnly) {
+		int subgraphCount = countSubgraphsWhereAtomIsMember(axiomHandle);
+		int maxAllowedSubgraphCount = analyzeOnly? 1 : 0;
+		if (subgraphCount > maxAllowedSubgraphCount) {
+			//
 			stats.increaseAxiomNotRemovableCases();
-			return;
-		} 
-		// Remove axiom annotation links and deep remove Annotations!
-		List<HGHandle> annoLinkHandles = hg.findAll(graph,
-				hg.and(hg.type(AxiomAnnotatedBy.class), hg.incident(axiomHandle)));
-		for (HGHandle annoLinkHandle : annoLinkHandles) {
-			AxiomAnnotatedBy axAb = graph.get(annoLinkHandle);
-			HGHandle annotationHandle = axAb.getTargetAt(1);						
-			//Deep remove annotation (tree)
-			collectOWLObjectsByDFSInternal(annotationHandle, stats, analyzeOnly);
-			if (!analyzeOnly) {
-				//remove annotation link (tree)		
-				graph.remove(annoLinkHandle);
+		} else {
+			// Remove axiom annotation links and deep remove Annotations!
+			List<HGHandle> annoLinkHandles = hg.findAll(graph,
+					hg.and(hg.type(AxiomAnnotatedBy.class), hg.incident(axiomHandle)));
+			for (HGHandle annoLinkHandle : annoLinkHandles) {
+				AxiomAnnotatedBy axAb = graph.get(annoLinkHandle);
+				HGHandle annotationHandle = axAb.getTargetAt(1);						
+				//Deep remove annotation (tree)
+				collectOWLObjectsByDFSInternal(annotationHandle, stats, analyzeOnly);
+				if (!analyzeOnly) {
+					//remove annotation link (tree)		
+					graph.remove(annoLinkHandle);
+				}
+				stats.increaseOtherObjects();
 			}
-			stats.increaseOtherObjects();
+			
+			//Deep remove axiom (tree)
+			collectOWLObjectsByDFSInternal(axiomHandle, stats, analyzeOnly);
+			// stats updated by DFS
 		}
-		
-		//Deep remove axiom (tree)
-		collectOWLObjectsByDFSInternal(axiomHandle, stats, analyzeOnly);
-		// stats updated by DFS 
 	}
 	
 	/**
@@ -318,52 +328,64 @@ public class GarbageCollector {
 		//empty, if we deleted parent already, or only parent => safe to delete		
 		boolean canRemove = (is.isEmpty() || (is.size() == 1 && (is.first().equals(parent)) || parent == null));
 		if (atom == null) {
-			System.out.println("Atom null for handle: " + atomHandle);
+			System.out.println("GC: Atom null for handle: " + atomHandle);
 			canRemove = false;
 		}
 		if (canRemove) {
-			stats.increaseTotalAtoms();
 			if (atom instanceof OWLOntology) {
+				stats.increaseTotalAtoms();
 				stats.increaseOntologies();
 			} else if (atom instanceof OWLAxiomHGDB) {	
+				stats.increaseTotalAtoms();
 				stats.increaseAxioms();
 			} else if (atom instanceof OWLEntity) {
-				stats.increaseEntities();
+				OWLEntity entity = (OWLEntity) atom;
+				if (entity.isBuiltIn()) {
+					//Don't remove built in entities.
+					canRemove = false;
+					System.out.println("GC: Encountered builtin entity during DFS: " + entity + " Class: " + entity.getClass());
+				} else {
+					stats.increaseEntities();
+					stats.increaseTotalAtoms();
+				}
 			} else if (atom instanceof IRI) {
-				System.out.println("Encountered IRI during DFS: " + atom);
+				System.out.println("GC: Encountered IRI during DFS: " + atom);
 				//we'll encounter those as linked to by Annotations and AnnotationAxioms as
 				//an OWLAnnotationValue can be an IRI.
+				stats.increaseTotalAtoms();
 				stats.increaseIris();
 			} else if (atom instanceof OWLObjectHGDB) {
+				stats.increaseTotalAtoms();
 				stats.increaseOtherObjects();
 			} else {
-				System.err.println("Encountered unknown atom during DFS GC: " +  atom.getClass() + " Object: " + atom);
+				System.err.println("GC: Encountered unknown atom during DFS GC: " +  atom.getClass() + " Object: " + atom);
 			}
 		}
 		return canRemove;		
 	}	
-	
-	//TODO THIS IS WRONG!!
+
 	/**
-	 * Asserts that axiom may be removed. THIS IS WRONG !!!!!!!
-	 * @param axiomHandle
-	 * @param enforceDisconnected if true and incidenseset not empty => Exception; if false no exception, incicdence set size <= 1 ok. 
-	 * @return true if axiom has appropriate incidence set for being collected.
+	 * Counts the number of subgraphs a given atom is a member in. 
+	 * Uses Subgraph.reverseIndex.
+	 * 
+	 * @param atomHandle
+	 * @return >=0
 	 */
-	protected boolean assertAxiomIncidenceSetAppropriate(HGHandle axiomHandle, boolean enforceDisconnected) {
-		//ensure member in max one ontology
-		IncidenceSet is = graph.getIncidenceSet(axiomHandle);
-		if (enforceDisconnected) {
-			if (!is.isEmpty()) {
-				throw new IllegalStateException("An axiom that was supposed to be disconnected had an incidence set entry: \n"
-			+ "Axiom: " +  graph.get(axiomHandle) + "\n" 
-			+ "First incidenceset entry: " + is.iterator().next() + "\n");
+	public int countSubgraphsWhereAtomIsMember(HGHandle atomHandle) {
+		HGPersistentHandle axiomPersHandle = graph.getPersistentHandle(atomHandle);
+		if (axiomPersHandle == null) throw new IllegalStateException("Null persistent handle");
+		HGIndex<HGPersistentHandle,HGPersistentHandle> indexAxiomToOntologies = HGSubgraph.getReverseIndex(graph);
+		HGRandomAccessResult<HGPersistentHandle> rs = indexAxiomToOntologies.find(axiomPersHandle);
+		int i = 0;
+		try {
+			while (rs.hasNext()) {
+				rs.next();
+				i++;
 			}
-			return true;
-		} else {
-		    //Must be member in only the ontology that we are about to remove.
-			return (is.size() <= 1);
+		} finally {
+			rs.close();			
 		}
+		return i;
 	}
 	
 	//TODO SHOW BORIS more efficient query?
