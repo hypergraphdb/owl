@@ -23,6 +23,7 @@ import org.hypergraphdb.app.owl.model.axioms.OWLClassAssertionHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDataPropertyAssertionAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDataPropertyDomainAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDataPropertyRangeAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.OWLDeclarationAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDifferentIndividualsAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDisjointClassesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDisjointDataPropertiesAxiomHGDB;
@@ -1930,6 +1931,10 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 		@Override
 		public boolean isDefiningAxiom(OWLAxiomHGDB axiom, HGHandle entityHandle) {
 			boolean returnValue; 
+			if (axiom instanceof OWLDeclarationAxiomHGDB) {
+				return false;
+			}
+			
 			if (axiom instanceof OWLClassAssertionHGDB) {
 				OWLClassAssertionHGDB axS = (OWLClassAssertionHGDB)axiom;
 				// individualHandle index 0, classExpressionHandle index 1 
@@ -1955,7 +1960,10 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 			} else if (axiom instanceof OWLDifferentIndividualsAxiomHGDB) {
 				returnValue = true;
 			} else {
-				throw new IllegalStateException("OWLIndividualAxiom : " + axiom + " unknown.");
+				//2012.01.03 be more tolerant, as individuals are used in many places.
+				//TODO define allowed axioms precisely.
+				return false;
+				//throw new IllegalStateException("OWLIndividualAxiom : " + axiom + " unknown.");
 			}
 			return returnValue;
 		}		
@@ -2076,7 +2084,9 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 			//				result.add(ax);
 			//			}
 			//		}
-			if (!(axiom instanceof OWLAnnotationAxiom || axiom instanceof OWLAnnotationAssertionAxiomHGDB)) return false;
+			//2012.01.03 corrected 'or' clause
+			if (!(axiom instanceof OWLAnnotationAxiom) 
+					|| axiom instanceof OWLAnnotationAssertionAxiomHGDB) return false;
 			boolean returnValue;
 			if (axiom instanceof OWLSubAnnotationPropertyOfAxiomHGDB) {
 				OWLSubAnnotationPropertyOfAxiomHGDB axS = (OWLSubAnnotationPropertyOfAxiomHGDB) axiom;
@@ -2091,7 +2101,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 				// property 0, range 1
 				returnValue = entityHandle.equals(axS.getTargetAt(0));
 			} else {
-				throw new IllegalStateException("OWLAnnotationAxiom : " + axiom + " unknown.");
+				throw new IllegalStateException("OWLAnnotationAxiom : " + axiom + " unknown. Class: " + axiom.getClass());
 			}			
 			return returnValue;			
 		}
