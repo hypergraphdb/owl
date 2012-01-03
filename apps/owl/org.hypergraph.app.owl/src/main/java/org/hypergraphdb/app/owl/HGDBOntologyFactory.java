@@ -2,11 +2,13 @@ package org.hypergraphdb.app.owl;
 
 import java.util.logging.Logger;
 
+import org.hypergraphdb.app.owl.exception.HGDBOntologyDocumentIRIAlreadyExistsException;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyDocumentAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyFactory;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
@@ -60,7 +62,7 @@ public class HGDBOntologyFactory implements OWLOntologyFactory {
 			return ontology;
 		} else {
 			logger.severe("Ontology with documentIRI" + documentIRI + " already exists.");
-			throw new IllegalStateException("Ontology already Exists + " + documentIRI);
+			throw new HGDBOntologyDocumentIRIAlreadyExistsException(documentIRI);
 		}
 	}
 
