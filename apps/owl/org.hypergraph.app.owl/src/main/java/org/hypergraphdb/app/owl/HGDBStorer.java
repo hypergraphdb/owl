@@ -3,6 +3,8 @@ package org.hypergraphdb.app.owl;
 import java.io.IOException;
 import java.util.Set;
 
+import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
+import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
 import org.hypergraphdb.app.owl.util.StopWatch;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentTarget;
 import org.semanticweb.owlapi.model.AddAxiom;
@@ -55,17 +57,18 @@ public class HGDBStorer implements OWLOntologyStorer {
 		HGDBOntologyManager man = (HGDBOntologyManager) manager;
 		HGDBOntologyRepository repo =  man.getOntologyRepository();
 		StopWatch stopWatch = new StopWatch(true);
+		HGDBOntology newOnto = null;
 		if (!(ontologyFormat instanceof HGDBOntologyFormat)) {
 			throw new OWLOntologyStorageException("illegal format, need HGDBOntologyFormat, was "
 					+ ontologyFormat.getClass());
-		}	
+		}
 		try {
 			// documentIRI shall start with hgdb://
 			//2011.12.08 Do not use the manager to create the ontology.
 			// as we do not load it here and don't want it to know about the new onto yet.
 			//
 			// final OWLMutableOntology newOnto = (OWLMutableOntology) manager.createOntology(documentIRI);
-			final HGDBOntology newOnto = repo.createOWLOntology(ontology.getOntologyID(), documentIRI); 
+			newOnto = repo.createOWLOntology(ontology.getOntologyID(), documentIRI); 
 //			if (!(newOnto instanceof HGDBOntologyImpl)) {
 //				throw new IllegalStateException("We did not get a HGDBOntologyImpl, but : " + newOnto);
 //			}
@@ -86,7 +89,13 @@ public class HGDBStorer implements OWLOntologyStorer {
 			}
 			// no need to store in HG, already done by createOntology.
 			// TODO after storage, we need to use it.
-		} catch (final OWLOntologyChangeException e) {
+		} catch (OWLOntologyChangeException e) {
+			System.out.println("Storage Exception during ontology axiom adding. Removing newly created ontology: " + newOnto.getOntologyID());
+			repo.deleteOntology(newOnto.getOntologyID());
+			throw new OWLOntologyStorageException(e);
+		} catch (HGDBOntologyAlreadyExistsByDocumentIRIException e) {
+			throw new OWLOntologyStorageException(e);
+		} catch (HGDBOntologyAlreadyExistsByOntologyIDException e) {
 			throw new OWLOntologyStorageException(e);
 		}
 		stopWatch.stop("Done: HGDBStorer.storeOntology ");
