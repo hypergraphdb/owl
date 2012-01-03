@@ -29,6 +29,8 @@ import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.management.HGManagement;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
+import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
+import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
 import org.hypergraphdb.app.owl.gc.GarbageCollector;
 import org.hypergraphdb.app.owl.gc.GarbageCollectorStatistics;
 import org.hypergraphdb.app.owl.query.OWLEntityIsBuiltIn;
@@ -179,18 +181,19 @@ public class HGDBOntologyRepository {
 	 * The graph will create an Internals object.
 	 * @param ontologyID not null
 	 * @param documentIRI not null
-	 * @return created ontology or null, if exists.
+	 * @return created ontology
+	 * @throws HGDBOntologyAlreadyExistsByDocumentIRIException 
+	 * @throws HGDBOntologyAlreadyExistsByOntologyIDException 
 	 */
 	public HGDBOntology createOWLOntology(OWLOntologyID ontologyID,
-			IRI documentIRI) {
+			IRI documentIRI) throws HGDBOntologyAlreadyExistsByDocumentIRIException, HGDBOntologyAlreadyExistsByOntologyIDException {
 		if (ontologyID == null || documentIRI == null) throw new IllegalArgumentException();
+		if (existsOntologyByDocumentIRI(documentIRI)) throw new HGDBOntologyAlreadyExistsByDocumentIRIException(documentIRI);
+		if (existsOntology(ontologyID)) throw new HGDBOntologyAlreadyExistsByOntologyIDException(ontologyID);
+
 		HGDBOntology o;
-		if (!existsOntology(ontologyID)) {
-			o = new HGDBOntologyImpl(ontologyID, documentIRI, graph);
-			addOntology(o);			
-		} else {
-			o = null;
-		}
+		o = new HGDBOntologyImpl(ontologyID, documentIRI, graph);
+		addOntology(o);			
 		return o;
 	}
 	
