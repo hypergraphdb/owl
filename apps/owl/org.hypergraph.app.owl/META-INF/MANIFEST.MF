@@ -21,6 +21,7 @@ Export-Package:
  org.hypergraphdb.app.management,
  org.hypergraphdb.app.owl,
  org.hypergraphdb.app.owl.core,
+ org.hypergraphdb.app.owl.exception,
  org.hypergraphdb.app.owl.gc,
  org.hypergraphdb.app.owl.model,
  org.hypergraphdb.app.owl.type,
