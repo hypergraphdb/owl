@@ -6,6 +6,8 @@ import java.util.logging.Logger;
 
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
+import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
+import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
@@ -43,8 +45,17 @@ public class TestData {
 			OWLOntologyID ontologyID = new OWLOntologyID(IRI.create(baseOntoURI + i));
 			IRI documentIRI = IRI.create(baseOntoPhysURI + i);
 			if (!r.existsOntology(ontologyID)) {
-				OWLOntology o = r.createOWLOntology(ontologyID, documentIRI);
-				fillOntology(df, o);
+				OWLOntology o;
+				try {
+					o = r.createOWLOntology(ontologyID, documentIRI);
+					fillOntology(df, o);
+				} catch (HGDBOntologyAlreadyExistsByDocumentIRIException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (HGDBOntologyAlreadyExistsByOntologyIDException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			} else {
 				log.info("Ontology already exists: " + ontologyID);
 			}
