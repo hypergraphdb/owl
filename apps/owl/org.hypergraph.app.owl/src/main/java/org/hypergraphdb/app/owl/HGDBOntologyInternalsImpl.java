@@ -89,6 +89,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	 */
 	public static final int PERFORMANCE_INCIDENCE_SET_SIZE = 2; 
 	public static int PERFCOUNTER_FIND_AXIOM = 0; 
+	public static int PERFCOUNTER_FIND_BY_MEMBERSHIP = 0; 
 	public static int PERFCOUNTER_FIND_BY_SIGNATURE = 0; 
 	public static int PERFCOUNTER_CONTAINS_DECLARATION = 0; 
 	public static int PERFCOUNTER_FIND_EQUALS = 0; 
@@ -602,7 +603,12 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		return graph.getTransactionManager().transact(new Callable<Boolean>() {
 			public Boolean call() {
 				HGHandle h = graph.getHandle(axiom);
-				return h != null ? ontology.isMember(h) || findEqualAxiom(axiom, false) != null : findEqualAxiom(axiom, false) != null;
+				if (h != null && ontology.isMember(h)) {
+					PERFCOUNTER_FIND_BY_MEMBERSHIP ++;
+					return true;
+				} else {
+					return findEqualAxiom(axiom, false) != null;
+				}
 			}}, HGTransactionConfig.READONLY);
 		// //TODO will not work 2011.10.13; must rely on equals code in axiom
 		// HGHandle axiomHandle = graph.getHandle(axiom);
@@ -1035,7 +1041,13 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		return graph.getTransactionManager().transact(new Callable<Boolean>() {
 			public Boolean call() {
 				HGHandle h = graph.getHandle(axiom);
-				return h != null ? ontology.isMember(h) || findEqualAxiom(axiom, true) != null : findEqualAxiom(axiom, true) != null;
+				if (h != null && ontology.isMember(h)) {
+					PERFCOUNTER_FIND_BY_MEMBERSHIP ++;
+					return true;
+				} else {
+					return findEqualAxiom(axiom, true) != null;
+				}				
+				//return h != null ? ontology.isMember(h) || findEqualAxiom(axiom, true) != null : findEqualAxiom(axiom, true) != null;
 			}}, HGTransactionConfig.READONLY);
 		//2011.12.29 
 //		// TODO this is expensive !! Maybe implement a complex search condition
@@ -1538,8 +1550,9 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	
 	public static String toStringPerfCounters() {
 		return "---- Performance counters -----" 
-		+ "\n Find Axiom Calls total         : " + PERFCOUNTER_FIND_AXIOM 
-		+ "\n   used by Signature            : " + PERFCOUNTER_FIND_BY_SIGNATURE
+		+ "\n Find axiom calls total         : " + PERFCOUNTER_FIND_AXIOM 
+		+ "\n   axiom was a member           : " + PERFCOUNTER_FIND_BY_MEMBERSHIP
+		+ "\n   used by signature            : " + PERFCOUNTER_FIND_BY_SIGNATURE
 		+ "\n   had to use slow equals scan  : " + PERFCOUNTER_FIND_EQUALS
 		+ "\n By Signature test onto member  : " + PERFCOUNTER_FIND_BY_SIGNATURE_ONTOLOGY_MEMBERS
 		+ "\n By Signature test slow equals: " + PERFCOUNTER_FIND_BY_SIGNATURE_EQUALS
