@@ -6,6 +6,8 @@ import org.hypergraphdb.app.owl.gc.GarbageCollectorStatistics;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLOntology;
 
 import com.sun.corba.se.impl.orbutil.graph.Graph;
 
@@ -82,12 +84,21 @@ public class TG001GarbageCollectorTest extends OntologyManagerTest {
 		long atoms8 = r.getNrOfAtoms();
 		assertTrue(atoms8 == atoms7 - statsC4.getTotalAtoms());				
 	}
+	
+	/**
+	 * Creates one ontology using TestData class. Marks it for deletion, gc analyses and collects it in DELETED_ONTOLOGIES MODE.
+	 * 
+	 * @throws Exception
+	 */
 	@Test
-	public void testGC1CollectTestOnto() throws Exception {
+	public void testGC01CollectTestOnto() throws Exception {
 		if (gc == null) return;
 		ensureOntology();
 		long atoms1 = r.getNrOfAtoms(); //2011.01.04 1:14PM 282 Atoms
 		TestData.fillOntology(df, o);
+		int ontoAxiomCount = o.getAxiomCount();
+		int ontoSignatureCount = o.getSignature().size();
+		System.out.println("Ontolgy created: Axioms: " + ontoAxiomCount + " Signature: " + ontoSignatureCount);
 		long atoms2 = r.getNrOfAtoms(); //2011.01.04 1:14PM 437 Atoms if onto not in DB, 477 if in DB; 478 2nd run.
 		GarbageCollectorStatistics statsA1 = gc.analyze(GarbageCollector.MODE_DELETED_ONTOLOGIES);	
 		GarbageCollectorStatistics statsC1 = gc.runGC(GarbageCollector.MODE_DELETED_ONTOLOGIES);	
@@ -98,8 +109,6 @@ public class TG001GarbageCollectorTest extends OntologyManagerTest {
 		System.out.println("Ontology Axioms: " + o.getAxiomCount());
 		System.out.println("Ontology Entities: " + o.getSignature().size());
 		System.out.println("Graph Atoms: " + atoms3);
-		
-		//
 		m.removeOntology(o);
 		r.deleteOntology(o.getOntologyID());
 		long atoms4 = r.getNrOfAtoms(); 
@@ -121,7 +130,62 @@ public class TG001GarbageCollectorTest extends OntologyManagerTest {
 		assertStatsEqual(statsA2, statsC2);
 		assertTrue(statsC2.getTotalAtoms() == statsA2.getTotalAtoms());
 		long atoms5 = r.getNrOfAtoms();
-		assertTrue(atoms5 == atoms1 - 1);
+		assertTrue(statsC2.getTotalAtoms() > ontoAxiomCount + ontoSignatureCount);
+		assertTrue(atoms5 == atoms4 - statsC2.getTotalAtoms());
+	}
+
+	/**
+	 * Creates one ontology using TestData class. Copys all axioms into another. Marks both for deletion, 
+	 * gc analyses and collects both in DELETED_ONTOLOGIES MODE.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testGC02Collect2TestOntoSharedAxioms() throws Exception {
+		if (gc == null) return;
+		ensureOntology();
+		long atoms1 = r.getNrOfAtoms(); //2011.01.04 1:14PM 282 Atoms
+		TestData.fillOntology(df, o);
+		OWLOntology o2 = m.createOntology(IRI.create("hgdb://www.miamidade.gov/GCTest2"));
+		m.addAxioms(o2, o.getAxioms());
+		int ontoAxiomCount = o2.getAxiomCount();
+		int ontoSignatureCount = o2.getSignature().size();
+		System.out.println("Ontolgies created: Axioms 2: " + ontoAxiomCount + " Signature 2: " + ontoSignatureCount);
+		long atoms2 = r.getNrOfAtoms(); //2011.01.04 1:14PM 437 Atoms if onto not in DB, 477 if in DB; 478 2nd run.
+		GarbageCollectorStatistics statsA1 = gc.analyze(GarbageCollector.MODE_DELETED_ONTOLOGIES);	
+		GarbageCollectorStatistics statsC1 = gc.runGC(GarbageCollector.MODE_DELETED_ONTOLOGIES);	
+		assertStatsEqual(statsA1, statsC1); assertTrue(statsC1.getTotalAtoms() == 0);
+		long atoms3 = r.getNrOfAtoms(); 
+		assertTrue(atoms3 == atoms2);
+		System.out.println("-----------BEFORE DELETE ---------------");
+		System.out.println("Ontology Axioms: " + o.getAxiomCount());
+		System.out.println("Ontology Entities: " + o.getSignature().size());
+		System.out.println("Graph Atoms: " + atoms3);
+		m.removeOntology(o);
+		r.deleteOntology(o.getOntologyID());
+		m.removeOntology(o2);
+		r.deleteOntology(o2.getOntologyID());
+		long atoms4 = r.getNrOfAtoms(); 
+		assertTrue(atoms4 == atoms2);
+		System.out.println("----------- ANALYZE ---------------");
+		GarbageCollectorStatistics statsA2 = gc.analyze(GarbageCollector.MODE_DELETED_ONTOLOGIES); //39 axioms, 1 onto, 40 total	
+		System.out.println("-----------AFTER ANALYZE ---------------");
+		System.out.println("Graph Atoms: " + r.getNrOfAtoms());
+		System.out.println("Ontology Axioms: " + o.getAxiomCount());
+		System.out.println("Ontology Entities: " + o.getSignature().size());
+		System.out.println("GC STATS: " + statsA2.toString());
+		System.out.println("----------- GC ---------------");
+		GarbageCollectorStatistics statsC2 = gc.runGC(GarbageCollector.MODE_DELETED_ONTOLOGIES);	
+		System.out.println("-----------AFTER GC ---------------");
+		System.out.println("Graph Atoms: " + r.getNrOfAtoms());
+		System.out.println("Ontology Axioms: " + o.getAxiomCount());
+		System.out.println("Ontology Entities: " + o.getSignature().size());
+		System.out.println("GC STATS: " + statsC2.toString());
+		assertStatsEqual(statsA2, statsC2);
+		assertTrue(statsC2.getTotalAtoms() == statsA2.getTotalAtoms());
+		long atoms5 = r.getNrOfAtoms();
+		assertTrue(statsC2.getTotalAtoms() > ontoAxiomCount + ontoSignatureCount);
+		assertTrue(atoms5 == atoms4 - statsC2.getTotalAtoms());
 	}
 
 	public void ensureOntology() throws Exception {
