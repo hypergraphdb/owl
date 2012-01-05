@@ -5,6 +5,7 @@ import java.util.Collection;
 
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.HGDBOntology;
+import org.hypergraphdb.app.owl.HGDBOntologyImpl;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.util.StopWatch;
@@ -132,9 +133,13 @@ public abstract class OntologyManagerTest {
 				initializeManchesterMode();
 			}
 			df = m.getOWLDataFactory();
-			o = m.createOntology(ontoIRI);
+			createOntologyO();
 		} // else another method in the same class in the same mode gets called.
 		// with the same potentially modified testdata.
+	}
+	
+	public void createOntologyO() throws Exception {
+		o = m.createOntology(ontoIRI);
 	}
 	
 	public void initializeHypergraphMode() {
@@ -151,6 +156,10 @@ public abstract class OntologyManagerTest {
 		r = null;
 	}	
 
+	public boolean isHypergraphMode() {
+		return o instanceof HGDBOntologyImpl;
+	}
+	
 	/**
 	 * @return true, if we have a valid ontology o, whose class matches the current mode.
 	 */
