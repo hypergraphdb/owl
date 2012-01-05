@@ -36,6 +36,14 @@ public class GarbageCollectorStatistics {
 	private int iris = 0;
 
 	/**
+	 * OWLAnnotation objects. They are links themselves and can contain other annotations.
+	 * Used as Ontology Annotations, Axiom Annotations and IRI based annotations for entities.
+	 * Entity Annotation are found this way:
+	 * ax = ont.getAnnotationAssertionAxioms(entity.getIRI()); ax.getAnnotation holds an OWLAnnotation object. 
+	 */
+	private int annotations = 0;
+	
+	/**
 	 * includes:
 	 * - OWLClassExpressionHGDB (not CN, named Class)
 	 * - (I) OWLDataRange (not R, named data prop)
@@ -158,6 +166,24 @@ public class GarbageCollectorStatistics {
 	}
 
 	/**
+	 * @return the annotations
+	 */
+	public int getAnnotations() {
+		return annotations;
+	}
+
+	/**
+	 * @param annotations the annotations to set
+	 */
+	public void setAnnotations(int annotations) {
+		this.annotations = annotations;
+	}
+	
+	public void increaseAnnotations() {
+		annotations ++;
+	}
+
+	/**
 	 * @return the otherObjects
 	 */
 	public int getOtherObjects() {
@@ -177,7 +203,7 @@ public class GarbageCollectorStatistics {
 	
 	public String toString() {
 		return "Total: " + totalAtoms + ", ontos: " + ontologies+ ", axioms: " + axioms +  ", entities: " + entities 
-		+ ", iris: " + iris + ", other: " + otherObjects + "\n  NRAxioms: " + axiomNotRemovableCases;
+		+ ", iris: " + iris + ", annos: " + annotations + ", other: " + otherObjects + "\n  NRAxioms: " + axiomNotRemovableCases;
 	}
 	
 }

@@ -1,12 +1,12 @@
 package org.hypergraphdb.app.owl.gc;
 
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.ListIterator;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
-import org.hamcrest.core.IsAnything;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGIndex;
 import org.hypergraphdb.HGPersistentHandle;
@@ -19,6 +19,7 @@ import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
 import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
+import org.hypergraphdb.app.owl.model.OWLAnnotationHGDB;
 import org.hypergraphdb.app.owl.query.AnySubgraphMemberCondition;
 import org.hypergraphdb.app.owl.query.OWLEntityIsBuiltIn;
 import org.hypergraphdb.app.owl.type.link.AxiomAnnotatedBy;
@@ -26,7 +27,7 @@ import org.hypergraphdb.app.owl.type.link.ImportDeclarationLink;
 import org.hypergraphdb.app.owl.util.StopWatch;
 import org.hypergraphdb.app.owl.util.TargetSetALGenerator;
 import org.hypergraphdb.atom.HGSubgraph;
-import org.hypergraphdb.type.HGHandleType;
+import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.hypergraphdb.util.Pair;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -36,22 +37,33 @@ import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLOntology;
 
 /**
- * GarbageCollector.
+ * GarbageCollector collects unused OWL related atoms in the graph. Such as 
+ * <ol>
+ * <li> Ontologies marked for deletion with all dependent atoms (axioms, et.c)</li>
+ * <li> Disconnected axioms, that do not belong to any ontology. </li>
+ * <li> Disconnected entities </li>
+ * <li> Disconnected other OWLObjects (everything not part of an onto) </li>
+ * </ol>
+ * <p>
+ * As a general rule: 
+ * An OWLObject is removable, if
+ * <ol>
+ * <li> A) Its incidence set can be considered empty.
+ * <li> B) Considered means: actual incidence set minus all removable items during processing. 
+ * </ol>
+ * </p>
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Dec 20, 2011
+ * <p>
+ * history: 
+ * <br> 2012.01.05 hilpold
+ * <br>Entity IRIs cannot currently be deleted because of the implementation of OWLNamedObjectType.
+ * </p>
  */
 public class GarbageCollector {
 	
 	public StopWatch stopWatch = new StopWatch();
 
-	/**
-	 * This set holds all atoms that were determined to be removable during analysis.
-	 * During analysis we need to calculate the incidence set sizes we will have during actual garbage collection using 
-	 * this set.
-	 */
-	private Set<HGHandle> analyzeRemovableAtomsSet;
-
-	
 	/**
 	 * A full GC run entails running:
 	 *   1. MODE_DELETED_ONTOLOGIES
@@ -125,14 +137,12 @@ public class GarbageCollector {
 	}
 
 	public GarbageCollectorStatistics runGC(int mode) {
-		analyzeRemovableAtomsSet = new HashSet<HGHandle>((int)repository.getNrOfAtoms() / 2);
 		GarbageCollectorStatistics stats = runGCInternal(mode, false);
-		analyzeRemovableAtomsSet = null;
 		return stats;
 	}
 
 	/**
-	 * Analyse what will be removed on a full garbage collection run.
+	 * Analyze what will be removed on a full garbage collection run.
 	 * 
 	 * @return
 	 */
@@ -141,29 +151,31 @@ public class GarbageCollector {
 	}
 
 	public GarbageCollectorStatistics analyze(int mode) {
-		analyzeRemovableAtomsSet = new HashSet<HGHandle>((int)repository.getNrOfAtoms() / 2);
 		GarbageCollectorStatistics stats = runGCInternal(mode, true);
-		analyzeRemovableAtomsSet = null;
 		return stats;
 	}
 
 	protected GarbageCollectorStatistics runGCInternal(int mode, boolean analyzeOnly) {
+		Set<HGHandle> removableAtomsSet = null;
+		if (analyzeOnly) {		
+			removableAtomsSet = new HashSet<HGHandle>(estimateCollectableAtoms());
+		}
 		GarbageCollectorStatistics stats = new GarbageCollectorStatistics();
 		switch (mode) {
 			case MODE_FULL: {
-				collectRemovedOntologies(stats, analyzeOnly);
-				collectAxioms(stats, analyzeOnly);
-				collectOtherObjects(stats, analyzeOnly);
+				collectRemovedOntologies(stats, analyzeOnly, removableAtomsSet);
+				collectAxioms(stats, analyzeOnly, removableAtomsSet);
+				collectOtherObjects(stats, analyzeOnly, removableAtomsSet);
 				collectEntities(stats, analyzeOnly);
 			};break;
 			case MODE_DELETED_ONTOLOGIES: {
-				collectRemovedOntologies(stats, analyzeOnly);
+				collectRemovedOntologies(stats, analyzeOnly, removableAtomsSet);
 			};break;
 			case MODE_DISCONNECTED_AXIOMS: {
-				collectAxioms(stats, analyzeOnly);
+				collectAxioms(stats, analyzeOnly, removableAtomsSet);
 			};break;
 			case MODE_DISCONNECTED_OTHER: {
-				collectOtherObjects(stats, analyzeOnly);
+				collectOtherObjects(stats, analyzeOnly, removableAtomsSet);
 			};break;
 			case MODE_DISCONNECTED_ENTITIES: {
 				collectEntities(stats, analyzeOnly);
@@ -173,34 +185,54 @@ public class GarbageCollector {
 			}
 		}
 		return stats;
+		//removeableAtomsSet released here
+	}
+	
+	/**
+	 * Roughly estimated based on total atoms and ontologies vs. deleted ontologies.
+	 * 
+	 * @return always > 100 and < 1E5
+	 */
+	protected int estimateCollectableAtoms() {
+		long atoms = repository.getNrOfAtoms();
+		int ontologies = repository.getOntologies().size();
+		int deletedOntologies = repository.getDeletedOntologies().size();
+		int allOntologies = ontologies + deletedOntologies;
+		int estimated = (int)(atoms * (deletedOntologies + 1) / (allOntologies + 1));
+		if (estimated < 100) estimated = 100;
+		if (estimated > 1E5) estimated = (int)1E5;
+		return estimated;
 	}
 
-	protected void collectRemovedOntologies(GarbageCollectorStatistics stats, boolean analyzeOnly) {
+	protected void collectRemovedOntologies(GarbageCollectorStatistics stats, boolean analyzeOnly, Set<HGHandle> removableAtomsSet) {
 		List<HGDBOntology> delOntos =  repository.getDeletedOntologies();
 		int i = 0;
 		for (HGDBOntology delOnto : delOntos) {
 			i++;
-			stopWatch.start();
-			collectRemovedOntology(delOnto, stats, analyzeOnly);
-			stopWatch.stop("Ontology collection ("+ i + " of " + delOntos.size() + "): ");
-			System.out.println("Stats now: " +  stats.toString());
+			if (DBG) stopWatch.start();
+			collectRemovedOntology(delOnto, stats, analyzeOnly, removableAtomsSet);
+			if (DBG) {
+				stopWatch.stop("Ontology collection ("+ i + " of " + delOntos.size() + "): ");
+				System.out.println("Stats now: " +  stats.toString());
+			}
 		}
 		// 
 	}
 
-	protected void collectRemovedOntology(HGDBOntology onto, GarbageCollectorStatistics stats, boolean analyzeOnly) {
+	protected void collectRemovedOntology(HGDBOntology onto, GarbageCollectorStatistics stats, boolean analyzeOnly, Set<HGHandle> removableAtomsSet) {
 		//OntologyAnnotations
 		//internals.remove does remove anno from onto, NOT graph
+		// Ontology Annotations are just added to the ontology, no link.
 		Set<OWLAnnotation> annos = onto.getAnnotations();
 		for (OWLAnnotation anno : annos) {
 			HGHandle annoHandle = graph.getHandle(anno);
 			if (!analyzeOnly) {
 				onto.remove(annoHandle);
-				graphRemove(annoHandle);
+				collectOWLObjectsByDFSTransact(annoHandle, stats, analyzeOnly, removableAtomsSet);
 			}
-			analyzeRemovableAtomsSet.add(annoHandle);
-			stats.increaseOtherObjects();
-			stats.increaseTotalAtoms();					
+			//removableAtomsSet.add(annoHandle);
+			//stats.increaseOtherObjects();
+			//stats.increaseTotalAtoms();					
 		}
 		//Import declarations
 		//internals.remove does remove from onto&graph: ImportDeclarationLink, ImportDeclaration
@@ -218,8 +250,8 @@ public class GarbageCollector {
 				graphRemove(importDeclLinkHandle);
 				graphRemove(importsDeclarationHandle);
 			}
-			analyzeRemovableAtomsSet.add(importDeclLinkHandle);
-			analyzeRemovableAtomsSet.add(importsDeclarationHandle);
+			removableAtomsSet.add(importDeclLinkHandle);
+			removableAtomsSet.add(importsDeclarationHandle);
 			stats.increaseOtherObjects();
 			stats.increaseOtherObjects();
 			stats.increaseTotalAtoms();		
@@ -237,7 +269,7 @@ public class GarbageCollector {
 			}
 			//NO, following would remove axiom from graph as of 2011.12.23: onto.applyChange(new RemoveAxiom(onto, axiom));
 			//2. collect enfore zero incidence set, if not analyze, because we removed our onto from axiom incidence set in step 1. 
-			collectAxiomInternal(axiomHandle, stats, analyzeOnly);
+			collectAxiomInternal(axiomHandle, stats, analyzeOnly, removableAtomsSet);
 		}
 //		//collect Ontology
 		HGHandle ontoHandle = graph.getHandle(onto);
@@ -255,7 +287,7 @@ public class GarbageCollector {
 			//how do we make sure subgraph is empty.			
 			graphRemove(ontoHandle);
 		}
-		analyzeRemovableAtomsSet.add(ontoHandle);
+		removableAtomsSet.add(ontoHandle);
 		stats.increaseOntologies();
 		stats.increaseTotalAtoms();				
 	}
@@ -264,7 +296,7 @@ public class GarbageCollector {
 	 * Collects and removes all axioms that do not belong to any ontology.
 	 * ie. are not members in any subgraph.
 	 */
-	protected void collectAxioms(GarbageCollectorStatistics stats, boolean analyzeOnly) {
+	protected void collectAxioms(GarbageCollectorStatistics stats, boolean analyzeOnly, Set<HGHandle> removableAtomsSet) {
 		stopWatch.start();		
 		List<HGHandle> handlesToRemove = hg.findAll(graph, hg.and(
 					hg.typePlus(OWLAxiomHGDB.class),
@@ -273,7 +305,7 @@ public class GarbageCollector {
 				);
 		stopWatch.stop("Disconnected Axiom query time: Found: " + handlesToRemove.size() + " Duration:");
 		for (HGHandle h: handlesToRemove) {
-			collectAxiomInternal(h, stats, analyzeOnly);
+			collectAxiomTransact(h, stats, analyzeOnly, removableAtomsSet);
 		}
 		stopWatch.stop("Disconnected Axiom collection time: ");
 		System.out.println("Stats now: " + stats.toString());
@@ -289,8 +321,8 @@ public class GarbageCollector {
 	 * @param enforceDisconnected causes an exception, if axiom is not disconnected.
 	 * @param analyzeOnly
 	 */
-	protected void collectAxiomInternal(HGHandle axiomHandle, GarbageCollectorStatistics stats, boolean analyzeOnly) {
-		int subgraphCount = countSubgraphsWhereAtomIsMember(axiomHandle);
+	protected void collectAxiomInternal(HGHandle axiomHandle, GarbageCollectorStatistics stats, boolean analyzeOnly, Set<HGHandle> removableAtomsSet) {
+		int subgraphCount = countSubgraphsWhereAtomIsMember(axiomHandle, removableAtomsSet);
 		int maxAllowedSubgraphCount = analyzeOnly? 1 : 0;
 		if (subgraphCount > maxAllowedSubgraphCount) {
 			//
@@ -302,28 +334,56 @@ public class GarbageCollector {
 			for (HGHandle annoLinkHandle : annoLinkHandles) {
 				AxiomAnnotatedBy axAb = graph.get(annoLinkHandle);
 				HGHandle annotationHandle = axAb.getTargetAt(1);						
-				//Deep remove annotation (tree)
-				collectOWLObjectsByDFSInternal(annotationHandle, stats, analyzeOnly);
 				if (!analyzeOnly) {
-					//remove annotation link (tree)		
+					//remove axiom to annotation link		
 					graphRemove(annoLinkHandle);
 				}
+				//for the axiom to annotationlink:
 				stats.increaseOtherObjects();
+				
+				//Deep remove annotation (tree)
+				collectOWLObjectsByDFSInternal(annotationHandle, stats, analyzeOnly, removableAtomsSet);
 			}
 			
 			//Deep remove axiom (tree)
-			collectOWLObjectsByDFSInternal(axiomHandle, stats, analyzeOnly);
+			collectOWLObjectsByDFSInternal(axiomHandle, stats, analyzeOnly, removableAtomsSet);
 			// stats updated by DFS
 		}
+	}
+
+	/**
+	 * Collects 
+	 * @param axiomHandle
+	 * @param stats
+	 * @param analyzeOnly
+	 */
+	protected void collectAxiomTransact(final HGHandle axiomHandle, final GarbageCollectorStatistics stats, final boolean analyzeOnly, final Set<HGHandle> removableAtomsSet) {
+		HGTransactionConfig transactionConfig = analyzeOnly? HGTransactionConfig.READONLY : HGTransactionConfig.DEFAULT;
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+			public Object call() {
+				collectAxiomInternal(axiomHandle, stats, analyzeOnly, removableAtomsSet);
+				return null;
+			}}, transactionConfig);
+	}
+
+	
+	protected void collectOWLObjectsByDFSTransact(final HGHandle linkHandle, final GarbageCollectorStatistics stats, final boolean analyzeOnly, final Set<HGHandle> removableAtomsSet) {
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+			public Object call() {
+				collectOWLObjectsByDFSInternal(linkHandle, stats, analyzeOnly, removableAtomsSet);
+				return null;
+			}});
 	}
 	
 	/**
 	 * Everything with an otherwise empty incidence set will be removed.
-	 * A 
+	 * Should be called within hg transaction; use collectOWLObjectsByDFSTransact.
 	 * @param linkHandle
 	 * @param stats
+	 * @param analyzeOnly
 	 */
-	protected void collectOWLObjectsByDFSInternal(HGHandle linkHandle, GarbageCollectorStatistics stats, boolean analyzeOnly) {
+	protected void collectOWLObjectsByDFSInternal(HGHandle linkHandle, GarbageCollectorStatistics stats, boolean analyzeOnly, Set<HGHandle> removableAtomsSet) {
+		List<HGHandle> collectableAtoms = new LinkedList<HGHandle>();
 		TargetSetALGenerator tsAlg = new TargetSetALGenerator(graph);
 		HGDepthFirstTraversal dfs = new HGDepthFirstTraversal(linkHandle, tsAlg);
 		boolean linkHandleReturned = false;
@@ -334,11 +394,12 @@ public class GarbageCollector {
 			if (DBG) {
 				printHandle(targetHandle, i, analyzeOnly);
 			}
-			if (canRemoveAnalyze(targetHandle, p.getFirst(), stats, analyzeOnly)) {
-				analyzeRemovableAtomsSet.add(linkHandle);							
+			if (canRemoveAnalyze(targetHandle, p.getFirst(), collectableAtoms, stats, analyzeOnly, removableAtomsSet)) {
+				if (analyzeOnly) removableAtomsSet.add(linkHandle);							
 				if (DBG) System.out.print(" > REMOVABLE");
 				if (!analyzeOnly) {
-					graphRemove(targetHandle);				
+					collectableAtoms.add(targetHandle);
+					//graphRemove(targetHandle);				
 					if (DBG) System.out.print(" > REMOVED ");
 				}
 				//stats were already updated on canRemoveAnalyze
@@ -352,13 +413,14 @@ public class GarbageCollector {
 		if (DBG) {
 			printHandle(linkHandle, -1, analyzeOnly);
 		}
-		if (canRemoveAnalyze(linkHandle, null, stats, analyzeOnly)) {
-			analyzeRemovableAtomsSet.add(linkHandle);			
+		if (canRemoveAnalyze(linkHandle, null, collectableAtoms, stats, analyzeOnly, removableAtomsSet)) {
+			if (analyzeOnly) removableAtomsSet.add(linkHandle);			
 			if (DBG) {
 				System.out.print(" > REMOVABLE ");
 			}
 			if (!analyzeOnly) {
-				graphRemove(linkHandle);
+				collectableAtoms.add(linkHandle);
+				//graphRemove(linkHandle);
 				if (DBG) {
 					System.out.println(" > REMOVED ");
 				}
@@ -367,7 +429,26 @@ public class GarbageCollector {
 		if (DBG) {
 			System.out.println();
 		}
+		if(!analyzeOnly && !collectableAtoms.isEmpty()) {
+			//collect the atoms starting with the top level link.
+			collectAtomsReverseOrder(collectableAtoms);
+		}
 	}
+
+	/**
+	 * Removes atoms from graph in reverse order, keeping incident atoms.
+	 *  
+	 * Should be called within a hg transaction.
+	 * @param collectableAtoms
+	 */
+	private void collectAtomsReverseOrder(List<HGHandle> collectableAtoms) {
+		ListIterator<HGHandle> it = collectableAtoms.listIterator(collectableAtoms.size());
+		while (it.hasPrevious()) {
+			HGHandle curAtomHandle = it.previous();
+			graphRemove(curAtomHandle);
+		}
+	}
+
 
 	/**
 	 * If not in analyze mode it prints class and handle instead of causing a toString(), 
@@ -387,19 +468,38 @@ public class GarbageCollector {
 		}
 	}
 	
-	protected boolean canRemoveAnalyze(HGHandle atomHandle, HGHandle parent, GarbageCollectorStatistics stats, boolean analyzeOnly) {
+	/**
+	 * Determines based on corrected incidence set sizes, whether an atom is removable or not.
+	 * It is removable, if the corrected incidence set is empty.
+	 * 
+	 * Statistics will be updated based on the atom type accordingly. 
+	 * @param atomHandle
+	 * @param parent may be null (e.g. for axioms)
+	 * @param collectibleAtoms relevant for incidence set size correction during gc mode.
+	 * @param stats 
+	 * @param analyzeOnly if true, global removableAtomsSet will be relevant for incidence set calculation. 
+	 * @param removableAtomsSet all atoms that we determined to be removable as we go during analyze. 
+	 * @return
+	 */
+	protected boolean canRemoveAnalyze(HGHandle atomHandle, 
+			HGHandle parent, 
+			final List<HGHandle> collectibleAtoms,
+			GarbageCollectorStatistics stats, 
+			boolean analyzeOnly,
+			Set<HGHandle> removableAtomsSet) {
 		Object atom = graph.get(atomHandle);
 		IncidenceSet is = graph.getIncidenceSet(atomHandle);
 		//empty, if we deleted parent already, or only parent => safe to delete		
 		boolean canRemove;
+		int incidenceSetSize;
 		if (analyzeOnly) {
 			// we remove those form the incidence set, that we already found plus the current parent.
-			int incidenceSetSize;
-			incidenceSetSize = calcAnalyzeISSize(is, parent);
-			canRemove = incidenceSetSize == 0;
+			incidenceSetSize = calcAnalyzeISSize(is, parent, removableAtomsSet);
 		} else {
-			canRemove = (is.isEmpty() || (is.size() == 1 && (is.first().equals(parent)) || parent == null));
+			//canRemove = (is.isEmpty() || (is.size() == 1 && (is.first().equals(parent)) || parent == null));
+			incidenceSetSize = calcCollectISSize(is, parent, collectibleAtoms);
 		}
+		canRemove = (incidenceSetSize == 0);
 		if (DBG) {
 			if (!canRemove) { System.out.println(); printIncidenceSet(is, parent); };
 		}
@@ -433,11 +533,16 @@ public class GarbageCollector {
 				//an OWLAnnotationValue can be an IRI.
 				stats.increaseTotalAtoms();
 				stats.increaseIris();
+			} else if (atom instanceof OWLAnnotationHGDB) {
+				// Ontology, Axiom, Entity, Sub-Annotations (Links)
+				stats.increaseTotalAtoms();
+				stats.increaseAnnotations();
 			} else if (atom instanceof OWLObjectHGDB) {
 				stats.increaseTotalAtoms();
 				stats.increaseOtherObjects();
 			} else {
 				System.err.println("GC: Encountered unknown atom during DFS GC: " +  atom.getClass() + " Object: " + atom);
+				throw new IllegalStateException("GC: Encountered unknown atom during DFS GC: " +  atom.getClass());
 			}
 		}
 		return canRemove;		
@@ -445,17 +550,40 @@ public class GarbageCollector {
 	
 	/**
 	 * Calculates incidence set size, by removing those from the actual incidence set, which were already analyzed and found to be removable.
+	 * In addition, a given parent will not be counted.
 	 * All removable atom handles are remembered in a HashSet during analysis.
 	 * 
-	 * @param is
+	 * @param is the current incidence set
+	 * @param parent may be null
 	 * @return
 	 */
-	protected int calcAnalyzeISSize(IncidenceSet is, HGHandle parent) {
+	protected int calcAnalyzeISSize(IncidenceSet is, HGHandle parent, Set<HGHandle> removableAtomsSet) {
+		if (removableAtomsSet == null) throw new IllegalArgumentException("removableAtomsSet == null");
 		int i = 0;
 		HGRandomAccessResult<HGHandle> rs = is.getSearchResult();
 		while (rs.hasNext()) {
 			HGHandle cur = rs.next();
-			if (!(analyzeRemovableAtomsSet.contains(cur) || cur.equals(parent))) {
+			if (!(removableAtomsSet.contains(cur) || cur.equals(parent))) {
+				i ++;
+			} 
+		}
+		return i;
+	}
+
+	/**
+	 * Calculates incidence set size, by removing those from the actual incidence set, which were already marked for collection.
+	 * Removable atom handles marked during one DFS call are remembered in a LinkedList and removed instantly after DFS.
+	 * 
+	 * @param is the current incidence set
+	 * @return
+	 */
+	protected int calcCollectISSize(IncidenceSet is, HGHandle parent, List<HGHandle> collectibleAtoms) {
+		if (collectibleAtoms == null) throw new IllegalArgumentException("collectibleAtoms == null");
+		int i = 0;
+		HGRandomAccessResult<HGHandle> rs = is.getSearchResult();
+		while (rs.hasNext()) {
+			HGHandle cur = rs.next();
+			if (!(collectibleAtoms.contains(cur) || cur.equals(parent))) {
 				i ++;
 			} 
 		}
@@ -484,10 +612,13 @@ public class GarbageCollector {
 	 * Counts the number of subgraphs a given atom is a member in. 
 	 * Uses Subgraph.reverseIndex.
 	 * 
+	 * Should be called within HG Transaction.
+	 * 
 	 * @param atomHandle
+	 * @param removableAtomsSet may be null
 	 * @return >=0
 	 */
-	protected int countSubgraphsWhereAtomIsMember(HGHandle atomHandle) {
+	protected int countSubgraphsWhereAtomIsMember(HGHandle atomHandle, Set<HGHandle> removableAtomsSet) {
 		HGPersistentHandle axiomPersHandle = graph.getPersistentHandle(atomHandle);
 		if (axiomPersHandle == null) throw new IllegalStateException("Null persistent handle");
 		HGIndex<HGPersistentHandle,HGPersistentHandle> indexAxiomToOntologies = HGSubgraph.getReverseIndex(graph);
@@ -496,7 +627,11 @@ public class GarbageCollector {
 		try {
 			while (rs.hasNext()) {
 				HGHandle subgraphHandle = rs.next();
-				if (!(analyzeRemovableAtomsSet.contains(subgraphHandle))) { 
+				if (removableAtomsSet !=null) {
+					// exclude potentially removed ontologies if we are in analyse mode.
+					if (!(removableAtomsSet.contains(subgraphHandle))) {
+						i++;
+				} else 
 					i++;
 				}
 			}
@@ -512,7 +647,7 @@ public class GarbageCollector {
 	 * 
 	 * @param stats
 	 */
-	protected void collectOtherObjects(GarbageCollectorStatistics stats, boolean analyzeOnly) {
+	protected void collectOtherObjects(GarbageCollectorStatistics stats, boolean analyzeOnly, Set<HGHandle> removableAtomsSet) {
 		stopWatch.start();
 		List<HGHandle> handlesToRemove = hg.findAll(graph, hg.and(
 				hg.disconnected(),
@@ -526,7 +661,7 @@ public class GarbageCollector {
 			if (o instanceof IRI) {
 				System.out.println("Should not have found IRI (check query types): " + o);
 			} 
-			collectOWLObjectsByDFSInternal(h, stats, analyzeOnly);
+			collectOWLObjectsByDFSTransact(h, stats, analyzeOnly, removableAtomsSet);
 		}
 		stopWatch.stop("Disconnected Others collection time: ");
 		System.out.println("Stats now: " + stats.toString());		
@@ -534,7 +669,7 @@ public class GarbageCollector {
 	
 	/**
 	 * Collects and removes disconnected entities.
-	 * 
+	 * (Annotations are managed as AnnotationAssertionAxioms, latter are Ontology members)
 	 * @param stats
 	 */
 	protected void collectEntities(GarbageCollectorStatistics stats, boolean analyzeOnly) {
@@ -547,13 +682,10 @@ public class GarbageCollector {
 					);
 		stopWatch.stop("Disconnected Entities query time: Found: " + handlesToRemove.size() + " Duration:");
 		if (!analyzeOnly) {
-			int successRemoveCounter = 0;
-			for (HGHandle h: handlesToRemove) {
-				if (graphRemove(h)) {
-					successRemoveCounter ++;
-				}
-			}
-			if (successRemoveCounter != handlesToRemove.size()) throw new IllegalStateException("successRemoveCounter != handles.size()");
+			int successRemoveCounter;			
+			//TODO add batch processing here
+			successRemoveCounter = removeEntitiesTransact(handlesToRemove, 0, handlesToRemove.size());
+			//if (successRemoveCounter != handlesToRemove.size()) throw new IllegalStateException("successRemoveCounter != handles.size()");
 			stats.setEntities(stats.getEntities() + successRemoveCounter);
 			stats.setTotalAtoms(stats.getTotalAtoms() + successRemoveCounter);
 			stopWatch.stop("Disconnected Entities collection time: ");
@@ -562,6 +694,42 @@ public class GarbageCollector {
 			stats.setTotalAtoms(stats.getTotalAtoms() + handlesToRemove.size());
 		}
 	}	
+
+	protected int removeEntitiesTransact(final List<HGHandle> entityHandles, final int fromIndex, final int toIndex) {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Integer>() {
+			public Integer call() {
+				return (Integer)removeEntitiesInternal(entityHandles, fromIndex, toIndex);
+			}}, HGTransactionConfig.DEFAULT);
+	}
+
+	/**
+	 * Batch removes entities.
+	 * 
+	 * Call this only within a hg transaction.
+	 * 
+	 * @param entityHandle
+	 * @return
+	 */
+	protected Integer removeEntitiesInternal(List<HGHandle> entityHandles, int fromIndex, int toIndex) {
+		if (toIndex < fromIndex) throw new IllegalArgumentException("to: " + toIndex + " < from: " + fromIndex); 
+		if (fromIndex < 0) throw new IllegalArgumentException("from: " + fromIndex + "< 0");
+		if (toIndex  >= entityHandles.size()) throw new IllegalArgumentException();
+		if (fromIndex >= entityHandles.size()) throw new IllegalArgumentException();
+		
+		int successRemoveCounter = 0;
+		int i = fromIndex;
+		ListIterator<HGHandle> it = entityHandles.listIterator(fromIndex);
+		while (i < toIndex) {
+			i++;
+			HGHandle h = it.next();
+			///check if still empty incidence set and remove.
+			if (graph.getIncidenceSet(h).isEmpty()
+					&& graphRemove(h)) {
+				successRemoveCounter ++;
+			}
+		}
+		return successRemoveCounter;
+	}
 		
 	/**
 	 * @return the graph
