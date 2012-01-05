@@ -42,7 +42,8 @@ Export-Package:
  org.hypergraphdb.type.javaprimitive,
  org.hypergraphdb.util
 Bundle-ActivationPolicy: lazy
-Require-Bundle: org.semanticweb.owl.owlapi;bundle-version="3.2.3"
+Require-Bundle: org.semanticweb.owl.owlapi;bundle-version="3.2.3",
+ org.junit4;bundle-version="4.8.1"
 Bundle-Vendor: Miami-Dade CIAO/eSolutions
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: javax.management,
