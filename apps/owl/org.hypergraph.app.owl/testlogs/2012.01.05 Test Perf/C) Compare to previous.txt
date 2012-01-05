@@ -1,0 +1,9 @@
+October:
+Classes		TimeCreate	TimeGet/Rem	TotalHGObj  (after add)
+1280		59.17		1.96		2770
+2560		225.59		3.94		5330
+5120		897.82		10.15		10450
+
+NOW:
+Classes		TimeCreate	TimeGet/Rem	TotalHGObj  (after add)
+6400 	 08.78 secs 				
