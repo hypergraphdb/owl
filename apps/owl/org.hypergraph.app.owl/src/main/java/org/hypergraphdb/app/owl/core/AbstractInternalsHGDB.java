@@ -1931,6 +1931,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 		@Override
 		public boolean isDefiningAxiom(OWLAxiomHGDB axiom, HGHandle entityHandle) {
 			boolean returnValue; 
+			// we have no superclass (e.g. OWLClassAxiom) here to check like in the other axiom matchers.
 			if (axiom instanceof OWLDeclarationAxiomHGDB) {
 				return false;
 			}
