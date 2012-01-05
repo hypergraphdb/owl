@@ -176,7 +176,7 @@ public class GarbageCollectorStatistics {
 	}
 	
 	public String toString() {
-		return "Total: " + totalAtoms + ", axioms: " + axioms +  ", entities: " + entities 
+		return "Total: " + totalAtoms + ", ontos: " + ontologies+ ", axioms: " + axioms +  ", entities: " + entities 
 		+ ", iris: " + iris + ", other: " + otherObjects + "\n  NRAxioms: " + axiomNotRemovableCases;
 	}
 	
