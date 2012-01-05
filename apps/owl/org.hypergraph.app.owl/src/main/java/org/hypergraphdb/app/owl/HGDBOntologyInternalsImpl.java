@@ -933,13 +933,16 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 							if (annoHandle == null) throw new IllegalStateException("AnnotationHandle null.");
 							if (hg.findOne(graph,
 									hg.and(hg.type(AxiomAnnotatedBy.class), hg.orderedLink(axiomHandle, annoHandle))) != null) {
-								// we already have a link between the given
+								// link exists between the given
 								// axiom and current annotation.
-								throw new IllegalStateException(
-										"Added axiom with existing AxiomAnnotatedLink to annotation " + anno);
+								//2012.01.05 that's ok, might be an undo anyways.
+								//throw new IllegalStateException(
+										//"Added axiom with existing AxiomAnnotatedLink to annotation " + anno);
+							} else {
+								//Link does not exist -> create
+								AxiomAnnotatedBy link = new AxiomAnnotatedBy(axiomHandle, annoHandle);
+								graph.add(link);
 							}
-							AxiomAnnotatedBy link = new AxiomAnnotatedBy(axiomHandle, annoHandle);
-							graph.add(link);
 						}
 						if (DBG) ontology.printGraphStats("After AddAxiom");
 						return true;
@@ -970,19 +973,23 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 					axiomHandle = graph.getHandle(findEqualAxiom(axiom, false));
 				}
 				if (axiomHandle != null) {
-					//
-					// 1. remove AxiomAnnotatedBy links from graph
-					//
-					List<HGHandle> annoLinkHandles = hg.findAll(graph,
-							hg.and(hg.type(AxiomAnnotatedBy.class), hg.incident(axiomHandle)));
-					for (HGHandle annoLinkHandle : annoLinkHandles) {
-						graph.remove(annoLinkHandle);
-					}
-					//
-					// 2. Remove Axiom from Ontology and graph.
-					//
-					ontology.remove(axiomHandle);
-					removedSuccess = graph.remove(axiomHandle);
+//					//					
+//					// 1. remove AxiomAnnotatedBy links from graph
+//					//
+//					List<HGHandle> annoLinkHandles = hg.findAll(graph,
+//							hg.and(hg.type(AxiomAnnotatedBy.class), hg.incident(axiomHandle)));
+//					for (HGHandle annoLinkHandle : annoLinkHandles) {
+//						graph.remove(annoLinkHandle);
+//					}
+//					//
+//					// 2. Remove Axiom from Ontology and graph.
+//					//
+//					ontology.remove(axiomHandle);
+//					removedSuccess = graph.remove(axiomHandle);
+					removedSuccess = ontology.remove(axiomHandle);
+					//2012.01.05 hilpold we now keep annolinks and the axiom in graph for GC later
+					//Axiom annotations belong to the axiom and not to the ontology.
+					//If we would remove them here, we could not do an undo.
 					if (DBG) ontology.printGraphStats("After  RemoveAxiom");
 					// if it pointed to an entity, entity incidence is -1
 				}
