@@ -908,50 +908,46 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		if (DBG) {
 			log.info("ADD Axiom: " + axiom.getClass().getSimpleName() + "Type: " + type);
 		}
-		if (false && containsAxiom(axiom)) {
-			log.severe("DUPLICATE AXIOM WILL NOT BE ADDED TO ONTOLOGY");
-			throw new IllegalStateException("Tried to add duplicate axiom in ontology: " + axiom);
-			// A graph may contain duplicates, an ontology not.
-		} else {
-			if (AxiomTypeToHGDBMap.getAxiomClassHGDB(type) != null) {
-				graph.getTransactionManager().ensureTransaction(new Callable<Boolean>() {
-					public Boolean call() {
-						OWLAxiomHGDB axiomHGDB = (OWLAxiomHGDB) axiom;
-						axiomHGDB.setLoadAnnotations(false);
-						if (DBG) ontology.printGraphStats("Before AddAxiom");
-						// hilpold 2011.10.06 adding to graph here instead of
-						// previously in Datafactory
-						HGHandle axiomHandle = graph.add(axiom);
-						ontology.add(axiomHandle);
-						//
-						// OWLAnnotation handling (== AxiomAnnotatedBy links
-						// added to graph)
-						//
-						Set<OWLAnnotation> annos = axiom.getAnnotations();
-						for (OWLAnnotation anno : annos) {
-							HGHandle annoHandle = graph.getHandle(anno);
-							if (annoHandle == null) throw new IllegalStateException("AnnotationHandle null.");
-							if (hg.findOne(graph,
-									hg.and(hg.type(AxiomAnnotatedBy.class), hg.orderedLink(axiomHandle, annoHandle))) != null) {
-								// link exists between the given
-								// axiom and current annotation.
-								//2012.01.05 that's ok, might be an undo anyways.
-								//throw new IllegalStateException(
-										//"Added axiom with existing AxiomAnnotatedLink to annotation " + anno);
-							} else {
-								//Link does not exist -> create
-								AxiomAnnotatedBy link = new AxiomAnnotatedBy(axiomHandle, annoHandle);
-								graph.add(link);
-							}
-						}
-						if (DBG) ontology.printGraphStats("After AddAxiom");
-						return true;
+		if (AxiomTypeToHGDBMap.getAxiomClassHGDB(type) != null) {
+			graph.getTransactionManager().ensureTransaction(new Callable<Boolean>() {
+				public Boolean call() {
+					OWLAxiomHGDB axiomHGDB = (OWLAxiomHGDB) axiom;
+					axiomHGDB.setLoadAnnotations(false);
+					if (DBG) ontology.printGraphStats("Before AddAxiom");
+					// 2011.10.06 hilpold adding to graph here instead of
+					// previously in Datafactory
+					// 2012.01.05 hilpold copy axioms operation from onto 1 to onto 2 will have axiom in graph already: 
+					// Therefore we need to check, if it's already in graph?
+					HGHandle axiomHandle = graph.getHandle(axiom);
+					if (axiomHandle == null) {
+						axiomHandle = graph.add(axiom);
 					}
-				});
-			} else {
-				log.warning("NOT YET IMPLEMENTED: " + axiom.getClass().getSimpleName());
-				// addToIndexedSet(type, axiomsByType, axiom);
-			}
+					ontology.add(axiomHandle);
+					//
+					// OWLAnnotation handling (== AxiomAnnotatedBy links
+					// added to graph)
+					//
+					Set<OWLAnnotation> annos = axiom.getAnnotations();
+					for (OWLAnnotation anno : annos) {
+						HGHandle annoHandle = graph.getHandle(anno);
+						if (annoHandle == null) throw new IllegalStateException("AnnotationHandle null.");
+						if (hg.findOne(graph,
+								hg.and(hg.type(AxiomAnnotatedBy.class), hg.orderedLink(axiomHandle, annoHandle))) != null) {
+							// link exists between the given
+							// axiom and current annotation.
+							//2012.01.05 that's ok, might be an undo anyways.
+							//throw new IllegalStateException(
+									//"Added axiom with existing AxiomAnnotatedLink to annotation " + anno);
+						} else {
+							//Link does not exist -> create
+							AxiomAnnotatedBy link = new AxiomAnnotatedBy(axiomHandle, annoHandle);
+							graph.add(link);
+						}
+					}
+					if (DBG) ontology.printGraphStats("After AddAxiom");
+					return true;
+				}
+			});
 		}
 	}
 
