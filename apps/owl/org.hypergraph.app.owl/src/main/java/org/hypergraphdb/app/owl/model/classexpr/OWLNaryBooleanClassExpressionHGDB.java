@@ -27,7 +27,7 @@ public abstract class OWLNaryBooleanClassExpressionHGDB extends OWLAnonymousClas
     public OWLNaryBooleanClassExpressionHGDB(HGHandle...args) {
     	// no duplicates allowed
     	assert(new HashSet<HGHandle>(Arrays.asList(args)).size() == args.length);
-    	operandHandles = Arrays.asList(args);
+    	operandHandles = new ArrayList<HGHandle>(Arrays.asList(args));
     }
 
     public OWLNaryBooleanClassExpressionHGDB(Set<? extends HGHandle> operands) {   
