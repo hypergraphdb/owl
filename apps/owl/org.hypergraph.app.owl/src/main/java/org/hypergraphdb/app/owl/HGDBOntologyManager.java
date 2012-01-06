@@ -2,6 +2,7 @@ package org.hypergraphdb.app.owl;
 
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.protege.owlapi.model.ProtegeOWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLOntology;
 
 /**
  * Manages multiple Ontologies. Based on OWL-API OWLOntologyManagerImpl and ProtegeOWLOntologyManager.
@@ -26,6 +27,19 @@ public class HGDBOntologyManager extends ProtegeOWLOntologyManager
 	 */
 	public HGDBOntologyRepository getOntologyRepository() {
 		return ontologyRepository;
+	}
+	
+	/**
+	 * Determines if at least one In Memory ontology is managed.
+	 * @return
+	 */
+	public boolean hasInMemoryOntology() {
+		for (OWLOntology onto : getOntologies()) {
+			if (!(onto instanceof HGDBOntology)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }
