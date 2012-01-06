@@ -1,5 +1,7 @@
 package org.hypergraphdb.app.owl;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.logging.Logger;
 
 import org.hypergraphdb.HGHandle;
@@ -23,6 +25,7 @@ import org.hypergraphdb.app.owl.type.OntologyIDType;
 import org.hypergraphdb.app.owl.type.TypeUtils;
 import org.hypergraphdb.indexing.ByPartIndexer;
 import org.hypergraphdb.indexing.ByTargetIndexer;
+import org.hypergraphdb.indexing.HGIndexer;
 import org.hypergraphdb.type.HGAtomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -187,13 +190,8 @@ public class HGDBApplication extends HGApplication
 		
 	}
 
-	/**
-	 * @param graph
-	 */
-	private void registerIndices(HyperGraph graph) {
-		//
-		// BY_PART_INDEXERS "IRI"
-		//
+	public Collection<HGIndexer> getIRIIndexers(HyperGraph graph)
+	{
 		HGHandle[] typeHandlesNamedObjectsWithIRIDimension = new HGHandle[] {
 				graph.getTypeSystem().getTypeHandle(OWLClassHGDB.class),
 				graph.getTypeSystem().getTypeHandle(OWLDatatypeHGDB.class),
@@ -201,11 +199,23 @@ public class HGDBApplication extends HGApplication
 				graph.getTypeSystem().getTypeHandle(OWLDataPropertyHGDB.class),
 				graph.getTypeSystem().getTypeHandle(OWLObjectPropertyHGDB.class),
 				graph.getTypeSystem().getTypeHandle(OWLNamedIndividualHGDB.class)
-		};
-		for (HGHandle typeHandle : typeHandlesNamedObjectsWithIRIDimension) {
-			ByPartIndexer bpI = new ByPartIndexer(typeHandle, "IRI");
-			graph.getIndexManager().register(bpI);
-		}
+		};		
+		ArrayList<HGIndexer> L = new ArrayList<HGIndexer>();
+		for (HGHandle typeHandle : typeHandlesNamedObjectsWithIRIDimension)
+			L.add(new ByPartIndexer(typeHandle, "IRI"));
+		return L;
+	}
+	
+	/**
+	 * @param graph
+	 */
+	private void registerIndices(HyperGraph graph) {
+		//
+		// BY_PART_INDEXERS "IRI"
+		//
+		for (HGIndexer indexer : getIRIIndexers(graph))
+			graph.getIndexManager().register(indexer);
+		
 		//
 		// BY_TARGET_INDEXERS
 		//
