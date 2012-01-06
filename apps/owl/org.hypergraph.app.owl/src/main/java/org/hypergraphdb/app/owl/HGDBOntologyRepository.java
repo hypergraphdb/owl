@@ -29,6 +29,7 @@ import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.management.HGManagement;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
+import org.hypergraphdb.app.owl.core.OWLDataFactoryInternalsHGDB;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
 import org.hypergraphdb.app.owl.gc.GarbageCollector;
@@ -331,18 +332,19 @@ public class HGDBOntologyRepository {
 //	log.info("Removing " + l.size() + " disconnected non builtin OWLEntities from graph.");
 //	return l.size();
 	public void printStatistics() {
-		Date now = new Date();
-		DecimalFormat f = new DecimalFormat("##########");
-		System.out.println("*************** HYPERGRAPH STATISTICS ***************");
-		System.out.println("* Location     : " + graph.getLocation());
-		System.out.println("* Now is       : " + DateFormat.getDateTimeInstance().format(now));
-		System.out.println("*       LINKS  : " + f.format(getNrOfLinks()));
-		System.out.println("* NoLink ATOMS : " + f.format(getNrOfNonLinkAtoms()));
-		System.out.println("* TOTAL ATOMS  : " + f.format(getNrOfAtoms()));
-		System.out.println("*                                                   ");
-		System.out.println("*      AXIOMS  : " + f.format(getNrOfAtomsByTypePlus(OWLAxiom.class)));
-		System.out.println("*    ENTITIES  : " + f.format(getNrOfAtomsByTypePlus(OWLEntity.class)));
-		System.out.println("*****************************************************");	
+		printStatistics(new PrintWriter(System.out));
+//		Date now = new Date();
+//		DecimalFormat f = new DecimalFormat("##########");
+//		System.out.println("*************** HYPERGRAPH STATISTICS ***************");
+//		System.out.println("* Location     : " + graph.getLocation());
+//		System.out.println("* Now is       : " + DateFormat.getDateTimeInstance().format(now));
+//		System.out.println("*       LINKS  : " + f.format(getNrOfLinks()));
+//		System.out.println("* NoLink ATOMS : " + f.format(getNrOfNonLinkAtoms()));
+//		System.out.println("* TOTAL ATOMS  : " + f.format(getNrOfAtoms()));
+//		System.out.println("*                                                   ");
+//		System.out.println("*      AXIOMS  : " + f.format(getNrOfAtomsByTypePlus(OWLAxiom.class)));
+//		System.out.println("*    ENTITIES  : " + f.format(getNrOfAtomsByTypePlus(OWLEntity.class)));
+//		System.out.println("*****************************************************");	
 	}
 
 	public void printStatistics(PrintWriter w) {
@@ -358,6 +360,17 @@ public class HGDBOntologyRepository {
 		w.println("*      AXIOMS  : " + f.format(getNrOfAtomsByTypePlus(OWLAxiom.class)));
 		w.println("*    ENTITIES  : " + f.format(getNrOfAtomsByTypePlus(OWLEntity.class)));
 		w.println("*****************************************************");	
+	}
+	
+	public void printEntityCacheStats(PrintWriter w) {
+		w.println("----------------------------");
+		w.println("- BUILTIN ENTITY CACHE STATS -");
+		w.println("- Cache Put : " + OWLDataFactoryInternalsHGDB.CACHE_PUT);
+		w.println("- Cache Hit : " + OWLDataFactoryInternalsHGDB.CACHE_HIT);
+		w.println("- Cache Miss: " + OWLDataFactoryInternalsHGDB.CACHE_MISS);
+		int hitPromille = (int) (OWLDataFactoryInternalsHGDB.CACHE_HIT * 1000.0f / (OWLDataFactoryInternalsHGDB.CACHE_HIT + OWLDataFactoryInternalsHGDB.CACHE_MISS));
+		w.println("- Cache Hit%: " + hitPromille / 10.0f  );
+		w.println("----------------------------");
 	}
 
 	public void printPerformanceStatistics(PrintWriter w) {
@@ -484,7 +497,7 @@ public class HGDBOntologyRepository {
 	}
 	
 	/**
-	 * Tries to find a simple path from an entity to an axiom traversing incidence sets.
+	 * Tries to find a simple path from an Owl object (usually entity) to an axiom traversing incidence sets.
 	 * Neither has to be member of any ontology.
 	 * Might not return if a cycle can be reached from owlObject.
 	 * 
