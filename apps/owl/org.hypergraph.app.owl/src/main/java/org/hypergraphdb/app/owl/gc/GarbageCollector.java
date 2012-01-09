@@ -52,7 +52,8 @@ import org.semanticweb.owlapi.model.OWLOntology;
  * An OWLObject is removable, if
  * <ol>
  * <li> A) Its incidence set can be considered empty.
- * <li> B) Considered means: actual incidence set minus all removable items during processing. 
+ * <li> B) Considered means: actual incidence set minus all removable items during processing.
+ * <li> C) It's an IRI, has an empty incidence set and is not used in any NamedObject (determined by querying indices). 
  * </ol>
  * </p>
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
@@ -61,6 +62,8 @@ import org.semanticweb.owlapi.model.OWLOntology;
  * history: 
  * <br> 2012.01.05 hilpold
  * <br>Entity IRIs cannot currently be deleted because of the implementation of OWLNamedObjectType.
+ * <br> 2012.01.08 hilpold
+ * <br> IRIs will now be deleted. We query the IRI indices to determine removability based on usage in OWLNamedObjectType.
  * </p>
  */
 public class GarbageCollector {
