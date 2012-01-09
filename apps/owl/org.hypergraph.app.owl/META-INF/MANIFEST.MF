@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: HypergraphDB Owl-API Backend
 Bundle-SymbolicName: org.hypergraph.app.owl;singleton:=true
-Bundle-Version: 0.9.5.dev
+Bundle-Version: 0.9.5
 Bundle-ClassPath: .,
  lib/hgdbmanagement.jar,
  lib/hypergraphdb.jar,
