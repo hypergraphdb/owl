@@ -10,6 +10,8 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
  */
 public class HGDBOntologyAlreadyExistsByOntologyIDException extends OWLOntologyCreationException {
 	
+	private static final long serialVersionUID = 6791502581072294124L;
+
 	private OWLOntologyID ontologyID;
 	
 	public HGDBOntologyAlreadyExistsByOntologyIDException(OWLOntologyID ontologyID) {
