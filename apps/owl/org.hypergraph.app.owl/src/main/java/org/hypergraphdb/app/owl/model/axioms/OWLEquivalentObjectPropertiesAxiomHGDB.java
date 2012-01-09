@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 
 import org.hypergraphdb.HGHandle;
 import org.semanticweb.owlapi.model.AxiomType;

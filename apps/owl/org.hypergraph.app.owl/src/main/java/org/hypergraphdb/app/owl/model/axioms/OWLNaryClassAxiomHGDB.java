@@ -29,7 +29,7 @@ public abstract class OWLNaryClassAxiomHGDB extends OWLClassAxiomHGDB implements
     public OWLNaryClassAxiomHGDB(HGHandle...args)
     {
     	super(Collections.<OWLAnnotation>emptySet());
-    	classExpressionsHandles = Arrays.asList(args);
+    	classExpressionsHandles = new ArrayList<HGHandle>(Arrays.asList(args));
     }
 
     public OWLNaryClassAxiomHGDB(Set<? extends HGHandle> classExpressions, Collection<? extends OWLAnnotation> annotations) {

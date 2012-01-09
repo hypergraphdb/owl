@@ -1,5 +1,6 @@
 package org.hypergraphdb.app.owl.model.axioms;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -38,7 +39,7 @@ public class OWLInverseObjectPropertiesAxiomHGDB extends OWLNaryPropertyAxiomHGD
 
     public OWLInverseObjectPropertiesAxiomHGDB(HGHandle first, HGHandle second, Collection<? extends OWLAnnotation> annotations) {
     	//OWLObjectPropertyExpression first, OWLObjectPropertyExpression second, Collection<? extends OWLAnnotation> annotations
-    	super(Arrays.asList(first, second), annotations);
+    	super(new ArrayList<HGHandle>(Arrays.asList(first, second)), annotations);
         //super(new TreeSet<HGHandle>(Arrays.asList(first, second)), annotations);
         //super(new TreeSet<OWLObjectPropertyExpression>(Arrays.asList(first, second)), annotations);
         //this.first = first;

@@ -35,7 +35,7 @@ public class OWLObjectOneOfHGDB extends OWLAnonymousClassExpressionHGDB implemen
 	public OWLObjectOneOfHGDB(HGHandle... args) {
 		// no duplicates allowed
 		assert (new TreeSet<HGHandle>(Arrays.asList(args)).size() == args.length);
-		valueHandles = Arrays.asList(args);
+		valueHandles = new ArrayList<HGHandle>(Arrays.asList(args));
 		// valueHandles = new ArrayList<HGHandle>(Arrays.asList(args));
 	}
 

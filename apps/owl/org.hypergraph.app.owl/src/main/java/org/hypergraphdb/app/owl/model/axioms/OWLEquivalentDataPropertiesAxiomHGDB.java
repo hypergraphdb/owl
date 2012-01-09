@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 
 import org.hypergraphdb.HGHandle;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -30,8 +29,8 @@ public class OWLEquivalentDataPropertiesAxiomHGDB extends OWLNaryPropertyAxiomHG
 
     
     public OWLEquivalentDataPropertiesAxiomHGDB(HGHandle...args){
-    	this(new TreeSet<HGHandle>(Arrays.asList(args)), Collections.<OWLAnnotation>emptySet());
-    	if (new TreeSet<HGHandle>(Arrays.asList(args)).size() != args.length) throw new IllegalArgumentException();
+    	this(new HashSet<HGHandle>(Arrays.asList(args)), Collections.<OWLAnnotation>emptySet());
+    	if (new HashSet<HGHandle>(Arrays.asList(args)).size() != args.length) throw new IllegalArgumentException();
     }
 
     public OWLEquivalentDataPropertiesAxiomHGDB(Set<? extends HGHandle> properties, Collection<? extends OWLAnnotation> annotations) {

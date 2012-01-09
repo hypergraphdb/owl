@@ -49,7 +49,7 @@ public class OWLHasKeyAxiomHGDB extends OWLLogicalAxiomHGDB implements HGLink, O
 //    	}
 //        this.expressionHandle = args[0];
 //        this.propertyExpressionsHandles = new ArrayList<HGHandle>(propertyExpressionsFromArgs);
-    	this.handles = Arrays.asList(args);
+    	this.handles = new ArrayList<HGHandle>(Arrays.asList(args));
     }
 
     public OWLHasKeyAxiomHGDB(HGHandle expression, Set<HGHandle> propertyExpressions, Collection<? extends OWLAnnotation> annotations) {

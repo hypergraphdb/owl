@@ -38,7 +38,7 @@ public class OWLDataOneOfHGDB extends OWLObjectHGDB implements HGLink, OWLDataOn
     public OWLDataOneOfHGDB(HGHandle...args) {
     	// no duplicates allowed
     	assert(new TreeSet<HGHandle>(Arrays.asList(args)).size() == args.length);
-    	valuesHandles = Arrays.asList(args);
+    	valuesHandles = new ArrayList<HGHandle>(Arrays.asList(args));
     }
 
     public OWLDataOneOfHGDB(Set<? extends HGHandle> values) {

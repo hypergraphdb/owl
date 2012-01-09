@@ -30,7 +30,7 @@ public abstract class OWLNaryIndividualAxiomHGDB extends OWLIndividualAxiomHGDB 
 	
     public OWLNaryIndividualAxiomHGDB(HGHandle...args) {
     	super(Collections.<OWLAnnotation>emptySet());
-    	individualsHandles = Arrays.asList(args);
+    	individualsHandles = new ArrayList<HGHandle>(Arrays.asList(args));
     }
 
     public OWLNaryIndividualAxiomHGDB(Set<? extends HGHandle> individuals, Collection<? extends OWLAnnotation> annotations) {
