@@ -404,7 +404,9 @@ public class GarbageCollector {
 					//IRI iri = graph.get(layout[0]);
 					//HGHandle iriHandle = layout[0];
 					if (DBG) printHandle(iriHandle, "" + i, analyzeMode);
-					maybeCollectAtom(iriHandle, targetHandle, collectibleAtoms, stats, analyzeMode, analyzeRemovedSet);
+					if (iriHandle != null) {
+						maybeCollectAtom(iriHandle, targetHandle, collectibleAtoms, stats, analyzeMode, analyzeRemovedSet);
+					} //else already deleted.
 				}
 				//stats were already updated on canRemoveAnalyze
 			}
@@ -418,11 +420,15 @@ public class GarbageCollector {
 			// We need to visit the IRI of an entity that DFS would miss, because it is not linked.
 			Object atom = graph.get(linkHandle);
 			if (atom instanceof OWLNamedObject) {
-				HGHandle[] layout = graph.getStore().getLink(linkHandle.getPersistent());
-				//IRI iri = graph.get(layout[0]);
-				HGHandle iriHandle = layout[0];
+				OWLNamedObject atomNO = (OWLNamedObject) atom;
+				HGHandle iriHandle = graph.getHandle(atomNO.getIRI());
+//				HGHandle[] layout = graph.getStore().getLink(linkHandle.getPersistent());
+//				//IRI iri = graph.get(layout[0]);
+//				HGHandle iriHandle = layout[0];
 				if (DBG) printHandle(iriHandle, "IRI" + i, analyzeMode);
-				maybeCollectAtom(iriHandle, linkHandle, collectibleAtoms, stats, analyzeMode, analyzeRemovedSet);
+				if (iriHandle != null) {
+					maybeCollectAtom(iriHandle, linkHandle, collectibleAtoms, stats, analyzeMode, analyzeRemovedSet);
+				} //else already deleted.
 			}
 		}
 		//if (DBG) System.out.println();
