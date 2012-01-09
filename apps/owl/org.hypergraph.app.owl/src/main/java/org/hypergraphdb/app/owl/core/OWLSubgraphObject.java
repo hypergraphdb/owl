@@ -11,7 +11,6 @@ import java.util.TreeSet;
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.atom.HGSubgraph;
-import org.semanticweb.owlapi.io.ToStringRenderer;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
