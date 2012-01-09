@@ -65,8 +65,8 @@ import org.semanticweb.owlapi.model.OWLOntology;
  */
 public class GarbageCollector {
 
-	private static final boolean DBG = true;
-	private static final boolean DBGX = true;
+	private static final boolean DBG = false;
+	private static final boolean DBGX = false;
 	
 	public StopWatch stopWatch = new StopWatch();
 	public int dbgCounter = 0;
@@ -234,6 +234,7 @@ public class GarbageCollector {
 				collectOWLObjectsByDFSTransact(annoHandle, stats, analyzeMode, analyzeRemovedSet);
 			}
 		}
+		//TODO wrap import declaration removal inside a transaction.
 		//Import declarations
 		//internals.remove does remove from onto&graph: ImportDeclarationLink, ImportDeclaration
 		Set<OWLImportsDeclaration> importsDeclarations = onto.getImportsDeclarations();
