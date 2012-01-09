@@ -38,13 +38,9 @@ public abstract class OWLSubgraphObject extends HGSubgraph implements OWLObject,
 	private int hashCode = 0;
 	private Set<OWLEntity> signature;
 
-
-
 	public OWLSubgraphObject() {		
-		this.dataFactory = OWLDataFactoryHGDB.getInstance();
-		
-		//Boris Map<String, OWLDataFactory> owlFactoryByGraph = ...dataFactory.
-		
+		this.dataFactory = OWLDataFactoryHGDB.getInstance();		
+		//Boris Map<String, OWLDataFactory> owlFactoryByGraph = ...dataFactory.		
 	}
 
 	public OWLDataFactory getOWLDataFactory() {
@@ -138,14 +134,6 @@ public abstract class OWLSubgraphObject extends HGSubgraph implements OWLObject,
 	}
 
 	final public int compareTo(OWLObject o) {
-		//        if (o instanceof OWLAxiom && this instanceof OWLAxiom) {
-		//            OWLObject thisSubj = subjectProvider.getSubject((OWLAxiom) this);
-		//            OWLObject otherSubj = subjectProvider.getSubject((OWLAxiom) o);
-		//            int axDiff = thisSubj.compareTo(otherSubj);
-		//            if (axDiff != 0) {
-		//                return axDiff;
-		//            }
-		//        }
 		OWLObjectTypeIndexProvider typeIndexProvider = new OWLObjectTypeIndexProvider();
 		int thisTypeIndex = typeIndexProvider.getTypeIndex(this);
 		int otherTypeIndex = typeIndexProvider.getTypeIndex(o);
@@ -203,9 +191,4 @@ public abstract class OWLSubgraphObject extends HGSubgraph implements OWLObject,
 		}
 		return ss1.size() - ss2.size();
 	}
-
-
-
-
-
 }
