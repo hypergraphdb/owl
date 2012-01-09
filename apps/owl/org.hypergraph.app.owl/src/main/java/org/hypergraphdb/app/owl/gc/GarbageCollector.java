@@ -65,8 +65,8 @@ import org.semanticweb.owlapi.model.OWLOntology;
  */
 public class GarbageCollector {
 
-	private static final boolean DBG = false;
-	private static final boolean DBGX = false;
+	private static final boolean DBG = true;
+	private static final boolean DBGX = true;
 	
 	public StopWatch stopWatch = new StopWatch();
 	public int dbgCounter = 0;
@@ -437,7 +437,7 @@ public class GarbageCollector {
 			collectAtomsReverseOrder(collectibleAtoms);
 		}
 		dbgCounter ++;
-		if (dbgCounter % 250 == 0) {
+		if (dbgCounter % 500 == 0) {
 			System.out.println("\n GC: DFS Call Count: " + dbgCounter + " Collectable: " + stats.getTotalAtoms());
 			System.out.println(stats.toString());
 			System.out.println("Graph atoms: " + repository.getNrOfAtoms());
@@ -480,27 +480,44 @@ public class GarbageCollector {
 			boolean analyzeMode,
 			Set<HGHandle> analyzeRemovedSet) {
 		Object atom = graph.get(atomHandle);
-		IncidenceSet is = graph.getIncidenceSet(atomHandle);
 		//empty, if we deleted parent already, or only parent => safe to delete		
-		boolean canRemove;
+		boolean canRemove = true;
 		int incidenceSetSize;
+		//Optimize for builtin entities
+		if (atom == null) {
+			if (DBG) System.out.println("\n  GC: Atom null for handle: " + atomHandle);// + " ISSize: " + is.size());
+			canRemove = false;
+		}
+		if (canRemove && atom instanceof OWLEntity) {
+			OWLEntity atomEntity = (OWLEntity)atom;
+			canRemove = !atomEntity.isBuiltIn();
+			if (DBG && atomEntity.isBuiltIn()) { 
+				System.out.println("GC: Encountered builtin entity during DFS: " + atomEntity + " Class: " + atomEntity.getClass());
+			}
+		}
 		//
 		// Determine removability based on incidence set only
 		//
-		if (analyzeMode) {
-			// we remove those from the incidence set, that we already found plus the current parent.
-			incidenceSetSize = calcAnalyzeISSize(is, parent, analyzeRemovedSet);
-		} else {
-			//canRemove = (is.isEmpty() || (is.size() == 1 && (is.first().equals(parent)) || parent == null));
-			incidenceSetSize = calcCollectISSize(is, parent, collectibleAtoms);
-		}
-		canRemove = (incidenceSetSize == 0);
-		if (DBGX) {
-			if (!canRemove) { System.out.println(); printIncidenceSet(is, parent); };
-		}
-		if (atom == null) {
-			if (DBG) System.out.println("\n  GC: Atom null for handle: " + atomHandle + " ISSize: " + is.size());
-			canRemove = false;
+		if (canRemove) {
+			IncidenceSet is = graph.getIncidenceSet(atomHandle);
+			if (analyzeMode) {
+				// Optimize for large incidence sets, if we cannot remove enough objects from is size yet,
+				// there is no check necessary
+				// -1 for parent object; e.g. is size 2, one analyzed -> need check.; is size 3 -> no check
+				if (is.size() - 1 > analyzeRemovedSet.size()) {
+					incidenceSetSize = is.size();
+				} else {
+					// we remove those from the incidence set, that we already found plus the current parent.				
+					incidenceSetSize = calcAnalyzeISSize(is, parent, analyzeRemovedSet);
+				}
+			} else {
+				//canRemove = (is.isEmpty() || (is.size() == 1 && (is.first().equals(parent)) || parent == null));
+				incidenceSetSize = calcCollectISSize(is, parent, collectibleAtoms);
+			}
+			canRemove = (incidenceSetSize == 0);
+			if (DBGX) {
+				if (!canRemove) { System.out.println(); printIncidenceSet(is, parent); };
+			}
 		}
 		if (canRemove) {
 			// incidence set says, we can remove it from graph and we have a loaded atom
@@ -516,7 +533,6 @@ public class GarbageCollector {
 				if (entity.isBuiltIn()) {
 					// Don't remove built in entities.
 					canRemove = false;
-					if (DBG) System.out.println("GC: Encountered builtin entity during DFS: " + entity + " Class: " + entity.getClass());
 				} else {
 					stats.increaseEntities();
 					stats.increaseTotalAtoms();
@@ -580,9 +596,11 @@ public class GarbageCollector {
 				 HGHandle iriUser = (HGHandle)iriUsage.next();
 				 if (!(atomsAboutToBeRemoved.contains(iriUser))) {
 					 // we found a namedObject that uses our IRI and is not about to be removed 
+					 iriUsage.close();
 					 return true;
 				 }  // else we found a namedObject, but it's about to be removed, so we can ignore it 
 			 }
+			 iriUsage.close();
 		}
 		return false;
 	}
@@ -606,6 +624,7 @@ public class GarbageCollector {
 				i ++;
 			} 
 		}
+		rs.close();
 		return i;
 	}
 
@@ -626,6 +645,7 @@ public class GarbageCollector {
 				i ++;
 			} 
 		}
+		rs.close();
 		return i;
 	}
 
@@ -763,11 +783,16 @@ public class GarbageCollector {
 	 */
 	private boolean graphRemove(HGHandle atom) {
 		boolean returnValue = false;
-		//try {
+		try {
+		if (DBGX) {
+			System.out.println("g.remove: " + atom);
+		}
 			returnValue = graph.remove(atom, true);
-		//} catch (RuntimeException e) {
-//			System.out.println("Caught expected: " + e);
-		//}
+		} catch (RuntimeException e) {
+			System.out.println("During remove of: " + atom);
+			System.out.println("Remove Exception: " + e);
+			throw e;
+		}
 		return returnValue;
 	}
 	
