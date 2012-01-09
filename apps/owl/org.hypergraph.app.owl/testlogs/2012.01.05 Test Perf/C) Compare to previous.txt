@@ -6,4 +6,9 @@ Classes		TimeCreate	TimeGet/Rem	TotalHGObj  (after add)
 
 NOW:
 Classes		TimeCreate	TimeGet/Rem	TotalHGObj  (after add)
-6400 	 08.78 secs 				
+1600		2.08		1.84
+6400 	 	8.78  		7.91		
+12800		22.43		15.91
+25600		44.67		41.36	
+51200		96.94		203.04  getAxiomCount(): 4.16; 
+~100 times slower than in memory.
