@@ -171,7 +171,7 @@ public class OWLSubPropertyChainAxiomHGDB extends OWLPropertyAxiomHGDB implement
 	 */
 	@Override
 	public void notifyTargetHandleUpdate(int i, HGHandle handle) {
-		assert(getHyperGraph().get(handle) instanceof OWLClassExpression);
+		//assert(getHyperGraph().get(handle) instanceof OWLClassExpression);
 		
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
 		if (handle == null) throw new IllegalArgumentException("handle null"); 
