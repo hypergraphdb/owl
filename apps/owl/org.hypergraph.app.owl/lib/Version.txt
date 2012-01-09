@@ -1,10 +1,13 @@
 HYPERGRAPHDB LATEST FROM TRUNK USED 
-LAST UPDATE: 2011.09.13 17:41 PM
+LAST UPDATE: 2012.01.09 1:43 PM
 
-hgdbfull.jar comes from TRUNK/HEAD 
-hypergraphdb/core
+hypergraphdb/core custom modifications
+hypergraphdb.jar built 2012.01.09 used.
+(Contains one essential modification in class Hypergraph that replaces null targets with nullHandle)
 
-native libraries do not get built.
+Using BerkeleyDB 5.3.15.
+
+native libraries not built.
 
 
 
