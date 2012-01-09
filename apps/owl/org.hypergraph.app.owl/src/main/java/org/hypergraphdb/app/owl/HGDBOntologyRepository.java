@@ -34,9 +34,7 @@ import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRI
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
 import org.hypergraphdb.app.owl.gc.GarbageCollector;
 import org.hypergraphdb.app.owl.gc.GarbageCollectorStatistics;
-import org.hypergraphdb.app.owl.query.OWLEntityIsBuiltIn;
 import org.hypergraphdb.app.owl.test.TestData;
-import org.hypergraphdb.app.owl.type.TypeUtils;
 import org.hypergraphdb.app.owl.util.Path;
 import org.hypergraphdb.handle.SequentialUUIDHandleFactory;
 import org.hypergraphdb.query.HGQueryCondition;
@@ -102,6 +100,7 @@ public class HGDBOntologyRepository {
 	}
 
 	/**
+	 * Sets the repository folder location.
 	 * @param hypergraphDBLocation the hypergraphDBLocation to set
 	 * @throws IllegalStateException if the instance was already created.
 	 * @throws IllegalStateException if string is no directory, no read, no write or not exists.
@@ -153,7 +152,7 @@ public class HGDBOntologyRepository {
 	/** 
 	 * Ensures a HypergraphDB at the HYPERGRAPH_DB_LOCATION.
 	 */
-	protected void ensureHypergraph(String location) {
+	private void ensureHypergraph(String location) {
 		HGConfiguration config = new HGConfiguration();
 		config.setUseSystemAtomAttributes(false);
 		BDBConfig bdbConfig = (BDBConfig)config.getStoreImplementation().getConfiguration();
@@ -167,7 +166,7 @@ public class HGDBOntologyRepository {
 		log.info("Hypergraph contains " + nrOfAtoms + " Atoms");
 	}
 
-	protected void dropHypergraph(String location) {
+	private void dropHypergraph(String location) {
 		HGUtils.dropHyperGraphInstance(location);	
 	}
 	
@@ -268,7 +267,6 @@ public class HGDBOntologyRepository {
 	}
 	
 	public boolean deleteOntology(OWLOntologyID ontologyId) {
-		//printAllOntologies();
 		// 2011.12.20 hilpold we just set the ontology ID and DocumentIRI to null 
 		// so cleanup can remove it later and we remain responsive. 
 		boolean ontologyFound;
@@ -281,7 +279,6 @@ public class HGDBOntologyRepository {
 			graph.replace(ontologyHandle, o);
 		}
 		return ontologyFound;
-		//return graph.remove(ontologyHandle);
 	}
 		
 	public HGHandle addOntology(HGDBOntology ontology) {
@@ -290,61 +287,15 @@ public class HGDBOntologyRepository {
 	}
 	
 	public GarbageCollectorStatistics runGarbageCollector() {
-		return garbageCollector.runGC();		
+		return garbageCollector.runGarbageCollection();		
 	}
 
-	public GarbageCollector getGC() {
+	public GarbageCollector getGarbageCollector() {
 		return garbageCollector;		
 	}
 	
-//	/**
-//	 * Deletes all OWLEntities that are not referenced by any axioms (disconnected), 
-//	 * and not built-in entities.
-//	 * 
-//	 * @return
-//	 */
-//	public int cleanUpOwlEntities() {
-//		//TODO remove this expensive debug output
-//		HGHandle typeHandle = graph.getTypeSystem().getTypeHandle(OWLEntity.class);
-//		TypeUtils.printAllSubtypes(graph, graph.getTypeSystem().getType(typeHandle));
-//		
-//		int successRemoveCounter = 0;
-//		List<HGHandle> handlesToRemove = hg.findAll(graph, hg.and(
-//					hg.typePlus(OWLEntity.class),
-//					hg.disconnected(),
-//					hg.not(new OWLEntityIsBuiltIn()))
-//				);
-//		for (HGHandle h: handlesToRemove) {
-//			if (DBG) {
-//				Object o = graph.get(h);
-//				log.info("Removing: " + o + " : " + o.getClass().getSimpleName());
-//			}
-//			if (graph.remove(h)) {
-//				successRemoveCounter ++;
-//			}
-//		}
-//		if (successRemoveCounter != handlesToRemove.size()) throw new IllegalStateException("successRemoveCounter != handles.size()");
-//		return successRemoveCounter;
-//	}
-
-//Boris idea:	    HGHandle th = graph.getTypeSystem().getTypeHandle(OWLEntity.class);
-//  List<HGAtomType> l = hg.getAll(graph, hg.apply(hg.targetAt(graph, 1), hg.and(hg.type(HGSubsumes.class), hg.orderedLink(th, hg.anyHandle()))));
-//	log.info("Removing " + l.size() + " disconnected non builtin OWLEntities from graph.");
-//	return l.size();
 	public void printStatistics() {
 		printStatistics(new PrintWriter(System.out));
-//		Date now = new Date();
-//		DecimalFormat f = new DecimalFormat("##########");
-//		System.out.println("*************** HYPERGRAPH STATISTICS ***************");
-//		System.out.println("* Location     : " + graph.getLocation());
-//		System.out.println("* Now is       : " + DateFormat.getDateTimeInstance().format(now));
-//		System.out.println("*       LINKS  : " + f.format(getNrOfLinks()));
-//		System.out.println("* NoLink ATOMS : " + f.format(getNrOfNonLinkAtoms()));
-//		System.out.println("* TOTAL ATOMS  : " + f.format(getNrOfAtoms()));
-//		System.out.println("*                                                   ");
-//		System.out.println("*      AXIOMS  : " + f.format(getNrOfAtomsByTypePlus(OWLAxiom.class)));
-//		System.out.println("*    ENTITIES  : " + f.format(getNrOfAtomsByTypePlus(OWLEntity.class)));
-//		System.out.println("*****************************************************");	
 	}
 
 	public void printStatistics(PrintWriter w) {
