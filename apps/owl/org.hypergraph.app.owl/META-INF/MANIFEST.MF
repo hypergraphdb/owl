@@ -11,8 +11,7 @@ Bundle-ClassPath: .,
  lib/jars/smackx.jar,
  lib/native
  
-Bundle-NativeCode: /lib/native/libdb_java52.dll; /lib/native/libdb52.dll; osname=win32; processor=x86, 
- /lib/native/amd64/libdb_java52.dll; /lib/native/amd64/libdb52.dll; osname=win32; processor=amd64
+Bundle-NativeCode: /lib/native/libdb_java53.dll; /lib/native/libdb53.dll; osname=win32; processor=x86
  
 Export-Package: 
  org.hypergraphdb,
@@ -42,8 +41,7 @@ Export-Package:
  org.hypergraphdb.type.javaprimitive,
  org.hypergraphdb.util
 Bundle-ActivationPolicy: lazy
-Require-Bundle: org.semanticweb.owl.owlapi;bundle-version="3.2.3",
- org.junit4;bundle-version="4.8.1"
+Require-Bundle: org.semanticweb.owl.owlapi;bundle-version="3.2.3"
 Bundle-Vendor: Miami-Dade CIAO/eSolutions
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: javax.management,
