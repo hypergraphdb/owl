@@ -36,7 +36,7 @@ public class TG001GarbageCollectorTest extends OntologyManagerTest {
 	@Before
 	public void setUp() throws Exception {
 		super.setUp();
-		gc = super.isHypergraphMode()? r.getGC() : null;
+		gc = super.isHypergraphMode()? r.getGarbageCollector() : null;
 	}
 
 	/**
@@ -51,8 +51,8 @@ public class TG001GarbageCollectorTest extends OntologyManagerTest {
 	public void testGC0CollectEmptyOnto() throws Exception {
 		if (gc == null) return;
 		long atoms1 = r.getNrOfAtoms();
-		GarbageCollectorStatistics statsA1 = gc.analyze(GarbageCollector.MODE_FULL);	
-		GarbageCollectorStatistics statsC1 = gc.runGC(GarbageCollector.MODE_FULL);	
+		GarbageCollectorStatistics statsA1 = gc.runGarbageAnalysis(GarbageCollector.MODE_FULL);	
+		GarbageCollectorStatistics statsC1 = gc.runGarbageCollection(GarbageCollector.MODE_FULL);	
 		assertStatsEqual(statsA1, statsC1);
 		long atoms2 = r.getNrOfAtoms(); 
 		assertTrue(atoms1 == atoms2);
@@ -61,16 +61,16 @@ public class TG001GarbageCollectorTest extends OntologyManagerTest {
 		r.deleteOntology(o.getOntologyID());
 		long atoms3 = r.getNrOfAtoms(); 
 		assertTrue(atoms3 == atoms2);
-		GarbageCollectorStatistics statsA2 = gc.analyze(GarbageCollector.MODE_FULL);	
-		GarbageCollectorStatistics statsC2 = gc.runGC(GarbageCollector.MODE_FULL);	
+		GarbageCollectorStatistics statsA2 = gc.runGarbageAnalysis(GarbageCollector.MODE_FULL);	
+		GarbageCollectorStatistics statsC2 = gc.runGarbageCollection(GarbageCollector.MODE_FULL);	
 		assertStatsEqual(statsA2, statsC2);
 		assertTrue(statsC2.getTotalAtoms() == statsC1.getTotalAtoms() + 1);
 		long atoms4 = r.getNrOfAtoms(); 
 		assertTrue(atoms4 == atoms3 - statsC2.getTotalAtoms());
 		createOntologyO();
 		long atoms5 = r.getNrOfAtoms();
-		GarbageCollectorStatistics statsA3 = gc.analyze(GarbageCollector.MODE_FULL);	
-		GarbageCollectorStatistics statsC3 = gc.runGC(GarbageCollector.MODE_FULL);	
+		GarbageCollectorStatistics statsA3 = gc.runGarbageAnalysis(GarbageCollector.MODE_FULL);	
+		GarbageCollectorStatistics statsC3 = gc.runGarbageCollection(GarbageCollector.MODE_FULL);	
 		assertStatsEqual(statsA3, statsC3);
 		long atoms6 = r.getNrOfAtoms();
 		assertTrue(atoms6 == atoms5);assertTrue(atoms6 == atoms2);
@@ -78,8 +78,8 @@ public class TG001GarbageCollectorTest extends OntologyManagerTest {
 		r.deleteOntology(o.getOntologyID());
 		long atoms7 = r.getNrOfAtoms();
 		assertTrue(atoms7 == atoms6);
-		GarbageCollectorStatistics statsA4 = gc.analyze(GarbageCollector.MODE_FULL);	
-		GarbageCollectorStatistics statsC4 = gc.runGC(GarbageCollector.MODE_FULL);	
+		GarbageCollectorStatistics statsA4 = gc.runGarbageAnalysis(GarbageCollector.MODE_FULL);	
+		GarbageCollectorStatistics statsC4 = gc.runGarbageCollection(GarbageCollector.MODE_FULL);	
 		assertStatsEqual(statsA4, statsC4);
 		long atoms8 = r.getNrOfAtoms();
 		assertTrue(atoms8 == atoms7 - statsC4.getTotalAtoms());				
@@ -100,8 +100,8 @@ public class TG001GarbageCollectorTest extends OntologyManagerTest {
 		int ontoSignatureCount = o.getSignature().size();
 		System.out.println("Ontolgy created: Axioms: " + ontoAxiomCount + " Signature: " + ontoSignatureCount);
 		long atoms2 = r.getNrOfAtoms(); //2011.01.04 1:14PM 437 Atoms if onto not in DB, 477 if in DB; 478 2nd run.
-		GarbageCollectorStatistics statsA1 = gc.analyze(GarbageCollector.MODE_DELETED_ONTOLOGIES);	
-		GarbageCollectorStatistics statsC1 = gc.runGC(GarbageCollector.MODE_DELETED_ONTOLOGIES);	
+		GarbageCollectorStatistics statsA1 = gc.runGarbageAnalysis(GarbageCollector.MODE_DELETED_ONTOLOGIES);	
+		GarbageCollectorStatistics statsC1 = gc.runGarbageCollection(GarbageCollector.MODE_DELETED_ONTOLOGIES);	
 		assertStatsEqual(statsA1, statsC1); assertTrue(statsC1.getTotalAtoms() == 0);
 		long atoms3 = r.getNrOfAtoms(); 
 		assertTrue(atoms3 == atoms2);
@@ -114,14 +114,14 @@ public class TG001GarbageCollectorTest extends OntologyManagerTest {
 		long atoms4 = r.getNrOfAtoms(); 
 		assertTrue(atoms4 == atoms2);
 		System.out.println("----------- ANALYZE ---------------");
-		GarbageCollectorStatistics statsA2 = gc.analyze(GarbageCollector.MODE_DELETED_ONTOLOGIES); //39 axioms, 1 onto, 40 total	
+		GarbageCollectorStatistics statsA2 = gc.runGarbageAnalysis(GarbageCollector.MODE_DELETED_ONTOLOGIES); //39 axioms, 1 onto, 40 total	
 		System.out.println("-----------AFTER ANALYZE ---------------");
 		System.out.println("Graph Atoms: " + r.getNrOfAtoms());
 		System.out.println("Ontology Axioms: " + o.getAxiomCount());
 		System.out.println("Ontology Entities: " + o.getSignature().size());
 		System.out.println("GC STATS: " + statsA2.toString());
 		System.out.println("----------- GC ---------------");
-		GarbageCollectorStatistics statsC2 = gc.runGC(GarbageCollector.MODE_DELETED_ONTOLOGIES);	
+		GarbageCollectorStatistics statsC2 = gc.runGarbageCollection(GarbageCollector.MODE_DELETED_ONTOLOGIES);	
 		System.out.println("-----------AFTER GC ---------------");
 		System.out.println("Graph Atoms: " + r.getNrOfAtoms());
 		System.out.println("Ontology Axioms: " + o.getAxiomCount());
@@ -152,8 +152,8 @@ public class TG001GarbageCollectorTest extends OntologyManagerTest {
 		int ontoSignatureCount = o2.getSignature().size();
 		System.out.println("Ontolgies created: Axioms 2: " + ontoAxiomCount + " Signature 2: " + ontoSignatureCount);
 		long atoms2 = r.getNrOfAtoms(); //2011.01.04 1:14PM 437 Atoms if onto not in DB, 477 if in DB; 478 2nd run.
-		GarbageCollectorStatistics statsA1 = gc.analyze(GarbageCollector.MODE_DELETED_ONTOLOGIES);	
-		GarbageCollectorStatistics statsC1 = gc.runGC(GarbageCollector.MODE_DELETED_ONTOLOGIES);	
+		GarbageCollectorStatistics statsA1 = gc.runGarbageAnalysis(GarbageCollector.MODE_DELETED_ONTOLOGIES);	
+		GarbageCollectorStatistics statsC1 = gc.runGarbageCollection(GarbageCollector.MODE_DELETED_ONTOLOGIES);	
 		assertStatsEqual(statsA1, statsC1); assertTrue(statsC1.getTotalAtoms() == 0);
 		long atoms3 = r.getNrOfAtoms(); 
 		assertTrue(atoms3 == atoms2);
@@ -168,14 +168,14 @@ public class TG001GarbageCollectorTest extends OntologyManagerTest {
 		long atoms4 = r.getNrOfAtoms(); 
 		assertTrue(atoms4 == atoms2);
 		System.out.println("----------- ANALYZE ---------------");
-		GarbageCollectorStatistics statsA2 = gc.analyze(GarbageCollector.MODE_DELETED_ONTOLOGIES); //39 axioms, 1 onto, 40 total	
+		GarbageCollectorStatistics statsA2 = gc.runGarbageAnalysis(GarbageCollector.MODE_DELETED_ONTOLOGIES); //39 axioms, 1 onto, 40 total	
 		System.out.println("-----------AFTER ANALYZE ---------------");
 		System.out.println("Graph Atoms: " + r.getNrOfAtoms());
 		System.out.println("Ontology Axioms: " + o.getAxiomCount());
 		System.out.println("Ontology Entities: " + o.getSignature().size());
 		System.out.println("GC STATS: " + statsA2.toString());
 		System.out.println("----------- GC ---------------");
-		GarbageCollectorStatistics statsC2 = gc.runGC(GarbageCollector.MODE_DELETED_ONTOLOGIES);	
+		GarbageCollectorStatistics statsC2 = gc.runGarbageCollection(GarbageCollector.MODE_DELETED_ONTOLOGIES);	
 		System.out.println("-----------AFTER GC ---------------");
 		System.out.println("Graph Atoms: " + r.getNrOfAtoms());
 		System.out.println("Ontology Axioms: " + o.getAxiomCount());
