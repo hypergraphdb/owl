@@ -1,24 +1,25 @@
 Version history:
 
-0.9.5DEV (Release Date: 2011.12.26)
-Core app.owl:
-+ Performance Improvements
-	+ Builting Entity Cache (
-	+ Builting Entity Cache Statistics
-	+ New more efficient Hypergraph revision used
-		+ Faster Class loading w/o exceptions
-		
-		+ Less String creation/conversion
-	+ Berkeley DB 5.2. used 
-+ Improved Garbage Collection
+0.9.6 (Release Date: 2012.01.10)
+	+ Berkeley DB 5.2. used, performance restored
 
-----
-Integration Plugin:
-+ Delete Ontology from Repository
-+ Open Ontology from Repository
-+ OWL Import Declaration Resolution with HGDB Repository Lookup
-+ Overwrite/Delete Ontologies 
-+ Improved GUI responsiveness when large ontologies are loaded.
+0.9.5 (Date 2012.01.09)
+++ Core:
+   + Performance Improvements
+	 + Builting Entity Cache
+	 + Builting Entity Cache Statistics
+	 + New more efficient Hypergraph revision used
+		+ Faster Class loading w/o exceptions
+		+ Less String creation/conversion
+	 + Berkeley DB 5.3. used, later found to result in decreased performance (10x) 
+   + Improved Garbage Collection
+
+++ Integration Plugin:
+   + Delete Ontology from Repository
+   + Open Ontology from Repository
+   + OWL Import Declaration Resolution with HGDB Repository Lookup
+   + Overwrite/Delete Ontologies 
+   + Improved GUI responsiveness when large ontologies are loaded.
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 0.9.0 (Release Date: 2011.12.09)
