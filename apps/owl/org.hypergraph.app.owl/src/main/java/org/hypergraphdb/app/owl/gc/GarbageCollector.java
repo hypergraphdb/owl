@@ -508,15 +508,21 @@ public class GarbageCollector {
 				// Optimize for large incidence sets, if we cannot remove enough objects from is size yet,
 				// there is no check necessary
 				// -1 for parent object; e.g. is size 2, one analyzed -> need check.; is size 3 -> no check
-				if (is.size() - 1 > analyzeRemovedSet.size()) {
+				if (is.size() - 1 - analyzeRemovedSet.size() > 0) {
 					incidenceSetSize = is.size();
 				} else {
-					// we remove those from the incidence set, that we already found plus the current parent.				
+					// expensive correction
+					// we remove those from the incidence set, that we already found plus the current parent.
 					incidenceSetSize = calcAnalyzeISSize(is, parent, analyzeRemovedSet);
 				}
 			} else {
 				//canRemove = (is.isEmpty() || (is.size() == 1 && (is.first().equals(parent)) || parent == null));
-				incidenceSetSize = calcCollectISSize(is, parent, collectibleAtoms);
+				if (is.size() - 1 - collectibleAtoms.size() > 0) {
+					incidenceSetSize = is.size();
+				} else {
+					//expensive correction
+					incidenceSetSize = calcCollectISSize(is, parent, collectibleAtoms);
+				}
 			}
 			canRemove = (incidenceSetSize == 0);
 			if (DBGX) {
