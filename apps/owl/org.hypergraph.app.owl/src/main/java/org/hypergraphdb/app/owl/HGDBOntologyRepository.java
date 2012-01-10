@@ -127,6 +127,18 @@ public class HGDBOntologyRepository {
 	 * @param graph
 	 */
 	private HGDBOntologyRepository(String hypergraphDBLocation) {
+		if (System.getProperty("os.arch").contains("64")) {
+			log.severe("\r\n ******************************************************* \r\n" 
+					  +" This repository version needs a 32 bit Java VM to run \r\n"
+					  +"******************************************************* \r\n");
+			try {
+				Thread.sleep(3000);
+				log.severe("\r\n Goodbye. \r\n"); 
+				Thread.sleep(3000);
+			} catch (InterruptedException e) {
+			}
+			System.exit(-1);
+		}
 		initialize(hypergraphDBLocation);
 		if (graph.isOpen()) {
 			printAllOntologies();
@@ -154,6 +166,7 @@ public class HGDBOntologyRepository {
 	 */
 	private void ensureHypergraph(String location) {
 		HGConfiguration config = new HGConfiguration();
+		config.setClassLoader(HGDBOntologyRepository.class.getClassLoader());
 		config.setUseSystemAtomAttributes(false);
 		BDBConfig bdbConfig = (BDBConfig)config.getStoreImplementation().getConfiguration();
 		// Change the storage cache from the 20MB default to 150MB
@@ -164,6 +177,7 @@ public class HGDBOntologyRepository {
 		graph = HGEnvironment.get(location, config);
 		long nrOfAtoms = hg.count(graph, hg.all());
 		log.info("Hypergraph contains " + nrOfAtoms + " Atoms");
+		//log.info("Berkeley DB Version:" + graph)
 	}
 
 	private void dropHypergraph(String location) {
