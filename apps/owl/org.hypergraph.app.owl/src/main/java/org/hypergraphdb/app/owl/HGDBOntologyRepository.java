@@ -127,6 +127,21 @@ public class HGDBOntologyRepository {
 	 * @param graph
 	 */
 	private HGDBOntologyRepository(String hypergraphDBLocation) {
+		checkExitOn64bitJVM();
+		initialize(hypergraphDBLocation);
+		if (graph.isOpen()) {
+			printAllOntologies();
+		} else {
+			//TODO force open?
+		}
+			
+	}
+	
+	/**
+	 * Tests, if the Java VM we are running on is 64bit and exits with a severe log entry if it is.
+	 * Does not care about the underlying operating system.
+	 */
+	private void checkExitOn64bitJVM() {
 		if (System.getProperty("os.arch").contains("64")) {
 			log.severe("\r\n ******************************************************* \r\n" 
 					  +" This repository version needs a 32 bit Java VM to run \r\n"
@@ -139,13 +154,6 @@ public class HGDBOntologyRepository {
 			}
 			System.exit(-1);
 		}
-		initialize(hypergraphDBLocation);
-		if (graph.isOpen()) {
-			printAllOntologies();
-		} else {
-			//TODO force open?
-		}
-			
 	}
 	
 	public void initialize(String location) {
