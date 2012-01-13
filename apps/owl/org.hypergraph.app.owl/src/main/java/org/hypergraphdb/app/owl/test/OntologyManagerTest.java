@@ -96,7 +96,7 @@ public abstract class OntologyManagerTest {
 	}
 	
 	/**
-	 * Drops the whole hypergraphstore, if m is a HGDBOntologyManager.
+	 * Drops the whole hypergraphstore, if m is a PHGDBOntologyManagerImpl.
 	 */
 	public static void tryCleanUp() {
 		if (m instanceof HGDBOntologyManager) {
@@ -144,7 +144,7 @@ public abstract class OntologyManagerTest {
 	
 	public void initializeHypergraphMode() {
 		System.out.print("TESTRUN in HYPERGRAPH MODE: ");
-		System.out.println(" HGDBOntologyManager ");
+		System.out.println(" PHGDBOntologyManagerImpl ");
 		m = HGDBOntologyRepository.createOWLOntologyManager();	
 		r = ((HGDBOntologyManager)m).getOntologyRepository();
 	}

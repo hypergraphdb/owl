@@ -1796,7 +1796,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 */
 	public void setHyperGraph(HyperGraph graph) {
 		// old from Boris manager = hg.getOne(graph,
-		// hg.type(HGDBOntologyManager.class));
+		// hg.type(PHGDBOntologyManagerImpl.class));
 		super.setHyperGraph(graph);
 		this.graph = graph;
 		if (graph != null) {

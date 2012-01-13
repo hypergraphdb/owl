@@ -487,7 +487,7 @@ public class HGDBOntologyRepository {
 	//
 	//TODO MOVE CREATION OF HGDBONTOLOGYMANAGER SOMEWHERE ELSE ??
 	//
-	public static HGDBOntologyManager createOWLOntologyManager() {
+	public static PHGDBOntologyManagerImpl createOWLOntologyManager() {
         return createOWLOntologyManager(OWLDataFactoryHGDB.getInstance());
     }
     
@@ -498,8 +498,8 @@ public class HGDBOntologyRepository {
 	 * @param dataFactory The data factory to use
 	 * @return <code>OWLDBOntologyManager</code>
 	 */
-	public static HGDBOntologyManager createOWLOntologyManager (final OWLDataFactoryHGDB dataFactory) {
-		final HGDBOntologyManager ontologyManager = new HGDBOntologyManager(dataFactory);
+	public static PHGDBOntologyManagerImpl createOWLOntologyManager (final OWLDataFactoryHGDB dataFactory) {
+		final PHGDBOntologyManagerImpl ontologyManager = new PHGDBOntologyManagerImpl(dataFactory);
 		ontologyManager.addOntologyStorer (new RDFXMLOntologyStorer());
 		ontologyManager.addOntologyStorer (new OWLXMLOntologyStorer());
 		ontologyManager.addOntologyStorer (new OWLFunctionalSyntaxOntologyStorer());

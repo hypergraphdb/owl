@@ -36,7 +36,7 @@ public class TestData {
 	public static String baseOntoPhysURI = "hgdb://generatedTestData/TestA";
 	
 	public static void ensureTestData(HGDBOntologyRepository r, int howMany) {
-		//HGDBOntologyManager m = HGDBOntologyRepository.createOWLOntologyManager();
+		//PHGDBOntologyManagerImpl m = HGDBOntologyRepository.createOWLOntologyManager();
 		OWLDataFactoryHGDB df = OWLDataFactoryHGDB.getInstance();
 		df.setHyperGraph(r.getHyperGraph());
 		
