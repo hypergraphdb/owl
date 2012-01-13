@@ -19,37 +19,32 @@ import org.semanticweb.owlapi.model.OWLOntologyChange;
  */
 public interface ChangeSet extends HGLink {
 	
-	HGHandle getOntologyHandle();
-
 	Date getCreatedDate();
 	
-	Date getCommittedDate();
-	
-	boolean isCommitted();
+//	Date getCommittedDate();
+//	
+//	boolean isCommitted();
 	
 	void addChange(VHGDBOntologyChange change);
 
-	void addChange(OWLOntologyChange change);
+	//void addChange(OWLOntologyChange change);
 
-	/**
-	 * Gets 
-	 * @return 
-	 */
-	List<VHGDBOntologyChange> getChanges();
-
-	List<HGHandle> getChangesHandles();
-
-	List<OWLOntologyChange> getChangesAsOWLChanges();
+//	/**
+//	 * Gets 
+//	 * @return 
+//	 */
+//	List<VHGDBOntologyChange> getChanges();
+//
+//	List<HGHandle> getChangesHandles();
+//
+//	List<OWLOntologyChange> getChangesAsOWLChanges();
 	
 	/**
 	 * Finds and eliminates changes that became obsolete due to later changes.
-	 * @return the compacted changeset.
 	 */
-	ChangeSet pack();
-	
-	RevisionID getPreviousRevisionID();
+	void pack();
 
-	HGHandle getPreviousChangeSetHandle();
+	//to VersionedOntology HGHandle getPreviousChangeSetHandle();
 	
 
 	/**

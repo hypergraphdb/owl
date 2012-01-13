@@ -28,7 +28,7 @@ public interface VHGDBOntologyRepository {
 	
 	public void isVersionControlled(OWLOntology o);
 
-	public boolean existsRevision(OWLOntology o, RevisionID rId);
+	public boolean existsRevision(RevisionID rId);
 	
 	public List<RevisionID> getRevisionIDs(OWLOntology o);
 
@@ -47,7 +47,7 @@ public interface VHGDBOntologyRepository {
 	 * @param rId
 	 * @return
 	 */
-	public OWLOntology getOntologyRevision(OWLOntology o, RevisionID rId);
+	public OWLOntology getOntologyRevision(RevisionID rId);
 
 	/**
 	 * 

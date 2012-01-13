@@ -1,5 +1,7 @@
 package org.hypergraphdb.app.owl.versioning;
 
+import org.hypergraphdb.HGPersistentHandle;
+
 /**
  * A RevisionID is unique in the context of one ontology.
  * It is meaningfully ordered in the context of one ontology.
@@ -9,4 +11,6 @@ package org.hypergraphdb.app.owl.versioning;
  */
 public interface RevisionID extends Comparable<RevisionID>{
 		
+	HGPersistentHandle getOntologyID();
+	
 }

@@ -6,5 +6,10 @@ package org.hypergraphdb.app.owl.versioning;
  * @created Jan 13, 2012
  */
 public interface VersionedOntology {
+
 	
+	//links changesets
+	//commit
+	//rollback
+	//
 }
