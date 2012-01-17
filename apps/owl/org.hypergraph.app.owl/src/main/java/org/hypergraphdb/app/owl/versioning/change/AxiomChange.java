@@ -1,17 +1,27 @@
 package org.hypergraphdb.app.owl.versioning.change;
 
+import java.util.Collections;
 import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 
 /**
  * AxiomChange.
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public interface AxiomChange extends VOWLChange {
+public abstract class AxiomChange extends VOWLChange {
 	
-	HGHandle getAxiom();
+	private HGHandle axiom; 
 	
-	Set<HGHandle> getEntities();
+	public AxiomChange(HGHandle...args) {
+    	axiom = args[0];
+    }
+
+	public HGHandle getAxiom() {
+		return axiom;
+	}
+	
+	//Set<HGHandle> getEntities();
 }

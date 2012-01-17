@@ -10,5 +10,9 @@ import org.semanticweb.owlapi.model.OWLOntologyChange;
 public interface VOWLChangeFactory {
 
 	VOWLChange create(OWLOntologyChange ooc);
+	
+	OWLOntologyChange create(VOWLChange voc);
+	
+	OWLOntologyChange createInverse(VOWLChange voc);
 
 }

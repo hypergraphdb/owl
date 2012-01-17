@@ -7,10 +7,18 @@ import org.hypergraphdb.HGHandle;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public interface ModifyOntologyIDChange extends VOWLChange {
+public class ModifyOntologyIDChange extends VOWLChange {
 	
-	HGHandle getOldOntologyID();
+	private HGHandle oldOntologyIDHandle;
+
+	private HGHandle newOntologyIDHandle;
 	
-	HGHandle getNewOntologyID();
+	HGHandle getOldOntologyID() {
+		return oldOntologyIDHandle;
+	}
+	
+	HGHandle getNewOntologyID() {
+		return newOntologyIDHandle;
+	}
 	
 }

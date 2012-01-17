@@ -7,8 +7,16 @@ import org.hypergraphdb.HGHandle;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public interface OntologyAnnotationChange extends VOWLChange {
+public abstract class OntologyAnnotationChange extends VOWLChange {
 	
-	HGHandle getOntologyAnnotation();
+	private HGHandle ontologyAnnotationHandle;
+	
+	public OntologyAnnotationChange(HGHandle...args) {
+		ontologyAnnotationHandle = args[0];
+    }
+
+	HGHandle getOntologyAnnotation() {
+		return ontologyAnnotationHandle;
+	}
 	
 }

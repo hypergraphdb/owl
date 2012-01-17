@@ -9,9 +9,9 @@ import org.semanticweb.owlapi.model.OWLOntologyChange;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public interface VOWLChange extends HGLink {	
+public abstract class VOWLChange implements HGLink {	
 	
-	OWLOntologyChange convertToOWLOntologyChange();
+	//public abstract OWLOntologyChange convertToOWLOntologyChange();
 	
-	OWLOntologyChange convertToInverseOWLOntologyChange();
+	//public abstract OWLOntologyChange convertToInverseOWLOntologyChange();
 }

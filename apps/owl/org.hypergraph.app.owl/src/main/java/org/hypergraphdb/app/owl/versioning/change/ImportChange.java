@@ -7,8 +7,12 @@ import org.hypergraphdb.HGHandle;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public interface ImportChange extends VOWLChange {
+public class ImportChange extends VOWLChange {
 	
-	HGHandle getImportDeclaration();
+	private HGHandle importDeclarationHandle;
+	
+	HGHandle getImportDeclaration() {
+		return importDeclarationHandle;
+	}
 	
 }
