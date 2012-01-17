@@ -13,6 +13,12 @@ public class ModifyOntologyIDChange extends VOWLChange {
 
 	private HGHandle newOntologyIDHandle;
 	
+	public ModifyOntologyIDChange(HGHandle...args) {
+    	oldOntologyIDHandle = args[0];
+    	newOntologyIDHandle = args[1];    	
+    }
+
+	
 	HGHandle getOldOntologyID() {
 		return oldOntologyIDHandle;
 	}
