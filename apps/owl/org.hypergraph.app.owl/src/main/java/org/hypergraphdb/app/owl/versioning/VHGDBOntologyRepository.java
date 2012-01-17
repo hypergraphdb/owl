@@ -15,16 +15,16 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
  */
 public interface VHGDBOntologyRepository {
 
-	public List<OWLOntology> getVersionControlledOntologies();
+	public List<VersionedOntology> getVersionControlledOntologies();
 
-	public void addVersionControl(OWLOntology o);
+	public VersionedOntology addVersionControl(OWLOntology o);
 	
 	/**
 	 * Removed the given ontology from version control.
 	 * This will remove the full history of the ontology.
 	 * @param o
 	 */
-	public void removeVersionControl(OWLOntology o);
+	public void removeVersionControl(VersionedOntology o);
 	
 	public void isVersionControlled(OWLOntology o);
 
@@ -33,70 +33,10 @@ public interface VHGDBOntologyRepository {
 	public List<RevisionID> getRevisionIDs(OWLOntology o);
 
 
-	public VersionedOntologyID getOntologyRevisionID(OWLOntology o, RevisionID rId);
-
-	public VersionedOntologyID getOntologyHeadRevisionID(OWLOntology o);
-
-	//
-	// This should be in a session later:
-	//
-	
-	/**
-	 * Gets the OWLOntology with the given Revision.
-	 * @param o
-	 * @param rId
-	 * @return
+	/** 
+	 * Commmits all loaded ontologies with a non empty changeset.
 	 */
-	public OWLOntology getOntologyRevision(RevisionID rId);
-
-	/**
-	 * 
-	 * @param oID
-	 * @param rId
-	 * @return
-	 */
-	public OWLOntology getOntologyRevision(OWLOntologyID oID, RevisionID rId);
-
-	
-	public OWLOntology getOntologyRevision(VersionedOntologyID voID);
-	
-	/**
-	 * Returns
-	 * @param o
-	 * @return
-	 */
-	public RevisionID getRevisionID(OWLOntology o);
-	
-	/**
-	 * Gets the Head Revision Id. 
-	 * After this revision Id, no committed changeset exists.
-	 * 
-	 * @param o
-	 * @return
-	 */
-	public RevisionID getHeadRevisionID(OWLOntology o);
-
-	public RevisionID isAtHead(OWLOntology o);
-
-
 	public void commitAll();
-
-	/**
-	 * Closes the changeset, creating a new implicit ontology revision
-	 * and opens a new changeset. 
-	 * 
-	 * @param o
-	 * @return the RevisionID after the closed changeset and before further changes.
-	 */
-	public RevisionID commit(OWLOntology o);
-	
-	/**
-	 * Undos uncommitted changes applied to the ontology.
-	 * 
-	 * @param o
-	 */
-	public void rollback(OWLOntology o);
-	
 	
 
 	//

@@ -1,15 +1,43 @@
 package org.hypergraphdb.app.owl.versioning;
 
+import java.util.List;
+
+import org.hypergraphdb.HGLink;
+import org.semanticweb.owlapi.model.OWLOntology;
+
 /**
  * VersionedOntology.
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public interface VersionedOntology {
+public interface VersionedOntology  {
 
+	public OWLOntology getWorkingRevisionData();
+
+	public int getWorkingRevision();
+
+	public RevisionID getWorkingRevisionID();
 	
-	//links changesets
-	//commit
-	//rollback
-	//
+	public boolean isWorkingRevisionAtHead();
+	
+	public List<Integer> getRevisions();
+	
+	public OWLOntology getHeadRevision();
+
+	/**
+	 * Floating end point of MASTER BRANCH
+	 * @return
+	 */
+	public RevisionID getHeadRevisionID();
+
+	public RevisionID getBaseRevisionID();
+	
+	public boolean existsRevision(Comparable<Object> revisionDescriptor);
+	
+	public OWLOntology getRevision(int revision);
+		
+	public void commit();
+	
+	public void rollback();
+
 }

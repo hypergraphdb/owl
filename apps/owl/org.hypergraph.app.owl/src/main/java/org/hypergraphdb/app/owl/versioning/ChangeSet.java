@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
-import org.hypergraphdb.app.owl.versioning.change.VHGDBOntologyChange;
+import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 
@@ -21,31 +21,14 @@ public interface ChangeSet extends HGLink {
 	
 	Date getCreatedDate();
 	
-//	Date getCommittedDate();
-//	
-//	boolean isCommitted();
-	
-	void addChange(VHGDBOntologyChange change);
+	void addChange(VOWLChange change);
 
-	//void addChange(OWLOntologyChange change);
+	List<HGHandle> getChangesHandles();
 
-//	/**
-//	 * Gets 
-//	 * @return 
-//	 */
-//	List<VHGDBOntologyChange> getChanges();
-//
-//	List<HGHandle> getChangesHandles();
-//
-//	List<OWLOntologyChange> getChangesAsOWLChanges();
-	
 	/**
 	 * Finds and eliminates changes that became obsolete due to later changes.
 	 */
 	void pack();
-
-	//to VersionedOntology HGHandle getPreviousChangeSetHandle();
-	
 
 	/**
 	 * Applies the changes of this changeset.
