@@ -3,14 +3,12 @@ package org.hypergraphdb.app.owl.versioning.change;
 import org.hypergraphdb.HGHandle;
 
 /**
- * VHGDBSetOntologyID.
+ * ImportChange.
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public interface VHGDBSetOntologyID extends VHGDBOntologyChange {
+public interface ImportChange extends Change {
 	
-	HGHandle getOldOntologyID();
-	
-	HGHandle getNewOntologyID();
+	HGHandle getImportDeclaration();
 	
 }

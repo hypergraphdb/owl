@@ -9,6 +9,6 @@ import org.semanticweb.owlapi.model.OWLOntologyChange;
  */
 public interface VHGDBChangeFactory {
 
-	VHGDBOntologyChange create(OWLOntologyChange ooc);
+	Change create(OWLOntologyChange ooc);
 
 }

@@ -4,18 +4,12 @@ import org.hypergraphdb.HGLink;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 
 /**
- * VHGDBOntologyChange.
+ * Change.
  * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public interface VHGDBOntologyChange extends HGLink {	
-	
-	public static enum ChangeType{
-		ADD, REMOVE, MODIFY
-	}
-	
-	ChangeType getChangeType();
+public interface Change extends HGLink {	
 	
 	OWLOntologyChange convertToOWLOntologyChange();
 	
