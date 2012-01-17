@@ -7,7 +7,7 @@ import org.hypergraphdb.HGHandle;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public interface OntologyAnnotationChange {
+public interface OntologyAnnotationChange extends VOWLChange {
 	
 	HGHandle getOntologyAnnotation();
 	
