@@ -9,17 +9,6 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 
-import org.coode.owlapi.functionalparser.OWLFunctionalSyntaxParserFactory;
-import org.coode.owlapi.functionalrenderer.OWLFunctionalSyntaxOntologyStorer;
-import org.coode.owlapi.latex.LatexOntologyStorer;
-import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxParserFactory;
-import org.coode.owlapi.obo.parser.OBOParserFactory;
-import org.coode.owlapi.obo.renderer.OBOFlatFileOntologyStorer;
-import org.coode.owlapi.owlxml.renderer.OWLXMLOntologyStorer;
-import org.coode.owlapi.owlxmlparser.OWLXMLParserFactory;
-import org.coode.owlapi.rdf.rdfxml.RDFXMLOntologyStorer;
-import org.coode.owlapi.rdfxml.parser.RDFXMLParserFactory;
-import org.coode.owlapi.turtle.TurtleOntologyStorer;
 import org.hypergraphdb.HGConfiguration;
 import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.HGHandle;
@@ -28,7 +17,6 @@ import org.hypergraphdb.IncidenceSet;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.management.HGManagement;
-import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryInternalsHGDB;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
@@ -41,7 +29,6 @@ import org.hypergraphdb.query.HGQueryCondition;
 import org.hypergraphdb.storage.BDBConfig;
 import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.hypergraphdb.util.HGUtils;
-import org.semanticweb.owlapi.io.OWLParserFactoryRegistry;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -52,14 +39,6 @@ import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntologyID;
-import org.semanticweb.owlapi.util.NonMappingOntologyIRIMapper;
-
-import uk.ac.manchester.cs.owl.owlapi.EmptyInMemOWLOntologyFactory;
-import uk.ac.manchester.cs.owl.owlapi.ParsableOWLOntologyFactory;
-import uk.ac.manchester.cs.owl.owlapi.mansyntaxrenderer.ManchesterOWLSyntaxOntologyStorer;
-import uk.ac.manchester.cs.owl.owlapi.turtle.parser.TurtleOntologyParserFactory;
-import de.uulm.ecs.ai.owlapi.krssparser.KRSS2OWLParserFactory;
-import de.uulm.ecs.ai.owlapi.krssrenderer.KRSS2OWLSyntaxOntologyStorer;
 
 /**
  * HGDBOntologyRepository.
@@ -122,11 +101,11 @@ public class HGDBOntologyRepository {
 		}
 		return instance;
 	}
-	
+		
     /**
 	 * @param graph
 	 */
-	private HGDBOntologyRepository(String hypergraphDBLocation) {
+	protected HGDBOntologyRepository(String hypergraphDBLocation) {
 		checkExitOn64bitJVM();
 		initialize(hypergraphDBLocation);
 		if (graph.isOpen()) {
@@ -156,7 +135,8 @@ public class HGDBOntologyRepository {
 		}
 	}
 	
-	public void initialize(String location) {
+	@SuppressWarnings("unused")
+	protected void initialize(String location) {
 		if (DROP_HYPERGRAPH_ON_START) {
 			dropHypergraph(location);
 		}
@@ -484,50 +464,4 @@ public class HGDBOntologyRepository {
 		return p;
 	}
 	
-	//
-	//TODO MOVE CREATION OF HGDBONTOLOGYMANAGER SOMEWHERE ELSE ??
-	//
-	public static PHGDBOntologyManagerImpl createOWLOntologyManager() {
-        return createOWLOntologyManager(OWLDataFactoryHGDB.getInstance());
-    }
-    
-	/**
-	 * Create the ontology manager and add ontology factories, mappers and
-	 * storers.
-	 * 
-	 * @param dataFactory The data factory to use
-	 * @return <code>OWLDBOntologyManager</code>
-	 */
-	public static PHGDBOntologyManagerImpl createOWLOntologyManager (final OWLDataFactoryHGDB dataFactory) {
-		final PHGDBOntologyManagerImpl ontologyManager = new PHGDBOntologyManagerImpl(dataFactory);
-		ontologyManager.addOntologyStorer (new RDFXMLOntologyStorer());
-		ontologyManager.addOntologyStorer (new OWLXMLOntologyStorer());
-		ontologyManager.addOntologyStorer (new OWLFunctionalSyntaxOntologyStorer());
-		ontologyManager.addOntologyStorer (new ManchesterOWLSyntaxOntologyStorer());
-		ontologyManager.addOntologyStorer (new OBOFlatFileOntologyStorer());
-		ontologyManager.addOntologyStorer (new KRSS2OWLSyntaxOntologyStorer());
-		ontologyManager.addOntologyStorer (new TurtleOntologyStorer());
-		ontologyManager.addOntologyStorer (new LatexOntologyStorer());
-		ontologyManager.addOntologyStorer (new HGDBStorer ());
-
-		ontologyManager.addIRIMapper (new NonMappingOntologyIRIMapper());
-
-		ontologyManager.addOntologyFactory (new EmptyInMemOWLOntologyFactory());
-		ontologyManager.addOntologyFactory (new ParsableOWLOntologyFactory());
-		ontologyManager.addOntologyFactory (new HGDBOntologyFactory ());
-		return ontologyManager;
-	}	
-	
-    static {
-		//2011.11.29 Parsers to load from files:		
-        // Register useful parsers
-        OWLParserFactoryRegistry registry = OWLParserFactoryRegistry.getInstance();
-        registry.registerParserFactory(new ManchesterOWLSyntaxParserFactory());
-        registry.registerParserFactory(new KRSS2OWLParserFactory());
-        registry.registerParserFactory(new OBOParserFactory());
-        registry.registerParserFactory(new TurtleOntologyParserFactory());
-        registry.registerParserFactory(new OWLFunctionalSyntaxParserFactory());
-        registry.registerParserFactory(new OWLXMLParserFactory());
-        registry.registerParserFactory(new RDFXMLParserFactory());
-    }
 }
