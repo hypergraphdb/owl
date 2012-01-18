@@ -1,10 +1,6 @@
 package org.hypergraphdb.app.owl.versioning.change;
 
-import java.util.Collections;
-import java.util.Set;
-
 import org.hypergraphdb.HGHandle;
-import org.semanticweb.owlapi.model.OWLAnnotation;
 
 /**
  * AxiomChange.
@@ -15,6 +11,8 @@ public abstract class AxiomChange extends VOWLChange {
 	
 	private HGHandle axiom; 
 	
+	//Set<HGHandle> getEntities();
+
 	public AxiomChange(HGHandle...args) {
     	axiom = args[0];
     }
@@ -22,6 +20,40 @@ public abstract class AxiomChange extends VOWLChange {
 	public HGHandle getAxiom() {
 		return axiom;
 	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.HGLink#getArity()
+	 */
+	@Override
+	public int getArity() {		
+		return (axiom == null)? 0:1;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.HGLink#getTargetAt(int)
+	 */
+	@Override
+	public HGHandle getTargetAt(int i) {
+		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
+		return axiom;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int, org.hypergraphdb.HGHandle)
+	 */
+	@Override
+	public void notifyTargetHandleUpdate(int i, HGHandle handle) {
+		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
+		axiom = handle;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.HGLink#notifyTargetRemoved(int)
+	 */
+	@Override
+	public void notifyTargetRemoved(int i) {
+		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
+		axiom = null;
+	}
 	
-	//Set<HGHandle> getEntities();
 }

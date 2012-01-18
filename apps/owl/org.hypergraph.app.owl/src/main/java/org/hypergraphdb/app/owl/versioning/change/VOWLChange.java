@@ -1,7 +1,6 @@
 package org.hypergraphdb.app.owl.versioning.change;
 
 import org.hypergraphdb.HGLink;
-import org.semanticweb.owlapi.model.OWLOntologyChange;
 
 /**
  * Change.
