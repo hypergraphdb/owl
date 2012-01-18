@@ -18,12 +18,19 @@ import org.semanticweb.owlapi.model.RemoveOntologyAnnotation;
 import org.semanticweb.owlapi.model.SetOntologyID;
 
 /**
- * VOWLChangeFactory.
+ * VOWLChangeFactory creates storable change objects from OWL-API Change objects and vice versa.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
 public class VOWLChangeFactory {
 
+	/**
+	 * Creates a storable VOWLChange that represents the given OWLOntologyChange.
+	 * @param ooc
+	 * @param graph
+	 * @return
+	 */
 	public static VOWLChange create(OWLOntologyChange ooc, HyperGraph graph) {
 		if (ooc instanceof AddImport) {
 			ImportChange ic = (ImportChange)ooc;
@@ -54,6 +61,13 @@ public class VOWLChangeFactory {
 		}
 	}
 	
+	/**
+	 * Creates an OWL-API change that represents the given VOWLChange.
+	 * @param voc
+	 * @param onto
+	 * @param graph
+	 * @return
+	 */
 	public static OWLOntologyChange create(VOWLChange voc, OWLOntology onto, HyperGraph graph) {
 		if (voc instanceof VAddImportChange) {
 			VImportChange ic = (VImportChange)voc;
@@ -84,6 +98,13 @@ public class VOWLChangeFactory {
 		}
 	}
 	
+	/**
+	 * Creates an OWL-API change that represents the reversal of the given VOWLChange.
+	 * @param voc
+	 * @param onto
+	 * @param graph
+	 * @return
+	 */
 	public static OWLOntologyChange createInverse(VOWLChange voc, OWLOntology onto, HyperGraph graph) {
 		if (voc instanceof VAddImportChange) {
 			VImportChange ic = (VImportChange)voc;
@@ -112,7 +133,5 @@ public class VOWLChangeFactory {
 		} else {
 			throw new IllegalArgumentException("VOWLOntologyChangeType unknown: " + voc.getClass());
 		}
-		
 	}
-
 }
