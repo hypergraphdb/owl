@@ -3,28 +3,28 @@ package org.hypergraphdb.app.owl.versioning.change;
 import org.hypergraphdb.HGHandle;
 
 /**
- * OntologyAnnotationChange.
+ * VImportChange.
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public abstract class OntologyAnnotationChange extends VOWLChange {
+public abstract class VImportChange extends VOWLChange {
 	
-	private HGHandle ontologyAnnotationHandle;
+	private HGHandle importDeclarationHandle;
 	
-	public OntologyAnnotationChange(HGHandle...args) {
-		ontologyAnnotationHandle = args[0];
+	public VImportChange(HGHandle...args) {
+		importDeclarationHandle = args[0];
     }
-
-	HGHandle getOntologyAnnotation() {
-		return ontologyAnnotationHandle;
-	}
 	
+	HGHandle getImportDeclaration() {
+		return importDeclarationHandle;
+	}
+
 	/* (non-Javadoc)
 	 * @see org.hypergraphdb.HGLink#getArity()
 	 */
 	@Override
 	public int getArity() {		
-		return (ontologyAnnotationHandle == null)? 0:1;
+		return (importDeclarationHandle == null)? 0:1;
 	}
 
 	/* (non-Javadoc)
@@ -33,7 +33,7 @@ public abstract class OntologyAnnotationChange extends VOWLChange {
 	@Override
 	public HGHandle getTargetAt(int i) {
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
-		return ontologyAnnotationHandle;
+		return importDeclarationHandle;
 	}
 
 	/* (non-Javadoc)
@@ -42,7 +42,7 @@ public abstract class OntologyAnnotationChange extends VOWLChange {
 	@Override
 	public void notifyTargetHandleUpdate(int i, HGHandle handle) {
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
-		ontologyAnnotationHandle = handle;
+		importDeclarationHandle = handle;
 	}
 
 	/* (non-Javadoc)
@@ -51,7 +51,7 @@ public abstract class OntologyAnnotationChange extends VOWLChange {
 	@Override
 	public void notifyTargetRemoved(int i) {
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
-		ontologyAnnotationHandle = null;
+		importDeclarationHandle = null;
 	}
 
 }

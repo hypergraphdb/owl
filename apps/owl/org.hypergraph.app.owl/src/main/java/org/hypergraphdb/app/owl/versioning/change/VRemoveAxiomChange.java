@@ -3,13 +3,14 @@ package org.hypergraphdb.app.owl.versioning.change;
 import org.hypergraphdb.HGHandle;
 
 /**
- * RemoveImportChange.
+ * VRemoveAxiomChange.
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 17, 2012
  */
-public class RemoveImportChange extends ImportChange {
-		
-	public RemoveImportChange(HGHandle...args) {
+public class VRemoveAxiomChange extends VAxiomChange {
+	
+	public VRemoveAxiomChange(HGHandle...args) {
     	super(args[0]);
     }
+
 }

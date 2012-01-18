@@ -3,17 +3,17 @@ package org.hypergraphdb.app.owl.versioning.change;
 import org.hypergraphdb.HGHandle;
 
 /**
- * ModifyOntologyIDChange.
+ * VModifyOntologyIDChange.
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public class ModifyOntologyIDChange extends VOWLChange {
+public class VModifyOntologyIDChange extends VOWLChange {
 	
 	private HGHandle oldOntologyIDHandle;
 
 	private HGHandle newOntologyIDHandle;
 	
-	public ModifyOntologyIDChange(HGHandle...args) {
+	public VModifyOntologyIDChange(HGHandle...args) {
     	oldOntologyIDHandle = args[0];
     	newOntologyIDHandle = args[1];    	
     }

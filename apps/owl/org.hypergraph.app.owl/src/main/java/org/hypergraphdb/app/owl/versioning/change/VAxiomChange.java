@@ -3,20 +3,22 @@ package org.hypergraphdb.app.owl.versioning.change;
 import org.hypergraphdb.HGHandle;
 
 /**
- * ImportChange.
+ * VAxiomChange.
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public abstract class ImportChange extends VOWLChange {
+public abstract class VAxiomChange extends VOWLChange {
 	
-	private HGHandle importDeclarationHandle;
+	private HGHandle axiom; 
 	
-	public ImportChange(HGHandle...args) {
-		importDeclarationHandle = args[0];
+	//Set<HGHandle> getEntities();
+
+	public VAxiomChange(HGHandle...args) {
+    	axiom = args[0];
     }
-	
-	HGHandle getImportDeclaration() {
-		return importDeclarationHandle;
+
+	public HGHandle getAxiom() {
+		return axiom;
 	}
 
 	/* (non-Javadoc)
@@ -24,7 +26,7 @@ public abstract class ImportChange extends VOWLChange {
 	 */
 	@Override
 	public int getArity() {		
-		return (importDeclarationHandle == null)? 0:1;
+		return (axiom == null)? 0:1;
 	}
 
 	/* (non-Javadoc)
@@ -33,7 +35,7 @@ public abstract class ImportChange extends VOWLChange {
 	@Override
 	public HGHandle getTargetAt(int i) {
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
-		return importDeclarationHandle;
+		return axiom;
 	}
 
 	/* (non-Javadoc)
@@ -42,7 +44,7 @@ public abstract class ImportChange extends VOWLChange {
 	@Override
 	public void notifyTargetHandleUpdate(int i, HGHandle handle) {
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
-		importDeclarationHandle = handle;
+		axiom = handle;
 	}
 
 	/* (non-Javadoc)
@@ -51,7 +53,7 @@ public abstract class ImportChange extends VOWLChange {
 	@Override
 	public void notifyTargetRemoved(int i) {
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
-		importDeclarationHandle = null;
+		axiom = null;
 	}
-
+	
 }

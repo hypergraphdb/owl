@@ -3,30 +3,28 @@ package org.hypergraphdb.app.owl.versioning.change;
 import org.hypergraphdb.HGHandle;
 
 /**
- * AxiomChange.
+ * VOntologyAnnotationChange.
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public abstract class AxiomChange extends VOWLChange {
+public abstract class VOntologyAnnotationChange extends VOWLChange {
 	
-	private HGHandle axiom; 
+	private HGHandle ontologyAnnotationHandle;
 	
-	//Set<HGHandle> getEntities();
-
-	public AxiomChange(HGHandle...args) {
-    	axiom = args[0];
+	public VOntologyAnnotationChange(HGHandle...args) {
+		ontologyAnnotationHandle = args[0];
     }
 
-	public HGHandle getAxiom() {
-		return axiom;
+	HGHandle getOntologyAnnotation() {
+		return ontologyAnnotationHandle;
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see org.hypergraphdb.HGLink#getArity()
 	 */
 	@Override
 	public int getArity() {		
-		return (axiom == null)? 0:1;
+		return (ontologyAnnotationHandle == null)? 0:1;
 	}
 
 	/* (non-Javadoc)
@@ -35,7 +33,7 @@ public abstract class AxiomChange extends VOWLChange {
 	@Override
 	public HGHandle getTargetAt(int i) {
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
-		return axiom;
+		return ontologyAnnotationHandle;
 	}
 
 	/* (non-Javadoc)
@@ -44,7 +42,7 @@ public abstract class AxiomChange extends VOWLChange {
 	@Override
 	public void notifyTargetHandleUpdate(int i, HGHandle handle) {
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
-		axiom = handle;
+		ontologyAnnotationHandle = handle;
 	}
 
 	/* (non-Javadoc)
@@ -53,7 +51,7 @@ public abstract class AxiomChange extends VOWLChange {
 	@Override
 	public void notifyTargetRemoved(int i) {
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
-		axiom = null;
+		ontologyAnnotationHandle = null;
 	}
-	
+
 }
