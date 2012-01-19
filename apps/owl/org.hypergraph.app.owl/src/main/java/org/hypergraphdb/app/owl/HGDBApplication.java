@@ -44,6 +44,8 @@ import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 public class HGDBApplication extends HGApplication
 {
 	public static boolean DBG = true;
+
+	public static boolean VERSIONING = true;
 	
 	private Logger log = Logger.getLogger(HGDBApplication.class.getName());
 	

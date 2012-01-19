@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import org.hypergraphdb.HGQuery.hg;
+import org.hypergraphdb.app.owl.HGDBOWLManager;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyImpl;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
@@ -145,7 +146,7 @@ public abstract class OntologyManagerTest {
 	public void initializeHypergraphMode() {
 		System.out.print("TESTRUN in HYPERGRAPH MODE: ");
 		System.out.println(" PHGDBOntologyManagerImpl ");
-		m = HGDBOntologyRepository.createOWLOntologyManager();	
+		m = HGDBOWLManager.createOWLOntologyManager();	
 		r = ((HGDBOntologyManager)m).getOntologyRepository();
 	}
 	

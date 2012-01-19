@@ -73,7 +73,7 @@ public class HGDBStorer implements OWLOntologyStorer {
 //				throw new IllegalStateException("We did not get a HGDBOntologyImpl, but : " + newOnto);
 //			}
 			// Set ID
-			//Done on creation ! newOnto.applyChange(new SetOntologyID(newOnto, ontology.getOntologyID()));
+			//Done on creation ! newOnto.applyChange(new VModifyOntologyIDChange(newOnto, ontology.getOntologyID()));
 			final Set<OWLAxiom> axioms = ontology.getAxioms();
 			for (OWLAxiom axiom : axioms) {
 				newOnto.applyChange(new AddAxiom(newOnto, axiom));

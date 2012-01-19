@@ -9,17 +9,52 @@ import org.hypergraphdb.HGPersistentHandle;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public class RevisionID implements Comparable<RevisionID>{
+public class RevisionID implements Comparable<RevisionID> {
 
 	HGPersistentHandle ontologyID;
 	
 	int revision;
 	
-	HGPersistentHandle getOntologyID() {
+	public RevisionID() {
+		//do nothing
+	}
+	
+	public RevisionID(HGPersistentHandle ontologyID, int revision) {
+		this.ontologyID = ontologyID;
+		this.revision = revision;
+	}
+	
+	public HGPersistentHandle getOntologyID() {
 		return ontologyID;
 	}
 	
-	int getRevision() {
+	public void setOntologyID(HGPersistentHandle ontologyID) {
+		this.ontologyID = ontologyID;
+	}
+		
+	public int getRevision() {
 		return revision;	
 	}
+	
+	public void setRevision(int revision) {
+		this.revision = revision;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
+	@Override
+	public int compareTo(RevisionID o) {
+		if (o == this) {
+			return 0;
+		} else {
+			int ontoComp = ontologyID.compareTo(o.getOntologyID());
+			if (ontoComp != 0) {
+				return ontoComp;
+			} else {
+				return (revision<o.getRevision() ? -1 : (revision==o.getRevision() ? 0 : 1));
+			}
+		}
+	}
 }
+ 

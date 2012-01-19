@@ -2,57 +2,88 @@ package org.hypergraphdb.app.owl.versioning;
 
 import java.util.List;
 
+import org.hypergraphdb.app.owl.HGDBOntologyRepository;
+import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
+import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyChangeListener;
-import org.semanticweb.owlapi.model.OWLOntologyID;
+import org.semanticweb.owlapi.modularity.OntologySegmenter;
 
 /**
  * VHGDBOntologyRepository.
- * 
- * 
- * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
- * @created Jan 13, 2012
+ * @created Jan 18, 2012
  */
-public interface VHGDBOntologyRepository {
+public class VHGDBOntologyRepository extends HGDBOntologyRepository implements OWLOntologyChangeListener {
 
-	public List<VersionedOntology> getVersionControlledOntologies();
-
-	public VersionedOntology addVersionControl(OWLOntology o);
+	private static VHGDBOntologyRepository instance = null;
 	
-	/**
-	 * Removed the given ontology from version control.
-	 * This will remove the full history of the ontology.
-	 * @param o
+	public static HGDBOntologyRepository getInstance() {
+		if (instance == null) {
+			String hypergraphDBLocation = getHypergraphDBLocation();
+			System.out.println("HGDB REPOSITORY AT: " + hypergraphDBLocation);
+			instance = new VHGDBOntologyRepository(hypergraphDBLocation);
+		}
+		return instance;
+	}
+	
+	private VHGDBOntologyRepository(String location) {
+		super(location);
+	}
+
+		
+
+	public List<VersionedOntology> getVersionControlledOntologies() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	public VersionedOntology addVersionControl(OWLOntology o) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	public void removeVersionControl(VersionedOntology o) {
+		// TODO Auto-generated method stub
+
+	}
+
+
+	public void isVersionControlled(OWLOntology o) {
+		// TODO Auto-generated method stub
+
+	}
+
+
+	public boolean existsRevision(RevisionID rId) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	public List<RevisionID> getRevisionIDs(OWLOntology o) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public void commitAll() {
+		// TODO Auto-generated method stub
+
+	}
+
+
+	public List<ChangeSet> getChangeSetsTo(OWLOntology o, RevisionID rId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.semanticweb.owlapi.model.OWLOntologyChangeListener#ontologiesChanged(java.util.List)
 	 */
-	public void removeVersionControl(VersionedOntology o);
-	
-	public void isVersionControlled(OWLOntology o);
-
-	public boolean existsRevision(RevisionID rId);
-	
-	public List<RevisionID> getRevisionIDs(OWLOntology o);
-
-
-	/** 
-	 * Commmits all loaded ontologies with a non empty changeset.
-	 */
-	public void commitAll();
-	
-	OWLOntologyChangeListener getChangeTracker();
-
-
-	//
-	// Internal
-	//
-	/**
-	 * Gets a list of Changesets that, if applied in the returned order, 
-	 * change the ontology from the current revision to the given RevisionID.
-	 *  
-	 * @param o
-	 * @param rId
-	 * @return
-	 */
-	List<ChangeSet> getChangeSetsTo(OWLOntology o, RevisionID rId);
+	public void ontologiesChanged(List<? extends OWLOntologyChange> changes) throws OWLException {
+		
+	}
 
 }
