@@ -11,6 +11,18 @@ import org.hypergraphdb.HGPersistentHandle;
  */
 public class RevisionID implements Comparable<RevisionID> {
 
+	/**
+	 * Represents the first revision.
+	 * Before this revision no changes were recorded.
+	 * e.g. after import, the empty ontology after creation.
+	 */
+	public static final int REVISION_FIRST = 0;
+
+	public static final int REVISION_INCREMENT = 1;
+
+	/**
+	 * Persistent handle to the OWLOntology that this Revision represents.
+	 */
 	HGPersistentHandle ontologyID;
 	
 	int revision;
@@ -52,7 +64,7 @@ public class RevisionID implements Comparable<RevisionID> {
 			if (ontoComp != 0) {
 				return ontoComp;
 			} else {
-				return (revision<o.getRevision() ? -1 : (revision==o.getRevision() ? 0 : 1));
+				return (revision < o.getRevision() ? -1 : (revision == o.getRevision() ? 0 : 1));
 			}
 		}
 	}
