@@ -3,6 +3,7 @@ package org.hypergraphdb.app.owl.versioning;
 import java.util.List;
 
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyChangeListener;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
 /**
@@ -38,6 +39,8 @@ public interface VHGDBOntologyRepository {
 	 */
 	public void commitAll();
 	
+	OWLOntologyChangeListener getChangeTracker();
+
 
 	//
 	// Internal

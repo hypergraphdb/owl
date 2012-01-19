@@ -9,9 +9,17 @@ import org.hypergraphdb.HGPersistentHandle;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public interface RevisionID extends Comparable<RevisionID>{
+public class RevisionID implements Comparable<RevisionID>{
 
-	HGPersistentHandle getOntologyID();
+	HGPersistentHandle ontologyID;
 	
-	int getRevision();	
+	int revision;
+	
+	HGPersistentHandle getOntologyID() {
+		return ontologyID;
+	}
+	
+	int getRevision() {
+		return revision;	
+	}
 }

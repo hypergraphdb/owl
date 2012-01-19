@@ -2,6 +2,7 @@ package org.hypergraphdb.app.owl.versioning;
 
 import java.util.List;
 
+import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGLink;
 import org.semanticweb.owlapi.model.OWLOntology;
 
@@ -10,8 +11,12 @@ import org.semanticweb.owlapi.model.OWLOntology;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public interface VersionedOntology  {
-
+public class VersionedOntology  implements HGLink, HGGraphHolder {
+	
+	List<ChangeSet> changeSets;
+	List<RevisionID> changeSetss;
+	
+	
 	public OWLOntology getWorkingRevisionData();
 
 	public int getWorkingRevision();
