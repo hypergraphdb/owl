@@ -476,7 +476,6 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	public Set<OWLImportsDeclaration> getImportsDeclarations() {
 		// get link by name and link(handle)
 		return graph.getTransactionManager().transact(new Callable<Set<OWLImportsDeclaration>>() {
-			@SuppressWarnings("deprecation")
 			public Set<OWLImportsDeclaration> call() {
 				List<OWLImportsDeclaration> l = hg.<OWLImportsDeclaration>getAll(
 						graph,
