@@ -101,7 +101,16 @@ public class HGDBOntologyRepository {
 		}
 		return instance;
 	}
-		
+	
+	protected static boolean hasInstance() {
+		return instance != null;
+	}
+	
+	protected static void setInstance(HGDBOntologyRepository instance) {
+		if (hasInstance()) throw new IllegalStateException("instance exists.");
+		HGDBOntologyRepository.instance = instance;
+	}
+	
     /**
 	 * @param graph
 	 */

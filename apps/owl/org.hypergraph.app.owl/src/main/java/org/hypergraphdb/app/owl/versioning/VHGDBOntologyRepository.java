@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
+import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
+import org.hypergraphdb.app.owl.versioning.change.VOWLChangeFactory;
 import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
@@ -17,31 +19,38 @@ import org.semanticweb.owlapi.modularity.OntologySegmenter;
  */
 public class VHGDBOntologyRepository extends HGDBOntologyRepository implements OWLOntologyChangeListener {
 
-	private static VHGDBOntologyRepository instance = null;
-	
-	public static HGDBOntologyRepository getInstance() {
-		if (instance == null) {
+	public static VHGDBOntologyRepository getInstance() {
+		if (!hasInstance()) {
 			String hypergraphDBLocation = getHypergraphDBLocation();
 			System.out.println("HGDB REPOSITORY AT: " + hypergraphDBLocation);
-			instance = new VHGDBOntologyRepository(hypergraphDBLocation);
+			setInstance(new VHGDBOntologyRepository(hypergraphDBLocation));
 		}
-		return instance;
+		HGDBOntologyRepository instance = HGDBOntologyRepository.getInstance(); 
+		if (!(instance instanceof VHGDBOntologyRepository)) throw new IllegalStateException("Instance requested not Versioned Repository type.");
+		return (VHGDBOntologyRepository)instance;
 	}
 	
 	private VHGDBOntologyRepository(String location) {
 		super(location);
-	}
-
-		
+	}		
 
 	public List<VersionedOntology> getVersionControlledOntologies() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	/**
+	 * Returns the Version controlled Ontology or null.
+	 * @param onto
+	 * @return
+	 */
+	public VersionedOntology getVersionControlledOntology(OWLOntology onto) {
+		return null;
+	}
+
 
 	public VersionedOntology addVersionControl(OWLOntology o) {
-		// TODO Auto-generated method stub
+		if (isVersionControlled(o)) throw new IllegalStateException("Ontology already version controlled" + o.getOntologyID());
 		return null;
 	}
 
@@ -52,8 +61,9 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 	}
 
 
-	public void isVersionControlled(OWLOntology o) {
+	public boolean isVersionControlled(OWLOntology o) {
 		// TODO Auto-generated method stub
+		return true;
 
 	}
 
@@ -83,7 +93,14 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 	 * @see org.semanticweb.owlapi.model.OWLOntologyChangeListener#ontologiesChanged(java.util.List)
 	 */
 	public void ontologiesChanged(List<? extends OWLOntologyChange> changes) throws OWLException {
-		
+		for (OWLOntologyChange c : changes) {
+			//Cache this in a map
+			if (isVersionControlled(c.getOntology())) {
+				VersionedOntology vo = getVersionedOntology(c.getOntology());
+				VOWLChange vc = VOWLChangeFactory.create(c, getHyperGraph());
+				vo.addChange(vc);
+			}
+		}
 	}
 
 }

@@ -27,10 +27,11 @@ import org.semanticweb.owlapi.model.OWLOntologyChange;
  */
 public class ChangeSet implements HGLink, HGGraphHolder {
 	
-	HyperGraph graph;
-	Date createdDate;
-	List <HGHandle> changes;
-	
+	private Date createdDate;
+	private List <HGHandle> changes;
+
+	private HyperGraph graph;
+
 	public Date getCreatedDate() {
 		return createdDate;
 	}

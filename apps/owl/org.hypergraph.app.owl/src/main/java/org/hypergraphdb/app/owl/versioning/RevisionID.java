@@ -23,9 +23,9 @@ public class RevisionID implements Comparable<RevisionID> {
 	/**
 	 * Persistent handle to the OWLOntology that this Revision represents.
 	 */
-	HGPersistentHandle ontologyID;
+	private HGPersistentHandle ontologyID;
 	
-	int revision;
+	private int revision;
 	
 	public RevisionID() {
 		//do nothing
