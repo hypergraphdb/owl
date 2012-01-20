@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src/main/java"/>
-	<classpathentry exported="true" kind="lib" path="lib/jars/db.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jars/db.jar">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="org.hypergraph.app.owl/lib/native"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry exported="true" kind="lib" path="lib/jars/smack.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jars/smackx.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
