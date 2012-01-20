@@ -147,16 +147,15 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	}
 	
 	public Revision getBaseRevision(){ 
-		HGHandle pairHandle = revisionAndChangeSetPairs.get(0);		
-		Pair<Revision, HGHandle> pair = graph.get(pairHandle);
 		return pair.getFirst();
 	}
 	
 	public ChangeSet getChangeSet(RevisionID rId){ 
 		int i = indexOf(rId);
 		if (i == -1) return null;
-		HGHandle pairHandle = revisionAndChangeSetPairs.get(i);		
-		
+		HGHandle pairHandle = revisionAndChangeSetPairs.get(i);
+		Pair<Revision, HGHandle> pair = graph.get(pairHandle);
+		return graph.get(pair.getSecond());
 	}
 	
 	private int indexOf(RevisionID rId) {
