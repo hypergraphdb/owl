@@ -29,6 +29,7 @@ public class RevisionID implements Comparable<RevisionID> {
 	
 	public RevisionID() {
 		//do nothing
+		revision = REVISION_FIRST;
 	}
 	
 	public RevisionID(HGPersistentHandle ontologyID, int revision) {

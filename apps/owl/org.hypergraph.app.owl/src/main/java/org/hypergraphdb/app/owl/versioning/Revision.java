@@ -1,27 +1,25 @@
 package org.hypergraphdb.app.owl.versioning;
 
-import org.hypergraphdb.HGGraphHolder;
+import java.util.Date;
+
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGHandleHolder;
-import org.hypergraphdb.HyperGraph;
-import org.semanticweb.owlapi.model.OWLOntology;
 
-import sun.util.calendar.BaseCalendar.Date;
 
 /**
  * Revision represents the first ontology or a revised version of the ontology.
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 18, 2012
  */
-public class Revision extends RevisionID implements HGGraphHolder, HGHandleHolder {
+public class Revision extends RevisionID implements HGHandleHolder {
 	
-	public static final long TIMESTAMP_UNDEFINED = Date.TIME_UNDEFINED; 
+	public static final long TIMESTAMP_UNDEFINED = Long.MIN_VALUE; 
+	public static final String USER_ANONYMOUS = null; 
 	
 	Date timeStamp;
 	String user;
 //	boolean hasRevisionData;
 	HGHandle handle;
-	HyperGraph graph;
 
 	public Revision() {
 		//do nothing
@@ -74,14 +72,6 @@ public class Revision extends RevisionID implements HGGraphHolder, HGHandleHolde
 
 
 	/* (non-Javadoc)
-	 * @see org.hypergraphdb.HGGraphHolder#setHyperGraph(org.hypergraphdb.HyperGraph)
-	 */
-	@Override
-	public void setHyperGraph(HyperGraph graph) {
-		this.graph = graph;
-	}
-
-	/* (non-Javadoc)
 	 * @see org.hypergraphdb.HGHandleHolder#getAtomHandle()
 	 */
 	@Override
@@ -94,7 +84,7 @@ public class Revision extends RevisionID implements HGGraphHolder, HGHandleHolde
 	 */
 	@Override
 	public void setAtomHandle(HGHandle handle) {
-		handle = handle;
+		this.handle = handle;
 		
 	}
 }

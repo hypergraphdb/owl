@@ -3,23 +3,22 @@ package org.hypergraphdb.app.owl.versioning;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
-import org.semanticweb.owlapi.model.OWLOntology;
+import org.hypergraphdb.app.owl.versioning.change.VOWLChangeFactory;
+import org.semanticweb.owlapi.model.OWLMutableOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 
 /**
- * ChangeSet contains changes affecting one ontology only.
- * A changeset is closed after a commit.
- * A commit causes a new revision of the ontology.
+ * A ChangeSet contains changes affecting one ontology only.
  * 
- * The changeset shall be added to the graph, before changes are added.
+ * The changeset must be added to the graph, before changes are added.
  *  
  * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
@@ -75,16 +74,33 @@ public class ChangeSet implements HGLink, HGGraphHolder {
 	 * Applies the changes of this changeset.
 	 * @param o
 	 */
-	void applyTo(OWLOntology o) {
-		//TODO ;
+	void applyTo(OWLMutableOntology o) {
+		for (HGHandle vchangeHandle : changes) {
+			VOWLChange vc = graph.get(vchangeHandle);
+			OWLOntologyChange c = VOWLChangeFactory.create(vc, o, graph);
+			// applies the change directy, no manager involved, no events issued.
+			// manager needs to reload.
+			o.applyChange(c);
+		}
 	}
 	
 	/**
-	 * Reverse applies (undoes) the changes of this changeset. 
-	 * @param o
+	 * Applies inverted changes of this changeset in inverse order (undo). 
+	 * The changes are applied to the ontology directly. Caller needs to tell the manager.
+	 * 
+	 * eg. ORIG: 1 add A, 2 modify A to A', 3 remove A'  -->
+	 * 	   UNDO: 3 add A', 2 modify A' to A, 1 remove A
+	 * @param o 
 	 */
-	void reverseApplyTo(OWLOntology o) {
-		//TODO;
+	void reverseApplyTo(OWLMutableOntology o) {
+		ListIterator<HGHandle> li = changes.listIterator(changes.size());
+		while (li.hasPrevious()) {
+			VOWLChange vc = graph.get(li.previous());
+			OWLOntologyChange c = VOWLChangeFactory.createInverse(vc, o, graph);
+			// applies the change directly, no manager involved, no events issued.
+			// manager needs to reload.
+			o.applyChange(c);
+		}
 	}
 
 	/* (non-Javadoc)
