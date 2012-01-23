@@ -14,6 +14,7 @@ import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.event.HGEvent;
 import org.hypergraphdb.util.Pair;
+import org.junit.internal.InexactComparisonCriteria;
 import org.semanticweb.owlapi.model.OWLMutableOntology;
 import org.semanticweb.owlapi.model.OWLOntology;
 
@@ -141,15 +142,20 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	 *                         --Second-> changeSetHandle --> ChangeSet(empty));
 	 * </code>
 	 */
-	private void delete(int index) {
+	private void deletePair(int index) {
 		HGHandle pairHandle = revisionAndChangeSetPairs.get(index);		
 		graph.remove(pairHandle, true);
 	}
 	
 	public Revision getBaseRevision(){ 
-		return pair.getFirst();
+		return getRevision(0);
 	}
 	
+	/**
+	 * Returns the changeset that was created after(!) the given revision ID.
+	 * @param rId
+	 * @return
+	 */
 	public ChangeSet getChangeSet(RevisionID rId){ 
 		int i = indexOf(rId);
 		if (i == -1) return null;
@@ -172,11 +178,41 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 
 	/**
 	 * Deletes the last pair after applying an undo of all changes.
-	 * @return new head revision
+	 * This is only allowed if the head changeset is empty.
+	 * <code>
+	 * 1. reverse Apply previous change set cs'
+	 * 2. clear cs'
+	 * 3. Delete current head pair
+	 * 
+	 * Head is now previous revision, data is before cs', cs' is head changeset and  empty.
+	 * </code>
+	 * @throws IllegalStateException, if current head changeset is not empty.
 	 */
-	private Revision rollbackHeadOneRevision() {
-		
+	private void rollbackHeadOneRevision() {
+		if (!getHeadChangeSet().isEmpty()) {
+			throw new IllegalStateException("Need to rollback head before rolling back one revision");
+		}
+		if (!(size() > 1)) {
+			throw new IllegalStateException("There is no revision to roll back");
+		}
+		int indexPrevious = revisionAndChangeSetPairs.size() - 2;
+		ChangeSet cs = getChangeSet(indexPrevious);
+		cs.reverseApplyTo((OWLMutableOntology)getHeadRevisionData());
+		cs.clear();
+		// delete cur head, making prev cur.
+		deletePair(revisionAndChangeSetPairs.size()-1);
 	}
+	
+	/**
+	 * Rolls back changes in the current head changeset and clears it.
+	 */
+	private void rollbackHeadChangeSet() {
+		int index = revisionAndChangeSetPairs.size() -1;
+		ChangeSet s = getChangeSet(index);
+		s.reverseApplyTo((OWLMutableOntology)getHeadRevisionData());
+		s.clear();
+		// The head changeset is now empty and data represents state before changes.
+	}	
 	
 //	public OWLOntology getWorkingRevisionData(){ };
 //
