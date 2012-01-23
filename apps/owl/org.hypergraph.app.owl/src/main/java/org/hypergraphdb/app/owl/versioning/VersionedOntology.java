@@ -3,7 +3,6 @@ package org.hypergraphdb.app.owl.versioning;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 import org.hypergraphdb.HGGraphHolder;
@@ -12,38 +11,42 @@ import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
-import org.hypergraphdb.event.HGEvent;
 import org.hypergraphdb.util.Pair;
-import org.junit.internal.InexactComparisonCriteria;
 import org.semanticweb.owlapi.model.OWLMutableOntology;
 import org.semanticweb.owlapi.model.OWLOntology;
 
 /**
- * VersionedOntology.
+ * A VersionedOntology represents all revisions and changesets of one versioned ontology.
+ * Only one concrete owlontology (revision data) is currently maintained. This is the head revision. 
+ * All added changes are instantly persisted in changesets and survive downtime.
+ * Each commit leads to a new revision and opens a new empty changeset.
+ * 
+ * Revisions are ordered by RevisionID.
+ * The first revision is called base revision, the last head revision.
+ * The changeset that accepts changes until the next commit is called head changeset.
  * 
  * Usage:
- * By the time we add Version control, we have a revision. The first revision.
- * It's data is the OWLOntology at that time. 
+ * By the time we add Version control, we have a revision. 
+ * This is initially both, base and head revision.
+ * It's data is the OWLOntology at that time.
+ * Subsequent changes will be added to the head changeset and applied to the head revision data.
+ * Rollback: will undo all changes in the head changeset.
+ * Commit: will create a new head revision and a new empty head changeset, closing the old head changeset. 
  * 
- * On the first incoming change, we create a changeSet, the workingChangeset.
- * The working Changeset is never empty. 
+ * 
+ * Implementation:
+ * Usage of Pair objects. One pair refers to one revision and the changeset that was applied after the revision.
  * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
 public class VersionedOntology  implements HGLink, HGGraphHolder {
-//	/**
-//	 * The index to the pair that represents the current ontology data state 
-//	 * in the changeSetAndRevisionPairs list.
-//	 */
-//	private int currentRevisionAndChangeSetPairIndex;
 	
 	/**
 	 * The list of all changeSet and Revision Pairs.
 	 * Each pair represents the changeset that leads/led to the pair's revision.
 	 */
 	private List<HGHandle> revisionAndChangeSetPairs;
-	//List<Pair<Revision, ChangeSet>> revisionAndChangeSetPairs;		
 		
 	protected HyperGraph graph;
 	
@@ -79,13 +82,14 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	 * </code>
 	 * @param ontoHandle
 	 * @param user
-	 * @param revision
+	 * @param revision sets the revision (of the new head revision)
 	 */
 	private void commitInternal(HGPersistentHandle ontoHandle, String user, int revision) {
 		// assert revision > Pairs.getLast().GetFirst.GetRevision)
 		// assert user != null
 		// assert ontoHandle != null; pointin to onto.
 		// asssert head change set not empty
+		// assert head.getOntologyID.equals(ontohandle)
 		Revision newRevision = new Revision();
 		newRevision.setOntologyID(ontoHandle);
 		newRevision.setRevision(revision);
@@ -94,7 +98,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 		ChangeSet emptyCs = new ChangeSet();
 		newRevision.setTimeStamp(emptyCs.getCreatedDate());
 		HGHandle csHandle = graph.add(emptyCs);
-		//HGPersistentHandle csHandleP = csHandle.getPersistent();
+		// HGPersistentHandle csHandleP = csHandle.getPersistent();
 		// Pair
 		Pair<Revision, HGHandle> pair = new Pair<Revision, HGHandle>(newRevision, csHandle);
 		HGHandle pairHandle = graph.add(pair);
@@ -147,14 +151,20 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 		graph.remove(pairHandle, true);
 	}
 	
+	/**
+	 * Returns the first revision.
+	 * @return
+	 */
 	public Revision getBaseRevision(){ 
 		return getRevision(0);
 	}
 	
 	/**
 	 * Returns the changeset that was created after(!) the given revision ID.
+	 * (This is NOT the changeset that lead to the given revision.)
+	 * 
 	 * @param rId
-	 * @return
+	 * @return the Changeset or null, if it does not exist.
 	 */
 	public ChangeSet getChangeSet(RevisionID rId){ 
 		int i = indexOf(rId);
@@ -175,7 +185,6 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 		return -1;
 	}
 	
-
 	/**
 	 * Deletes the last pair after applying an undo of all changes.
 	 * This is only allowed if the head changeset is empty.
@@ -188,7 +197,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	 * </code>
 	 * @throws IllegalStateException, if current head changeset is not empty.
 	 */
-	private void rollbackHeadOneRevision() {
+	private void rollbackHeadToPreviousRevision() {
 		if (!getHeadChangeSet().isEmpty()) {
 			throw new IllegalStateException("Need to rollback head before rolling back one revision");
 		}
@@ -213,14 +222,6 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 		s.clear();
 		// The head changeset is now empty and data represents state before changes.
 	}	
-	
-//	public OWLOntology getWorkingRevisionData(){ };
-//
-//	public int getWorkingRevision(){ };
-//
-//	public RevisionID getWorkingRevisionID(){ };
-//	
-//	public boolean isWorkingRevisionAtHead(){ };
 
 	/**
 	 * 
@@ -233,54 +234,15 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 			returnedList.add(pair.getFirst());
 		}
 		return Collections.unmodifiableList(returnedList);
-	};
-	
+	}
+	/**
+	 * The number of revisions, which is equal to the number of changesets.
+	 * 
+	 * @return the number of revisions and changesets.
+	 */
 	public int size(){
 		return revisionAndChangeSetPairs.size();
-	};
-	
-//	/**
-//	 * Gets the given revision. 
-//	 * This is an expensive operation, as all necessary changesets 
-//	 * will be applied to the current data state.
-//	 *  
-//	 *  CURRENTY NOT SUPPORTED (2012.01.19)
-//	 *  We will later have in-mem copies for this or a limited # of ontos in graph.
-//	 *  
-//	 * @param revision
-//	 * @return
-//	 */
-//	public OWLOntology getRevisionData(int revision){ 
-//		
-//		
-//	};
-
-	/**
-	 * Gets the changeset after the given revision of this versioned Ontology
-	 * @param revision
-	 * @return a changeset after the given revision.
-	 */
-	public ChangeSet getRevisionChangeSetAfter(RevisionID revisionID){		
-			int i = getRevisionIndex(revision);
-			HGHandle pairHandle =  
-	};
-
-
-	
-//	private int getRevisionIndex(int revision) {
-//		// go through pair list, load revisions, return index
-//	}
-	
-//	/**
-//	 * 
-//	 * @param revision
-//	 * @return
-//	 */
-//	public OWLOntology setHeadRevision(int revision){
-//		// roll back current to 
-//		getRevision(revision);
-//		
-//	};
+	}
 	
 	/**
 	 * Anonymous commit of current changeset resulting in a new revision.
@@ -294,33 +256,71 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 		//		newChangeSet = EmptyChangeSet
 		// add P' to end of list.
 		//  
-		
-	};
+		commit(Revision.USER_ANONYMOUS, Revision.REVISION_INCREMENT);
+	}
 
+	/**
+	 * Commits all head changes and creates a new head revision with an empty change set.
+	 * @param user
+	 */
 	public void commit(String user){ 
+		commit(user, Revision.REVISION_INCREMENT);
+	}
 
-		
-	};
-
-	public void commit(int revisionIncrement){ 
-		
-	};
+	/**
+	 * Commits all head changes and creates a new head revision with an empty change set.
+	 * 
+	 * @param revisionIncrement
+	 */
+	public void commit(String user, int revisionIncrement){
+		int headRevision = getHeadRevision().getRevision();		
+		commitInternal(getHeadRevision().getOntologyID(), user, headRevision + revisionIncrement);
+	}
 	
 	/**
 	 * Undoes all changes in the current changeset, if any and re-intializes the changeset.
 	 * Currently the current changeset must be the head changeset.
 	 */
 	public void rollback(){ 
-		//if changeset not empty
-		//	
-		//else do nothing
-	};
+		rollbackHeadChangeSet();
+	}
+
+	/**
+	 * Undoes all changes from head to the given revision, 
+	 * deleting all changesets.
+	 * The head changeset must be empty when calling this method.
+	 * 
+	 * @param rId
+	 * @throws IllegalStateException if head changeset has changes or rId not found.
+	 */
+	public void revertHeadTo(RevisionID rId) {
+		int revertIndex = indexOf(rId);
+		if (revertIndex == -1) throw new IllegalStateException("Revert: No such revision: " + rId);
+		if (!getHeadChangeSet().isEmpty()) throw new IllegalStateException("Revert Error: Head changeset not empty, needs rollback.");
+		// 1,C; 2,C; H,HC
+		//  0    1     2 size: 3  => 2 calls
+		for (int curHeadIndex = revisionAndChangeSetPairs.size() - 1; curHeadIndex > revertIndex; curHeadIndex--) {
+			rollbackHeadToPreviousRevision();
+		}
+	}
 	
+	/**
+	 * Adds one change to the current head changeset.
+	 * 
+	 * @param vc
+	 */
 	void addChange(VOWLChange vc){ 
-//		if (workingRevisionAndChangeSetPairIndex != revisionAndChangeSetPairs.size() - 1) {
-//			throw new IllegalStateException("Add changes only allowed, if current revision is head revision.");
-//		}
-		
+		getHeadChangeSet().addChange(vc);
+	}
+	
+	/**
+	 * Removes all revisions and changesets without modifying head revision data.
+	 * Used to remove version control from an ontology.
+	 */
+	void clear() {
+		for (int i = 0; i < revisionAndChangeSetPairs.size(); i++) {
+			deletePair(i);
+		}
 	}
 
 	//
@@ -365,6 +365,6 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	@Override
 	public void notifyTargetRemoved(int i) {
 		revisionAndChangeSetPairs.remove(i);
-	};
+	}
 		
 }
