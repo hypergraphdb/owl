@@ -31,6 +31,10 @@ public class ChangeSet implements HGLink, HGGraphHolder {
 
 	private HyperGraph graph;
 
+	/**
+	 * The Date this changeset was created or last cleared.
+	 * @return
+	 */
 	public Date getCreatedDate() {
 		return createdDate;
 	}
@@ -60,7 +64,8 @@ public class ChangeSet implements HGLink, HGGraphHolder {
 	}
 	
 	/**
-	 * Clears the changeset by removing all changes.
+	 * Clears the changeset by removing all changes and resets the created date. 
+	 * The changeset will be updated in the graph.
 	 */
 	void clear() {
 		changes.clear();
