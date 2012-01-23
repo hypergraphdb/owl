@@ -2,6 +2,10 @@ package org.hypergraphdb.app.owl.versioning;
 
 import java.util.List;
 
+import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGPersistentHandle;
+import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
@@ -35,52 +39,51 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 	}		
 
 	public List<VersionedOntology> getVersionControlledOntologies() {
-		// TODO Auto-generated method stub
-		return null;
+		return getHyperGraph().getAll(hg.type(VersionedOntology.class));
 	}
 
 	/**
 	 * Returns the Version controlled Ontology or null.
 	 * @param onto
-	 * @return
+	 * @return the versioned ontology or null, if not found.
 	 */
 	public VersionedOntology getVersionControlledOntology(OWLOntology onto) {
+		HGPersistentHandle ontoHandle = getHyperGraph().getHandle(onto).getPersistent();
+		for (VersionedOntology vo : getVersionControlledOntologies()) {
+			if (vo.getHeadRevision().getOntologyID().equals(ontoHandle)) {
+				return vo;
+			}
+		}
 		return null;
 	}
 
-
-	public VersionedOntology addVersionControl(OWLOntology o) {
+	public VersionedOntology addVersionControl(OWLOntology o, String user) {
+		HyperGraph graph = getHyperGraph();
 		if (isVersionControlled(o)) throw new IllegalStateException("Ontology already version controlled" + o.getOntologyID());
-		return null;
+		VersionedOntology newVO = new VersionedOntology(o, user, graph);
+		graph.add(newVO);
+		return newVO;
 	}
 
 
 	public void removeVersionControl(VersionedOntology o) {
-		// TODO Auto-generated method stub
-
+		o.clear();
+		
 	}
 
 
 	public boolean isVersionControlled(OWLOntology o) {
-		// TODO Auto-generated method stub
-		return true;
-
+		//TODO optimize this
+		return getVersionControlledOntology(o) != null;
 	}
-
 
 	public boolean existsRevision(RevisionID rId) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
-	public List<RevisionID> getRevisionIDs(OWLOntology o) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public void commitAll() {
-		// TODO Auto-generated method stub
-
+		
 	}
 
 
@@ -93,12 +96,22 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 	 * @see org.semanticweb.owlapi.model.OWLOntologyChangeListener#ontologiesChanged(java.util.List)
 	 */
 	public void ontologiesChanged(List<? extends OWLOntologyChange> changes) throws OWLException {
+		VersionedOntology lastVo = null;
+		OWLOntology lastOnto = null;
 		for (OWLOntologyChange c : changes) {
-			//Cache this in a map
-			if (isVersionControlled(c.getOntology())) {
-				VersionedOntology vo = getVersionedOntology(c.getOntology());
+			//Caching last
+			if (c.getOntology().equals(lastOnto)) {
+				//use cached
 				VOWLChange vc = VOWLChangeFactory.create(c, getHyperGraph());
-				vo.addChange(vc);
+				lastVo.addChange(vc);
+			} else {
+				// get versionedonto
+				if (isVersionControlled(c.getOntology())) {
+					lastOnto = c.getOntology();
+					lastVo = getVersionControlledOntology(lastOnto);
+					VOWLChange vc = VOWLChangeFactory.create(c, getHyperGraph());
+					lastVo.addChange(vc);
+				}
 			}
 		}
 	}
