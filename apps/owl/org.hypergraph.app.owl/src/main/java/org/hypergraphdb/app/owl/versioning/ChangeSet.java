@@ -66,6 +66,14 @@ public class ChangeSet implements HGLink, HGGraphHolder {
 		changes.clear();
 		graph.update(this);
 	}
+	
+	boolean isEmpty() {
+		return changes.isEmpty();
+	}
+
+	int size() {
+		return changes.size();
+	}
 
 
 	List<HGHandle> getChangesHandles() {
