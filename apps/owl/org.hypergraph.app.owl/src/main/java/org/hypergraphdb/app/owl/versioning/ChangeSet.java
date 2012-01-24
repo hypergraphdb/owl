@@ -76,10 +76,9 @@ public class ChangeSet implements HGLink, HGGraphHolder {
 		return changes.isEmpty();
 	}
 
-	int size() {
+	public int size() {
 		return changes.size();
 	}
-
 
 	List<HGHandle> getChangesHandles() {
 		return changes;
@@ -96,7 +95,7 @@ public class ChangeSet implements HGLink, HGGraphHolder {
 	 * Applies the changes of this changeset.
 	 * @param o
 	 */
-	void applyTo(OWLMutableOntology o) {
+	public void applyTo(OWLMutableOntology o) {
 		for (HGHandle vchangeHandle : changes) {
 			VOWLChange vc = graph.get(vchangeHandle);
 			OWLOntologyChange c = VOWLChangeFactory.create(vc, o, graph);
@@ -114,7 +113,7 @@ public class ChangeSet implements HGLink, HGGraphHolder {
 	 * 	   UNDO: 3 add A', 2 modify A' to A, 1 remove A
 	 * @param o 
 	 */
-	void reverseApplyTo(OWLMutableOntology o) {
+	public void reverseApplyTo(OWLMutableOntology o) {
 		ListIterator<HGHandle> li = changes.listIterator(changes.size());
 		while (li.hasPrevious()) {
 			VOWLChange vc = graph.get(li.previous());
