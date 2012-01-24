@@ -67,6 +67,7 @@ public class ChangeSet implements HGLink, HGGraphHolder {
 	/**
 	 * Clears the changeset by removing all changes from graph. 
 	 * The changeset will be updated in the graph. 
+	 * The changeset may be removed from the graph after this operation.
 	 */
 	void clear() {
 		for  (HGHandle ch: changes) {
