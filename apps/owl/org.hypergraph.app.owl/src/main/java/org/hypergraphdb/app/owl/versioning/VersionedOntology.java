@@ -71,6 +71,32 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 		commitInternal(graph.getHandle(onto).getPersistent(), user, Revision.REVISION_FIRST);
 	}
 
+
+	public Revision getHeadRevision() {
+		return getRevision(revisionAndChangeSetPairs.size() - 1);
+	}
+
+	public ChangeSet getHeadChangeSet() {
+		return getChangeSet(revisionAndChangeSetPairs.size() - 1);
+	}
+
+	public OWLOntology getHeadRevisionData(){
+		return graph.get(getHeadRevision().getOntologyID());
+	}
+	
+	private Revision getRevision(int index) {
+		HGHandle pairHandle = revisionAndChangeSetPairs.get(index);		
+		Pair<Revision, HGHandle> pair = graph.get(pairHandle);
+		return pair.getFirst();
+	}
+
+	private ChangeSet getChangeSet(int index) {
+		HGHandle pairHandle = revisionAndChangeSetPairs.get(index);		
+		Pair<Revision, HGHandle> pair = graph.get(pairHandle);
+		HGHandle csHandle = pair.getSecond(); 
+		return graph.get(csHandle);
+	}
+	
 	/**
 	 * Creates a new Pair object, adds it to graph and it's handle to our pairlist,
 	 * and updates or adds this versioned Ontology.
@@ -111,31 +137,6 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 		}
 	}
 
-	public Revision getHeadRevision() {
-		return getRevision(revisionAndChangeSetPairs.size() - 1);
-	}
-
-	public ChangeSet getHeadChangeSet() {
-		return getChangeSet(revisionAndChangeSetPairs.size() - 1);
-	}
-
-	public OWLOntology getHeadRevisionData(){
-		return graph.get(getHeadRevision().getOntologyID());
-	}
-	
-	private Revision getRevision(int index) {
-		HGHandle pairHandle = revisionAndChangeSetPairs.get(index);		
-		Pair<Revision, HGHandle> pair = graph.get(pairHandle);
-		return pair.getFirst();
-	}
-
-	private ChangeSet getChangeSet(int index) {
-		HGHandle pairHandle = revisionAndChangeSetPairs.get(index);		
-		Pair<Revision, HGHandle> pair = graph.get(pairHandle);
-		HGHandle csHandle = pair.getSecond(); 
-		return graph.get(csHandle);
-	}
-	
 	/** 
 	 * Structure deleted:
 	 * 
