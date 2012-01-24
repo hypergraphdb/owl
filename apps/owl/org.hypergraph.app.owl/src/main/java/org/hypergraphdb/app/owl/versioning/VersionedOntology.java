@@ -138,17 +138,21 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	}
 
 	/** 
-	 * Structure deleted:
+	 * Removes the pair, linked changesets and changes from the graph. 
 	 * 
-	 * Only pair deleted. References to Revision, Changesets remain valid and need to be GCd.
 	 * <code>
 	 * pairList.add(pairHandle --First--> Revision (Persistenthandle, int revision)
 	 * 
 	 *                         --Second-> changeSetHandle --> ChangeSet(empty));
 	 * </code>
 	 */
-	private void deletePair(int index) {
-		HGHandle pairHandle = revisionAndChangeSetPairs.get(index);		
+	private void removePair(HGHandle pairHandle) {		
+		Pair<Revision, HGHandle> pair = graph.get(pairHandle);
+		//Revision will be removed with pair removal
+		HGHandle changeSetHandle = pair.getSecond();
+		ChangeSet changeSet = graph.get(changeSetHandle);
+		//Clear changeset
+		changeSet.clear();
 		graph.remove(pairHandle, true);
 	}
 	
@@ -210,7 +214,8 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 		cs.reverseApplyTo((OWLMutableOntology)getHeadRevisionData());
 		cs.clear();
 		// delete cur head, making prev cur.
-		deletePair(revisionAndChangeSetPairs.size()-1);
+		HGHandle pairHandle = revisionAndChangeSetPairs.remove(revisionAndChangeSetPairs.size() - 1);
+		removePair(pairHandle);
 	}
 	
 	/**
@@ -320,8 +325,11 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	 */
 	void clear() {
 		for (int i = 0; i < revisionAndChangeSetPairs.size(); i++) {
-			deletePair(i);
+			HGHandle pairHandle = revisionAndChangeSetPairs.get(i);	
+			removePair(pairHandle);
 		}
+		revisionAndChangeSetPairs.clear();
+		graph.update(this);
 	}
 
 	//
