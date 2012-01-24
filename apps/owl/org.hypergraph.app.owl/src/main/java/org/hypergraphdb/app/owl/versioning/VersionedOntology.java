@@ -312,6 +312,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	
 	/**
 	 * Adds one change to the current head changeset.
+	 * The change will be instantly persisted.
 	 * 
 	 * @param vc
 	 */
@@ -321,7 +322,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	
 	/**
 	 * Removes all revisions and changesets without modifying head revision data.
-	 * Used to remove version control from an ontology.
+	 * The versioned ontology may be removed after this operation.
 	 */
 	void clear() {
 		for (int i = 0; i < revisionAndChangeSetPairs.size(); i++) {
