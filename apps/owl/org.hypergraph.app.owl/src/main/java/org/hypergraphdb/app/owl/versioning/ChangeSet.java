@@ -44,8 +44,9 @@ public class ChangeSet implements HGLink, HGGraphHolder {
 	}
 	
 	public ChangeSet() {
-		createdDate = new Date();
-	}
+		setCreatedDate(new Date());
+		changes = new ArrayList<HGHandle>(100);
+	}	
 	
 	public ChangeSet(HGHandle...args) {
 		changes = new ArrayList<HGHandle>(Arrays.asList(args));
@@ -64,10 +65,14 @@ public class ChangeSet implements HGLink, HGGraphHolder {
 	}
 	
 	/**
-	 * Clears the changeset by removing all changes and resets the created date. 
-	 * The changeset will be updated in the graph.
+	 * Clears the changeset by removing all changes from graph. 
+	 * The changeset will be updated in the graph. 
 	 */
 	void clear() {
+		for  (HGHandle ch: changes) {
+			// we could check for incidence set size 1 here.
+			graph.remove(ch, true);
+		}
 		changes.clear();
 		graph.update(this);
 	}
