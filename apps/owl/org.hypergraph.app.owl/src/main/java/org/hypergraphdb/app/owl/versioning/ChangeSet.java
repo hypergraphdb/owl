@@ -75,8 +75,8 @@ public class ChangeSet implements HGLink, HGGraphHolder {
 			// we could check for incidence set size 1 here.
 			graph.remove(ch, true);
 		}
-		changes.clear();
-		graph.update(this);
+		//changes.clear();
+		//graph.update(this);
 	}
 	
 	
