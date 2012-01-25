@@ -70,13 +70,15 @@ public class ChangeSet implements HGLink, HGGraphHolder {
 	 * The changeset may be removed from the graph after this operation.
 	 */
 	void clear() {
-		for  (HGHandle ch: changes) {
+		List<HGHandle> changesCopy = new ArrayList<HGHandle>(changes);
+		for  (HGHandle ch: changesCopy) {
 			// we could check for incidence set size 1 here.
 			graph.remove(ch, true);
 		}
 		changes.clear();
 		graph.update(this);
 	}
+	
 	
 	boolean isEmpty() {
 		return changes.isEmpty();
