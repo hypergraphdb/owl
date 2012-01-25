@@ -153,6 +153,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 		ChangeSet changeSet = graph.get(changeSetHandle);
 		//Clear changeset
 		changeSet.clear();
+		//graph.remove(changeSetHandle, true);
 		graph.remove(pairHandle, true);
 	}
 	
