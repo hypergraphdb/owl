@@ -535,7 +535,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 			public Boolean call() {
 				boolean success;
 				HGHandle importDeclarationHandle;
-				HGHandle link;
+				//HGHandle link;
 				if (!containsImportDeclaration(importDeclaration)) {
 					return false;
 				}
