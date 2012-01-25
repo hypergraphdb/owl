@@ -34,7 +34,6 @@ import org.hypergraphdb.app.owl.model.axioms.OWLDisjointClassesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLEquivalentClassesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
 import org.hypergraphdb.app.owl.type.link.AxiomAnnotatedBy;
-import org.hypergraphdb.app.owl.type.link.ImportDeclarationLink;
 import org.hypergraphdb.app.owl.util.IncidenceSetALGenerator;
 import org.hypergraphdb.query.AtomTypeCondition;
 import org.hypergraphdb.query.HGQueryCondition;
@@ -477,10 +476,13 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		// get link by name and link(handle)
 		return graph.getTransactionManager().transact(new Callable<Set<OWLImportsDeclaration>>() {
 			public Set<OWLImportsDeclaration> call() {
-				List<OWLImportsDeclaration> l = hg.<OWLImportsDeclaration>getAll(
-						graph,
-						hg.apply(hg.targetAt(graph, 1), hg.and(hg.type(ImportDeclarationLink.class),
-								hg.orderedLink(ontoHandle, hg.anyHandle()), new SubgraphMemberCondition(ontoHandle))));
+//				List<OWLImportsDeclaration> l = hg.<OWLImportsDeclaration>getAll(
+//						graph,
+//						hg.apply(hg.targetAt(graph, 1), hg.and(hg.type(ImportDeclarationLink.class),
+//								hg.orderedLink(ontoHandle, hg.anyHandle()), new SubgraphMemberCondition(ontoHandle))));
+				//2012.01.25 hilpold New import declaration handling; need GC to collect zero incidence set atoms.
+				List<OWLImportsDeclaration> l = ontology.<OWLImportsDeclaration>getAll(
+						hg.typePlus(OWLImportsDeclaration.class));
 				Set<OWLImportsDeclaration> s = getReturnSet(l);
 				if (l.size() != s.size()) throw new IllegalStateException("Set contract broken.");
 				return s;
@@ -505,18 +507,21 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 				if (containsImportDeclaration(importDeclaration))
 					return false;
 				else {
-					HGHandle importDeclarationHandle = graph.add(importDeclaration);
-					ImportDeclarationLink link = new ImportDeclarationLink(ontoHandle, importDeclarationHandle);
-					HGHandle linkHandle = graph.add(link);
+					// 2012.01.25 hilpold new import declaration handling without links
+					// might already be in graph
+					HGHandle importDeclarationHandle = graph.getHandle(importDeclaration);
+					if (importDeclarationHandle == null) {
+						importDeclarationHandle = graph.add(importDeclaration);
+					}
+					//ImportDeclarationLink link = new ImportDeclarationLink(ontoHandle, importDeclarationHandle);
+					//HGHandle linkHandle = graph.add(link);
 					ontology.add(importDeclarationHandle);
-					ontology.add(linkHandle);
+					//ontology.add(linkHandle);
 					return true;
 				}
 			}
 		});
 		//ontology.printGraphStats("After  AddImp");
-		assert (ontology.findOne(hg.eq(importDeclaration)) != null);
-		assert (!ontology.findAll(hg.type(ImportDeclarationLink.class)).isEmpty());
 		return success;
 	}
 
@@ -531,7 +536,6 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 				boolean success;
 				HGHandle importDeclarationHandle;
 				HGHandle link;
-				// graph.getTransactionManager().beginTransaction();
 				if (!containsImportDeclaration(importDeclaration)) {
 					return false;
 				}
@@ -539,14 +543,18 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 				if (importDeclarationHandle == null) {
 					throw new IllegalStateException("Contains said fine, but can't get handle.");
 				}
-				link = hg.findOne(graph, hg.and(hg.type(ImportDeclarationLink.class),
-						hg.orderedLink(ontoHandle, importDeclarationHandle), new SubgraphMemberCondition(ontoHandle)));
-				if (link == null) {
-					throw new IllegalStateException(
-							"Found importDeclaration, but no link. Each Importdeclaration must have exactly one link.");
-				}
-				success = ontology.remove(link) && ontology.remove(importDeclarationHandle) && graph.remove(link)
-						&& graph.remove(importDeclarationHandle);
+//				link = hg.findOne(graph, hg.and(hg.type(ImportDeclarationLink.class),
+//						hg.orderedLink(ontoHandle, importDeclarationHandle), new SubgraphMemberCondition(ontoHandle)));
+//				if (link == null) {
+//					throw new IllegalStateException(
+//							"Found importDeclaration, but no link. Each Importdeclaration must have exactly one link.");
+//				}
+//				success = ontology.remove(link) && ontology.remove(importDeclarationHandle) && graph.remove(link)
+//				&& graph.remove(importDeclarationHandle);
+				// 2012.01.25 hilpold New import declaration handling; 
+				// need GC to collect zero incidence set atoms.
+				// no more link usage
+				success = ontology.remove(importDeclarationHandle);
 				return success;
 			}
 		});
