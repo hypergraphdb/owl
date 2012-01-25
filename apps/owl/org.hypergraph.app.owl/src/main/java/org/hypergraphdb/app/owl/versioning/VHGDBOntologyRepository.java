@@ -14,10 +14,11 @@ import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyChangeListener;
-import org.semanticweb.owlapi.modularity.OntologySegmenter;
+import org.semanticweb.owlapi.model.OWLOntologyID;
 
 /**
  * VHGDBOntologyRepository.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 18, 2012
  */
@@ -30,7 +31,7 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 			setInstance(new VHGDBOntologyRepository(hypergraphDBLocation));
 		}
 		HGDBOntologyRepository instance = HGDBOntologyRepository.getInstance(); 
-		if (!(instance instanceof VHGDBOntologyRepository)) throw new IllegalStateException("Instance requested not Versioned Repository type.");
+		if (!(instance instanceof VHGDBOntologyRepository)) throw new IllegalStateException("Instance requested not Versioned Repository type.: " + instance);
 		return (VHGDBOntologyRepository)instance;
 	}
 	
@@ -56,7 +57,15 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 		}
 		return null;
 	}
-
+	
+	/**
+	 * Adds version control to the given ontology.
+	 * A VersionedOntology object with an initial revision will be created and changes will be recorded.
+	 * 
+	 * @param o
+	 * @param user
+	 * @return
+	 */
 	public VersionedOntology addVersionControl(OWLOntology o, String user) {
 		HyperGraph graph = getHyperGraph();
 		if (isVersionControlled(o)) throw new IllegalStateException("Ontology already version controlled" + o.getOntologyID());
@@ -65,31 +74,34 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 		return newVO;
 	}
 
-
-	public void removeVersionControl(VersionedOntology o) {
-		o.clear();
-		
+	/**
+	 * Removes version control.
+	 * @param vo
+	 */
+	public void removeVersionControl(VersionedOntology vo) {
+		HyperGraph graph = getHyperGraph();
+		vo.clear();
+		HGHandle voHandle = graph.getHandle(vo);
+		graph.remove(voHandle, true);
 	}
-
 
 	public boolean isVersionControlled(OWLOntology o) {
 		//TODO optimize this
 		return getVersionControlledOntology(o) != null;
 	}
-
-	public boolean existsRevision(RevisionID rId) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public void commitAll() {
-		
-	}
-
-
-	public List<ChangeSet> getChangeSetsTo(OWLOntology o, RevisionID rId) {
-		// TODO Auto-generated method stub
-		return null;
+	
+	/**
+	 * Deletes an ontology from the graph. If it is version controlled, the associated version 
+	 * controlled ontology will be deleted also.  
+	 */
+	public boolean deleteOntology(OWLOntologyID ontologyId) {
+		HGHandle ontologyHandle = getOntologyHandleByID(ontologyId);
+		OWLOntology ontology = getHyperGraph().get(ontologyHandle);
+		if (isVersionControlled(ontology)) {
+			VersionedOntology vOntology = getVersionControlledOntology(ontology);
+			removeVersionControl(vOntology);
+		}
+		return super.deleteOntology(ontologyId);
 	}
 
 	/* (non-Javadoc)
@@ -115,5 +127,20 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 			}
 		}
 	}
-
+	
+	/**
+	 * For each ontology, check if version controlled and commit.
+	 * If the head changeset is not empty, a new revision will be created. 
+	 *  
+	 * @param ontologies a list of ontologies, non version controlled will be ignored
+	 * @param user
+	 */
+	public void commitAllVersioned(List<OWLOntology> ontologies, String user) {
+		for (OWLOntology o : ontologies) {
+			VersionedOntology vo = getVersionControlledOntology(o);
+			if (vo != null) {
+				vo.commit(user);
+			}
+		}
+	}
 }
