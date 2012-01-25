@@ -310,6 +310,10 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 		}
 	}
 	
+	public void revertHeadOneRevision() {
+		rollbackHeadToPreviousRevision();
+	}
+
 	/**
 	 * Adds one change to the current head changeset.
 	 * The change will be instantly persisted.
@@ -325,12 +329,15 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	 * The versioned ontology may be removed after this operation.
 	 */
 	void clear() {
-		for (int i = 0; i < revisionAndChangeSetPairs.size(); i++) {
-			HGHandle pairHandle = revisionAndChangeSetPairs.get(i);	
+		List<HGHandle> revisionAndChangeSetPairsCopy = new ArrayList<HGHandle>(revisionAndChangeSetPairs);
+		for (int i = 0; i < revisionAndChangeSetPairsCopy.size(); i++) {
+			HGHandle pairHandle = revisionAndChangeSetPairsCopy.get(i);	
 			removePair(pairHandle);
 		}
-		revisionAndChangeSetPairs.clear();
-		graph.update(this);
+		// assert revisionAndChangeSetPairs.isEmpty()
+		if(!revisionAndChangeSetPairs.isEmpty()) throw new IllegalStateException("List expected to be empty.");
+		//Will be empty revisionAndChangeSetPairs.clear();
+		//graph.update(this);
 	}
 
 	//
