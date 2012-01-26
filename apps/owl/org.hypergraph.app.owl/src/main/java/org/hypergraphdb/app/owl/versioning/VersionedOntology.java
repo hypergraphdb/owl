@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
@@ -11,6 +12,7 @@ import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
+import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.hypergraphdb.util.Pair;
 import org.semanticweb.owlapi.model.OWLMutableOntology;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -57,6 +59,9 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	
 	/**
 	 * Creates an 
+	 * 
+ 	 * Should be called within HGTransaction.
+ 	 * 
 	 * @param onto an ontology already stored in the graph
 	 * @param user
 	 */
@@ -66,30 +71,55 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 		initialize(onto, user);
 	}
 	
-	private void initialize(OWLOntology onto, String user) {
-		revisionAndChangeSetPairs = new ArrayList<HGHandle>();
-		commitInternal(graph.getHandle(onto).getPersistent(), user, Revision.REVISION_FIRST);
+	private void initialize(final OWLOntology onto, final String user) {
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+			public Object call() {
+				revisionAndChangeSetPairs = new ArrayList<HGHandle>();		
+				commitInternal(graph.getHandle(onto).getPersistent(), user, Revision.REVISION_FIRST);
+				return null;
+			}});
 	}
 
 
 	public Revision getHeadRevision() {
-		return getRevision(revisionAndChangeSetPairs.size() - 1);
+		return graph.getTransactionManager().ensureTransaction(new Callable<Revision>() {
+			public Revision call() {
+				return getRevision(revisionAndChangeSetPairs.size() - 1);
+			}}, HGTransactionConfig.READONLY);
 	}
 
 	public ChangeSet getHeadChangeSet() {
-		return getChangeSet(revisionAndChangeSetPairs.size() - 1);
+		return graph.getTransactionManager().ensureTransaction(new Callable<ChangeSet>() {
+			public ChangeSet call() {
+				return getChangeSet(revisionAndChangeSetPairs.size() - 1);
+			}}, HGTransactionConfig.READONLY);
 	}
 
 	public OWLOntology getHeadRevisionData(){
-		return graph.get(getHeadRevision().getOntologyID());
+		return graph.getTransactionManager().ensureTransaction(new Callable<OWLOntology>() {
+			public OWLOntology call() {
+					return graph.get(getHeadRevision().getOntologyID());
+			}}, HGTransactionConfig.READONLY);
 	}
 	
+	/**
+	 * Should be called within HGTransaction.
+	 * 
+	 * @param index
+	 * @return
+	 */
 	private Revision getRevision(int index) {
 		HGHandle pairHandle = revisionAndChangeSetPairs.get(index);		
 		Pair<Revision, HGHandle> pair = graph.get(pairHandle);
 		return pair.getFirst();
 	}
-
+	
+	/**
+	 * Should be called within HGTransaction.
+	 * 
+	 * @param index
+	 * @return
+	 */
 	private ChangeSet getChangeSet(int index) {
 		HGHandle pairHandle = revisionAndChangeSetPairs.get(index);		
 		Pair<Revision, HGHandle> pair = graph.get(pairHandle);
@@ -106,6 +136,9 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	 * pairList.add(pairHandle --First--> Revision (Persistenthandle, int revision)
 	 *                         --Second-> changeSetHandle --> ChangeSet(empty));
 	 * </code>
+	 * 
+	 * Should be called within HGTransaction.
+	 * 
 	 * @param ontoHandle
 	 * @param user
 	 * @param revision sets the revision (of the new head revision)
@@ -145,6 +178,8 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	 * 
 	 *                         --Second-> changeSetHandle --> ChangeSet(empty));
 	 * </code>
+	 * 
+ 	 * Should be called within HGTransaction.
 	 */
 	private void removePair(HGHandle pairHandle) {		
 		Pair<Revision, HGHandle> pair = graph.get(pairHandle);
@@ -162,24 +197,38 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	 * @return
 	 */
 	public Revision getBaseRevision(){ 
-		return getRevision(0);
+		return graph.getTransactionManager().ensureTransaction(new Callable<Revision>() {
+			public Revision call() {
+				return getRevision(0);
+			}}, HGTransactionConfig.READONLY);
 	}
 	
 	/**
 	 * Returns the changeset that was created after(!) the given revision ID.
 	 * (This is NOT the changeset that lead to the given revision.)
 	 * 
+	 * Should be called within HGTransaction.
+	 * 
 	 * @param rId
 	 * @return the Changeset or null, if it does not exist.
 	 */
-	public ChangeSet getChangeSet(RevisionID rId){ 
-		int i = indexOf(rId);
-		if (i == -1) return null;
-		HGHandle pairHandle = revisionAndChangeSetPairs.get(i);
-		Pair<Revision, HGHandle> pair = graph.get(pairHandle);
-		return graph.get(pair.getSecond());
+	public ChangeSet getChangeSet(final RevisionID rId){ 
+		return graph.getTransactionManager().ensureTransaction(new Callable<ChangeSet>() {
+			public ChangeSet call() {
+				int i = indexOf(rId);
+				if (i == -1) return null;
+				HGHandle pairHandle = revisionAndChangeSetPairs.get(i);
+				Pair<Revision, HGHandle> pair = graph.get(pairHandle);
+				return graph.get(pair.getSecond());
+			}}, HGTransactionConfig.READONLY);
 	}
 	
+	/**
+ 	 * Should be called within HGTransaction.
+	 * 
+	 * @param rId
+	 * @return
+	 */
 	private int indexOf(RevisionID rId) {
 		for (int i = revisionAndChangeSetPairs.size() - 1; i >= 0; i--) {
 			HGHandle pairHandle = revisionAndChangeSetPairs.get(i);		
@@ -201,13 +250,16 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	 * 
 	 * Head is now previous revision, data is before cs', cs' is head changeset and  empty.
 	 * </code>
+	 * 
+	 * Should be called within HGTransaction.
+	 * 
 	 * @throws IllegalStateException, if current head changeset is not empty.
 	 */
 	private void rollbackHeadToPreviousRevision() {
 		if (!getHeadChangeSet().isEmpty()) {
 			throw new IllegalStateException("Need to rollback head before rolling back one revision");
 		}
-		if (!(size() > 1)) {
+		if (!(getNrOfRevisions() > 1)) {
 			throw new IllegalStateException("There is no revision to roll back");
 		}
 		int indexPrevious = revisionAndChangeSetPairs.size() - 2;
@@ -221,6 +273,8 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	
 	/**
 	 * Rolls back changes in the current head changeset and clears it.
+	 * 
+ 	 * Should be called within HGTransaction.
 	 */
 	private void rollbackHeadChangeSet() {
 		int index = revisionAndChangeSetPairs.size() -1;
@@ -235,19 +289,23 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	 * @return unmodifiable list of all revisions starting with the oldest at index 0.
 	 */
 	public List<Revision> getRevisions(){
-		List<Revision> returnedList = new ArrayList<Revision>(revisionAndChangeSetPairs.size());
-		for (HGHandle pairHandle: revisionAndChangeSetPairs) {
-			Pair<Revision, HGHandle> pair = graph.get(pairHandle);
-			returnedList.add(pair.getFirst());
-		}
-		return Collections.unmodifiableList(returnedList);
+		return graph.getTransactionManager().ensureTransaction(new Callable<List<Revision>>() {
+			public List<Revision> call() {
+				List<Revision> returnedList = new ArrayList<Revision>(revisionAndChangeSetPairs.size());
+				for (HGHandle pairHandle: revisionAndChangeSetPairs) {
+					Pair<Revision, HGHandle> pair = graph.get(pairHandle);
+					returnedList.add(pair.getFirst());
+				}
+				return Collections.unmodifiableList(returnedList);
+			}}, HGTransactionConfig.READONLY);
 	}
+	
 	/**
 	 * The number of revisions, which is equal to the number of changesets.
 	 * 
 	 * @return the number of revisions and changesets.
 	 */
-	public int size(){
+	public int getNrOfRevisions(){
 		return revisionAndChangeSetPairs.size();
 	}
 	
@@ -277,19 +335,31 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	/**
 	 * Commits all head changes and creates a new head revision with an empty change set.
 	 * 
+	 * This method ensures a HGTransaction.
+	 * 
 	 * @param revisionIncrement
 	 */
-	public void commit(String user, int revisionIncrement){
-		int headRevision = getHeadRevision().getRevision();		
-		commitInternal(getHeadRevision().getOntologyID(), user, headRevision + revisionIncrement);
+	public void commit(final String user, final int revisionIncrement){
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+			public Object call() {
+				int headRevision = getHeadRevision().getRevision();		
+				commitInternal(getHeadRevision().getOntologyID(), user, headRevision + revisionIncrement);
+				return null;
+			}});
 	}
 	
 	/**
 	 * Undoes all changes in the current changeset, if any and re-intializes the changeset.
 	 * Currently the current changeset must be the head changeset.
+	 * 
+	 * This method ensures a HGTransaction.
 	 */
 	public void rollback(){ 
-		rollbackHeadChangeSet();
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+			public Object call() {
+				rollbackHeadChangeSet();
+				return null;
+			}});
 	}
 
 	/**
@@ -297,27 +367,47 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	 * deleting all changesets.
 	 * The head changeset must be empty when calling this method.
 	 * 
+	 * This method ensures a HGTransaction.
+	 * 
 	 * @param rId
 	 * @throws IllegalStateException if head changeset has changes or rId not found.
 	 */
-	public void revertHeadTo(RevisionID rId) {
+	public void revertHeadTo(final RevisionID rId) {
 		int revertIndex = indexOf(rId);
 		if (revertIndex == -1) throw new IllegalStateException("Revert: No such revision: " + rId);
 		if (!getHeadChangeSet().isEmpty()) throw new IllegalStateException("Revert Error: Head changeset not empty, needs rollback.");
-		// 1,C; 2,C; H,HC
-		//  0    1     2 size: 3  => 2 calls
-		for (int curHeadIndex = revisionAndChangeSetPairs.size() - 1; curHeadIndex > revertIndex; curHeadIndex--) {
-			rollbackHeadToPreviousRevision();
-		}
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+			public Object call() {
+				//2nd check, repeatable! could be -1 on repeat, but that's ok below.
+				int revertIndex = indexOf(rId);			
+				// 1,C; 2,C; H,HC
+				//  0    1     2 size: 3  => 2 calls
+				for (int curHeadIndex = revisionAndChangeSetPairs.size() - 1; curHeadIndex > revertIndex; curHeadIndex--) {
+					rollbackHeadToPreviousRevision();
+				}
+				return null;
+			}});
 	}
 	
+	/**
+	 * Reverts head to the previous revision. 
+	 * Changes from previous to head will be applied inversely.
+	 * 
+ 	 * This method ensures a HGTransaction.
+	 */
 	public void revertHeadOneRevision() {
-		rollbackHeadToPreviousRevision();
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+			public Object call() {
+				rollbackHeadToPreviousRevision();
+				return null;
+			}});
 	}
 
 	/**
 	 * Adds one change to the current head changeset.
 	 * The change will be instantly persisted.
+	 * 
+	 * Should be called within HGTransaction.
 	 * 
 	 * @param vc
 	 */
@@ -328,6 +418,9 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	/**
 	 * Removes all revisions and changesets without modifying head revision data.
 	 * The versioned ontology may be removed after this operation.
+	 * 
+	 * Should be called within HGTransaction.
+	 * 
 	 */
 	void clear() {
 		List<HGHandle> revisionAndChangeSetPairsCopy = new ArrayList<HGHandle>(revisionAndChangeSetPairs);
