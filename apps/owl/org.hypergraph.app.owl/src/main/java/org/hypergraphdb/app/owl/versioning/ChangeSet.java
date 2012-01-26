@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
@@ -12,6 +13,7 @@ import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChangeFactory;
+import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.semanticweb.owlapi.model.OWLMutableOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 
@@ -55,6 +57,7 @@ public class ChangeSet implements HGLink, HGGraphHolder {
 	/**
 	 * Stores a change in the graph and adds it to the changeset. 
 	 * The changeset will be updated in the graph.
+	 * Should be called within HGTransaction.
 	 * 
 	 * @param change
 	 */
@@ -68,6 +71,7 @@ public class ChangeSet implements HGLink, HGGraphHolder {
 	 * Clears the changeset by removing all changes from graph. 
 	 * The changeset will be updated in the graph. 
 	 * The changeset may be removed from the graph after this operation.
+	 * Should be called within HGTransaction.
 	 */
 	void clear() {
 		List<HGHandle> changesCopy = new ArrayList<HGHandle>(changes);
@@ -101,16 +105,21 @@ public class ChangeSet implements HGLink, HGGraphHolder {
 
 	/**
 	 * Applies the changes of this changeset.
+	 * This method ensures a HGTransaction.
 	 * @param o
 	 */
-	public void applyTo(OWLMutableOntology o) {
-		for (HGHandle vchangeHandle : changes) {
-			VOWLChange vc = graph.get(vchangeHandle);
-			OWLOntologyChange c = VOWLChangeFactory.create(vc, o, graph);
-			// applies the change directy, no manager involved, no events issued.
-			// manager needs to reload.
-			o.applyChange(c);
-		}
+	public void applyTo(final OWLMutableOntology o) {
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+			public Object call() {
+				for (HGHandle vchangeHandle : changes) {
+					VOWLChange vc = graph.get(vchangeHandle);
+					OWLOntologyChange c = VOWLChangeFactory.create(vc, o, graph);
+					// applies the change directy, no manager involved, no events issued.
+					// manager needs to reload.
+					o.applyChange(c);
+				}
+				return null;
+			}});
 	}
 	
 	/**
@@ -119,17 +128,23 @@ public class ChangeSet implements HGLink, HGGraphHolder {
 	 * 
 	 * eg. ORIG: 1 add A, 2 modify A to A', 3 remove A'  -->
 	 * 	   UNDO: 3 add A', 2 modify A' to A, 1 remove A
+	 * 
+	 * This method ensures a HGTransaction.
 	 * @param o 
 	 */
-	public void reverseApplyTo(OWLMutableOntology o) {
-		ListIterator<HGHandle> li = changes.listIterator(changes.size());
-		while (li.hasPrevious()) {
-			VOWLChange vc = graph.get(li.previous());
-			OWLOntologyChange c = VOWLChangeFactory.createInverse(vc, o, graph);
-			// applies the change directly, no manager involved, no events issued.
-			// manager needs to reload.
-			o.applyChange(c);
-		}
+	public void reverseApplyTo(final OWLMutableOntology o) {
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+			public Object call() {
+				ListIterator<HGHandle> li = changes.listIterator(changes.size());
+				while (li.hasPrevious()) {
+					VOWLChange vc = graph.get(li.previous());
+					OWLOntologyChange c = VOWLChangeFactory.createInverse(vc, o, graph);
+					// applies the change directly, no manager involved, no events issued.
+					// manager needs to reload.
+					o.applyChange(c);
+				}
+				return null;
+			}});
 	}
 
 	/* (non-Javadoc)
