@@ -1,15 +1,18 @@
 package org.hypergraphdb.app.owl.versioning;
 
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.HGQuery.hg;
+import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChangeFactory;
+import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
@@ -48,14 +51,17 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 	 * @param onto
 	 * @return the versioned ontology or null, if not found.
 	 */
-	public VersionedOntology getVersionControlledOntology(OWLOntology onto) {
-		HGPersistentHandle ontoHandle = getHyperGraph().getHandle(onto).getPersistent();
-		for (VersionedOntology vo : getVersionControlledOntologies()) {
-			if (vo.getHeadRevision().getOntologyID().equals(ontoHandle)) {
-				return vo;
-			}
-		}
-		return null;
+	public VersionedOntology getVersionControlledOntology(final OWLOntology onto) {
+		return getHyperGraph().getTransactionManager().ensureTransaction(new Callable<VersionedOntology>() {
+			public VersionedOntology call() {
+				HGPersistentHandle ontoHandle = getHyperGraph().getHandle(onto).getPersistent();
+				for (VersionedOntology vo : getVersionControlledOntologies()) {
+					if (vo.getHeadRevision().getOntologyID().equals(ontoHandle)) {
+						return vo;
+					}
+				}
+				return null;
+			}}, HGTransactionConfig.READONLY);
 	}
 	
 	/**
@@ -66,23 +72,30 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 	 * @param user
 	 * @return
 	 */
-	public VersionedOntology addVersionControl(OWLOntology o, String user) {
-		HyperGraph graph = getHyperGraph();
+	public VersionedOntology addVersionControl(final OWLOntology o, final String user) {
+		final HyperGraph graph = getHyperGraph();
 		if (isVersionControlled(o)) throw new IllegalStateException("Ontology already version controlled" + o.getOntologyID());
-		VersionedOntology newVO = new VersionedOntology(o, user, graph);
-		graph.add(newVO);
-		return newVO;
+		return getHyperGraph().getTransactionManager().ensureTransaction(new Callable<VersionedOntology>() {
+			public VersionedOntology call() {
+				VersionedOntology newVO = new VersionedOntology(o, user, graph);
+				graph.add(newVO);
+				return newVO;
+			}});
 	}
 
 	/**
 	 * Removes version control.
 	 * @param vo
 	 */
-	public void removeVersionControl(VersionedOntology vo) {
-		HyperGraph graph = getHyperGraph();
-		vo.clear();
-		HGHandle voHandle = graph.getHandle(vo);
-		graph.remove(voHandle, true);
+	public void removeVersionControl(final VersionedOntology vo) {
+		final HyperGraph graph = getHyperGraph();
+		getHyperGraph().getTransactionManager().ensureTransaction(new Callable<Object>() {
+			public Object call() {
+				vo.clear();
+				HGHandle voHandle = graph.getHandle(vo);
+				graph.remove(voHandle, true);
+				return null;
+			}});
 	}
 
 	public boolean isVersionControlled(OWLOntology o) {
@@ -94,53 +107,66 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 	 * Deletes an ontology from the graph. If it is version controlled, the associated version 
 	 * controlled ontology will be deleted also.  
 	 */
-	public boolean deleteOntology(OWLOntologyID ontologyId) {
-		HGHandle ontologyHandle = getOntologyHandleByID(ontologyId);
-		OWLOntology ontology = getHyperGraph().get(ontologyHandle);
-		if (isVersionControlled(ontology)) {
-			VersionedOntology vOntology = getVersionControlledOntology(ontology);
-			removeVersionControl(vOntology);
-		}
-		return super.deleteOntology(ontologyId);
+	public boolean deleteOntology(final OWLOntologyID ontologyId) {
+		return getHyperGraph().getTransactionManager().ensureTransaction(new Callable<Boolean>() {
+			public Boolean call() {
+				HGHandle ontologyHandle = getOntologyHandleByID(ontologyId);
+				OWLOntology ontology = getHyperGraph().get(ontologyHandle);
+				if (isVersionControlled(ontology)) {
+					VersionedOntology vOntology = getVersionControlledOntology(ontology);
+					removeVersionControl(vOntology);
+				}
+				return VHGDBOntologyRepository.super.deleteOntology(ontologyId);
+			}});
 	}
 
 	/* (non-Javadoc)
 	 * @see org.semanticweb.owlapi.model.OWLOntologyChangeListener#ontologiesChanged(java.util.List)
 	 */
-	public void ontologiesChanged(List<? extends OWLOntologyChange> changes) throws OWLException {
-		VersionedOntology lastVo = null;
-		OWLOntology lastOnto = null;
-		for (OWLOntologyChange c : changes) {
-			//Caching last
-			if (c.getOntology().equals(lastOnto)) {
-				//use cached
-				VOWLChange vc = VOWLChangeFactory.create(c, getHyperGraph());
-				lastVo.addChange(vc);
-			} else {
-				// get versionedonto
-				if (isVersionControlled(c.getOntology())) {
-					lastOnto = c.getOntology();
-					lastVo = getVersionControlledOntology(lastOnto);
-					VOWLChange vc = VOWLChangeFactory.create(c, getHyperGraph());
-					lastVo.addChange(vc);
+	public void ontologiesChanged(final List<? extends OWLOntologyChange> changes) throws OWLException {
+		getHyperGraph().getTransactionManager().ensureTransaction(new Callable<Object>() {
+			public Object call() {
+				VersionedOntology lastVo = null;
+				OWLOntology lastOnto = null;
+				for (OWLOntologyChange c : changes) {
+					//Caching last
+					if (c.getOntology().equals(lastOnto)) {
+						//use cached
+						VOWLChange vc = VOWLChangeFactory.create(c, getHyperGraph());
+						lastVo.addChange(vc);
+					} else {
+						// get versioned onto
+						if (isVersionControlled(c.getOntology())) {
+							lastOnto = c.getOntology();
+							lastVo = getVersionControlledOntology(lastOnto);
+							VOWLChange vc = VOWLChangeFactory.create(c, getHyperGraph());
+							lastVo.addChange(vc);
+						}
+					}
 				}
-			}
-		}
+				// forced to use Callable:
+				return null;
+			}});
 	}
 	
 	/**
 	 * For each ontology, check if version controlled and commit.
 	 * If the head changeset is not empty, a new revision will be created. 
-	 *  
+	 * 
+	 * 
 	 * @param ontologies a list of ontologies, non version controlled will be ignored
 	 * @param user
 	 */
-	public void commitAllVersioned(List<OWLOntology> ontologies, String user) {
-		for (OWLOntology o : ontologies) {
-			VersionedOntology vo = getVersionControlledOntology(o);
-			if (vo != null) {
-				vo.commit(user);
-			}
-		}
+	public void commitAllVersioned(final List<OWLOntology> ontologies, final String user) {
+		getHyperGraph().getTransactionManager().ensureTransaction(new Callable<Object>() {
+			public Object call() {
+				for (OWLOntology o : ontologies) {
+					VersionedOntology vo = getVersionControlledOntology(o);
+					if (vo != null) {
+						vo.commit(user);
+					}
+				}
+				return null;
+			}});
 	}
 }
