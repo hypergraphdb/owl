@@ -42,7 +42,9 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 	}		
 
 	public List<VersionedOntology> getVersionControlledOntologies() {
-		return getHyperGraph().getAll(hg.type(VersionedOntology.class));
+		 List<VersionedOntology> l = getHyperGraph().getAll(hg.type(VersionedOntology.class));
+		 System.out.println("List VersionedOntologies (by type): " + l.size());
+		 return l;
 	}
 
 	/**
@@ -55,9 +57,14 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 			public VersionedOntology call() {
 				HGPersistentHandle ontoHandle = getHyperGraph().getHandle(onto).getPersistent();
 				for (VersionedOntology vo : getVersionControlledOntologies()) {
-					if (vo.getHeadRevision().getOntologyID().equals(ontoHandle)) {
-						return vo;
-					}
+//					if (vo.getNrOfRevisions() < 1) {
+//						System.err.println("Detected VersionedOnto with no HEAD in graph !!! " + vo);
+//						System.err.println("HANDLE " + getHyperGraph().getHandle(vo));
+//					} else {
+						if (vo.getHeadRevision().getOntologyID().equals(ontoHandle)) {
+							return vo;
+						}
+//					}
 				}
 				return null;
 			}}, HGTransactionConfig.READONLY);
