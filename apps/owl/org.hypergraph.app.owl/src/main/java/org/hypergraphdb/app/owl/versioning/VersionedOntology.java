@@ -165,9 +165,10 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 		//this link needs to be graph.updated now.
 		if (graph.getHandle(this) != null){
 			graph.update(this);
-		} else {
-			graph.add(this);
-		}
+		} //2012.01.27 hilpold BIG PROBLEM WAS: 
+		// else {
+		//	graph.add(this);
+		//}
 	}
 
 	/** 
@@ -181,7 +182,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	 * 
  	 * Should be called within HGTransaction.
 	 */
-	private void removePair(HGHandle pairHandle) {		
+	private void removePair(HGHandle pairHandle) {	
 		Pair<Revision, HGHandle> pair = graph.get(pairHandle);
 		//Revision will be removed with pair removal
 		HGHandle changeSetHandle = pair.getSecond();
@@ -260,7 +261,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 			throw new IllegalStateException("Need to rollback head before rolling back one revision");
 		}
 		if (!(getNrOfRevisions() > 1)) {
-			throw new IllegalStateException("There is no revision to roll back");
+			throw new IllegalStateException("Cannot roll back Head, because Head is Base.");
 		}
 		int indexPrevious = revisionAndChangeSetPairs.size() - 2;
 		ChangeSet cs = getChangeSet(indexPrevious);
