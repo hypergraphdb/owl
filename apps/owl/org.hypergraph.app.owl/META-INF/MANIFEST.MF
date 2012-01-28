@@ -23,6 +23,7 @@ Export-Package:
  org.hypergraphdb.app.owl.exception,
  org.hypergraphdb.app.owl.gc,
  org.hypergraphdb.app.owl.model,
+ org.hypergraphdb.app.owl.versioning,
  org.hypergraphdb.app.owl.type,
  org.hypergraphdb.app.owl.util,
  org.hypergraphdb.atom,
