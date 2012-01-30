@@ -605,7 +605,9 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 				HGHandle annotationHandle = graph.getHandle(ann);
 				if (annotationHandle == null) throw new IllegalStateException("annotationHandle null");
 				boolean doRemove = containsOntologyAnnotation(ann);
-				ontology.remove(annotationHandle);
+				if (doRemove) {
+					ontology.remove(annotationHandle);
+				}
 				return doRemove;
 			}});
 	}
