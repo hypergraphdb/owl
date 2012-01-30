@@ -2,7 +2,6 @@ package org.hypergraphdb.app.owl.versioning;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -225,6 +224,23 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	}
 	
 	/**
+	 * Returns a list of changesets in the same order as revisions.
+	 * The list, but not its entries may be modified without affecting the versioned ontology.
+	 * @return
+	 */
+	public List<ChangeSet> getChangeSets() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<List<ChangeSet>>() {
+			public List<ChangeSet> call() {
+				List<ChangeSet> returnedList = new ArrayList<ChangeSet>(revisionAndChangeSetPairs.size());
+				for (HGHandle pairHandle: revisionAndChangeSetPairs) {
+					Pair<Revision, HGHandle> pair = graph.get(pairHandle);
+					returnedList.add(graph.<ChangeSet>get(pair.getSecond()));
+				}
+				return returnedList;
+			}}, HGTransactionConfig.READONLY);
+	}
+	
+	/**
  	 * Should be called within HGTransaction.
 	 * 
 	 * @param rId
@@ -286,8 +302,8 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	}	
 
 	/**
-	 * 
-	 * @return unmodifiable list of all revisions starting with the oldest at index 0.
+	 * Returns all Revisions ordered lowest/oldest revision first.
+	 * The list, but not its entries may be modified without affecting the versioned ontology.
 	 */
 	public List<Revision> getRevisions(){
 		return graph.getTransactionManager().ensureTransaction(new Callable<List<Revision>>() {
@@ -297,7 +313,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 					Pair<Revision, HGHandle> pair = graph.get(pairHandle);
 					returnedList.add(pair.getFirst());
 				}
-				return Collections.unmodifiableList(returnedList);
+				return returnedList;
 			}}, HGTransactionConfig.READONLY);
 	}
 	
