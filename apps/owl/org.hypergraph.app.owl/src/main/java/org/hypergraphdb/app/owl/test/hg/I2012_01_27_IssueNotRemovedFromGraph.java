@@ -14,15 +14,15 @@ import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.hypergraphdb.util.HGUtils;
 
 /**
- * IssueNotRemovedFromGraph2012_01_27.
+ * I2012_01_27_IssueNotRemovedFromGraph.
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 27, 2012
  */
-public class IssueNotRemovedFromGraph2012_01_27 {
+public class I2012_01_27_IssueNotRemovedFromGraph {
 	public static String hypergraphDir = "C:\\temp\\hgissuenotremoved";
 	
 	public static void main(String[] argv) {
-		IssueNotRemovedFromGraph2012_01_27 o = new IssueNotRemovedFromGraph2012_01_27();
+		I2012_01_27_IssueNotRemovedFromGraph o = new I2012_01_27_IssueNotRemovedFromGraph();
 		o.reproduceError();
 	}
 	ChangeSet cs;

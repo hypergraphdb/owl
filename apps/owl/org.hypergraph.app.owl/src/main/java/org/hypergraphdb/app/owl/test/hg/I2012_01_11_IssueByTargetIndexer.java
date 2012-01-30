@@ -8,19 +8,19 @@ import org.hypergraphdb.indexing.ByTargetIndexer;
 import org.hypergraphdb.util.HGUtils;
 
 /**
- * IssueByTargetIndexer2012_01_11. 
+ * I2012_01_11_IssueByTargetIndexer. 
  * "Remove of an HGLink with ByTargetIndexer present may cause exception"
  * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 11, 2012
  * 
  */
-public class IssueByTargetIndexer2012_01_11 {
+public class I2012_01_11_IssueByTargetIndexer {
 
 	public static String hypergraphDir = "C:\\temp\\hgissuegraph";
 	
 	public static void main(String[] argv) {
-		IssueByTargetIndexer2012_01_11 o = new IssueByTargetIndexer2012_01_11();
+		I2012_01_11_IssueByTargetIndexer o = new I2012_01_11_IssueByTargetIndexer();
 		o.reproduceError();
 	}
 	
