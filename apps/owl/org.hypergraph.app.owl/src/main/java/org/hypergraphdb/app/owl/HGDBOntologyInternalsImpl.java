@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
+import org.hypergraphdb.HGSearchResult;
 import org.hypergraphdb.IncidenceSet;
 import org.hypergraphdb.algorithms.HGBreadthFirstTraversal;
 import org.hypergraphdb.app.owl.core.AbstractInternalsHGDB;
@@ -576,8 +577,13 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	public boolean containsOntologyAnnotation(OWLAnnotation ann) {
-		HGHandle annotationHandle = graph.getHandle(ann);
-		return ontology.isMember(annotationHandle);
+		HGSearchResult<OWLAnnotationHGDB> sr = ontology.find(hg.and(hg.type(OWLAnnotationHGDB.class), hg.eq(ann)));
+		boolean contains = sr.hasNext();
+		sr.close();
+		return contains;
+		//2012.01.30 simple but fast implementation was not valid to prevent duplicates:
+		// HGHandle annotationHandle = graph.getHandle(ann);
+		// return ontology.isMember(annotationHandle);
 	}
 
 	public boolean addOntologyAnnotation(final OWLAnnotation ann) {
