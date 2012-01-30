@@ -43,7 +43,6 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 
 	public List<VersionedOntology> getVersionControlledOntologies() {
 		 List<VersionedOntology> l = getHyperGraph().getAll(hg.type(VersionedOntology.class));
-		 System.out.println("List VersionedOntologies (by type): " + l.size());
 		 return l;
 	}
 
@@ -55,18 +54,20 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 	public VersionedOntology getVersionControlledOntology(final OWLOntology onto) {
 		return getHyperGraph().getTransactionManager().ensureTransaction(new Callable<VersionedOntology>() {
 			public VersionedOntology call() {
-				HGPersistentHandle ontoHandle = getHyperGraph().getHandle(onto).getPersistent();
-				for (VersionedOntology vo : getVersionControlledOntologies()) {
-//					if (vo.getNrOfRevisions() < 1) {
-//						System.err.println("Detected VersionedOnto with no HEAD in graph !!! " + vo);
-//						System.err.println("HANDLE " + getHyperGraph().getHandle(vo));
-//					} else {
-						if (vo.getHeadRevision().getOntologyID().equals(ontoHandle)) {
+				//TODO maybe not loaded here? -> NPE; Check out callers
+				HGHandle ontoHandle = getHyperGraph().getHandle(onto);
+				if (ontoHandle == null) {
+					System.out.println("NULL for onto" + onto);
+					return null;
+				} else {
+					HGPersistentHandle ontoPHandle = ontoHandle.getPersistent();
+					for (VersionedOntology vo : getVersionControlledOntologies()) {
+						if (vo.getHeadRevision().getOntologyID().equals(ontoPHandle)) {
 							return vo;
 						}
-//					}
+					}
+					return null;
 				}
-				return null;
 			}}, HGTransactionConfig.READONLY);
 	}
 	
