@@ -58,6 +58,7 @@ public class I2012_01_29_IssueDoubleAdd {
 		} else {
 			System.out.println("TEST PASSED: As expected, no object found after remove");
 		}
+		graph.close();
 		HGUtils.dropHyperGraphInstance(hypergraphDir);
 	}
 	

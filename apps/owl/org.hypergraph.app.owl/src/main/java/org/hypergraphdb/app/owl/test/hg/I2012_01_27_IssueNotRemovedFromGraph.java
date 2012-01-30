@@ -38,6 +38,8 @@ public class I2012_01_27_IssueNotRemovedFromGraph {
 		removeFromGraphInTransaction();		
 		System.out.println("Nothing should be found after this line.");
 		findChangesets();
+		graph.close();
+		try { Thread.sleep(1000); } catch (Exception e) {};
 	}
 	
 	public void removeFromGraphInTransaction() {
