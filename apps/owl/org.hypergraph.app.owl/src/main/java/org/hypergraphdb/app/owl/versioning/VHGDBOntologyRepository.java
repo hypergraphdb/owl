@@ -110,6 +110,32 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 		return getVersionControlledOntology(o) != null;
 	}
 	
+	
+	/**
+	 * For each ontology, check if version controlled and commit.
+	 * If the head changeset is not empty, a new revision will be created. 
+	 * 
+	 * 
+	 * @param ontologies a list of ontologies, non version controlled will be ignored
+	 * @param user
+	 */
+	public void commitAllVersioned(final List<OWLOntology> ontologies, final String user, final String commentForAll) {
+		getHyperGraph().getTransactionManager().ensureTransaction(new Callable<Object>() {
+			public Object call() {
+				for (OWLOntology o : ontologies) {
+					VersionedOntology vo = getVersionControlledOntology(o);
+					if (vo != null) {
+						vo.commit(user, commentForAll);
+					}
+				}
+				return null;
+			}});
+	}
+	
+	//
+	// OVERWRITING SUPERCLASS DELETE_ONTOLOGY
+	//
+	
 	/**
 	 * Deletes an ontology from the graph. If it is version controlled, the associated version 
 	 * controlled ontology will be deleted also.  
@@ -126,7 +152,14 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 				return VHGDBOntologyRepository.super.deleteOntology(ontologyId);
 			}});
 	}
+	
+	
 
+	// ---------------------------------------------------------------------------------------
+	// CHANGE LISTENER IMPLEMENTATION
+	// All ontology changes pass through here.
+	// ---------------------------------------------------------------------------------------
+	
 	/* (non-Javadoc)
 	 * @see org.semanticweb.owlapi.model.OWLOntologyChangeListener#ontologiesChanged(java.util.List)
 	 */
@@ -155,25 +188,6 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 				return null;
 			}});
 	}
-	
-	/**
-	 * For each ontology, check if version controlled and commit.
-	 * If the head changeset is not empty, a new revision will be created. 
-	 * 
-	 * 
-	 * @param ontologies a list of ontologies, non version controlled will be ignored
-	 * @param user
-	 */
-	public void commitAllVersioned(final List<OWLOntology> ontologies, final String user) {
-		getHyperGraph().getTransactionManager().ensureTransaction(new Callable<Object>() {
-			public Object call() {
-				for (OWLOntology o : ontologies) {
-					VersionedOntology vo = getVersionControlledOntology(o);
-					if (vo != null) {
-						vo.commit(user);
-					}
-				}
-				return null;
-			}});
-	}
+
+	// ---------------------------------------------------------------------------------------
 }
