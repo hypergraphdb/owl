@@ -17,7 +17,8 @@ public class Revision extends RevisionID implements HGHandleHolder {
 	public static final String USER_ANONYMOUS = null; 
 	
 	Date timeStamp;
-	String user;
+	String user; 
+	String revisionComment;
 //	boolean hasRevisionData;
 	HGHandle handle;
 
@@ -45,6 +46,17 @@ public class Revision extends RevisionID implements HGHandleHolder {
 	 */
 	public void setUser(String user) {
 		this.user = user;
+	}
+
+	public String getRevisionComment() {
+		return revisionComment;
+	}	
+	
+	/**
+	 * @param comment the comment to set.
+	 */
+	public void setRevisionComment(String comment) {
+		this.revisionComment = comment;
 	}
 
 //	
