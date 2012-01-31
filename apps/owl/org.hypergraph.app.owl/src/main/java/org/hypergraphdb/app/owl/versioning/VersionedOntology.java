@@ -74,7 +74,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
 			public Object call() {
 				revisionAndChangeSetPairs = new ArrayList<HGHandle>();		
-				commitInternal(graph.getHandle(onto).getPersistent(), user, Revision.REVISION_FIRST);
+				commitInternal(graph.getHandle(onto).getPersistent(), user, Revision.REVISION_FIRST, "Initial Revision");
 				return null;
 			}});
 	}
@@ -142,7 +142,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	 * @param user
 	 * @param revision sets the revision (of the new head revision)
 	 */
-	private void commitInternal(HGPersistentHandle ontoHandle, String user, int revision) {
+	private void commitInternal(HGPersistentHandle ontoHandle, String user, int revision, String comment) {
 		// assert revision > Pairs.getLast().GetFirst.GetRevision)
 		// assert user != null
 		// assert ontoHandle != null; pointin to onto.
@@ -152,6 +152,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 		newRevision.setOntologyID(ontoHandle);
 		newRevision.setRevision(revision);
 		newRevision.setUser(user);
+		newRevision.setRevisionComment(comment);
 		// ChangeSet
 		ChangeSet emptyCs = new ChangeSet();
 		newRevision.setTimeStamp(emptyCs.getCreatedDate());
@@ -338,15 +339,15 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 		//		newChangeSet = EmptyChangeSet
 		// add P' to end of list.
 		//  
-		commit(Revision.USER_ANONYMOUS, Revision.REVISION_INCREMENT);
+		commit(Revision.USER_ANONYMOUS, Revision.REVISION_INCREMENT, null);
 	}
 
 	/**
 	 * Commits all head changes and creates a new head revision with an empty change set.
 	 * @param user
 	 */
-	public void commit(String user){ 
-		commit(user, Revision.REVISION_INCREMENT);
+	public void commit(String user, String comment){ 
+		commit(user, Revision.REVISION_INCREMENT, comment);
 	}
 
 	/**
@@ -356,11 +357,11 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	 * 
 	 * @param revisionIncrement
 	 */
-	public void commit(final String user, final int revisionIncrement){
+	public void commit(final String user, final int revisionIncrement, final String comment){
 		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
 			public Object call() {
 				int headRevision = getHeadRevision().getRevision();		
-				commitInternal(getHeadRevision().getOntologyID(), user, headRevision + revisionIncrement);
+				commitInternal(getHeadRevision().getOntologyID(), user, headRevision + revisionIncrement, comment);
 				return null;
 			}});
 	}
