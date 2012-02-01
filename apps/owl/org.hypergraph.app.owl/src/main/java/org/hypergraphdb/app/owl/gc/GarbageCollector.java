@@ -391,6 +391,7 @@ public class GarbageCollector {
 	 */
 	private void collectOWLObjectsByDFSInternal(HGHandle linkHandle, GarbageCollectorStatistics stats, boolean analyzeMode, Set<HGHandle> analyzeRemovedSet) {
 		List<HGHandle> collectibleAtoms = new LinkedList<HGHandle>();
+		Set<HGHandle> collectibleAtomsSet = new HashSet<HGHandle>();
 		TargetSetALGenerator tsAlg = new TargetSetALGenerator(graph);
 		HGDepthFirstTraversal dfs = new HGDepthFirstTraversal(linkHandle, tsAlg);
 		int i = 0;
@@ -398,7 +399,7 @@ public class GarbageCollector {
 			Pair<HGHandle, HGHandle> p = dfs.next();
 			HGHandle targetHandle = p.getSecond();
 			if (DBG) printHandle(targetHandle, "" + i, analyzeMode);
-			if (maybeCollectAtom(targetHandle, p.getFirst(), collectibleAtoms, stats, analyzeMode, analyzeRemovedSet)) {
+			if (maybeCollectAtom(targetHandle, p.getFirst(), collectibleAtoms, collectibleAtomsSet, stats, analyzeMode, analyzeRemovedSet)) {
 				// We need to visit the IRI of an entity that DFS would miss, because it is not linked.
 				Object target = graph.get(targetHandle); 
 				if (target instanceof OWLNamedObject) {
@@ -409,7 +410,7 @@ public class GarbageCollector {
 					//HGHandle iriHandle = layout[0];
 					if (DBG) printHandle(iriHandle, "" + i, analyzeMode);
 					if (iriHandle != null) {
-						maybeCollectAtom(iriHandle, targetHandle, collectibleAtoms, stats, analyzeMode, analyzeRemovedSet);
+						maybeCollectAtom(iriHandle, targetHandle, collectibleAtoms, collectibleAtomsSet, stats, analyzeMode, analyzeRemovedSet);
 					} //else already deleted.
 				}
 				//stats were already updated on canRemoveAnalyze
@@ -420,7 +421,7 @@ public class GarbageCollector {
 		}
 		//DFS does not return linkHandle, handle it here
 		if (DBG) printHandle(linkHandle, "top", analyzeMode);
-		if (maybeCollectAtom(linkHandle, null, collectibleAtoms, stats, analyzeMode, analyzeRemovedSet)) {
+		if (maybeCollectAtom(linkHandle, null, collectibleAtoms, collectibleAtomsSet, stats, analyzeMode, analyzeRemovedSet)) {
 			// We need to visit the IRI of an entity that DFS would miss, because it is not linked.
 			Object atom = graph.get(linkHandle);
 			if (atom instanceof OWLNamedObject) {
@@ -431,7 +432,7 @@ public class GarbageCollector {
 //				HGHandle iriHandle = layout[0];
 				if (DBG) printHandle(iriHandle, "IRI" + i, analyzeMode);
 				if (iriHandle != null) {
-					maybeCollectAtom(iriHandle, linkHandle, collectibleAtoms, stats, analyzeMode, analyzeRemovedSet);
+					maybeCollectAtom(iriHandle, linkHandle, collectibleAtoms, collectibleAtomsSet, stats, analyzeMode, analyzeRemovedSet);
 				} //else already deleted.
 			}
 		}
@@ -472,6 +473,7 @@ public class GarbageCollector {
 	 * @param atomHandle
 	 * @param parent may be null (e.g. for axioms)
 	 * @param collectibleAtoms relevant for incidence set size correction during gc mode.
+	 * @param collectibleAtomsSet a set containing the list handles for performance reasons (quick contains)
 	 * @param stats 
 	 * @param analyzeMode if true, global analyzeRemovedSet will be relevant for incidence set calculation. 
 	 * @param analyzeRemovedSet all atoms that we determined to be removable as we go during analyze. 
@@ -480,6 +482,7 @@ public class GarbageCollector {
 	private boolean maybeCollectAtom(HGHandle atomHandle, 
 			HGHandle parent, 
 			List<HGHandle> collectibleAtoms,
+			Set<HGHandle> collectibleAtomsSet,
 			GarbageCollectorStatistics stats, 
 			boolean analyzeMode,
 			Set<HGHandle> analyzeRemovedSet) {
@@ -521,7 +524,7 @@ public class GarbageCollector {
 					incidenceSetSize = is.size();
 				} else {
 					//expensive correction
-					incidenceSetSize = calcCollectISSize(is, parent, collectibleAtoms);
+					incidenceSetSize = calcCollectISSize(is, parent, collectibleAtomsSet);
 				}
 			}
 			canRemove = (incidenceSetSize == 0);
@@ -556,7 +559,7 @@ public class GarbageCollector {
 				if (analyzeMode) {
 					canRemove = !isUsedByAnyNamedObject(iri, analyzeRemovedSet);
 				} else {
-					canRemove = !isUsedByAnyNamedObject(iri, collectibleAtoms); 
+					canRemove = !isUsedByAnyNamedObject(iri, collectibleAtomsSet); 
 				}
 				if (canRemove) {
 					stats.increaseTotalAtoms();
@@ -580,7 +583,9 @@ public class GarbageCollector {
 			if (analyzeMode) {
 				analyzeRemovedSet.add(atomHandle);
 			} else {
+				// we maintain two structures, list for correctness, set for performanec
 				collectibleAtoms.add(atomHandle);
+				collectibleAtomsSet.add(atomHandle);
 				// graphRemove(targetHandle);				
 				if (DBG) System.out.print(" > REMOVED ");
 			}
@@ -645,7 +650,7 @@ public class GarbageCollector {
 	 * @param is the current incidence set
 	 * @return
 	 */
-	private int calcCollectISSize(IncidenceSet is, HGHandle parent, List<HGHandle> collectibleAtoms) {
+	private int calcCollectISSize(IncidenceSet is, HGHandle parent, Set<HGHandle> collectibleAtoms) {
 		if (collectibleAtoms == null) throw new IllegalArgumentException("collectibleAtoms == null");
 		int i = 0;
 		HGRandomAccessResult<HGHandle> rs = is.getSearchResult();
