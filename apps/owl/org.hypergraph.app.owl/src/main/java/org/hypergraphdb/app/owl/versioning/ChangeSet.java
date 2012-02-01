@@ -79,7 +79,7 @@ public class ChangeSet implements HGLink, HGGraphHolder {
 			graph.remove(ch, true);
 		}
 		//changes.clear();
-		//graph.update(this);
+		graph.update(this);
 	}
 	
 	

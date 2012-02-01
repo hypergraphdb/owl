@@ -191,6 +191,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 		changeSet.clear();
 		//graph.remove(changeSetHandle, true);
 		graph.remove(pairHandle, true);
+		graph.update(this);
 	}
 	
 	/**
@@ -286,7 +287,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 		cs.clear();
 		// delete cur head, making prev cur.
 		HGHandle pairHandle = revisionAndChangeSetPairs.remove(revisionAndChangeSetPairs.size() - 1);
-		removePair(pairHandle);
+		removePair(pairHandle); //will graph.update this
 	}
 	
 	/**
@@ -298,7 +299,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 		int index = revisionAndChangeSetPairs.size() -1;
 		ChangeSet s = getChangeSet(index);
 		s.reverseApplyTo((OWLMutableOntology)getHeadRevisionData());
-		s.clear();
+		s.clear(); //will graph.update
 		// The head changeset is now empty and data represents state before changes.
 	}	
 
