@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.Set;
 
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
@@ -28,6 +29,9 @@ import org.semanticweb.owlapi.model.OWLOntologyStorer;
  */
 public class HGDBStorer implements OWLOntologyStorer {
 
+	private volatile int taskTotalAxioms;
+	private volatile int taskCurrentAxioms;
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -73,11 +77,21 @@ public class HGDBStorer implements OWLOntologyStorer {
 //				throw new IllegalStateException("We did not get a HGDBOntologyImpl, but : " + newOnto);
 //			}
 			// Set ID
-			//Done on creation ! newOnto.applyChange(new VModifyOntologyIDChange(newOnto, ontology.getOntologyID()));
+			//Done on creation ! newOnto.applyChange(new VModifyOntologyIDChange(newOnto, ontology.getOntologyID()))			
 			final Set<OWLAxiom> axioms = ontology.getAxioms();
+			taskTotalAxioms = axioms.size();
+			taskCurrentAxioms = 0;
 			for (OWLAxiom axiom : axioms) {
+				taskCurrentAxioms++;
+				if (taskCurrentAxioms % 2000 == 0) {
+					System.out.println("Saved axioms: " + taskCurrentAxioms + " of " + taskTotalAxioms + " at " + new Date());
+					repo.printStatistics();
+					System.out.println("By Signature test onto member: " + HGDBOntologyInternalsImpl.PERFCOUNTER_FIND_BY_SIGNATURE_ONTOLOGY_MEMBERS);
+					System.out.println("By Signature test slow equals: " + HGDBOntologyInternalsImpl.PERFCOUNTER_FIND_BY_SIGNATURE_EQUALS);
+					
+				}
 				newOnto.applyChange(new AddAxiom(newOnto, axiom));
-			}
+			}		
 			//manager.addAxioms(newOnto, axioms);
 			// Add Ontology Annotations
 			for (OWLAnnotation a : ontology.getAnnotations()) {
@@ -123,4 +137,23 @@ public class HGDBStorer implements OWLOntologyStorer {
 		}
 		storeOntology(manager, ontology, target.getDocumentIRI(), ontologyFormat);
 	}
+
+	//
+	// 
+	//
+	
+	/**
+	 * @return the taskTotalAxioms (volatile)
+	 */
+	protected int getTaskTotalAxioms() {
+		return taskTotalAxioms;
+	}
+
+	/**
+	 * @return the taskCurrentAxioms (volatile)
+	 */
+	protected int getTaskCurrentAxioms() {
+		return taskCurrentAxioms;
+	}
+
 }
