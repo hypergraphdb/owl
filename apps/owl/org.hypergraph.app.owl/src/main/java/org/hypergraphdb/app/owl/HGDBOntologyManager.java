@@ -19,5 +19,18 @@ public interface HGDBOntologyManager extends OWLOntologyManager {
 	 * @return
 	 */
 	public abstract boolean hasInMemoryOntology();
+	
+	/**
+	 * Gets the current long task Size for saveAs and open. 
+	 * This is thread safe. The underlying fields need to be volatile.
+	 * @return
+	 */
+	public int getCurrentTaskSize();
+	
+	/**
+	 * Gets the current progress task value for saveAs and open.
+	 * @return a value that is lower or equal to CurrentTaskSize
+	 */
+	public int getCurrentTaskProgress();
 
 }

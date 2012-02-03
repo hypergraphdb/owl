@@ -27,9 +27,9 @@ import de.uulm.ecs.ai.owlapi.krssrenderer.KRSS2OWLSyntaxOntologyStorer;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 18, 2012
  */
-public class HGDBOWLManager {
+public class PHGDBOWLManager {
 
-	public static HGDBOntologyManagerImpl createOWLOntologyManager() {
+	public static PHGDBOntologyManagerImpl createOWLOntologyManager() {
         return createOWLOntologyManager(OWLDataFactoryHGDB.getInstance());
     }
     
@@ -40,8 +40,8 @@ public class HGDBOWLManager {
 	 * @param dataFactory The data factory to use
 	 * @return <code>OWLDBOntologyManager</code>
 	 */
-	public static HGDBOntologyManagerImpl createOWLOntologyManager (final OWLDataFactoryHGDB dataFactory) {
-		final HGDBOntologyManagerImpl ontologyManager = new HGDBOntologyManagerImpl(dataFactory);
+	public static PHGDBOntologyManagerImpl createOWLOntologyManager (final OWLDataFactoryHGDB dataFactory) {
+		final PHGDBOntologyManagerImpl ontologyManager = new PHGDBOntologyManagerImpl(dataFactory);
 		ontologyManager.addOntologyStorer (new RDFXMLOntologyStorer());
 		ontologyManager.addOntologyStorer (new OWLXMLOntologyStorer());
 		ontologyManager.addOntologyStorer (new OWLFunctionalSyntaxOntologyStorer());

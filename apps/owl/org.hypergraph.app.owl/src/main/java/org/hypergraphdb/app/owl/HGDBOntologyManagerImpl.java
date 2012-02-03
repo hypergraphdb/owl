@@ -2,22 +2,21 @@ package org.hypergraphdb.app.owl;
 
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
-import org.protege.owlapi.model.ProtegeOWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntology;
 
+import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
+
 /**
- * Manages multiple Ontologies. Based on OWL-API OWLOntologyManagerImpl and ProtegeOWLOntologyManager.
- * For use with Protege 4.1.
- * 
- * PHGDBOntologyManagerImpl for protege integration.
- * 
- * @author Thomas Hilpold (GIC/Miami-Dade County)
+ * HGDBOntologyManagerImpl.
+ * @author Thomas Hilpold (CIAO/Miami-Dade County)
+ * @created Feb 3, 2012
  */
-public class PHGDBOntologyManagerImpl extends ProtegeOWLOntologyManager implements HGDBOntologyManager {
+public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements HGDBOntologyManager {
 
 	HGDBOntologyRepository ontologyRepository;
 	
-	public PHGDBOntologyManagerImpl(OWLDataFactoryHGDB dataFactory) {
+	public HGDBOntologyManagerImpl(OWLDataFactoryHGDB dataFactory) {
 		super(dataFactory);						
 		//Make sure there is an application, a graph, et.c.
 		if (HGDBApplication.VERSIONING) {
@@ -67,4 +66,5 @@ public class PHGDBOntologyManagerImpl extends ProtegeOWLOntologyManager implemen
 		// TODO Auto-generated method stub
 		return 0;
 	}
+
 }
