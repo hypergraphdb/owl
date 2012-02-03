@@ -322,6 +322,7 @@ public class HGDBOntologyRepository {
 		w.println("*      AXIOMS  : " + f.format(getNrOfAtomsByTypePlus(OWLAxiom.class)));
 		w.println("*    ENTITIES  : " + f.format(getNrOfAtomsByTypePlus(OWLEntity.class)));
 		w.println("*****************************************************");	
+		w.flush();
 	}
 	
 	public void printEntityCacheStats(PrintWriter w) {
@@ -333,6 +334,7 @@ public class HGDBOntologyRepository {
 		int hitPromille = (int) (OWLDataFactoryInternalsHGDB.CACHE_HIT * 1000.0f / (OWLDataFactoryInternalsHGDB.CACHE_HIT + OWLDataFactoryInternalsHGDB.CACHE_MISS));
 		w.println("- Cache Hit%: " + hitPromille / 10.0f  );
 		w.println("----------------------------");
+		w.flush();
 	}
 
 	public void printPerformanceStatistics(PrintWriter w) {
