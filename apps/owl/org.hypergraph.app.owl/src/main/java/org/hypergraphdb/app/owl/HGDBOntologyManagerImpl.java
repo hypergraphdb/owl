@@ -2,7 +2,6 @@ package org.hypergraphdb.app.owl;
 
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntology;
 
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
