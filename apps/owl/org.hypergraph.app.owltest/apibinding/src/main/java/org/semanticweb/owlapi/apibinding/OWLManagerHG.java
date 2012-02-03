@@ -54,7 +54,7 @@ import org.coode.owlapi.rdf.rdfxml.RDFXMLOntologyStorer;
 import org.coode.owlapi.rdfxml.parser.RDFXMLParserFactory;
 import org.coode.owlapi.turtle.TurtleOntologyStorer;
 import org.hypergraphdb.app.owl.HGDBOntologyFactory;
-import org.hypergraphdb.app.owl.PHGDBOntologyManagerImpl;
+import org.hypergraphdb.app.owl.HGDBOntologyManagerImpl;
 import org.hypergraphdb.app.owl.HGDBStorer;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.semanticweb.owlapi.io.OWLParserFactoryRegistry;
@@ -121,7 +121,7 @@ public class OWLManagerHG {
      */
     public static OWLOntologyManager createOWLOntologyManager(OWLDataFactory dataFactory) {
         // Create the ontology manager and add ontology factories, mappers and storers
-        OWLOntologyManager ontologyManager = (OWLOntologyManager) new PHGDBOntologyManagerImpl((OWLDataFactoryHGDB)dataFactory);
+        OWLOntologyManager ontologyManager = (OWLOntologyManager) new HGDBOntologyManagerImpl((OWLDataFactoryHGDB)dataFactory);
         ontologyManager.addOntologyStorer(new RDFXMLOntologyStorer());
         ontologyManager.addOntologyStorer(new OWLXMLOntologyStorer());
         ontologyManager.addOntologyStorer(new OWLFunctionalSyntaxOntologyStorer());
