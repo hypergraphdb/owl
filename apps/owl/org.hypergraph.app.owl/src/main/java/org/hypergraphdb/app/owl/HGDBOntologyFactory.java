@@ -23,13 +23,13 @@ public class HGDBOntologyFactory implements OWLOntologyFactory {
 
     private final static String	HGDB_SCHEME	= "hgdb";	
 
-    private PHGDBOntologyManagerImpl			manager;
+    private HGDBOntologyManager			manager;
     private HGDBOntologyRepository		repository;
 	
 	
 	@Override
 	public void setOWLOntologyManager(OWLOntologyManager owlOntologyManager) {
-		manager = (PHGDBOntologyManagerImpl)owlOntologyManager;
+		manager = (HGDBOntologyManager)owlOntologyManager;
 		repository = manager.getOntologyRepository();
 	}
 
