@@ -47,5 +47,4 @@ Bundle-Vendor: Miami-Dade CIAO/eSolutions
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: javax.management,
  org.hypergraphdb.app.management,
- org.hypergraphdb.app.owl,
- org.protege.owlapi.model
+ org.hypergraphdb.app.owl
