@@ -48,7 +48,7 @@ import junit.framework.TestCase;
 import org.hypergraphdb.app.owl.HGDBOntologyFormat;
 import org.hypergraphdb.app.owl.HGDBOntologyImpl;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
-import org.hypergraphdb.app.owl.PHGDBOntologyManagerImpl;
+import org.hypergraphdb.app.owl.HGDBOntologyManagerImpl;
 import org.hypergraphdb.app.owl.HGDBOntologyOutputTarget;
 import org.semanticweb.owlapi.apibinding.OWLManagerHG;
 import org.semanticweb.owlapi.io.RDFOntologyFormat;
@@ -283,7 +283,7 @@ public abstract class AbstractOWLAPITestCase extends TestCase {
 //        }
         manager.saveOntology(ont, format, target);
         handleSaved(target, format);
-        PHGDBOntologyManagerImpl man = (PHGDBOntologyManagerImpl)OWLManagerHG.createOWLOntologyManager();
+        HGDBOntologyManagerImpl man = (HGDBOntologyManagerImpl)OWLManagerHG.createOWLOntologyManager();
         //OWLOntology ont2 = man.loadOntologyFromOntologyDocument(new StringDocumentSource(target.toString()));
         OWLOntology ont2 = man.loadOntology(targetIRI);
         if (!(ont2 instanceof HGDBOntologyImpl)) throw new IllegalStateException("NO HGDBOntologyImpl loaded, was: " + ont2.getClass());
