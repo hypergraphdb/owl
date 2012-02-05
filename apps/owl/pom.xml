@@ -1,0 +1,55 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.hypergraphdb</groupId>
+    <artifactId>hgdbapps</artifactId>
+    <version>${version}</version>  
+  </parent>  
+  <artifactId>hgdbowl</artifactId>
+  <name>HyperGraphDB OWL</name>
+  <description>An implementation of the OWLAPI backed by HyperGraphDB for transparent
+  and automatic persistence of OWL ontologies. Each ontology is a subgraph in the graph
+  database.</description>
+  
+ <repositories>
+    <repository>
+      <id>hypergraphdb</id>
+      <url>http://hypergraphdb.org/maven</url>
+    </repository>
+ </repositories>
+ 
+  <dependencies>
+	<dependency>
+	  <groupId>org.hypergraphdb</groupId>
+	  <artifactId>hgdb</artifactId>
+	  <version>${version}</version>
+	</dependency>	
+	<dependency>
+	  <groupId>org.hypergraphdb</groupId>
+	  <artifactId>hgdbmanagement</artifactId>
+	  <version>${version}</version>
+	</dependency>	
+	<dependency>
+	  <groupId>org.hypergraphdb</groupId>
+	  <artifactId>hgbdbnative</artifactId>
+	  <version>${version}</version>
+	</dependency>	
+    <dependency>
+      <groupId>net.sourceforge.owlapi</groupId>
+      <artifactId>owlapi</artifactId>
+      <version>3.2.4</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.0</version>
+      <type>jar</type>
+      <scope>test</scope>
+      <optional>true</optional>
+    </dependency>
+  </dependencies>
+  
+</project>

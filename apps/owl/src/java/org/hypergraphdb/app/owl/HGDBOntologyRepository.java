@@ -1,5 +1,6 @@
 package org.hypergraphdb.app.owl;
 
+
 import java.io.File;
 import java.io.PrintWriter;
 import java.text.DateFormat;
@@ -22,11 +23,11 @@ import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRI
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
 import org.hypergraphdb.app.owl.gc.GarbageCollector;
 import org.hypergraphdb.app.owl.gc.GarbageCollectorStatistics;
-import org.hypergraphdb.app.owl.test.TestData;
+//import org.hypergraphdb.app.owl.test.TestData;
 import org.hypergraphdb.app.owl.util.Path;
 import org.hypergraphdb.handle.SequentialUUIDHandleFactory;
 import org.hypergraphdb.query.HGQueryCondition;
-import org.hypergraphdb.storage.BDBConfig;
+import org.hypergraphdb.storage.bdb.BDBConfig;
 import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.hypergraphdb.util.HGUtils;
 import org.semanticweb.owlapi.model.IRI;
@@ -152,9 +153,9 @@ public class HGDBOntologyRepository {
 		ensureHypergraph(location);
 		//we have a graph here.
 		HGManagement.ensureInstalled(graph, HGDBApplication.getInstance());	
-		if (ENSURE_TEST_ONTOLOGY_COUNT > 0) {
-			TestData.ensureTestData(this, ENSURE_TEST_ONTOLOGY_COUNT);			
-		}
+//		if (ENSURE_TEST_ONTOLOGY_COUNT > 0) {
+//			TestData.ensureTestData(this, ENSURE_TEST_ONTOLOGY_COUNT);			
+//		}
 		garbageCollector = new GarbageCollector(this);
 	}
 
