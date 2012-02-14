@@ -9,6 +9,7 @@ import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HGTypeSystem;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.management.HGApplication;
+import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
 import org.hypergraphdb.app.owl.model.OWLAnnotationPropertyHGDB;
@@ -52,6 +53,8 @@ public class HGDBApplication extends HGApplication
 	
 	private static HGDBApplication instance;
 	
+	private HGIndexer axiomByHashCodeIndexer;
+	
 	public static HGDBApplication getInstance() {
 		if (instance == null) {
 			//TODO make thread safe
@@ -62,6 +65,7 @@ public class HGDBApplication extends HGApplication
 	
 	private HGDBApplication() {
 		super();
+		
 	}
 	
 	/**
@@ -208,6 +212,15 @@ public class HGDBApplication extends HGApplication
 		return L;
 	}
 	
+	public HGIndexer getAxiomByHashCodeIndexer(HyperGraph graph ) {
+		if (axiomByHashCodeIndexer == null) {
+			HGHandle typeHandle = graph.getTypeSystem().getTypeHandle(OWLAxiomHGDB.class);
+			axiomByHashCodeIndexer = new ByPartIndexer(typeHandle, "hashCode");
+
+		}
+		return axiomByHashCodeIndexer;
+	}
+	
 	/**
 	 * @param graph
 	 */
@@ -226,6 +239,10 @@ public class HGDBApplication extends HGApplication
 		graph.getIndexManager().register(subClass0);
 		graph.getIndexManager().register(subClass1);
 		
+		//
+		// Axiom HashCode indexer
+		//
+		graph.getIndexManager().register(getAxiomByHashCodeIndexer(graph));
 	}
 
 	/**
