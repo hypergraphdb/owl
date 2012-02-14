@@ -3,6 +3,7 @@
 	<name>org.hypergraph.app.owltest</name>
 	<comment></comment>
 	<projects>
+		<project>org.hypergraph.app.owl</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
