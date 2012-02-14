@@ -9,8 +9,8 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.app.owl.core.HGChangeableLink;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLIndividual;
@@ -22,7 +22,7 @@ import org.semanticweb.owlapi.model.OWLObject;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 8, 2011
  */
-public abstract class OWLNaryIndividualAxiomHGDB extends OWLIndividualAxiomHGDB implements HGLink, OWLNaryIndividualAxiom {
+public abstract class OWLNaryIndividualAxiomHGDB extends OWLIndividualAxiomHGDB implements HGChangeableLink, OWLNaryIndividualAxiom {
 
     //private Set<OWLIndividual> individuals;
 	private List<HGHandle> individualsHandles;
@@ -113,4 +113,14 @@ public abstract class OWLNaryIndividualAxiomHGDB extends OWLIndividualAxiomHGDB 
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
 		individualsHandles.remove(i);  
 	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.core.HGChangeableLink#setTargetAt(int, org.hypergraphdb.HGHandle)
+	 */
+	@Override
+	public void setTargetAt(int i, HGHandle handle) {
+		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
+		individualsHandles.set(i, handle);  
+	}
+	
 }
