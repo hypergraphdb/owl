@@ -1,5 +1,25 @@
 Version history:
+0.9.8 (Release Date: 2012.02.07)
+++ Core
+	+ Local Versioning of Ontologies
+		+ add/remove from Version Control
+		+ Commit/Rollback/Revert
+		+ Commit comments, timestamp stored 
+		+ A Revert/Rollback looses information
+		+ Exactly one branch (master) supported
+	+ Optimization:
+		+ Importing a large Ontology with 150K Axioms now 2 mins (old: > 1h)
+		(By using Axiom HashCode index)
+		+ Improved garbage collector speed
+		+ Improved overall storage traversal performance 
+		(By using improved thread synchronization in Hypergraph)
 
+++ Integration Plugin:
+	+ Versioned Ontologies have a specific symbol
+	+ Dialogs and Actions for Local Versioning 
+	+ Faster Repository View with Versioning Information. 
+	+ Ontology View showing Revisions and Changesets	
+	
 0.9.6 (Release Date: 2012.01.10)
 	+ Berkeley DB 5.2. used, performance restored
 
