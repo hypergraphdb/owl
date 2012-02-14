@@ -36,6 +36,14 @@ public abstract class OWLAxiomHGDB extends OWLObjectHGDB implements OWLAxiom, HG
     //private final Set<OWLAnnotation> annotations;
     private Set<OWLAnnotation> annotations;
     
+    public int getHashCode() {
+    	return getHashCodeInt();
+    }
+    
+    public void setHashCode(int hashCode) {
+    	setHashCodeInt(hashCode);
+    }
+    
     /**
      * Switch indicating that the annotations shall be loaded from the graph on setAtomHandle(..).
      * (As opposed to being set in the constructor already.)
