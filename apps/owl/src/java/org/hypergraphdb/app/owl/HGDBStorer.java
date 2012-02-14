@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Set;
 
+import org.hypergraphdb.app.owl.core.HGDBTask;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
 import org.hypergraphdb.app.owl.util.StopWatch;
@@ -27,10 +28,10 @@ import org.semanticweb.owlapi.model.OWLOntologyStorer;
  * 
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  */
-public class HGDBStorer implements OWLOntologyStorer {
+public class HGDBStorer implements OWLOntologyStorer, HGDBTask {
 
-	private volatile int taskTotalAxioms;
-	private volatile int taskCurrentAxioms;
+	private volatile int taskSize;
+	private volatile int taskProgess;
 	
 	/*
 	 * (non-Javadoc)
@@ -79,16 +80,12 @@ public class HGDBStorer implements OWLOntologyStorer {
 			// Set ID
 			//Done on creation ! newOnto.applyChange(new VModifyOntologyIDChange(newOnto, ontology.getOntologyID()))			
 			final Set<OWLAxiom> axioms = ontology.getAxioms();
-			taskTotalAxioms = axioms.size();
-			taskCurrentAxioms = 0;
+			taskSize = axioms.size();
+			taskProgess = 0;
 			for (OWLAxiom axiom : axioms) {
-				taskCurrentAxioms++;
-				if (taskCurrentAxioms % 2000 == 0) {
-					System.out.println("Saved axioms: " + taskCurrentAxioms + " of " + taskTotalAxioms + " at " + new Date());
-					repo.printStatistics();
-					System.out.println("By Signature test onto member: " + HGDBOntologyInternalsImpl.PERFCOUNTER_FIND_BY_SIGNATURE_ONTOLOGY_MEMBERS);
-					System.out.println("By Signature test slow equals: " + HGDBOntologyInternalsImpl.PERFCOUNTER_FIND_BY_SIGNATURE_EQUALS);
-					
+				taskProgess++;
+				if (taskProgess % 5000 == 0) {
+					printProgress(repo);
 				}
 				newOnto.applyChange(new AddAxiom(newOnto, axiom));
 			}		
@@ -103,6 +100,7 @@ public class HGDBStorer implements OWLOntologyStorer {
 			}
 			// no need to store in HG, already done by createOntology.
 			// TODO after storage, we need to use it.
+			printProgress(repo);
 		} catch (OWLOntologyChangeException e) {
 			System.out.println("Storage Exception during ontology axiom adding. Removing newly created ontology: " + newOnto.getOntologyID());
 			repo.deleteOntology(newOnto.getOntologyID());
@@ -141,19 +139,37 @@ public class HGDBStorer implements OWLOntologyStorer {
 	//
 	// 
 	//
+
+	private void printProgress(HGDBOntologyRepository repo) {
+		System.out.println("Saved axioms: " + taskProgess + " of " + taskSize + " at " + new Date());
+		repo.printStatistics();
+		System.out.println("By Signature test onto member: " + HGDBOntologyInternalsImpl.PERFCOUNTER_FIND_BY_SIGNATURE_ONTOLOGY_MEMBERS);
+		System.out.println("By Signature test slow equals: " + HGDBOntologyInternalsImpl.PERFCOUNTER_FIND_BY_SIGNATURE_EQUALS);
+		System.out.println("By HashCode test equals: " + HGDBOntologyInternalsImpl.PERFCOUNTER_FIND_BY_HASHCODE_EQUALS);
+	}
 	
-	/**
-	 * @return the taskTotalAxioms (volatile)
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.core.HGDBTask#getTaskSize()
 	 */
-	protected int getTaskTotalAxioms() {
-		return taskTotalAxioms;
+	@Override
+	public int getTaskSize() {
+		return taskSize;
 	}
 
-	/**
-	 * @return the taskCurrentAxioms (volatile)
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.core.HGDBTask#getTaskProgess()
 	 */
-	protected int getTaskCurrentAxioms() {
-		return taskCurrentAxioms;
+	@Override
+	public int getTaskProgess() {
+		return taskProgess;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.core.HGDBTask#cancelTask()
+	 */
+	@Override
+	public void cancelTask() {
+		// do nothing. Store cannot be cancelled.
 	}
 
 }
