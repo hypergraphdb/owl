@@ -1555,7 +1555,9 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 						if (DBG) printIncidenceSets(objectHandle);
 						// REMOVE IF NO MORE AXIOM IN THE ONTO POINTS TO IT DIRECTLY OR INDIRECTLY
 						//TODO need to check far more here: size is not an indicator for removal if we have dangling ClassExpressions in the graph that are not in any axiom.
-						if (is.size() == 0) {
+						//2012.02.09 too expensive: if (is.size() == 0) {
+						// isEmpty false will be less costly now, looking for first.
+						if (is.isEmpty()) {
 							//Might still have an axiom that indirectly refers to the object.
 							if (!internals.hasReferencingAxioms(objectHandle)) {
 								this.remove(objectHandle);
