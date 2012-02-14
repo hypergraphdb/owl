@@ -1,5 +1,6 @@
 package org.hypergraphdb.app.owl.versioning;
 
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -168,7 +169,13 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 			public Object call() {
 				VersionedOntology lastVo = null;
 				OWLOntology lastOnto = null;
+				System.out.println("" + new Date() + " VHGDB processes changes: " + changes.size());
+				int i = 0;
 				for (OWLOntologyChange c : changes) {
+					i++;
+					if (i % 100 == 0) {
+						System.out.println("" + new Date() + " VHGDB changes done: " + i);
+					}
 					//Caching last
 					if (c.getOntology().equals(lastOnto)) {
 						//use cached
@@ -184,6 +191,7 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 						}
 					}
 				}
+				System.out.println("" + new Date() + " VHGDB changes done: " + i);
 				// forced to use Callable:
 				return null;
 			}});
