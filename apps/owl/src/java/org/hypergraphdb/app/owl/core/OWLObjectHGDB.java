@@ -13,6 +13,7 @@ import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HGTypeHolder;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.annotation.HGIgnore;
 import org.hypergraphdb.type.HGAtomType;
 import org.semanticweb.owlapi.io.ToStringRenderer;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
@@ -152,6 +153,16 @@ public abstract class OWLObjectHGDB implements OWLObject, HGGraphHolder, HGHandl
 			hashCode = HashCode.hashCode(this);
 		}
 		return hashCode;
+	}
+	
+	@HGIgnore
+	protected int getHashCodeInt() {
+		return hashCode;
+	}
+	
+	@HGIgnore
+	protected void setHashCodeInt(int hashCode) {
+		this.hashCode = hashCode;
 	}
 
 	final public int compareTo(OWLObject o) {
