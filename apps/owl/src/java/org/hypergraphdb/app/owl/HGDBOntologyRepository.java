@@ -1,6 +1,5 @@
 package org.hypergraphdb.app.owl;
 
-
 import java.io.File;
 import java.io.PrintWriter;
 import java.text.DateFormat;
@@ -171,7 +170,10 @@ public class HGDBOntologyRepository {
 		bdbConfig.getEnvironmentConfig().setCacheSize(150*1024*1024);
 		SequentialUUIDHandleFactory handleFactory =
             new SequentialUUIDHandleFactory(System.currentTimeMillis(), 0);
-		config.setHandleFactory(handleFactory);		
+		config.setHandleFactory(handleFactory);	
+		//2012.02.07 Default Cached IS size was 10K
+		//We ensure that all incidence sets get cached here.
+		config.setMaxCachedIncidenceSetSize(10000000);
 		graph = HGEnvironment.get(location, config);
 		long nrOfAtoms = hg.count(graph, hg.all());
 		log.info("Hypergraph contains " + nrOfAtoms + " Atoms");
