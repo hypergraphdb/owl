@@ -1811,13 +1811,13 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 				for (HGHandle incidentAtomHandle : iSet) {
 					Object o = graph.get(incidentAtomHandle);
 					if (o instanceof OWLAxiomHGDB) {
-						if (ontology.isMember(incidentAtomHandle)) {
-							OWLAxiomHGDB axHGDB = (OWLAxiomHGDB)o;
-							if (axiomMatcher.isDefiningAxiom(axHGDB, entityHandle)) {
+						OWLAxiomHGDB axHGDB = (OWLAxiomHGDB)o;
+						if (axiomMatcher.isDefiningAxiom(axHGDB, entityHandle)) {
+							if (ontology.isMember(incidentAtomHandle)) {
 								s.add((S)axHGDB);
-							}
-						} // else not member 
-					} // else not axiom.
+							} // else not member
+						} // else no match
+					}  // else not axiom.
 				} 
 				return s;	
 			}});
