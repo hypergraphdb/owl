@@ -2,7 +2,9 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: HypergraphDB Owl-API Backend
 Bundle-SymbolicName: org.hypergraph.app.owl;singleton:=true
-Bundle-Version: 0.9.6
+Bundle-Version: 0.9.8
+Bundle-Vendor: Miami Dade CIAO / eSolutions
+Bundle-ContactAddress: hilpold@miamidade.gov 
 Bundle-ClassPath: .,
  lib/hgdbmanagement.jar,
  lib/hypergraphdb.jar,
@@ -43,7 +45,6 @@ Export-Package:
  org.hypergraphdb.util
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.semanticweb.owl.owlapi;bundle-version="3.2.3"
-Bundle-Vendor: Miami-Dade CIAO/eSolutions
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: javax.management,
  org.hypergraphdb.app.management,
