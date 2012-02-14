@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
+import org.hypergraphdb.app.owl.core.HGChangeableLink;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiomVisitor;
@@ -23,7 +24,7 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 8, 2011
  */
-public class OWLClassAssertionHGDB extends OWLIndividualAxiomHGDB implements HGLink, OWLClassAssertionAxiom {
+public class OWLClassAssertionHGDB extends OWLIndividualAxiomHGDB implements HGChangeableLink, OWLClassAssertionAxiom {
 
     //private OWLIndividual individual;
 
@@ -153,6 +154,19 @@ public class OWLClassAssertionHGDB extends OWLIndividualAxiomHGDB implements HGL
 			individualHandle = null;
 		} else {
 			classExpressionHandle = null;
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.core.HGChangeableLink#setTargetAt(int, org.hypergraphdb.HGHandle)
+	 */
+	@Override
+	public void setTargetAt(int i, HGHandle handle) {
+		if (i != 0 && i != 1) throw new IllegalArgumentException("Index has to be 0 or 1"); 
+		if (i == 0) {
+			individualHandle = handle;
+		} else {
+			classExpressionHandle = handle;
 		}
 	}
 }
