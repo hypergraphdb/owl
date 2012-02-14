@@ -14,7 +14,9 @@ import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGIndex;
 import org.hypergraphdb.HGQuery.hg;
+import org.hypergraphdb.HGRandomAccessResult;
 import org.hypergraphdb.HGSearchResult;
 import org.hypergraphdb.IncidenceSet;
 import org.hypergraphdb.algorithms.HGBreadthFirstTraversal;
@@ -36,6 +38,7 @@ import org.hypergraphdb.app.owl.model.axioms.OWLEquivalentClassesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
 import org.hypergraphdb.app.owl.type.link.AxiomAnnotatedBy;
 import org.hypergraphdb.app.owl.util.IncidenceSetALGenerator;
+import org.hypergraphdb.indexing.HGIndexer;
 import org.hypergraphdb.query.AtomTypeCondition;
 import org.hypergraphdb.query.HGQueryCondition;
 import org.hypergraphdb.query.Or;
@@ -82,7 +85,8 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	 */
 	public static boolean DBG = false;
 
-	public static boolean USE_CONTAINS_AXIOM_BY_IS = true;
+	public static boolean USE_CONTAINS_AXIOM_BY_IS = false;
+	public static boolean USE_CONTAINS_AXIOM_BY_HASHCODE = true;
 
 	/**
 	 * Max directly Acceptable axiom signature size for findAxiom lookup (to avoid finding minimum size.)
@@ -95,6 +99,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	public static int PERFCOUNTER_FIND_EQUALS = 0; 
 	public static int PERFCOUNTER_FIND_BY_SIGNATURE_EQUALS = 0; 
 	public static int PERFCOUNTER_FIND_BY_SIGNATURE_ONTOLOGY_MEMBERS = 0; 
+	public static int PERFCOUNTER_FIND_BY_HASHCODE_EQUALS = 0; 
 
 	/**
 	 * recursion level/depth for getReferencingAxioms.
@@ -634,6 +639,53 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		// // return axioms != null && axioms.contains(axiom);
 	}
 
+	protected OWLAxiom findEqualAxiom(final OWLAxiom axiom, boolean ignoreAnnotations) {
+		if (USE_CONTAINS_AXIOM_BY_HASHCODE) {
+			return findEqualAxiomByHashCode(axiom, ignoreAnnotations);
+		} else {
+			return findEqualAxiomOptimized(axiom, ignoreAnnotations);
+		}
+	}
+	
+	/**
+	 * Exploits index on hashCode for axioms. See OWLObjectHGDB OWLAxiomHGDB.
+	 * @param axiom
+	 * @param ignoreAnnotations
+	 * @return
+	 */
+	protected OWLAxiom findEqualAxiomByHashCode(final OWLAxiom axiom, final boolean ignoreAnnotations) {
+		if (axiom == null) throw new NullPointerException("axiom");
+		return graph.getTransactionManager().transact(new Callable<OWLAxiomHGDB>() {
+			public OWLAxiomHGDB call() {
+				int findHashCode = axiom.hashCode();
+				HGIndexer axiomByHashCodeIndexer = HGDBApplication.getInstance().getAxiomByHashCodeIndexer(graph);
+				HGIndex<Integer, HGHandle> index = graph.getIndexManager().getIndex(axiomByHashCodeIndexer);
+//2012.02.06 hilpold query was much too slow: therefore using index.find
+// 						List<HGHandle> axiomCandidatesByHash = ontology.findAll(hg.and(
+//						hg.typePlus(OWLAxiomHGDB.class),
+//						hg.eq("hashCode", findHashCode)));
+				HGRandomAccessResult<HGHandle> axiomCandidatesByHash = index.find(findHashCode);
+				while (axiomCandidatesByHash.hasNext()) {
+					HGHandle candidateHandle = axiomCandidatesByHash.next();
+					if (ontology.isMember(candidateHandle)) {
+						OWLAxiomHGDB candidate = graph.get(candidateHandle);
+						PERFCOUNTER_FIND_BY_HASHCODE_EQUALS++; 
+						if (ignoreAnnotations) {
+							if (candidate.equalsIgnoreAnnotations(axiom)) {
+								return candidate;
+							}
+						} else {
+							if (candidate.equals(axiom)) {
+								return candidate;
+							}
+						}
+					}
+				}
+				//none found
+				return null;
+			}}, HGTransactionConfig.READONLY);
+	}
+	
 	/**
 	 * Finds an equal axiom in the graph. See the equals methods implementation
 	 * in Axiom. The method does not test for self.
@@ -645,7 +697,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	 * @return an axiom object that is guaranteed to be in the graph and equal
 	 *         to the given axiom.
 	 */
-	protected OWLAxiom findEqualAxiom(final OWLAxiom axiom, boolean ignoreAnnotations) {
+	protected OWLAxiom findEqualAxiomOptimized(final OWLAxiom axiom, boolean ignoreAnnotations) {
 		if (axiom == null) throw new NullPointerException("axiom");
 		if (axiom.getAxiomType() == AxiomType.DECLARATION) {
 			//optimized find
@@ -730,33 +782,108 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		while (foundAxiom == null && bfsIS.hasNext()) {
 			Pair<HGHandle, HGHandle> cur = bfsIS.next();
 			HGHandle curHandle = cur.getSecond();
-			PERFCOUNTER_FIND_BY_SIGNATURE_ONTOLOGY_MEMBERS ++;
-			if (ontology.isMember(curHandle)) {
-				//Axioms are members in ontologies. We have a candidate, get it:
-				Object candidate = graph.get(curHandle);
-				if (candidate instanceof OWLAxiomHGDB) {
-					OWLAxiomHGDB axiomCandidate = (OWLAxiomHGDB) candidate;
-					if (axiomCandidate.getAxiomType().equals(axiom.getAxiomType())) {
-						//types match, do expensive equals compare, loading all dependent objects.
-						PERFCOUNTER_FIND_BY_SIGNATURE_EQUALS ++;
-						if (ignoreAnnotations) {
-							// compare excluding annotations
-							if (axiom.equalsIgnoreAnnotations(axiomCandidate)) {
+			Object candidate = graph.get(curHandle);
+			if (candidate instanceof OWLAxiomHGDB) {
+				OWLAxiomHGDB axiomCandidate = (OWLAxiomHGDB) candidate;
+				if (axiomCandidate.getAxiomType().equals(axiom.getAxiomType())) {
+					//types match, do expensive equals compare, loading all dependent objects.
+					PERFCOUNTER_FIND_BY_SIGNATURE_EQUALS ++;
+					if (ignoreAnnotations) {
+						// compare excluding annotations
+						if (axiom.equalsIgnoreAnnotations(axiomCandidate)) {
+							PERFCOUNTER_FIND_BY_SIGNATURE_ONTOLOGY_MEMBERS++;
+							if (ontology.isMember(curHandle)) {
 								foundAxiom = axiomCandidate;
-							} //else equalsIgnoreAnno false, sth else did not match
-						} else {
-							// compare including annotations
-							if (axiom.equals(axiomCandidate)) {
+							}
+						} //else equalsIgnoreAnno false, sth else did not match
+					} else {
+						// compare including annotations
+						if (axiom.equals(axiomCandidate)) {
+							PERFCOUNTER_FIND_BY_SIGNATURE_ONTOLOGY_MEMBERS++;
+							if (ontology.isMember(curHandle)) {
 								foundAxiom = axiomCandidate;
-							} //else equals false, maybe annotations or sth else did not match
-						}
-					} //else different types
-				} //else no axiomHGDB 
-			} //else not our member
+							}
+						} //else equals false, maybe annotations or sth else did not match
+					}
+				} //else different types
+			} //else no axiomHGDB 
 		} //while
 		return foundAxiom;
 	}
-	
+
+// 2012.02.06 hilpold following is version used for profiling before 11:10 AM.
+// 
+//	/**
+//	 * Finds an equal axiom efficiently by using a two step process: <br>
+//	 * 1. Find an entity with a small incidence set in the signature.
+//	 * 2. use this entity to BFS for the wanted axiom checking: 
+//	 * A) ontology membership, 
+//	 * B) get and is OWLAxiomHGDB instance, 
+//	 * C) matching AxiomType, and 
+//	 * D) Full Axiom equals.
+//	 * 
+//	 * 
+//	 * @param axiom
+//	 * @param signature
+//	 * @return
+//	 */
+//	private OWLAxiomHGDB findEqualAxiomBySignature(OWLAxiom axiom, Set<OWLEntity> signature, boolean ignoreAnnotations) {
+//		if (signature.isEmpty()) throw new IllegalArgumentException("Find Axiom by signature, signature empty not allowed.");
+//		//Find signature object with small incidence set.
+//		IncidenceSet curIS, lookupEntityIS = null;	
+//		HGHandle lookupEntity = null;
+//		for (OWLEntity e : signature) {
+//			HGHandle eHandle = graph.getHandle(e);
+//			curIS = graph.getIncidenceSet(eHandle);
+//			if (curIS.size() < PERFORMANCE_INCIDENCE_SET_SIZE) {
+//				lookupEntityIS = curIS; 
+//				lookupEntity = eHandle;
+//				break;
+//			} else {
+//				//we might have to go through all entities to find min size.
+//				if (lookupEntityIS == null) {
+//					lookupEntityIS = curIS;
+//					lookupEntity = eHandle;
+//				} else if (lookupEntityIS.size() > curIS.size()) {
+//					lookupEntityIS = curIS;
+//					lookupEntity = eHandle;
+//				}
+//			}
+//		}
+//		//Find axiom in Ontology and by type BFS => fast, if axiom is not too deep.
+//		IncidenceSetALGenerator isALG = new IncidenceSetALGenerator(graph);
+//		HGBreadthFirstTraversal bfsIS = new HGBreadthFirstTraversal(lookupEntity, isALG);
+//		OWLAxiomHGDB foundAxiom = null;
+//		while (foundAxiom == null && bfsIS.hasNext()) {
+//			Pair<HGHandle, HGHandle> cur = bfsIS.next();
+//			HGHandle curHandle = cur.getSecond();
+//			PERFCOUNTER_FIND_BY_SIGNATURE_ONTOLOGY_MEMBERS ++;
+//			if (ontology.isMember(curHandle)) {
+//				//Axioms are members in ontologies. We have a candidate, get it:
+//				Object candidate = graph.get(curHandle);
+//				if (candidate instanceof OWLAxiomHGDB) {
+//					OWLAxiomHGDB axiomCandidate = (OWLAxiomHGDB) candidate;
+//					if (axiomCandidate.getAxiomType().equals(axiom.getAxiomType())) {
+//						//types match, do expensive equals compare, loading all dependent objects.
+//						PERFCOUNTER_FIND_BY_SIGNATURE_EQUALS ++;
+//						if (ignoreAnnotations) {
+//							// compare excluding annotations
+//							if (axiom.equalsIgnoreAnnotations(axiomCandidate)) {
+//								foundAxiom = axiomCandidate;
+//							} //else equalsIgnoreAnno false, sth else did not match
+//						} else {
+//							// compare including annotations
+//							if (axiom.equals(axiomCandidate)) {
+//								foundAxiom = axiomCandidate;
+//							} //else equals false, maybe annotations or sth else did not match
+//						}
+//					} //else different types
+//				} //else no axiomHGDB 
+//			} //else not our member
+//		} //while
+//		return foundAxiom;
+//	}
+
 	/**
 	 * ALWAYS CALLED WITHIN TRANSACTION.
 	 * @param axiom
@@ -927,6 +1054,9 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 			graph.getTransactionManager().ensureTransaction(new Callable<Boolean>() {
 				public Boolean call() {
 					OWLAxiomHGDB axiomHGDB = (OWLAxiomHGDB) axiom;
+					// 2012.02.06 hilpold hashCode indexed
+					// ensure hashCode Calculated before storage
+					axiomHGDB.hashCode();
 					axiomHGDB.setLoadAnnotations(false);
 					if (DBG) ontology.printGraphStats("Before AddAxiom");
 					// 2011.10.06 hilpold adding to graph here instead of
@@ -1572,8 +1702,9 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		+ "\n   axiom was a member           : " + PERFCOUNTER_FIND_BY_MEMBERSHIP
 		+ "\n   used by signature            : " + PERFCOUNTER_FIND_BY_SIGNATURE
 		+ "\n   had to use slow equals scan  : " + PERFCOUNTER_FIND_EQUALS
+		+ "\n By Hashcode test equals        : " + PERFCOUNTER_FIND_BY_HASHCODE_EQUALS
 		+ "\n By Signature test onto member  : " + PERFCOUNTER_FIND_BY_SIGNATURE_ONTOLOGY_MEMBERS
-		+ "\n By Signature test slow equals: " + PERFCOUNTER_FIND_BY_SIGNATURE_EQUALS
+		+ "\n By Signature test slow equals  : " + PERFCOUNTER_FIND_BY_SIGNATURE_EQUALS
 		+ "\n ---------------------------------\n";
 	}	
 }
