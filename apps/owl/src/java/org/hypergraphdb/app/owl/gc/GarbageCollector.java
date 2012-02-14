@@ -19,6 +19,7 @@ import org.hypergraphdb.algorithms.HGDepthFirstTraversal;
 import org.hypergraphdb.app.owl.HGDBApplication;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
+import org.hypergraphdb.app.owl.core.HGDBTask;
 import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
 import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
 import org.hypergraphdb.app.owl.model.OWLAnnotationHGDB;
@@ -66,13 +67,18 @@ import org.semanticweb.owlapi.model.OWLOntology;
  * <br> IRIs will now be deleted. We query the IRI indices to determine removability based on usage in OWLNamedObjectType.
  * </p>
  */
-public class GarbageCollector {
+public class GarbageCollector implements HGDBTask {
 
+	// Debug switches
 	private static final boolean DBG = false;
 	private static final boolean DBGX = false;
-	
 	private StopWatch stopWatch = new StopWatch();
 	private int dbgCounter = 0;
+	
+	// Task progress reporting and canceling
+	private volatile int taskSize = 0;
+	private volatile int taskProgess = 0;
+	private volatile boolean cancelTask = false;	
 
 	/**
 	 * A full GC run entails running:
@@ -139,11 +145,11 @@ public class GarbageCollector {
 	 * Run full garbage collection
 	 * @return
 	 */
-	public GarbageCollectorStatistics runGarbageCollection() {
+	public synchronized GarbageCollectorStatistics runGarbageCollection() {
 		return runGarbageCollection(MODE_FULL);
 	}
 
-	public GarbageCollectorStatistics runGarbageCollection(int mode) {
+	public synchronized GarbageCollectorStatistics runGarbageCollection(int mode) {
 		GarbageCollectorStatistics stats = runGCInternal(mode, false);
 		return stats;
 	}
@@ -153,43 +159,56 @@ public class GarbageCollector {
 	 * 
 	 * @return
 	 */
-	public GarbageCollectorStatistics runGarbageAnalysis() {
+	public synchronized GarbageCollectorStatistics runGarbageAnalysis() {
 		return runGCInternal(MODE_FULL, true);
 	}
 
-	public GarbageCollectorStatistics runGarbageAnalysis(int mode) {
+	public synchronized GarbageCollectorStatistics runGarbageAnalysis(int mode) {
 		GarbageCollectorStatistics stats = runGCInternal(mode, true);
 		return stats;
 	}
 
 	private GarbageCollectorStatistics runGCInternal(int mode, boolean analyzeMode) {
 		dbgCounter = 0;
+		resetTask();
 		Set<HGHandle> analyzeRemovedSet = null;
 		if (analyzeMode) {		
 			analyzeRemovedSet = new HashSet<HGHandle>(estimateCollectableAtoms());
 		}
 		GarbageCollectorStatistics stats = new GarbageCollectorStatistics();
-		switch (mode) {
-			case MODE_FULL: {
-				collectRemovedOntologies(stats, analyzeMode, analyzeRemovedSet);
-				collectAxioms(stats, analyzeMode, analyzeRemovedSet);
-				collectOtherObjects(stats, analyzeMode, analyzeRemovedSet);
-				collectEntities(stats, analyzeMode, analyzeRemovedSet);
-			};break;
-			case MODE_DELETED_ONTOLOGIES: {
-				collectRemovedOntologies(stats, analyzeMode, analyzeRemovedSet);
-			};break;
-			case MODE_DISCONNECTED_AXIOMS: {
-				collectAxioms(stats, analyzeMode, analyzeRemovedSet);
-			};break;
-			case MODE_DISCONNECTED_OTHER: {
-				collectOtherObjects(stats, analyzeMode, analyzeRemovedSet);
-			};break;
-			case MODE_DISCONNECTED_ENTITIES: {
-				collectEntities(stats, analyzeMode, analyzeRemovedSet);
-			};break;
-			default: {
-				throw new IllegalArgumentException("runGC with unknown mode called: " + mode);
+		try {
+			switchmode:
+				switch (mode) {
+					case MODE_FULL: {
+						collectRemovedOntologies(stats, analyzeMode, analyzeRemovedSet);
+						if (isCancelTask()) break switchmode;
+						collectAxioms(stats, analyzeMode, analyzeRemovedSet);
+						if (isCancelTask()) break switchmode;
+						collectOtherObjects(stats, analyzeMode, analyzeRemovedSet);
+						if (isCancelTask()) break switchmode;
+						collectEntities(stats, analyzeMode, analyzeRemovedSet);
+					};break;
+					case MODE_DELETED_ONTOLOGIES: {
+						collectRemovedOntologies(stats, analyzeMode, analyzeRemovedSet);
+					};break;
+					case MODE_DISCONNECTED_AXIOMS: {
+						collectAxioms(stats, analyzeMode, analyzeRemovedSet);
+					};break;
+					case MODE_DISCONNECTED_OTHER: {
+						collectOtherObjects(stats, analyzeMode, analyzeRemovedSet);
+					};break;
+					case MODE_DISCONNECTED_ENTITIES: {
+						collectEntities(stats, analyzeMode, analyzeRemovedSet);
+					};break;
+					default: {
+						throw new IllegalArgumentException("runGC with unknown mode called: " + mode);
+					}
+				}
+		} catch (RuntimeException e) {
+			if (e.getCause() instanceof InterruptedException) {
+				//we cancel and ignore the exception
+			} else {
+				throw e;
 			}
 		}
 		return stats;
@@ -217,6 +236,7 @@ public class GarbageCollector {
 		List<HGDBOntology> delOntos =  repository.getDeletedOntologies();
 		int i = 0;
 		for (HGDBOntology delOnto : delOntos) {
+			if(isCancelTask()) break;
 			i++;
 			stopWatch.start();
 			collectRemovedOntology(delOnto, stats, analyzeMode, analyzeRemovedSet);
@@ -230,7 +250,18 @@ public class GarbageCollector {
 		//internals.remove does remove anno from onto, NOT graph
 		// Ontology Annotations are just added to the ontology, no link.
 		Set<OWLAnnotation> annos = onto.getAnnotations();
+		Set<OWLImportsDeclaration> importsDeclarations = onto.getImportsDeclarations();
+		Set<OWLAxiom> axioms = onto.getAxioms();
+		Set<OWLEntity> entities = onto.getSignature();
+
+		taskProgess = 0;
+		taskSize = annos.size() 
+				+ importsDeclarations.size() 
+				+ axioms.size() * 2 // remove from onto + remove axiom.
+				+ entities.size();
 		for (OWLAnnotation anno : annos) {
+			if (isCancelTask()) return;
+			progressTask();
 			HGHandle annoHandle = graph.getHandle(anno);
 			if (!analyzeMode) {
 				onto.remove(annoHandle);
@@ -240,8 +271,9 @@ public class GarbageCollector {
 		//TODO wrap import declaration removal inside a transaction.
 		//Import declarations
 		//internals.remove does remove from onto&graph: ImportDeclarationLink, ImportDeclaration
-		Set<OWLImportsDeclaration> importsDeclarations = onto.getImportsDeclarations();
 		for (OWLImportsDeclaration importsDeclaration : importsDeclarations) {
+			if (isCancelTask()) return;
+			progressTask();
 			HGHandle importsDeclarationHandle = graph.getHandle(importsDeclaration);
 			IncidenceSet is = graph.getIncidenceSet(importsDeclarationHandle);
 			if (is.size() != 1) throw new IllegalStateException();
@@ -264,19 +296,32 @@ public class GarbageCollector {
 			stats.increaseTotalAtoms();					
 		}
 		// Retain Axioms and Entities relevant data:
-		Set<OWLAxiom> axioms = onto.getAxioms();
-		Set<OWLEntity> entities = onto.getSignature();
 
 		// Cancel Membership of entities from ontology as they are onto members, 
 		// but don't delete or count as this will be done later during axiom removal.
 		if (!analyzeMode) {
 			for (OWLEntity entity : entities) {
+				if (isCancelTask()) return;
+				progressTask();
 				HGHandle entityHandle = graph.getHandle(entity);
 				onto.remove(entityHandle);
 			}
 		}
+
+		// Now that tasks can be canceled we need to make sure removing axioms is cancelable.
+		// A) So we remove each axiom from the onto before removing the ontology. 
+		for (OWLAxiom axiom : axioms) {
+			if (isCancelTask()) return;
+			progressTask();
+			HGHandle axiomHandle = graph.getHandle(axiom);
+			//1. remove axiom from Subgraph, index must be zero now for removal, 
+			//unless axiom is also member in other subgraphs/ontologies, which is possible dependent on how our API is used.
+			if (!analyzeMode) {
+				onto.remove(axiomHandle);
+			}
+		}
 		
-		// Collect Ontology
+		// B) Collect Ontology
 		HGHandle ontoHandle = graph.getHandle(onto);
 		if (analyzeMode) {
 			//Mark for removal before analysing axioms or entities
@@ -288,13 +333,14 @@ public class GarbageCollector {
 		stats.increaseOntologies();
 		stats.increaseTotalAtoms();				
 		
+		// If the task is canceled after removing the onto and during axiom removal, 
+		// axioms will be found in a collectAxioms run, because they are not members of an ontology anymore.
+		
+		// C) Remove axioms, that can be reached through the removed ontology, but are now outside any ontology
 		for (OWLAxiom axiom : axioms) {
+			if (isCancelTask()) break;
+			progressTask();
 			HGHandle axiomHandle = graph.getHandle(axiom);
-			//1. remove axiom from Subgraph, index must be zero now for removal, 
-			//unless axiom is also member in other subgraphs/ontologies, which is possible dependent on how our API is used.
-			if (!analyzeMode) {
-				onto.remove(axiomHandle);
-			}
 			//NO, following would remove axiom from graph as of 2011.12.23: onto.applyChange(new RemoveAxiom(onto, axiom));
 			//2. collect enfore zero ontology membership set 
 			collectAxiomTransact(axiomHandle, stats, analyzeMode, analyzeRemovedSet);
@@ -312,8 +358,12 @@ public class GarbageCollector {
 					hg.disconnected(),
 					hg.not(new AnySubgraphMemberCondition(graph)))
 				);
+		taskProgess = 0;
+		taskSize = handlesToRemove.size();
 		stopWatch.stop("Disconnected Axiom query time: Found: " + handlesToRemove.size() + " Duration:");
 		for (HGHandle h: handlesToRemove) {
+			if(isCancelTask()) break;
+			progressTask();
 			collectAxiomTransact(h, stats, analyzeMode, analyzeRemovedSet);
 		}
 		stopWatch.stop("Disconnected Axiom collection time: ");
@@ -442,7 +492,7 @@ public class GarbageCollector {
 			collectAtomsReverseOrder(collectibleAtoms);
 		}
 		dbgCounter ++;
-		if (dbgCounter % 500 == 0) {
+		if (dbgCounter % 1000 == 0) {
 			System.out.println("\n GC: DFS Call Count: " + dbgCounter + " Collectable: " + stats.getTotalAtoms());
 			System.out.println(stats.toString());
 			System.out.println("Graph atoms: " + repository.getNrOfAtoms());
@@ -706,18 +756,22 @@ public class GarbageCollector {
 	 * @param stats
 	 */
 	private void collectOtherObjects(GarbageCollectorStatistics stats, boolean analyzeMode, Set<HGHandle> analyzeRemovedSet) {
-		if (DBG) stopWatch.start();
+		stopWatch.start();
 		List<HGHandle> handlesToRemove = hg.findAll(graph, hg.and(
 				hg.disconnected(),
 				hg.typePlus(OWLObjectHGDB.class),
 				hg.not(hg.typePlus(OWLEntity.class)),
 				hg.not(hg.typePlus(OWLAxiomHGDB.class)))
 			);
-		if (DBG) stopWatch.stop("Disconnected Others query time: Found: " + handlesToRemove.size() + " Duration:");
+		taskProgess = 0;
+		taskSize = handlesToRemove.size();
+		stopWatch.stop("Disconnected Others query time: Found: " + handlesToRemove.size() + " Duration:");
 		for (HGHandle h: handlesToRemove) {
+			if(isCancelTask()) break;
+			progressTask();
 			collectOWLObjectsByDFSTransact(h, stats, analyzeMode, analyzeRemovedSet);
 		}
-		if (DBG) stopWatch.stop("Disconnected Others collection time: ");
+		stopWatch.stop("Disconnected Others collection time: ");
 		if (DBG) System.out.println("Stats now: " + stats.toString());		
 	}
 	
@@ -727,19 +781,32 @@ public class GarbageCollector {
 	 * @param stats
 	 */
 	private void collectEntities(GarbageCollectorStatistics stats, boolean analyzeMode, Set<HGHandle> analyzeRemovedSet) {
-		if (DBG) stopWatch.start();
+		stopWatch.start();
+		System.out.println("All " + hg.count(graph, hg.typePlus(OWLEntity.class)));
+		System.out.println("All disconnected " + hg.count(graph, 
+				hg.and(hg.typePlus(OWLEntity.class), hg.disconnected())));
+		System.out.println("All disconnected not builtin " + hg.count(graph, 
+				hg.and(hg.typePlus(OWLEntity.class), hg.disconnected(),
+						hg.not(new OWLEntityIsBuiltIn()))));
+		System.out.println("All to be collected " + hg.count(graph, 
+				hg.and(hg.typePlus(OWLEntity.class), hg.disconnected(),
+						hg.not(new OWLEntityIsBuiltIn()),
+						hg.not(new AnySubgraphMemberCondition(graph)))));
+		
 		List<HGHandle> handlesToRemove = hg.findAll(graph, hg.and(
 					hg.typePlus(OWLEntity.class),
 					hg.disconnected(),
 					hg.not(new OWLEntityIsBuiltIn()),
 					hg.not(new AnySubgraphMemberCondition(graph)))
 					);
-		if (DBG) stopWatch.stop("Disconnected Entities query time: Found: " + handlesToRemove.size() + " Duration:");
+		taskProgess = 0;
+		taskSize = handlesToRemove.size();
+		stopWatch.stop("Disconnected Entities query time: Found: " + handlesToRemove.size() + " Duration:");
 		removeEntitiesTransact(handlesToRemove, stats, analyzeMode, analyzeRemovedSet, 0, handlesToRemove.size());
 			//if (successRemoveCounter != handlesToRemove.size()) throw new IllegalStateException("successRemoveCounter != handles.size()");
 			//stats.setEntities(stats.getEntities() + successRemoveCounter);
 			//stats.setTotalAtoms(stats.getTotalAtoms() + successRemoveCounter);
-		if (DBG) stopWatch.stop("Disconnected Entities collection time: ");
+		stopWatch.stop("Disconnected Entities collection time: ");
 //		} else {
 //			//stats.setEntities(stats.getEntities() + handlesToRemove.size());
 //			//stats.setTotalAtoms(stats.getTotalAtoms() + handlesToRemove.size());
@@ -771,6 +838,8 @@ public class GarbageCollector {
 		int i = fromIndex;
 		ListIterator<HGHandle> it = entityHandles.listIterator(fromIndex);
 		while (i < toIndex) {
+			if(isCancelTask()) break;
+			progressTask();
 			i++;
 			HGHandle h = it.next();
 			collectOWLObjectsByDFSInternal(h, stats, analyzeMode, analyzeRemovedSet);
@@ -854,6 +923,49 @@ public class GarbageCollector {
 		System.out.print(out);
 	}
 
+
+	private void progressTask() {
+		if (taskProgess % 100 == 0) {
+			try {
+				Thread.sleep(0, 100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		taskProgess ++;
+	}
+
+	public void resetTask() {
+		cancelTask = false;
+		taskProgess = 0;
+		taskSize = 0;
+	}
+	
+	public void cancelTask() {
+		cancelTask = true;
+	}
+
+	public boolean isCancelTask() {
+		return cancelTask;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.core.HGDBTask#getTaskTotal()
+	 */
+	@Override
+	public int getTaskSize() {
+		return taskSize;
+	}
+
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.core.HGDBTask#getTaskCurrent()
+	 */
+	@Override
+	public int getTaskProgess() {
+		return taskProgess;
+	}
+
 //	/**
 //	 * This method determines if an IRI can be removed and 
 //	 * @param iriHandle
@@ -867,7 +979,7 @@ public class GarbageCollector {
 //		// In such cases the incidense set of the IRI will contain either a
 //		// OWLAnnotationHGDB, OWLAnnotationAssertionAxiomHGDB, OWLAnnotationPropertyDomainAxiomHGDB,
 //		// or OWLAnnotationPropertyRangeAxiomHGDB,
-//		if (graph.getIncidenceSet(iriHandle).size() == 0) { 
+//		if (graph.getIncidenceSet(iriHandle).isEmpty) { 
 //			graph.remove(iriHandle);
 //		}
 //	}
