@@ -27,6 +27,11 @@
 	</natures>
 	<linkedResources>
 		<link>
+			<name>src/main/hgdb-app-owl-src-java</name>
+			<type>2</type>
+			<locationURI>WORKSPACE_LOC/hypergraphdb/apps/owl/src/java</locationURI>
+		</link>
+		<link>
 			<name>src/main/java</name>
 			<type>2</type>
 			<locationURI>WORKSPACE_LOC/hypergraphdb/apps/owl/src/java</locationURI>
