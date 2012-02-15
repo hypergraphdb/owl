@@ -33,8 +33,12 @@
    <!-- 
         these properties probably don't need changing
         -->
-   <property name = "src"               location = "./src/main/java"/>  
-   <property name = "build"             location = "./build"/>
+   <!-- 
+        2012.02.14 hilpold using src folder variable to point to 
+        -->
+	<property name = "src"               location = "../hypergraphdb/apps/owl/src/java"/>  
+	<!-- property name = "src"               location = "./src/main/java"/ -->  
+	<property name = "build"             location = "./build"/>
    <property name = "bundle.dir"        location = "${build}"/>
    <property name = "classes"           location = "${build}/classes"/>
    <property name = "genlib"            location = "${build}/lib"/>
