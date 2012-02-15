@@ -2,18 +2,17 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: HypergraphDB Owl-API Backend
 Bundle-SymbolicName: org.hypergraph.app.owl;singleton:=true
-Bundle-Version: 0.9.8
+Bundle-Version: 0.9.9dev
 Bundle-Vendor: Miami Dade CIAO / eSolutions
 Bundle-ContactAddress: hilpold@miamidade.gov 
 Bundle-ClassPath: .,
+ lib/db.jar,
+ lib/hgbdbnative.jar,
+ lib/hgdb.jar,
  lib/hgdbmanagement.jar,
- lib/hypergraphdb.jar,
- lib/jars/db.jar,
- lib/jars/smack.jar,
- lib/jars/smackx.jar,
  lib/native
  
-Bundle-NativeCode: /lib/native/libdb_java52.dll; /lib/native/libdb52.dll; osname=win32; processor=x86
+Bundle-NativeCode: /lib/native/libdb_java53.dll; /lib/native/libdb53.dll; osname=win32; processor=x86
  
 Export-Package: 
  org.hypergraphdb,
