@@ -36,7 +36,10 @@
    <!-- 
         2012.02.14 hilpold using src folder variable to point to 
         -->
+	<property name = "src"               location = "../src/java"/>  
+<!-- uncomment to refer to src from eclipse workspace in workspace root folder >
 	<property name = "src"               location = "../hypergraphdb/apps/owl/src/java"/>  
+	-->
 	<!-- property name = "src"               location = "./src/main/java"/ -->  
 	<property name = "build"             location = "./build"/>
    <property name = "bundle.dir"        location = "${build}"/>
