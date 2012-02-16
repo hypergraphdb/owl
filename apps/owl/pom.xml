@@ -37,6 +37,11 @@
 	  <artifactId>hgbdbnative</artifactId>
 	  <version>${version}</version>
 	</dependency>	
+	<dependency>
+	  <groupId>org.hypergraphdb</groupId>
+	  <artifactId>hgdbp2p</artifactId>
+	  <version>${version}</version>
+	</dependency>	
     <dependency>
       <groupId>net.sourceforge.owlapi</groupId>
       <artifactId>owlapi</artifactId>
