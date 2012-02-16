@@ -38,7 +38,7 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 		return (VHGDBOntologyRepository)instance;
 	}
 	
-	private VHGDBOntologyRepository(String location) {
+	protected VHGDBOntologyRepository(String location) {
 		super(location);
 	}		
 
