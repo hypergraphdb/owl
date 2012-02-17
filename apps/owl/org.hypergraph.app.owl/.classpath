@@ -5,7 +5,10 @@
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="lib" path="lib/db.jar"/>
 	<classpathentry kind="lib" path="lib/hgbdbnative.jar"/>
-	<classpathentry kind="lib" path="lib/hgdb.jar"/>
-	<classpathentry kind="lib" path="lib/hgdbmanagement.jar"/>
+	<classpathentry kind="lib" path="lib/hgdb.jar" sourcepath="/hypergraphdb/core/src/java"/>
+	<classpathentry kind="lib" path="lib/hgdbmanagement.jar" sourcepath="/hypergraphdb/apps/management/src/java"/>
+	<classpathentry kind="lib" path="lib/hgdbp2p.jar" sourcepath="/hypergraphdb/p2p/src/java"/>
+	<classpathentry kind="lib" path="lib/smack.jar"/>
+	<classpathentry kind="lib" path="lib/smackx.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
