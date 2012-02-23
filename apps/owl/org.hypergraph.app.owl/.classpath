@@ -7,8 +7,8 @@
 	<classpathentry kind="lib" path="lib/hgbdbnative.jar"/>
 	<classpathentry kind="lib" path="lib/hgdb.jar" sourcepath="/hypergraphdb/core/src/java"/>
 	<classpathentry kind="lib" path="lib/hgdbmanagement.jar" sourcepath="/hypergraphdb/apps/management/src/java"/>
-	<classpathentry kind="lib" path="lib/hgdbp2p.jar" sourcepath="/hypergraphdb/p2p/src/java"/>
 	<classpathentry kind="lib" path="lib/smack.jar"/>
 	<classpathentry kind="lib" path="lib/smackx.jar"/>
+	<classpathentry kind="lib" path="/hypergraphdb/p2p/target/classes" sourcepath="/hypergraphdb/p2p/src/java"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
