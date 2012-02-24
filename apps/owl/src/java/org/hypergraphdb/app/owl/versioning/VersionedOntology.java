@@ -3,6 +3,7 @@ package org.hypergraphdb.app.owl.versioning;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HGGraphHolder;
@@ -10,11 +11,19 @@ import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.hypergraphdb.util.Pair;
+import org.semanticweb.owlapi.model.AddAxiom;
+import org.semanticweb.owlapi.model.AddImport;
+import org.semanticweb.owlapi.model.AddOntologyAnnotation;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLMutableOntology;
-import org.semanticweb.owlapi.model.OWLOntology;
+
+import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
 
 /**
  * A VersionedOntology represents all revisions and changesets of one versioned ontology.
@@ -41,7 +50,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public class VersionedOntology  implements HGLink, HGGraphHolder {
+public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObject {
 	
 	/**
 	 * The list of all changeSet and Revision Pairs.
@@ -64,13 +73,13 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	 * @param onto an ontology already stored in the graph
 	 * @param user
 	 */
-	public VersionedOntology(OWLOntology onto, String user, HyperGraph graph) {
+	public VersionedOntology(HGDBOntology onto, String user, HyperGraph graph) {
 		this.graph = graph;
 		//link to onto as head and base copy	
 		initialize(onto, user);
 	}
 	
-	private void initialize(final OWLOntology onto, final String user) {
+	private void initialize(final HGDBOntology onto, final String user) {
 		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
 			public Object call() {
 				revisionAndChangeSetPairs = new ArrayList<HGHandle>();		
@@ -94,11 +103,84 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 			}}, HGTransactionConfig.READONLY);
 	}
 
-	public OWLOntology getHeadRevisionData(){
-		return graph.getTransactionManager().ensureTransaction(new Callable<OWLOntology>() {
-			public OWLOntology call() {
+	public HGDBOntology getHeadRevisionData(){
+		return graph.getTransactionManager().ensureTransaction(new Callable<HGDBOntology>() {
+			public HGDBOntology call() {
 					return graph.get(getHeadRevision().getOntologyID());
 			}}, HGTransactionConfig.READONLY);
+	}
+	
+	/**
+	 * Gets the revision Data representing a particular revision.
+	 * This is an expensive operation.
+	 * Only Committed changes will be included.
+	 * Returns a partial in memory Ontology, that has in memory sets and indices, but
+	 * shares graph loaded axioms and Entities.
+	 * It is expected to fail during a GC run, if after onto creation:
+	 * A) the head ontology gets reverted to a state before the r revision AND GC is run after that
+	 * OR 
+	 * B) Version Control get's removed from the head ontology, which deletes all changes AND GC is run after that
+	 * OR
+	 * C) The head ontology gets Removed AND GC is run after that
+	 *  
+	 * @param r
+	 * @return
+	 */
+	public OWLOntologyImpl getRevisionData(Revision targetRevision) {
+		// Assert revision is in VersionedOnto
+		HGDBOntology latest = getHeadRevisionData();
+		// Create an empty copy.
+		OWLOntologyImpl memOnto = copyIntoPartialInMemOnto(latest);
+		// Revert all Changesets from HEAD to r in mem
+		List<ChangeSet> changeSetsToRevert = getChangeSetsFromRevisionToLast(targetRevision);
+		// Iterate over list last to first
+		ListIterator<ChangeSet> csIt = changeSetsToRevert.listIterator(changeSetsToRevert.size());
+		while (csIt.hasPrevious()) {
+			ChangeSet cs = csIt.previous();
+			cs.reverseApplyTo(memOnto);
+		}
+		return memOnto;
+	}
+	
+	/**
+	 * Returns a view of all changesets from the one after r including the after head changeset.
+	 * @param r
+	 * @return a sublist from changeset after r including the changeset after head.
+	 */
+	public List<ChangeSet> getChangeSetsFromRevisionToLast(Revision r) {
+		int i = indexOf(r);
+		List<ChangeSet> allCS = getChangeSets();
+		return getChangeSets().subList(i, allCS.size() - 1);
+	}
+	
+	/**
+	 * Returns a partial in memory Ontology, that has in memory sets and indices, but
+	 * relies on persisted axioms and entities.
+	 * It is expected to fail during a GC run, if after onto creation:
+	 * A) the Head ontology gets reverted to a state before the r revision AND GC is run after that
+	 * OR 
+	 * B) Version Control get's removed from the head ontology, which deletes all changes AND GC is run after that
+	 * OR
+	 * C) The head ontology gets Removed AND GC is run after that
+	 * 
+	 * @param original
+	 * @return
+	 */
+	public OWLOntologyImpl copyIntoPartialInMemOnto(HGDBOntology original) {
+		OWLOntologyImpl memOnto = new OWLOntologyImpl(original.getOWLOntologyManager(), original.getOntologyID());
+		// Copy A) ImportDeclarations 
+		for(OWLImportsDeclaration id : original.getImportsDeclarations()) {
+			memOnto.applyChange(new AddImport(memOnto, id));
+		}
+		// Copy B) ImportDeclarations 
+		for(OWLAnnotation an : original.getAnnotations()) {
+			memOnto.applyChange(new AddOntologyAnnotation(memOnto, an));
+		}
+		// Copy C) Axioms 
+		for(OWLAxiom ax : original.getAxioms()) {
+			memOnto.applyChange(new AddAxiom(memOnto, ax));
+		}
+		return memOnto;
 	}
 	
 	/**
@@ -495,6 +577,14 @@ public class VersionedOntology  implements HGLink, HGGraphHolder {
 	@Override
 	public void notifyTargetRemoved(int i) {
 		revisionAndChangeSetPairs.remove(i);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.versioning.VersioningObject#accept(org.hypergraphdb.app.owl.versioning.VersioningObjectVisitor)
+	 */
+	@Override
+	public void accept(VersioningObjectVisitor visitor) {
+		visitor.visit(this);
 	}
 		
 }

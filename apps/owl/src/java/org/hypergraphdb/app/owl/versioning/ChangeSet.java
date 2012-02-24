@@ -25,7 +25,7 @@ import org.semanticweb.owlapi.model.OWLOntologyChange;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public class ChangeSet implements HGLink, HGGraphHolder {
+public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject {
 	
 	private Date createdDate;
 	private List <HGHandle> changes;
@@ -184,5 +184,13 @@ public class ChangeSet implements HGLink, HGGraphHolder {
 	@Override
 	public void notifyTargetRemoved(int i) {
 		changes.remove(i);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.versioning.VersioningObject#accept(org.hypergraphdb.app.owl.versioning.VersioningObjectVisitor)
+	 */
+	@Override
+	public void accept(VersioningObjectVisitor visitor) {
+		visitor.visit(this);
 	}
 }

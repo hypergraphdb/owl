@@ -11,7 +11,7 @@ import org.hypergraphdb.HGHandleHolder;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 18, 2012
  */
-public class Revision extends RevisionID implements HGHandleHolder {
+public class Revision extends RevisionID implements HGHandleHolder, VersioningObject {
 	
 	public static final long TIMESTAMP_UNDEFINED = Long.MIN_VALUE; 
 	public static final String USER_ANONYMOUS = null; 
@@ -99,4 +99,13 @@ public class Revision extends RevisionID implements HGHandleHolder {
 		this.handle = handle;
 		
 	}
+	
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.versioning.VersioningObject#accept(org.hypergraphdb.app.owl.versioning.VersioningObjectVisitor)
+	 */
+	@Override
+	public void accept(VersioningObjectVisitor visitor) {
+		visitor.visit(this);
+	}
+
 }

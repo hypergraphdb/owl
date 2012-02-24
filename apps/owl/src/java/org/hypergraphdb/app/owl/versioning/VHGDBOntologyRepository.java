@@ -8,6 +8,7 @@ import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.HGQuery.hg;
+import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
@@ -80,7 +81,7 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 	 * @param user
 	 * @return
 	 */
-	public VersionedOntology addVersionControl(final OWLOntology o, final String user) {
+	public VersionedOntology addVersionControl(final HGDBOntology o, final String user) {
 		final HyperGraph graph = getHyperGraph();
 		if (isVersionControlled(o)) throw new IllegalStateException("Ontology already version controlled" + o.getOntologyID());
 		return getHyperGraph().getTransactionManager().ensureTransaction(new Callable<VersionedOntology>() {
