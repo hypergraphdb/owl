@@ -16,6 +16,7 @@ import java.util.concurrent.TimeoutException;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.HGDBOWLManager;
+import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyManagerImpl;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
@@ -264,7 +265,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 	private static void ensureOneVersionedOntology(VDHGDBOntologyRepository dr) {
 		HGDBOntologyManagerImpl manager = HGDBOWLManager.createOWLOntologyManager();
 		try {
-			OWLOntology o = manager.createOntology(IRI.create("hgdb://miamidade.gov/DISTRIBUTEDTEST1"));
+			HGDBOntology o = (HGDBOntology)manager.createOntology(IRI.create("hgdb://miamidade.gov/DISTRIBUTEDTEST1"));
 			System.out.println(dr.getHyperGraph().getHandle(o));
 			//manager.addAxiom(o, manager.getOWLDataFactory().)
 			VDHGDBOntologyRepository repo = (VDHGDBOntologyRepository)manager.getOntologyRepository();
