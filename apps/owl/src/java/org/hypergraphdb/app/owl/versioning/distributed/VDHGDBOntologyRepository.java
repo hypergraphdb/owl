@@ -14,19 +14,30 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGQuery.hg;
+import org.hypergraphdb.app.owl.HGDBOWLManager;
+import org.hypergraphdb.app.owl.HGDBOntologyManagerImpl;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.distributed.activity.PushVersionedOntology;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.PeerPresenceListener;
 import org.hypergraphdb.peer.cact.AddAtom;
 import org.hypergraphdb.peer.cact.DefineAtom;
+import org.hypergraphdb.peer.cact.GetClassForType;
 import org.hypergraphdb.peer.workflow.Activity;
 import org.hypergraphdb.peer.workflow.ActivityManager;
 import org.hypergraphdb.peer.workflow.AffirmIdentity;
+import org.jivesoftware.smack.XMPPConnection;
 //import org.hypergraphdb.p
+import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 /**
  * VDHGDBOntologyRepository.
@@ -34,7 +45,11 @@ import org.hypergraphdb.peer.workflow.AffirmIdentity;
  * @created Feb 16, 2012
  */
 public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
-	
+
+	static {
+	    XMPPConnection.DEBUG_ENABLED = true;
+	}
+
 	HyperGraphPeer peer;
 	
 	public static String PEER_USERNAME = "hg1"; 
@@ -99,7 +114,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 		//
 		interfaceConfig.put("user", PEER_USERNAME);
 		interfaceConfig.put("password", PEER_PASSWORD);
-		interfaceConfig.put("serverUrl", "localhost");
+		interfaceConfig.put("serverUrl", "W203-003.miamidade.gov");
 		//peers from roster! interfaceConfig.put("room", "ontologyCM@conference.127.0.0.1");
 		interfaceConfig.put("autoRegister", true);
 		interfaceConfig.put("ignoreRoster", false);
@@ -107,7 +122,15 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 		return peerConfig;
 	}
 	
+	public void DBG_ClearDates() {
+		List<HGHandle> L = getHyperGraph().findAll(hg.type(Date.class));
+		for (HGHandle h : L) {
+			getHyperGraph().remove(h);
+		}
+	}
+	
 	public boolean startNetworking() {
+		DBG_ClearDates();
 		//this will block
 		Future<Boolean> f = peer.start();
 		boolean success = false; 
@@ -125,6 +148,10 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 		} catch (TimeoutException e) {
 			e.printStackTrace();
 		} 
+		// Bootstrap Push:
+		if (PushVersionedOntology.NotOntologyExists == null) {};
+		peer.getActivityManager().registerActivityType(PushVersionedOntology.TYPENAME, PushVersionedOntology.class);
+
 		return success;
 	}
 
@@ -183,10 +210,22 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 		// 6) remote will receive one changeset/Revision, then apply those changes within one transaction
 		//  
 		//
-//		if (peer.getIdentity().)
-//			HGHandle atom = getHyperGraph().add(new Date());
-//			Activity a = new DefineAtom(peer, atom, target)
-//			peer.getActivityManager().initiateActivity(activity);
+		if (peer.getIdentity().getGraphLocation().contains("hg1")
+				&& ! peer.getConnectedPeers().isEmpty()) {
+					HGPeerIdentity target = peer.getConnectedPeers().iterator().next();
+//					//HGHandle atom = getHyperGraph().add(new Date());
+//					Activity activity = new DefineAtom(peer, atom, target);
+//					peer.getActivityManager().initiateActivity(activity);
+					VersionedOntology voN = getVersionControlledOntologies().get(0);
+					System.out.println("Sending versioned onto: " + voN.getHeadRevisionData().getOntologyID());
+					HGHandle atom = getHyperGraph().add(new Date());
+					Activity activity = new PushVersionedOntology(peer, voN , target);
+					peer.getActivityManager().initiateActivity(activity);
+					
+			//System.out.println("SENT Dates: " + getHyperGraph().count(hg.type(Date.class)));
+		} else { 
+			//System.out.println("RECEIVED Dates: " + getHyperGraph().count(hg.type(Date.class)));
+		}
 		return null;
 	}
 	
@@ -199,20 +238,43 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 		File dir = new File ("C:\\temp\\hypergraph-" + VDHGDBOntologyRepository.PEER_USERNAME);
 		if (!dir.exists()) dir.mkdir();
 		VDHGDBOntologyRepository.setHypergraphDBLocation(dir.getAbsolutePath());
-		
 		VDHGDBOntologyRepository dr = VDHGDBOntologyRepository.getInstance();
+		if (argv[0].contains("1")) {
+			ensureOneVersionedOntology(dr);
+		}
 		dr.startNetworking();
 		dr.printPeerInfo();
 		try {
 			while (true) {
-				Thread.sleep((long) 5000);
+				Thread.sleep((long) 10000);
 				dr.printPeerInfo();
+				dr.push(null, null);
 			}
+			
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		} finally {
 			dr.stopNetworking();
 		}
+	}
+
+	/**
+	 * @param dr
+	 */
+	private static void ensureOneVersionedOntology(VDHGDBOntologyRepository dr) {
+		HGDBOntologyManagerImpl manager = HGDBOWLManager.createOWLOntologyManager();
+		try {
+			OWLOntology o = manager.createOntology(IRI.create("hgdb://miamidade.gov/DISTRIBUTEDTEST1"));
+			System.out.println(dr.getHyperGraph().getHandle(o));
+			//manager.addAxiom(o, manager.getOWLDataFactory().)
+			VDHGDBOntologyRepository repo = (VDHGDBOntologyRepository)manager.getOntologyRepository();
+			repo.addVersionControl(o, "distrutedTestUser");
+			
+		} catch (OWLOntologyCreationException e) {
+			e.printStackTrace();
+		}
+		
+		
 	}
 	
 }
