@@ -115,7 +115,7 @@ public class HGDBOntologyRepository {
 	 * @param graph
 	 */
 	protected HGDBOntologyRepository(String hypergraphDBLocation) {
-		checkExitOn64bitJVM();
+		//checkExitOn64bitJVM();
 		initialize(hypergraphDBLocation);
 		if (graph.isOpen()) {
 			printAllOntologies();
