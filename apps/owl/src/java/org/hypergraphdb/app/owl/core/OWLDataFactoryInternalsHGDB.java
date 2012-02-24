@@ -213,7 +213,7 @@ public class OWLDataFactoryInternalsHGDB {
     		}
     	}
     	CACHE_MISS ++;
-    	e = hg.getOne(graph, hg.and(hg.type(entityType), hg.eq("IRI", iri)));
+    	e = (V)hg.getOne(graph, hg.and(hg.type(entityType), hg.eq("IRI", iri)));
     	if (e == null) {
     		e = (V)buildable.build(factory, iri);
     		if (!entityType.isAssignableFrom(e.getClass())) throw new HGException("Built object type must be same or subclass of type " + entityType);

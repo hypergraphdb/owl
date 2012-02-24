@@ -26,7 +26,7 @@ public abstract class OWLValueRestrictionHGDB<R extends OWLPropertyRange, P exte
 	}
 
 	public V getValue() {
-		return getHyperGraph().get(valueHandle);
+		return (V)getHyperGraph().get(valueHandle);
 	}
 
 	@Override

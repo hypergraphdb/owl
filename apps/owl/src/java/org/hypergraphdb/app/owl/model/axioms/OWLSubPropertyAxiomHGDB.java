@@ -35,12 +35,12 @@ public abstract class OWLSubPropertyAxiomHGDB<P extends OWLPropertyExpression<?,
 
 
     public P getSubProperty() {
-        return getHyperGraph().get(subPropertyHandle);
+        return (P)getHyperGraph().get(subPropertyHandle);
     }
 
 
     public P getSuperProperty() {
-        return getHyperGraph().get(superPropertyHandle);
+        return (P)getHyperGraph().get(superPropertyHandle);
     }
 
 

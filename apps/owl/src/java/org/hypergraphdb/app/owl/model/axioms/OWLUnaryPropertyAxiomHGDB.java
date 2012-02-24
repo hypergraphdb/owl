@@ -25,7 +25,7 @@ public abstract class OWLUnaryPropertyAxiomHGDB <P extends OWLPropertyExpression
     }
 
     public P getProperty() {
-        return getHyperGraph().get(propertyHandle);
+        return (P)getHyperGraph().get(propertyHandle);
     }
 
     @Override

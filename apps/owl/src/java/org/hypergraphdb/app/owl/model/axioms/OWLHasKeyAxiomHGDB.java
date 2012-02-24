@@ -100,7 +100,7 @@ public class OWLHasKeyAxiomHGDB extends OWLLogicalAxiomHGDB implements HGLink, O
 
     public Set<OWLDataPropertyExpression> getDataPropertyExpressions() {
         Set<OWLDataPropertyExpression> props = new TreeSet<OWLDataPropertyExpression>();
-        for (OWLPropertyExpression<?,?> prop : getPropertyExpressions()) {
+        for (OWLPropertyExpression prop : getPropertyExpressions()) {
             if (prop.isDataPropertyExpression()) {
                 props.add((OWLDataPropertyExpression) prop);
             }
@@ -110,7 +110,7 @@ public class OWLHasKeyAxiomHGDB extends OWLLogicalAxiomHGDB implements HGLink, O
 
     public Set<OWLObjectPropertyExpression> getObjectPropertyExpressions() {
         Set<OWLObjectPropertyExpression> props = new TreeSet<OWLObjectPropertyExpression>();
-        for (OWLPropertyExpression<?,?> prop : getPropertyExpressions()) {
+        for (OWLPropertyExpression prop : getPropertyExpressions()) {
             if (prop.isObjectPropertyExpression()) {
                 props.add((OWLObjectPropertyExpression) prop);
             }

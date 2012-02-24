@@ -45,11 +45,11 @@ public abstract class OWLIndividualRelationshipAxiomHGDB<P extends OWLPropertyEx
     }
 
     public P getProperty() {
-        return getHyperGraph().get(propertyHandle);
+        return (P)getHyperGraph().get(propertyHandle);
     }
 
     public O getObject() {
-        return getHyperGraph().get(objectHandle);
+        return (O)getHyperGraph().get(objectHandle);
     }
 
     @Override
