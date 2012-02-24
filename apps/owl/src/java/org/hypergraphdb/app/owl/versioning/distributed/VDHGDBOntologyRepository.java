@@ -183,10 +183,10 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 		// 6) remote will receive one changeset/Revision, then apply those changes within one transaction
 		//  
 		//
-		if (peer.getIdentity().)
-			HGHandle atom = getHyperGraph().add(new Date());
-			Activity a = new DefineAtom(peer, atom, target)
-			peer.getActivityManager().initiateActivity(activity);
+//		if (peer.getIdentity().)
+//			HGHandle atom = getHyperGraph().add(new Date());
+//			Activity a = new DefineAtom(peer, atom, target)
+//			peer.getActivityManager().initiateActivity(activity);
 		return null;
 	}
 	
