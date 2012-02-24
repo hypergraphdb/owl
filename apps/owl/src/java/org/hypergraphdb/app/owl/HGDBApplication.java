@@ -47,6 +47,8 @@ public class HGDBApplication extends HGApplication
 	public static boolean DBG = true;
 
 	public static boolean VERSIONING = true;
+
+	public static boolean DISTRIBUTED = true;
 	
 	private Logger log = Logger.getLogger(HGDBApplication.class.getName());
 	
