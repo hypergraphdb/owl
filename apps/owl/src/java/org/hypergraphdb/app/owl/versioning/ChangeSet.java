@@ -66,6 +66,14 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject {
 		graph.update(this);
 	}
 	
+	public List<VOWLChange> getChanges() {
+		List<VOWLChange> changesLoaded = new ArrayList<VOWLChange>(size());
+		for (HGHandle h : changes) {
+			changesLoaded.add((VOWLChange)graph.get(h));
+		}
+		return changesLoaded;
+	}
+	
 	/**
 	 * Clears the changeset by removing all changes from graph. 
 	 * The changeset will be updated in the graph. 
@@ -83,7 +91,7 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject {
 	}
 	
 	
-	boolean isEmpty() {
+	public boolean isEmpty() {
 		return changes.isEmpty();
 	}
 
