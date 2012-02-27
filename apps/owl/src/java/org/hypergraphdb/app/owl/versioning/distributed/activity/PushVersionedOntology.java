@@ -22,6 +22,8 @@ import org.hypergraphdb.app.owl.HGDBOWLManager;
 import org.hypergraphdb.app.owl.HGDBOntologyManagerImpl;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.OWLXMLVersionedOntologyRenderer;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.VersionedOntologyRenderConfiguration;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.Message;
@@ -151,7 +153,6 @@ public class PushVersionedOntology extends FSMActivity {
 		// send full revision Array
         combine(msg, struct(CONTENT, sourceVersionedOnto.getRevisions())); 
         send(targetPeerID, msg);
-
 		return Validating;
 	}
 
@@ -161,14 +162,18 @@ public class PushVersionedOntology extends FSMActivity {
     //@AtActivity(CONTENT);
     public WorkflowStateConstant existsDisconfirmedNowSendOntology(Message msg) throws Throwable {
 		// Non Prefix Format
-		OWLXMLOntologyFormat renderFormat = new OWLXMLOntologyFormat();
+		//OWLXMLOntologyFormat renderFormat = new OWLXMLOntologyFormat();
 		HyperGraph graph = this.getThisPeer().getGraph();
 		VDHGDBOntologyRepository repo = VDHGDBOntologyRepository.getInstance();
-		OWLOntology ontoSend = sourceVersionedOnto.getHeadRevisionData();		
+		//sourceVersionedOnto
+		int headIndex = sourceVersionedOnto.getArity();
+		VersionedOntologyRenderConfiguration conf = new VersionedOntologyRenderConfiguration(headIndex);
+		conf.setHeadRevisionData(true);
+		conf.setUncommittedChanges(false);
 		StringWriter stringWriter = new StringWriter(5 * 1024 * 1024);
 		//Would need OWLOntologyManager for Format, but null ok here.
-		OWLXMLRenderer owlxmlRenderer = new OWLXMLRenderer(null);
-		owlxmlRenderer.render(ontoSend, stringWriter, renderFormat);
+		OWLXMLVersionedOntologyRenderer owlxmlRenderer = new OWLXMLVersionedOntologyRenderer(sourceVersionedOnto.getWorkingSetData().getOWLOntologyManager());
+		owlxmlRenderer.render(sourceVersionedOnto, stringWriter, conf);
 		// PROPOSE
 		msg = createMessage(Performative.Propose, this);
 		// send full head revision data, not versioned yet.
