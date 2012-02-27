@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.coode.owlapi.owlxml.renderer.OWLXMLWriter;
 import org.coode.xml.XMLWriter;
 import org.coode.xml.XMLWriterFactory;
 import org.coode.xml.XMLWriterNamespaceManager;
@@ -33,23 +34,20 @@ import org.semanticweb.owlapi.vocab.OWLXMLVocabulary;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Feb 24, 2012
  */
-public class OWLXMLVersionedOntologyWriter { //extends OWLXMLWriter {
+public class OWLXMLVersionedOntologyWriter extends OWLXMLWriter {
 	
-	private VersionedOntologyRenderConfiguration conf;
     private XMLWriter writer;
     private Map<String, String> iriPrefixMap = new TreeMap<String, String>(new StringLengthComparator());
 	
-	
-	public OWLXMLVersionedOntologyWriter(Writer writer, VersionedOntology vontology) {
-		this (writer, vontology, new VersionedOntologyRenderConfiguration());
-	}
-	
+		
 	/**
 	 * @param writer
 	 * @param ontology
 	 */
-	public OWLXMLVersionedOntologyWriter(Writer writer, VersionedOntology vontology, VersionedOntologyRenderConfiguration conf) {
-		HGDBOntology ontology = vontology.getHeadRevisionData();
+	public OWLXMLVersionedOntologyWriter(Writer writer, VersionedOntology vontology) {
+		super(writer, vontology.getWorkingSetData());
+		//we never use the superclass besides the forced super call.
+		HGDBOntology ontology = vontology.getWorkingSetData();
 		
         XMLWriterNamespaceManager nsm = new XMLWriterNamespaceManager(Namespaces.OWL.toString());
         nsm.setPrefix("xsd", Namespaces.XSD.toString());
@@ -66,8 +64,7 @@ public class OWLXMLVersionedOntologyWriter { //extends OWLXMLWriter {
     public void startDocument(VersionedOntology vontology) throws OWLRendererException {
         try {
         	Revision first = vontology.getBaseRevision();
-            writer.startDocument(VersionedObjectVocabulary.VERSIONED_ONTOLOGY.toString());
-            writer.writeAttribute(VersionedObjectVocabulary.NAMESPACE + "ontologyID", first.getOntologyID().toString());
+            writer.startDocument(VersionedObjectVocabulary.VERSIONED_ONTOLOGY_ROOT.toString());
 //            if (!ontology.isAnonymous()) {
 //                writer.writeAttribute(Namespaces.OWL + "ontologyIRI", ontology.getOntologyID().getOntologyIRI().toString());
 //                if (ontology.getOntologyID().getVersionIRI() != null) {
@@ -80,14 +77,48 @@ public class OWLXMLVersionedOntologyWriter { //extends OWLXMLWriter {
         }
     }
 
-    public void startOntologyData(HGDBOntology ontologyData) throws OWLRendererException {
-        //try {
-        	//Revision first = vontology.getBaseRevision();
-        //}
+    public void startOntologyData(OWLOntology ontology)  {
+    	try {
+    		writer.writeComment("Head Revision Ontology Data Start");
+	        writeStartElement(OWLXMLVocabulary.ONTOLOGY);
+	        if (!ontology.isAnonymous()) {
+	            writer.writeAttribute(Namespaces.OWL + "ontologyIRI", ontology.getOntologyID().getOntologyIRI().toString());
+	            if (ontology.getOntologyID().getVersionIRI() != null) {
+	                writer.writeAttribute(Namespaces.OWL + "versionIRI", ontology.getOntologyID().getVersionIRI().toString());
+	            }
+	        }
+    	} catch (IOException e) {
+    		throw new OWLRuntimeException(e);
+    	}
     }
     
-    public void endOntologyData() throws OWLRendererException {
+    public void endOntologyData()  {
+    	writeEndElement();
     }    
+    
+    /**
+     * Writes a datatype attributed (used on Literal elements).  The full datatype IRI is written out
+     * @param datatype The datatype
+     */
+    public void writeAttribute(String attributeName, String value) {
+        try {
+            writer.writeAttribute(attributeName.toString(), value);
+        }
+        catch (IOException e) {
+            throw new OWLRuntimeException(e);
+        }
+    }
+    
+    public void writeCommment(String comment) {
+        try {
+            writer.writeComment(comment);
+        }
+        catch (IOException e) {
+            throw new OWLRuntimeException(e);
+        }
+    }
+
+    
 	//
 	//
 	// COPIED CODE:
@@ -107,18 +138,6 @@ public class OWLXMLVersionedOntologyWriter { //extends OWLXMLWriter {
         }
     }
 
-    public OWLXMLVersionedOntologyWriter(Writer writer, OWLOntology ontology) {
-        XMLWriterNamespaceManager nsm = new XMLWriterNamespaceManager(Namespaces.OWL.toString());
-        nsm.setPrefix("xsd", Namespaces.XSD.toString());
-        nsm.setPrefix("rdf", Namespaces.RDF.toString());
-        nsm.setPrefix("rdfs", Namespaces.RDFS.toString());
-        nsm.setPrefix("xml", Namespaces.XML.toString());
-        String base = Namespaces.OWL.toString();
-        if (ontology != null && !ontology.isAnonymous()) {
-            base = ontology.getOntologyID().getOntologyIRI().toString();
-        }
-        this.writer = XMLWriterFactory.getInstance().createXMLWriter(writer, nsm, base);
-    }
 
     public Map<String, String> getIRIPrefixMap() {
         return iriPrefixMap;
@@ -168,17 +187,30 @@ public class OWLXMLVersionedOntologyWriter { //extends OWLXMLWriter {
 
 
     public void startDocument(OWLOntology ontology) throws OWLRendererException {
+    	throw new UnsupportedOperationException();
+//        try {
+//            writer.startDocument(OWLXMLVocabulary.ONTOLOGY.toString());
+//            if (!ontology.isAnonymous()) {
+//                writer.writeAttribute(Namespaces.OWL + "ontologyIRI", ontology.getOntologyID().getOntologyIRI().toString());
+//                if (ontology.getOntologyID().getVersionIRI() != null) {
+//                    writer.writeAttribute(Namespaces.OWL + "versionIRI", ontology.getOntologyID().getVersionIRI().toString());
+//                }
+//            }
+//        }
+//        catch (IOException e) {
+//            throw new OWLRendererIOException(e);
+//        }
+    }
+    
+    /**
+     * 2012.02.27 Hilpold
+     */
+    public void writeStartElement(VersionedObjectVocabulary name) {
         try {
-            writer.startDocument(OWLXMLVocabulary.ONTOLOGY.toString());
-            if (!ontology.isAnonymous()) {
-                writer.writeAttribute(Namespaces.OWL + "ontologyIRI", ontology.getOntologyID().getOntologyIRI().toString());
-                if (ontology.getOntologyID().getVersionIRI() != null) {
-                    writer.writeAttribute(Namespaces.OWL + "versionIRI", ontology.getOntologyID().getVersionIRI().toString());
-                }
-            }
+            writer.writeStartElement(name.getURI().toString());
         }
         catch (IOException e) {
-            throw new OWLRendererIOException(e);
+            throw new OWLRuntimeException(e);
         }
     }
 
@@ -202,6 +234,7 @@ public class OWLXMLVersionedOntologyWriter { //extends OWLXMLWriter {
             throw new OWLRuntimeException(e);
         }
     }
+
 
 
     public void writeEndElement() {

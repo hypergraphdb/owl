@@ -9,8 +9,10 @@ import org.semanticweb.owlapi.model.IRI;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Feb 24, 2012
  */
-public enum VersionedObjectVocabulary {
+public enum VersionedObjectVocabulary  {
 
+    VERSIONED_ONTOLOGY_ROOT("VersionedOntologyRoot"),
+    RENDER_CONFIGURATION("RenderConfiguration"),
     VERSIONED_ONTOLOGY("VersionedOntology"),
     CHANGE_SET("ChangeSet"),
     REVISION("Revision"),
@@ -18,6 +20,8 @@ public enum VersionedObjectVocabulary {
     V_ADD_IMPORT_CHANGE("VAddImportChange"),
     V_ADD_ONTOLOGY_ANNOTATION_CHANGE("VAddOntologyAnnotationChange"),
     V_MODIFY_ONTOLOGY_ID_CHANGE("VModifyOntologyIDChange"),
+    V_MODIFY_ONTOLOGY_ID_NEW_ID("NewID"),
+    V_MODIFY_ONTOLOGY_ID_OLD_ID("OldID"),
     V_REMOVE_AXIOM_CHANGE("VRemoveAxiomChange"),
     V_REMOVE_IMPORT_CHANGE("VRemoveImportChange"),
     V_REMOVE_ONTOLOGY_ANNOTATION_CHANGE("VRemoveOntologyAnnotationChange")

@@ -1,11 +1,14 @@
 package org.hypergraphdb.app.owl.versioning.distributed.serialize;
 
+import org.hypergraphdb.app.owl.versioning.VersioningObject;
+import org.hypergraphdb.app.owl.versioning.VersioningObjectVisitor;
+
 /**
  * VersionedOntologyRenderConfiguration.
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Feb 24, 2012
  */
-public class VersionedOntologyRenderConfiguration {
+public class VersionedOntologyRenderConfiguration implements VersioningObject {
 
 	private int firstRevisionIndex;
 	private int lastRevisionIndex;
@@ -28,6 +31,9 @@ public class VersionedOntologyRenderConfiguration {
 	 */
 	public VersionedOntologyRenderConfiguration(int first) {
 		setFirstRevisionIndex(first);
+		setLastRevisionIndex(Integer.MAX_VALUE);
+		setHeadRevisionData(false);
+		setUncommittedChanges(false);
 	}
 		
 	/**
@@ -87,5 +93,13 @@ public class VersionedOntologyRenderConfiguration {
 	 */
 	public void setUncommittedChanges(boolean includeUncommited) {
 		this.uncommittedChanges = includeUncommited;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.versioning.VersioningObject#accept(org.hypergraphdb.app.owl.versioning.VersioningObjectVisitor)
+	 */
+	@Override
+	public void accept(VersioningObjectVisitor visitor) {
+		visitor.visit(this);
 	}
 }
