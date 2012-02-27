@@ -12,7 +12,9 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
+import org.semanticweb.owlapi.model.OWLRuntimeException;
 
 /**
  * ImportExample.
@@ -38,7 +40,7 @@ public class ImportOntologies {
 		HGDBOntologyRepository.setHypergraphDBLocation(files[0].getAbsolutePath());
 		System.out.println("Initializing Ontology Manager and  Repository...");
 		manager = HGDBOWLManager.createOWLOntologyManager();
-		repository = (VHGDBOntologyRepository) manager.getOntologyRepository();
+		//repository = (VHGDBOntologyRepository) manager.getOntologyRepository();
 		if (files.length == 1) {
 			printRepository();
 		} else {
@@ -85,6 +87,16 @@ public class ImportOntologies {
 	}
 	
 	public static void importOntology(File ontologyFile) {
+		importOntology(ontologyFile, manager);
+	}
+
+	/**
+	 * 
+	 * @param ontologyFile
+	 * @param manager
+	 * @return target generated documentIRI
+	 */
+	public static IRI importOntology(File ontologyFile, OWLOntologyManager manager) {
 		// 1) Load in Memory
 		OWLOntology loadedOntology = null;
 		try {
@@ -92,9 +104,7 @@ public class ImportOntologies {
 			 loadedOntology =  manager.loadOntologyFromOntologyDocument(ontologyFile);
 			System.out.println("Done.");
 		} catch (OWLOntologyCreationException ocex) {
-			System.err.println("Error loading ontology from: " + ontologyFile.getAbsolutePath());
-			ocex.printStackTrace();
-			System.exit(-1);
+			throw new OWLRuntimeException("Error loading ontology from: " + ontologyFile.getAbsolutePath(), ocex);
 		}
 		// 2) Change Format, create repo url with hgdb://
 		//Define a repository document IRI for our ontology
@@ -107,9 +117,9 @@ public class ImportOntologies {
 			manager.saveOntology(loadedOntology , new HGDBOntologyFormat(), targetIRI);
 			System.out.print("Done.");
 		} catch (OWLOntologyStorageException e) {
-			System.err.println("Error saving ontology: " + ontologyFile.getAbsolutePath());
-			e.printStackTrace();
+			throw new OWLRuntimeException("Error saving ontology: " + ontologyFile.getAbsolutePath(), e);
 		}
+		return targetIRI;
 	}
 	
 	public static File[] createAndValidateFileArray(String[] argv) {
