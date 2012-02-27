@@ -1,13 +1,14 @@
 package org.hypergraphdb.app.owl.versioning.distributed;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -19,26 +20,21 @@ import org.hypergraphdb.app.owl.HGDBOWLManager;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyManagerImpl;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
-import org.hypergraphdb.app.owl.versioning.ChangeSet;
+import org.hypergraphdb.app.owl.usage.ImportOntologies;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.PushVersionedOntology;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.OWLXMLVersionedOntologyRenderer;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.PeerPresenceListener;
-import org.hypergraphdb.peer.cact.AddAtom;
-import org.hypergraphdb.peer.cact.DefineAtom;
-import org.hypergraphdb.peer.cact.GetClassForType;
 import org.hypergraphdb.peer.workflow.Activity;
-import org.hypergraphdb.peer.workflow.ActivityManager;
-import org.hypergraphdb.peer.workflow.AffirmIdentity;
 import org.jivesoftware.smack.XMPPConnection;
-//import org.hypergraphdb.p
-import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.io.OWLRendererException;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.RemoveAxiom;
 
 /**
  * VDHGDBOntologyRepository.
@@ -218,8 +214,8 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 //					Activity activity = new DefineAtom(peer, atom, target);
 //					peer.getActivityManager().initiateActivity(activity);
 					VersionedOntology voN = getVersionControlledOntologies().get(0);
-					System.out.println("Sending versioned onto: " + voN.getHeadRevisionData().getOntologyID());
-					HGHandle atom = getHyperGraph().add(new Date());
+					System.out.println("Sending versioned onto: " + voN.getWorkingSetData().getOntologyID());
+					//HGHandle atom = getHyperGraph().add(new Date());
 					Activity activity = new PushVersionedOntology(peer, voN , target);
 					peer.getActivityManager().initiateActivity(activity);
 					
@@ -265,13 +261,29 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 	private static void ensureOneVersionedOntology(VDHGDBOntologyRepository dr) {
 		HGDBOntologyManagerImpl manager = HGDBOWLManager.createOWLOntologyManager();
 		try {
-			HGDBOntology o = (HGDBOntology)manager.createOntology(IRI.create("hgdb://miamidade.gov/DISTRIBUTEDTEST1"));
-			System.out.println(dr.getHyperGraph().getHandle(o));
-			//manager.addAxiom(o, manager.getOWLDataFactory().)
+			File f = new File("C:\\_CiRM\\testontos\\County.owl");
+			File fx = new File("C:\\_CiRM\\testontos\\CountyVersioned.vowlxml");
+			IRI targetIRI = ImportOntologies.importOntology(f, manager);
+			HGDBOntology o = (HGDBOntology)manager.loadOntologyFromOntologyDocument(targetIRI);
 			VDHGDBOntologyRepository repo = (VDHGDBOntologyRepository)manager.getOntologyRepository();
-			repo.addVersionControl(o, "distrutedTestUser");
-			
+			VersionedOntology vo = repo.addVersionControl(o, "distributedTestUser");
+			// MANIPULATE REMOVE CHANGED
+			Object[] axioms = o.getAxioms().toArray();
+			for (int i = 0; i < 10; i ++) {
+				manager.applyChange(new RemoveAxiom(o, (OWLAxiom)axioms[i]));
+				vo.commit("SameUser", " commit no " + i);
+			}
+			OWLXMLVersionedOntologyRenderer r = new OWLXMLVersionedOntologyRenderer(manager);
+			FileWriter fwriter = new FileWriter(fx);
+			//Full export
+			r.render(vo, fwriter);
 		} catch (OWLOntologyCreationException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (OWLRendererException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
