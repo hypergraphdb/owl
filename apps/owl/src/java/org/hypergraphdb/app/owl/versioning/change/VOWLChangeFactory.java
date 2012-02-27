@@ -71,26 +71,26 @@ public class VOWLChangeFactory {
 	public static OWLOntologyChange create(VOWLChange voc, OWLOntology onto, HyperGraph graph) {
 		if (voc instanceof VAddImportChange) {
 			VImportChange ic = (VImportChange)voc;
-			return new AddImport(onto, (OWLImportsDeclaration)graph.get(ic.getImportDeclaration()));
+			return new AddImport(onto, (OWLImportsDeclaration)graph.get(ic.getImportDeclarationHandle()));
 		} else if (voc instanceof VRemoveImportChange) {
 			VImportChange ic = (VImportChange)voc;
-			return new RemoveImport(onto, (OWLImportsDeclaration)graph.get(ic.getImportDeclaration()));
+			return new RemoveImport(onto, (OWLImportsDeclaration)graph.get(ic.getImportDeclarationHandle()));
 		} else if (voc instanceof VAddAxiomChange) {
 			VAxiomChange ac = (VAxiomChange)voc;
-			return new AddAxiom(onto, (OWLAxiom)graph.get(ac.getAxiom()));
+			return new AddAxiom(onto, (OWLAxiom)graph.get(ac.getAxiomHandle()));
 		} else if (voc instanceof VRemoveAxiomChange) {
 			VAxiomChange ac = (VAxiomChange)voc;
-			return new RemoveAxiom(onto, (OWLAxiom)graph.get(ac.getAxiom()));
+			return new RemoveAxiom(onto, (OWLAxiom)graph.get(ac.getAxiomHandle()));
 		} else if (voc instanceof VAddOntologyAnnotationChange) {
 			VOntologyAnnotationChange aoac = (VOntologyAnnotationChange)voc;
-			return new AddOntologyAnnotation(onto, (OWLAnnotation)graph.get(aoac.getOntologyAnnotation()));
+			return new AddOntologyAnnotation(onto, (OWLAnnotation)graph.get(aoac.getOntologyAnnotationHandle()));
 		} else if (voc instanceof VRemoveOntologyAnnotationChange) {
 			VOntologyAnnotationChange aoac = (VOntologyAnnotationChange)voc;
-			return new RemoveOntologyAnnotation(onto, (OWLAnnotation)graph.get(aoac.getOntologyAnnotation()));
+			return new RemoveOntologyAnnotation(onto, (OWLAnnotation)graph.get(aoac.getOntologyAnnotationHandle()));
 		} else if (voc instanceof VModifyOntologyIDChange) {
 			VModifyOntologyIDChange soic = (VModifyOntologyIDChange)voc;
 			//HGHandle oldId = graph.get(soic.getOldOntologyID());
-			OWLOntologyID newId = graph.get(soic.getNewOntologyID());
+			OWLOntologyID newId = graph.get(soic.getNewOntologyIDHandle());
 			// old is first param
 			return new SetOntologyID(onto, newId);
 		} else {
@@ -108,25 +108,25 @@ public class VOWLChangeFactory {
 	public static OWLOntologyChange createInverse(VOWLChange voc, OWLOntology onto, HyperGraph graph) {
 		if (voc instanceof VAddImportChange) {
 			VImportChange ic = (VImportChange)voc;
-			return new RemoveImport(onto, (OWLImportsDeclaration)graph.get(ic.getImportDeclaration()));
+			return new RemoveImport(onto, (OWLImportsDeclaration)graph.get(ic.getImportDeclarationHandle()));
 		} else if (voc instanceof VRemoveImportChange) {
 			VImportChange ic = (VImportChange)voc;
-			return new AddImport(onto, (OWLImportsDeclaration)graph.get(ic.getImportDeclaration()));
+			return new AddImport(onto, (OWLImportsDeclaration)graph.get(ic.getImportDeclarationHandle()));
 		} else if (voc instanceof VAddAxiomChange) {
 			VAxiomChange ac = (VAxiomChange)voc;
-			return new RemoveAxiom(onto, (OWLAxiom)graph.get(ac.getAxiom()));
+			return new RemoveAxiom(onto, (OWLAxiom)graph.get(ac.getAxiomHandle()));
 		} else if (voc instanceof VRemoveAxiomChange) {
 			VAxiomChange ac = (VAxiomChange)voc;
-			return new AddAxiom(onto, (OWLAxiom)graph.get(ac.getAxiom()));
+			return new AddAxiom(onto, (OWLAxiom)graph.get(ac.getAxiomHandle()));
 		} else if (voc instanceof VAddOntologyAnnotationChange) {
 			VOntologyAnnotationChange aoac = (VOntologyAnnotationChange)voc;
-			return new RemoveOntologyAnnotation(onto, (OWLAnnotation)graph.get(aoac.getOntologyAnnotation()));
+			return new RemoveOntologyAnnotation(onto, (OWLAnnotation)graph.get(aoac.getOntologyAnnotationHandle()));
 		} else if (voc instanceof VRemoveOntologyAnnotationChange) {
 			VOntologyAnnotationChange aoac = (VOntologyAnnotationChange)voc;
-			return new AddOntologyAnnotation(onto, (OWLAnnotation)graph.get(aoac.getOntologyAnnotation()));
+			return new AddOntologyAnnotation(onto, (OWLAnnotation)graph.get(aoac.getOntologyAnnotationHandle()));
 		} else if (voc instanceof VModifyOntologyIDChange) {
 			VModifyOntologyIDChange soic = (VModifyOntologyIDChange)voc;
-			OWLOntologyID oldId = graph.get(soic.getOldOntologyID());
+			OWLOntologyID oldId = graph.get(soic.getOldOntologyIDHandle());
 			//OWLOntologyID newId = graph.get(soic.getNewOntologyID());
 			// old is first param
 			return new SetOntologyID(onto, oldId);

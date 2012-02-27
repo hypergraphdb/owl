@@ -1,6 +1,8 @@
 package org.hypergraphdb.app.owl.versioning.change;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.app.owl.versioning.VersioningObjectVisitor;
+import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 
 /**
  * VImportChange.
@@ -15,8 +17,12 @@ public abstract class VImportChange extends VOWLChange {
 		importDeclarationHandle = args[0];
     }
 	
-	HGHandle getImportDeclaration() {
+	HGHandle getImportDeclarationHandle() {
 		return importDeclarationHandle;
+	}
+
+	public OWLImportsDeclaration getImportDeclaration() {
+		return graph.get(importDeclarationHandle);
 	}
 
 	/* (non-Javadoc)
@@ -52,6 +58,14 @@ public abstract class VImportChange extends VOWLChange {
 	public void notifyTargetRemoved(int i) {
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
 		importDeclarationHandle = null;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.versioning.VersioningObject#accept(org.hypergraphdb.app.owl.versioning.VersioningObjectVisitor)
+	 */
+	@Override
+	public void accept(VersioningObjectVisitor visitor) {
+		visitor.visit(this);
 	}
 
 }

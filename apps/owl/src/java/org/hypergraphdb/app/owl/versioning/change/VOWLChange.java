@@ -1,9 +1,9 @@
 package org.hypergraphdb.app.owl.versioning.change;
 
+import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGLink;
+import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.versioning.VersioningObject;
-import org.hypergraphdb.app.owl.versioning.VersioningObjectVisitor;
-import org.semanticweb.owlapi.model.AddAxiom;
 
 /**
  * Change.
@@ -11,7 +11,8 @@ import org.semanticweb.owlapi.model.AddAxiom;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public abstract class VOWLChange implements HGLink, VersioningObject {	
+public abstract class VOWLChange implements HGLink, VersioningObject, HGGraphHolder {	
+	HyperGraph graph;
 	
 	public static boolean isAddChange(VOWLChange c) {
 		return c instanceof VAddAxiomChange || c instanceof VAddImportChange || c instanceof VAddOntologyAnnotationChange;
@@ -26,13 +27,17 @@ public abstract class VOWLChange implements HGLink, VersioningObject {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.hypergraphdb.app.owl.versioning.VersioningObject#accept(org.hypergraphdb.app.owl.versioning.VersioningObjectVisitor)
+	 * @see org.hypergraphdb.HGGraphHolder#setHyperGraph(org.hypergraphdb.HyperGraph)
 	 */
 	@Override
-	public void accept(VersioningObjectVisitor visitor) {
-		visitor.visit(this);
+	public void setHyperGraph(HyperGraph graph) {
+		this.graph = graph;
 	}
 	
+	public HyperGraph getHyperGraph() {
+		return graph;
+	}
+
 	//public abstract OWLOntologyChange convertToOWLOntologyChange();
 	
 	//public abstract OWLOntologyChange convertToInverseOWLOntologyChange();

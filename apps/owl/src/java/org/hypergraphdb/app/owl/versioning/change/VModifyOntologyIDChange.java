@@ -1,6 +1,8 @@
 package org.hypergraphdb.app.owl.versioning.change;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.app.owl.versioning.VersioningObjectVisitor;
+import org.semanticweb.owlapi.model.OWLOntologyID;
 
 /**
  * VModifyOntologyIDChange.
@@ -18,14 +20,23 @@ public class VModifyOntologyIDChange extends VOWLChange {
     	newOntologyIDHandle = args[1];    	
     }
 	
-	HGHandle getOldOntologyID() {
+	HGHandle getOldOntologyIDHandle() {
 		return oldOntologyIDHandle;
 	}
 	
-	HGHandle getNewOntologyID() {
+	HGHandle getNewOntologyIDHandle() {
 		return newOntologyIDHandle;
 	}
 	
+	public OWLOntologyID getOldOntologyID() {
+		return graph.get(oldOntologyIDHandle);
+	}
+
+	public OWLOntologyID getNewOntologyID() {
+		return graph.get(newOntologyIDHandle);
+	}
+		
+//	}
 	/* (non-Javadoc)
 	 * @see org.hypergraphdb.HGLink#getArity()
 	 */
@@ -86,5 +97,13 @@ public class VModifyOntologyIDChange extends VOWLChange {
 		} else {
 			newOntologyIDHandle = null;
 		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.versioning.VersioningObject#accept(org.hypergraphdb.app.owl.versioning.VersioningObjectVisitor)
+	 */
+	@Override
+	public void accept(VersioningObjectVisitor visitor) {
+		visitor.visit(this);
 	}
 }

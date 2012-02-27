@@ -1,6 +1,8 @@
 package org.hypergraphdb.app.owl.versioning.change;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.app.owl.model.OWLAnnotationHGDB;
+import org.hypergraphdb.app.owl.versioning.VersioningObjectVisitor;
 
 /**
  * VOntologyAnnotationChange.
@@ -15,9 +17,13 @@ public abstract class VOntologyAnnotationChange extends VOWLChange {
 		ontologyAnnotationHandle = args[0];
     }
 
-	HGHandle getOntologyAnnotation() {
+	HGHandle getOntologyAnnotationHandle() {
 		return ontologyAnnotationHandle;
 	}
+	
+	public OWLAnnotationHGDB getOntologyAnnotation() {
+		return graph.get(ontologyAnnotationHandle);
+	}	
 	
 	/* (non-Javadoc)
 	 * @see org.hypergraphdb.HGLink#getArity()
@@ -52,6 +58,14 @@ public abstract class VOntologyAnnotationChange extends VOWLChange {
 	public void notifyTargetRemoved(int i) {
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
 		ontologyAnnotationHandle = null;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.versioning.VersioningObject#accept(org.hypergraphdb.app.owl.versioning.VersioningObjectVisitor)
+	 */
+	@Override
+	public void accept(VersioningObjectVisitor visitor) {
+		visitor.visit(this);
 	}
 
 }

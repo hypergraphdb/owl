@@ -12,4 +12,5 @@ public class VAddAxiomChange extends VAxiomChange {
 	public VAddAxiomChange(HGHandle...args) {
     	super(args[0]);
     }
+	
 }
