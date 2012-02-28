@@ -22,6 +22,7 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLMutableOntology;
+import org.semanticweb.owlapi.model.OWLOntology;
 
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
 
@@ -141,6 +142,28 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 		}
 		return memOnto;
 	}
+	
+	/**
+	 * Returns an OWLOntology representing the given revision by rolling back changes in memory. 
+	 * If the given revision is the head and includeUncommited is true, 
+	 * the workingsetData will be returned. 
+	 * 
+	 * @param targetRevisionIndex [0..getArity()[
+	 * @param includeUncommitted
+	 * @return
+	 */
+	public OWLOntology getRevisionData(int targetRevisionIndex, boolean includeUncommitted) {
+		if (targetRevisionIndex == getArity() - 1 
+				&& targetRevisionIndex >= 0
+				&& includeUncommitted) {
+			//Workingset requested
+			return getWorkingSetData();
+		} else { 
+			Revision target = getRevision(targetRevisionIndex);
+			return getRevisionData(target);
+		}
+	}
+
 	
 	/**
 	 * Returns a view of all changesets from the one after r including the after head changeset.
@@ -377,7 +400,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	 * 
  	 * Should be called within HGTransaction.
 	 */
-	private void rollbackHeadChangeSet() {
+	private void rollbackWorkingChangeSet() {
 		int index = revisionAndChangeSetPairs.size() -1;
 		ChangeSet s = getChangeSet(index);
 		s.reverseApplyTo((OWLMutableOntology)getWorkingSetData());
@@ -458,7 +481,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	public void rollback(){ 
 		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
 			public Object call() {
-				rollbackHeadChangeSet();
+				rollbackWorkingChangeSet();
 				return null;
 			}});
 	}
@@ -471,7 +494,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	 * This method ensures a HGTransaction.
 	 * 
 	 * @param rId
-	 * @throws IllegalStateException if head changeset has changes or rId not found.
+	 * @throws IllegalStateException if working changeset has changes or rId not found.
 	 */
 	public void revertHeadTo(final RevisionID rId) {
 		int revertIndex = indexOf(rId);
@@ -493,6 +516,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	/**
 	 * Reverts head to the previous revision. 
 	 * Changes from previous to head will be applied inversely.
+	 * WorkingChangeSet must be empty.
 	 * 
  	 * This method ensures a HGTransaction.
 	 */
