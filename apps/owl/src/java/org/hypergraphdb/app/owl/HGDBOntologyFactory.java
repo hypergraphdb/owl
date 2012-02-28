@@ -88,7 +88,9 @@ public class HGDBOntologyFactory implements OWLOntologyFactory {
 		for (OWLImportsDeclaration importDecl : o.getImportsDeclarations()) {
 			manager.makeLoadImportRequest(importDecl);
 		}
-		handler.ontologyCreated(o);	
+		HGDBOntologyFormat hgdbFormat = new HGDBOntologyFormat();
+		handler.ontologyCreated(o);
+		handler.setOntologyFormat(o, hgdbFormat);
 		return o;
 	}
 	
