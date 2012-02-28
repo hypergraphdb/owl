@@ -12,7 +12,6 @@ import org.coode.xml.XMLWriter;
 import org.coode.xml.XMLWriterFactory;
 import org.coode.xml.XMLWriterNamespaceManager;
 import org.hypergraphdb.app.owl.HGDBOntology;
-import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.semanticweb.owlapi.io.OWLRendererException;
 import org.semanticweb.owlapi.io.OWLRendererIOException;
@@ -54,6 +53,7 @@ public class OWLXMLVersionedOntologyWriter extends OWLXMLWriter {
         nsm.setPrefix("rdf", Namespaces.RDF.toString());
         nsm.setPrefix("rdfs", Namespaces.RDFS.toString());
         nsm.setPrefix("xml", Namespaces.XML.toString());
+        nsm.setPrefix("vo", VersionedObjectVocabulary.NAMESPACE.toString());
         String base = Namespaces.OWL.toString();
         if (ontology != null && !ontology.isAnonymous()) {
             base = ontology.getOntologyID().getOntologyIRI().toString();
@@ -63,14 +63,7 @@ public class OWLXMLVersionedOntologyWriter extends OWLXMLWriter {
 	
     public void startDocument(VersionedOntology vontology) throws OWLRendererException {
         try {
-        	Revision first = vontology.getBaseRevision();
             writer.startDocument(VersionedObjectVocabulary.VERSIONED_ONTOLOGY_ROOT.toString());
-//            if (!ontology.isAnonymous()) {
-//                writer.writeAttribute(Namespaces.OWL + "ontologyIRI", ontology.getOntologyID().getOntologyIRI().toString());
-//                if (ontology.getOntologyID().getVersionIRI() != null) {
-//                    writer.writeAttribute(Namespaces.OWL + "versionIRI", ontology.getOntologyID().getVersionIRI().toString());
-//                }
-//            }
         }
         catch (IOException e) {
             throw new OWLRendererIOException(e);
