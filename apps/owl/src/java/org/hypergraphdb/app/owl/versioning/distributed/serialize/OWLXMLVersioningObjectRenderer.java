@@ -54,6 +54,7 @@ public class OWLXMLVersioningObjectRenderer implements VersioningObjectVisitor {
 			List<Revision> revisions = vo.getRevisions();
             writer.writeStartElement(VERSIONED_ONTOLOGY);
             writer.writeAttribute(VersionedObjectVocabulary.NAMESPACE + "ontologyID", vo.getHeadRevision().getOntologyID().toString());
+            writer.writeAttribute(VersionedObjectVocabulary.NAMESPACE + "headRevisionIndex", Integer.toString((revisions.size() - 1)));
             //writer.writeTextContent(decl.getURI().toString());
 			List<ChangeSet> changeSets = vo.getChangeSets();
 
