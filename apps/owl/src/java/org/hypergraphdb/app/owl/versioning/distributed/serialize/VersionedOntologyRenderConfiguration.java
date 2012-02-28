@@ -12,7 +12,7 @@ public class VersionedOntologyRenderConfiguration implements VersioningObject {
 
 	private int firstRevisionIndex;
 	private int lastRevisionIndex;
-	private boolean headRevisionData;
+	private boolean lastRevisionData;
 	private boolean uncommittedChanges;
 
 	/**
@@ -21,7 +21,7 @@ public class VersionedOntologyRenderConfiguration implements VersioningObject {
 	public VersionedOntologyRenderConfiguration() {
 		setFirstRevisionIndex(0);
 		setLastRevisionIndex(Integer.MAX_VALUE);
-		setHeadRevisionData(true);
+		setLastRevisionData(true);
 		setUncommittedChanges(true);
 	}
 	
@@ -32,7 +32,7 @@ public class VersionedOntologyRenderConfiguration implements VersioningObject {
 	public VersionedOntologyRenderConfiguration(int first) {
 		setFirstRevisionIndex(first);
 		setLastRevisionIndex(Integer.MAX_VALUE);
-		setHeadRevisionData(false);
+		setLastRevisionData(false);
 		setUncommittedChanges(false);
 	}
 		
@@ -42,43 +42,53 @@ public class VersionedOntologyRenderConfiguration implements VersioningObject {
 	public int getFirstRevisionIndex() {
 		return firstRevisionIndex;
 	}
+	
 	/**
+	 * Set the first revision's index to be configured. No value lower than 0 tolerated. 
 	 * @param firstRevisionIndex the firstRevisionIndex to set 0..default
 	 */
 	public void setFirstRevisionIndex(int firstRevisionIndex) {
+		if (firstRevisionIndex < 0) throw new IllegalArgumentException("firstRevisionIndex < 0, was " + firstRevisionIndex);
 		this.firstRevisionIndex = firstRevisionIndex;
 	}
+	
 	/**
-	 * @return the lastRevisionIndex or Integer.Max
+	 * @return the index of the lastRevision, a higher number or Integer.Max
 	 */
 	public int getLastRevisionIndex() {
 		return lastRevisionIndex;
 	}
+
 	/**
-	 * @param lastRevisionIndex the lastRevisionIndex to set Integer.Max..default
+	 * Set the last revision index of the revision to be included.
+	 * If a the value set is higher than the number of revisions in the versioned ontology,
+	 * no error will be thrown and head will be included. 
+	 * @param lastRevisionIndex the lastRevisionIndex to configure. Integer.Max is default.
 	 */
 	public void setLastRevisionIndex(int lastRevisionIndex) {
 		this.lastRevisionIndex = lastRevisionIndex;
 	}
 	/**
-	 * @return the headRevisionData
+	 * @return the lastRevisionData
 	 */
-	public boolean isHeadRevisionData() {
-		return headRevisionData;
+	public boolean isLastRevisionData() {
+		return lastRevisionData;
 	}
 	/**
-	 * Sets if the HeadrevisionData will be rendered. If uncommited is set to false, 
-	 * no uncommitted changes will be included in the head revision data.
+	 * Sets if the ontology data of the last included revision in this configuration will be rendered.
+	 *  
+	 * If uncommited is set to false, 
+	 * no uncommitted changes will be included, if the last revision is the head.
 	 * A in memory rollback shall be performed before rendering.
-	 * @param headRevisionData the headRevisionData to set default: false
+	 * @param lastRevisionData the lastRevisionData to set default: false
 	 */
-	public void setHeadRevisionData(boolean headRevisionData) {
-		this.headRevisionData = headRevisionData;
+	public void setLastRevisionData(boolean lastRevisionData) {
+		this.lastRevisionData = lastRevisionData;
 	}
 	
 	/**
 	 * On false, neither the head changeset (after head) will be rendered, nor
-	 * will the headRevisionData include any uncommitted changes.
+	 * will the lastRevisionData include any uncommitted changes.
 	 * 
 	 * @return the uncommittedChanges default: false
 	 */
@@ -87,7 +97,7 @@ public class VersionedOntologyRenderConfiguration implements VersioningObject {
 	}
 	/**
 	 * Get whether both, the head changeset (after head) will be rendered, and 
-	 * the headRevisionData will include any uncommitted changes.
+	 * the lastRevisionData will include any uncommitted changes.
 	 * 
 	 * @param uncommittedChanges the uncommittedChanges to set
 	 */
