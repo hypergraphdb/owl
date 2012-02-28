@@ -69,16 +69,9 @@ public class OWLXMLVersioningObjectRenderer implements VersioningObjectVisitor {
 				}
 			}
 			//Data
-			if (configuration.isHeadRevisionData()) {
+			if (configuration.isLastRevisionData()) {
 				OWLOntology ontologyData; 
-				if  (configuration.isUncommittedChanges() || vo.getWorkingSetChanges().isEmpty()) {
-					ontologyData = vo.getWorkingSetData();
-				} else {
-					// Roll back uncommitted changes
-					Revision target = vo.getHeadRevision();
-					ontologyData = vo.getRevisionData(target);
-					//owlOnto.accept(owlObjectRenderer);
-				}
+				ontologyData = vo.getRevisionData(lastRevision, configuration.isUncommittedChanges());
 				//Render Ontology Data
 				writer.startOntologyData(ontologyData);
 				ontologyData.accept(owlObjectRenderer);
@@ -206,7 +199,7 @@ public class OWLXMLVersioningObjectRenderer implements VersioningObjectVisitor {
 			writer.writeStartElement(VersionedObjectVocabulary.RENDER_CONFIGURATION);
 			writer.writeAttribute(VersionedObjectVocabulary.NAMESPACE + "firstRevisionIndex", "" + configuration.getFirstRevisionIndex());
 			writer.writeAttribute(VersionedObjectVocabulary.NAMESPACE + "lastRevisionIndex", "" + configuration.getLastRevisionIndex());
-			writer.writeAttribute(VersionedObjectVocabulary.NAMESPACE + "headRevisionData", "" + configuration.isHeadRevisionData());
+			writer.writeAttribute(VersionedObjectVocabulary.NAMESPACE + "headRevisionData", "" + configuration.isLastRevisionData());
 			writer.writeAttribute(VersionedObjectVocabulary.NAMESPACE + "unCommittedChanges", "" + configuration.isUncommittedChanges());
 			writer.writeEndElement();
 		}	   
