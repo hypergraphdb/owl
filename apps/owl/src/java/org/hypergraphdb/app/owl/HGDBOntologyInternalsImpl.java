@@ -112,8 +112,8 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		boolean assertsEnabled = false;
 		assert assertsEnabled = true; // force assertions.
 		if (!assertsEnabled) {
-			Logger.getLogger(HGDBOntologyInternalsImpl.class.getCanonicalName()).severe(
-					"Asserts disabled for HGDBOntologyInternalsImpl");
+			Logger.getLogger(HGDBOntologyInternalsImpl.class.getCanonicalName()).info(
+					"Asserts are disabled for HGDBOntologyInternalsImpl");
 			// throw new
 			// RuntimeException("We need Asserts to be enabled. Use: java -ea:org.hypergraphdb.app.owl...");
 		}
