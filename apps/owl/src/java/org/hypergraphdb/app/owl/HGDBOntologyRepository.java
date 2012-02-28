@@ -124,27 +124,7 @@ public class HGDBOntologyRepository {
 		}
 			
 	}
-	
-	/**
-	 * Tests, if the Java VM we are running on is 64bit and exits with a severe log entry if it is.
-	 * Does not care about the underlying operating system.
-	 */
-	private void checkExitOn64bitJVM() {
-		if (System.getProperty("os.arch").contains("64")) {
-			log.severe("\r\n ******************************************************* \r\n" 
-					  +" This repository version needs a 32 bit Java VM to run \r\n"
-					  +"******************************************************* \r\n");
-			try {
-				Thread.sleep(3000);
-				log.severe("\r\n Goodbye. \r\n"); 
-				Thread.sleep(3000);
-			} catch (InterruptedException e) {
-			}
-			System.exit(-1);
-		}
-	}
-	
-	@SuppressWarnings("unused")
+		
 	protected void initialize(String location) {
 		if (DROP_HYPERGRAPH_ON_START) {
 			dropHypergraph(location);
@@ -278,6 +258,17 @@ public class HGDBOntologyRepository {
 	
 	public boolean existsOntology(OWLOntologyID ontologyId) {
 		return getOntologyByID(ontologyId) != null;
+	}
+
+	/**
+	 * Deletes all ontologies, by marking them for deletion and allowing 
+	 * the GC to collect them later.
+	 */
+	public void deleteAllOntologies(){
+		List<HGDBOntology> ontologies = getOntologies();
+		for (HGDBOntology onto : ontologies) {
+			deleteOntology(onto.getOntologyID());
+		}
 	}
 	
 	public boolean deleteOntology(OWLOntologyID ontologyId) {
