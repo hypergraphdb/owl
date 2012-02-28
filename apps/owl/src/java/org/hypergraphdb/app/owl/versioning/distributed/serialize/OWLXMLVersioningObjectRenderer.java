@@ -199,7 +199,7 @@ public class OWLXMLVersioningObjectRenderer implements VersioningObjectVisitor {
 			writer.writeStartElement(VersionedObjectVocabulary.RENDER_CONFIGURATION);
 			writer.writeAttribute(VersionedObjectVocabulary.NAMESPACE + "firstRevisionIndex", "" + configuration.getFirstRevisionIndex());
 			writer.writeAttribute(VersionedObjectVocabulary.NAMESPACE + "lastRevisionIndex", "" + configuration.getLastRevisionIndex());
-			writer.writeAttribute(VersionedObjectVocabulary.NAMESPACE + "headRevisionData", "" + configuration.isLastRevisionData());
+			writer.writeAttribute(VersionedObjectVocabulary.NAMESPACE + "lastRevisionData", "" + configuration.isLastRevisionData());
 			writer.writeAttribute(VersionedObjectVocabulary.NAMESPACE + "unCommittedChanges", "" + configuration.isUncommittedChanges());
 			writer.writeEndElement();
 		}	   
