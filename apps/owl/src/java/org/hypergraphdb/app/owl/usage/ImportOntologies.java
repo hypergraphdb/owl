@@ -108,7 +108,7 @@ public class ImportOntologies {
 		}
 		// 2) Change Format, create repo url with hgdb://
 		//Define a repository document IRI for our ontology
-		IRI targetIRI = IRI.create("hgdb://" + loadedOntology.getOntologyID().getOntologyIRI().getFragment());
+		IRI targetIRI = IRI.create("hgdb://" + loadedOntology.getOntologyID().getOntologyIRI());
 		HGDBOntologyOutputTarget target = new HGDBOntologyOutputTarget(targetIRI);
 		//Manager will find our HGDBStorer based on the format and 
 		// import the ontology into our repo. Same for other Formats.
