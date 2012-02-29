@@ -5,6 +5,7 @@ import java.io.Writer;
 
 import org.hypergraphdb.app.owl.HGDBOntologyManagerImpl;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
+import org.hypergraphdb.app.owl.util.StopWatch;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.semanticweb.owlapi.io.AbstractOWLRenderer;
@@ -57,7 +58,8 @@ public class OWLXMLVersionedOntologyRenderer extends AbstractOWLRenderer {
     }
 
     public void render(VersionedOntology vonto, Writer writer, VersionedOntologyRenderConfiguration configuration) throws OWLRendererException {
-        try {
+		StopWatch s = new StopWatch(true);
+    	try {
         	OWLXMLVersionedOntologyWriter vw = new OWLXMLVersionedOntologyWriter(writer, vonto);
             
             vw.startDocument(vonto);
@@ -66,12 +68,14 @@ public class OWLXMLVersionedOntologyRenderer extends AbstractOWLRenderer {
             vw.writePrefix("rdfs:", Namespaces.RDFS.toString());
             vw.writePrefix("xsd:", Namespaces.XSD.toString());
             vw.writePrefix("owl:", Namespaces.OWL.toString());
+            vw.writePrefix("vo:", VersionedObjectVocabulary.NAMESPACE.toString());
 
             OWLXMLVersioningObjectRenderer vren = new OWLXMLVersioningObjectRenderer(vw, configuration);
             configuration.accept(vren);
             vonto.accept(vren);
             vw.endDocument();
             writer.flush();
+            s.stop("OWLXMLVersionedOntologyRenderer Render Process " + vonto.getHeadRevision().getOntologyID() + " Elements: " + vw.getStartElementCount() + " Duration: ");
         }
         catch (IOException e) {
             throw new OWLRendererIOException(e);
