@@ -37,14 +37,16 @@ public class OWLXMLVersionedOntologyWriter extends OWLXMLWriter {
 	
     private XMLWriter writer;
     private Map<String, String> iriPrefixMap = new TreeMap<String, String>(new StringLengthComparator());
-	
+	private int startElementCount;
 		
+
 	/**
 	 * @param writer
 	 * @param ontology
 	 */
 	public OWLXMLVersionedOntologyWriter(Writer writer, VersionedOntology vontology) {
 		super(writer, vontology.getWorkingSetData());
+		startElementCount = 0;
 		//we never use the superclass besides the forced super call.
 		HGDBOntology ontology = vontology.getWorkingSetData();
 		
@@ -199,6 +201,7 @@ public class OWLXMLVersionedOntologyWriter extends OWLXMLWriter {
      * 2012.02.27 Hilpold
      */
     public void writeStartElement(VersionedObjectVocabulary name) {
+    	startElementCount ++;
         try {
             writer.writeStartElement(name.getURI().toString());
         }
@@ -220,6 +223,7 @@ public class OWLXMLVersionedOntologyWriter extends OWLXMLWriter {
 
 
     public void writeStartElement(OWLXMLVocabulary name) {
+    	startElementCount ++;
         try {
             writer.writeStartElement(name.getURI().toString());
         }
@@ -292,6 +296,7 @@ public class OWLXMLVersionedOntologyWriter extends OWLXMLWriter {
      * @throws IOException
      */
     public void writeIRIElement(IRI iri) {
+    	startElementCount ++;
         try {
             String iriString = iri.toString();
             if (iriString.startsWith(writer.getXMLBase())) {
@@ -367,4 +372,12 @@ public class OWLXMLVersionedOntologyWriter extends OWLXMLWriter {
             throw new RuntimeException(e);
         }
     }
+    
+	/**
+	 * Returns the number of times our writer writes startElement.
+	 * @return the startElementCount
+	 */
+	public int getStartElementCount() {
+		return startElementCount;
+	}
 }
