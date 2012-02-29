@@ -27,7 +27,11 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
  * @created Jan 18, 2012
  */
 public class VHGDBOntologyRepository extends HGDBOntologyRepository implements OWLOntologyChangeListener {
-
+	/**
+	 * Will print time every 100 changes.
+	 */
+	public static boolean DBG = false;
+	
 	public static VHGDBOntologyRepository getInstance() {
 		if (!hasInstance()) {
 			String hypergraphDBLocation = getHypergraphDBLocation();
@@ -170,12 +174,14 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 			public Object call() {
 				VersionedOntology lastVo = null;
 				OWLOntology lastOnto = null;
-				System.out.println("" + new Date() + " VHGDB processes changes: " + changes.size());
+				if (DBG) System.out.println("" + new Date() + " VHGDB processes changes: " + changes.size());
 				int i = 0;
 				for (OWLOntologyChange c : changes) {
-					i++;
-					if (i % 100 == 0) {
-						System.out.println("" + new Date() + " VHGDB changes done: " + i);
+					if (DBG)  { 
+						i++;
+						if (i % 100 == 0) {
+							System.out.println("" + new Date() + " VHGDB changes done: " + i);
+						}
 					}
 					//Caching last
 					if (c.getOntology().equals(lastOnto)) {
@@ -192,7 +198,7 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 						}
 					}
 				}
-				System.out.println("" + new Date() + " VHGDB changes done: " + i);
+				if (DBG) System.out.println("" + new Date() + " VHGDB changes done: " + i);
 				// forced to use Callable:
 				return null;
 			}});
