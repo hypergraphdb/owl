@@ -101,7 +101,7 @@ public class HGDBOntologyFactory implements OWLOntologyFactory {
 			OWLOntologyLoaderConfiguration configuration)
 			throws OWLOntologyCreationException {
 		//OWLOntologyLoaderConfiguration ignored
-		logger.info("HGDB loadOWLOntology with config");
+		logger.info("HGDB loadOWLOntology with config from: " + documentSource.getDocumentIRI());
 		return loadOWLOntology(documentSource, handler);
 	}
 }
