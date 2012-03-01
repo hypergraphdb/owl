@@ -101,10 +101,10 @@ public class Revision extends RevisionID implements HGHandleHolder, VersioningOb
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.hypergraphdb.app.owl.versioning.VersioningObject#accept(org.hypergraphdb.app.owl.versioning.VersioningObjectVisitor)
+	 * @see org.hypergraphdb.app.owl.versioning.VersioningObject#accept(org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor)
 	 */
 	@Override
-	public void accept(VersioningObjectVisitor visitor) {
+	public void accept(VOWLObjectVisitor visitor) {
 		visitor.visit(this);
 	}
 
