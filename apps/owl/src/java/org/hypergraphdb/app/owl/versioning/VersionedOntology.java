@@ -28,7 +28,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
 
 /**
  * A VersionedOntology represents all revisions and changesets of one versioned ontology.
- * Only one concrete owlontology (revision data) is currently maintained. This is the head revision. 
+ * Only one concrete owlontology (revision data) is currently maintained. This is the workingset (Head + uncommitted changes). 
  * All added changes are instantly persisted in changesets and survive downtime.
  * Each commit leads to a new revision and opens a new empty changeset.
  * 
@@ -604,10 +604,10 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	}
 
 	/* (non-Javadoc)
-	 * @see org.hypergraphdb.app.owl.versioning.VersioningObject#accept(org.hypergraphdb.app.owl.versioning.VersioningObjectVisitor)
+	 * @see org.hypergraphdb.app.owl.versioning.VersioningObject#accept(org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor)
 	 */
 	@Override
-	public void accept(VersioningObjectVisitor visitor) {
+	public void accept(VOWLObjectVisitor visitor) {
 		visitor.visit(this);
 	}
 		
