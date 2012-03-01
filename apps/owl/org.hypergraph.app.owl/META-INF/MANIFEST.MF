@@ -10,8 +10,10 @@ Bundle-ClassPath: .,
  lib/hgbdbnative.jar,
  lib/hgdb.jar,
  lib/hgdbmanagement.jar,
- lib/native
- 
+ lib/native,
+ lib/hgdbp2p.jar,
+ lib/smack.jar,
+ lib/smackx.jar
 Bundle-NativeCode: /lib/native/libdb_java53.dll; /lib/native/libdb53.dll; osname=win32; processor=x86
  /lib/native/mac/libdb_java-5.3.jnilib; /lib/native/mac/libdb-5.3.dylib; osname=MacOSX; processor=x86;
  /lib/native/mac/libdb_java-5.3.jnilib; /lib/native/mac/libdb-5.3.dylib; osname=MacOSX; processor=x86-64
