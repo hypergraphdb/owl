@@ -195,10 +195,10 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.hypergraphdb.app.owl.versioning.VersioningObject#accept(org.hypergraphdb.app.owl.versioning.VersioningObjectVisitor)
+	 * @see org.hypergraphdb.app.owl.versioning.VersioningObject#accept(org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor)
 	 */
 	@Override
-	public void accept(VersioningObjectVisitor visitor) {
+	public void accept(VOWLObjectVisitor visitor) {
 		visitor.visit(this);
 	}
 }
