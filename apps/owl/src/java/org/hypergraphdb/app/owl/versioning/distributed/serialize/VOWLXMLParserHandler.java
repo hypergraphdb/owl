@@ -18,6 +18,7 @@ import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVoca
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +27,7 @@ import java.util.Stack;
 
 import org.coode.owlapi.owlxmlparser.OWLElementHandler;
 import org.coode.owlapi.owlxmlparser.OWLElementHandlerFactory;
+import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserHandler;
 import org.coode.owlapi.owlxmlparser.TranslatedOWLParserException;
 import org.coode.owlapi.owlxmlparser.TranslatedUnloadableImportException;
@@ -36,10 +38,13 @@ import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VOWLChang
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VersionedOntologyElementHandler;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VersionedOntologyRootElementHandler;
 import org.semanticweb.owlapi.io.OWLParserException;
+import org.semanticweb.owlapi.io.OWLParserURISyntaxException;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.UnloadableImportException;
 import org.semanticweb.owlapi.vocab.Namespaces;
 import org.semanticweb.owlapi.vocab.OWLXMLVocabulary;
@@ -54,6 +59,8 @@ import org.xml.sax.SAXException;
  * @created Feb 29, 2012
  */
 public class VOWLXMLParserHandler extends OWLXMLParserHandler {
+
+    private OWLOntologyManager owlOntologyManager;
 
     private VOWLXMLParser.VersionedOntologyRoot versionedOntologyRoot;
 
@@ -305,4 +312,141 @@ public class VOWLXMLParserHandler extends OWLXMLParserHandler {
 	public void startPrefixMapping(String prefix, String uri) throws SAXException {
         prefixName2PrefixMap.put(prefix, uri);
     }
+
+	/* (non-Javadoc)
+	 * @see org.coode.owlapi.owlxmlparser.OWLXMLParserHandler#setDocumentLocator(org.xml.sax.Locator)
+	 */
+	@Override
+	public void setDocumentLocator(Locator locator) {
+        super.setDocumentLocator(locator);
+        this.locator = locator;
+
+        URI base = null;
+        try {
+            String systemId = locator.getSystemId();
+            if (systemId != null)
+                base = new URI(systemId);
+        }
+        catch (URISyntaxException e) {
+        }
+
+        bases.push(base);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.coode.owlapi.owlxmlparser.OWLXMLParserHandler#getConfiguration()
+	 */
+	@Override
+	public OWLOntologyLoaderConfiguration getConfiguration() {
+        return configuration;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.coode.owlapi.owlxmlparser.OWLXMLParserHandler#getLineNumber()
+	 */
+	@Override
+	public int getLineNumber() {
+        if (locator != null) {
+            return locator.getLineNumber();
+        }
+        else {
+            return -1;
+        }
+	}
+
+	/* (non-Javadoc)
+	 * @see org.coode.owlapi.owlxmlparser.OWLXMLParserHandler#getColumnNumber()
+	 */
+	@Override
+	public int getColumnNumber() {
+        if (locator != null) {
+            return locator.getColumnNumber();
+        }
+        else {
+            return -1;
+        }
+	}
+
+    private Map<String, IRI> iriMap = new HashMap<String, IRI>();
+
+	/* (non-Javadoc)
+	 * @see org.coode.owlapi.owlxmlparser.OWLXMLParserHandler#getIRI(java.lang.String)
+	 */
+	@Override
+	public IRI getIRI(String iriStr) throws OWLParserException {
+        try {
+            IRI iri = iriMap.get(iriStr);
+            if (iri == null) {
+                URI uri = new URI(iriStr);
+                if (!uri.isAbsolute()) {
+                    URI base = getBase();
+                    if (base == null)
+                        throw new OWLXMLParserException("Unable to resolve relative URI", getLineNumber(), getColumnNumber());
+//                    iri = IRI.create(getBase().resolve(uri));
+                    iri = IRI.create(base + iriStr);
+                }
+                else {
+                    iri = IRI.create(uri);
+                }
+                iriMap.put(iriStr, iri);
+            }
+            return iri;
+        }
+        catch (URISyntaxException e) {
+            throw new OWLParserURISyntaxException(e, getLineNumber(), getColumnNumber());
+        }
+	}
+
+	/* (non-Javadoc)
+	 * @see org.coode.owlapi.owlxmlparser.OWLXMLParserHandler#getAbbreviatedIRI(java.lang.String)
+	 */
+	@Override
+	public IRI getAbbreviatedIRI(String abbreviatedIRI) throws OWLParserException {
+        String normalisedAbbreviatedIRI = getNormalisedAbbreviatedIRI(abbreviatedIRI);
+        int sepIndex = normalisedAbbreviatedIRI.indexOf(':');
+        String prefixName = normalisedAbbreviatedIRI.substring(0, sepIndex + 1);
+        String localName = normalisedAbbreviatedIRI.substring(sepIndex + 1);
+        String base = prefixName2PrefixMap.get(prefixName);
+        if (base == null) {
+            throw new OWLXMLParserException("Prefix name not defined: " + prefixName, getLineNumber(), getColumnNumber());
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(base);
+        sb.append(localName);
+        return getIRI(sb.toString());
+	}
+
+    private String getNormalisedAbbreviatedIRI(String input) {
+        if (input.indexOf(':') != -1) {
+            return input;
+        }
+        else {
+            return ":" + input;
+        }
+    }
+
+	/* (non-Javadoc)
+	 * @see org.coode.owlapi.owlxmlparser.OWLXMLParserHandler#getPrefixName2PrefixMap()
+	 */
+	@Override
+	public Map<String, String> getPrefixName2PrefixMap() {
+        return prefixName2PrefixMap;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.coode.owlapi.owlxmlparser.OWLXMLParserHandler#resolveEntity(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public InputSource resolveEntity(String publicId, String systemId) throws IOException, SAXException {
+        // superclass will refer it to defaulthandler, we could omit it here.
+		return super.resolveEntity(publicId, systemId);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.coode.owlapi.owlxmlparser.OWLXMLParserHandler#getOWLOntologyManager()
+	 */
+	@Override
+	public OWLOntologyManager getOWLOntologyManager() {
+        return owlOntologyManager;
+	}
 }
