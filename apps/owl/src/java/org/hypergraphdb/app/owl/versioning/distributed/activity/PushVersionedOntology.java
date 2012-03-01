@@ -22,14 +22,12 @@ import org.hypergraphdb.app.owl.HGDBOWLManager;
 import org.hypergraphdb.app.owl.HGDBOntologyManagerImpl;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.OWLXMLVersionedOntologyRenderer;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.VersionedOntologyRenderConfiguration;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVersionedOntologyRenderer;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLRenderConfiguration;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.Message;
 import org.hypergraphdb.peer.Performative;
-import org.hypergraphdb.peer.SubgraphManager;
-import org.hypergraphdb.peer.workflow.AtActivity;
 import org.hypergraphdb.peer.workflow.FSMActivity;
 import org.hypergraphdb.peer.workflow.FromState;
 import org.hypergraphdb.peer.workflow.OnMessage;
@@ -37,11 +35,8 @@ import org.hypergraphdb.peer.workflow.PossibleOutcome;
 import org.hypergraphdb.peer.workflow.WorkflowStateConstant;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
-import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyFactory;
-import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 /**
@@ -167,12 +162,12 @@ public class PushVersionedOntology extends FSMActivity {
 		VDHGDBOntologyRepository repo = VDHGDBOntologyRepository.getInstance();
 		//sourceVersionedOnto
 		int headIndex = sourceVersionedOnto.getArity();
-		VersionedOntologyRenderConfiguration conf = new VersionedOntologyRenderConfiguration(headIndex);
-		conf.setHeadRevisionData(true);
+		VOWLRenderConfiguration conf = new VOWLRenderConfiguration(headIndex);
+		conf.setLastRevisionData(true);
 		conf.setUncommittedChanges(false);
 		StringWriter stringWriter = new StringWriter(5 * 1024 * 1024);
 		//Would need OWLOntologyManager for Format, but null ok here.
-		OWLXMLVersionedOntologyRenderer owlxmlRenderer = new OWLXMLVersionedOntologyRenderer(sourceVersionedOnto.getWorkingSetData().getOWLOntologyManager());
+		VOWLXMLVersionedOntologyRenderer owlxmlRenderer = new VOWLXMLVersionedOntologyRenderer(sourceVersionedOnto.getWorkingSetData().getOWLOntologyManager());
 		owlxmlRenderer.render(sourceVersionedOnto, stringWriter, conf);
 		// PROPOSE
 		msg = createMessage(Performative.Propose, this);
