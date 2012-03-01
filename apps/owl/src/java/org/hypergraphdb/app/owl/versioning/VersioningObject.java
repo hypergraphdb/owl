@@ -8,6 +8,6 @@ package org.hypergraphdb.app.owl.versioning;
  */
 public interface VersioningObject {
 
-    public void accept(VersioningObjectVisitor visitor);
+    public void accept(VOWLObjectVisitor visitor);
 
 }
