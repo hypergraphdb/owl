@@ -73,6 +73,8 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
 
+import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
+
 /**
  * HGDBOntologyInternalsImpl.
  * 
@@ -482,13 +484,11 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		// get link by name and link(handle)
 		return graph.getTransactionManager().transact(new Callable<Set<OWLImportsDeclaration>>() {
 			public Set<OWLImportsDeclaration> call() {
-//				List<OWLImportsDeclaration> l = hg.<OWLImportsDeclaration>getAll(
-//						graph,
-//						hg.apply(hg.targetAt(graph, 1), hg.and(hg.type(ImportDeclarationLink.class),
-//								hg.orderedLink(ontoHandle, hg.anyHandle()), new SubgraphMemberCondition(ontoHandle))));
 				//2012.01.25 hilpold New import declaration handling; need GC to collect zero incidence set atoms.
 				List<OWLImportsDeclaration> l = ontology.<OWLImportsDeclaration>getAll(
-						hg.typePlus(OWLImportsDeclaration.class));
+						hg.type(OWLImportsDeclarationImpl.class)); //BUGFIX
+				//2012.03.01 hilpold BUGFIX old did not find any ever??: 
+				//      hg.typePlus(OWLImportsDeclaration.class));
 				Set<OWLImportsDeclaration> s = getReturnSet(l);
 				if (l.size() != s.size()) throw new IllegalStateException("Set contract broken.");
 				return s;
