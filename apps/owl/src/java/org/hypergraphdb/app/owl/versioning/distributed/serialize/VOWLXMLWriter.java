@@ -26,14 +26,14 @@ import org.semanticweb.owlapi.vocab.OWLFacet;
 import org.semanticweb.owlapi.vocab.OWLXMLVocabulary;
 
 /**
- * OWLXMLVersionedOntologyWriter.
+ * VOWLXMLWriter.
  * 
  * Based on org.coode.owlapi.owlxml.renderer.OWLXMLWriter
  * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Feb 24, 2012
  */
-public class OWLXMLVersionedOntologyWriter extends OWLXMLWriter {
+public class VOWLXMLWriter extends OWLXMLWriter {
 	
     private XMLWriter writer;
     private Map<String, String> iriPrefixMap = new TreeMap<String, String>(new StringLengthComparator());
@@ -44,7 +44,7 @@ public class OWLXMLVersionedOntologyWriter extends OWLXMLWriter {
 	 * @param writer
 	 * @param ontology
 	 */
-	public OWLXMLVersionedOntologyWriter(Writer writer, VersionedOntology vontology) {
+	public VOWLXMLWriter(Writer writer, VersionedOntology vontology) {
 		super(writer, vontology.getWorkingSetData());
 		startElementCount = 0;
 		//we never use the superclass besides the forced super call.
@@ -55,7 +55,7 @@ public class OWLXMLVersionedOntologyWriter extends OWLXMLWriter {
         nsm.setPrefix("rdf", Namespaces.RDF.toString());
         nsm.setPrefix("rdfs", Namespaces.RDFS.toString());
         nsm.setPrefix("xml", Namespaces.XML.toString());
-        nsm.setPrefix("vo", VersionedObjectVocabulary.NAMESPACE.toString());
+        nsm.setPrefix("vo", VOWLVocabulary.NAMESPACE.toString());
         String base = Namespaces.OWL.toString();
         if (ontology != null && !ontology.isAnonymous()) {
             base = ontology.getOntologyID().getOntologyIRI().toString();
@@ -65,7 +65,7 @@ public class OWLXMLVersionedOntologyWriter extends OWLXMLWriter {
 	
     public void startDocument(VersionedOntology vontology) throws OWLRendererException {
         try {
-            writer.startDocument(VersionedObjectVocabulary.VERSIONED_ONTOLOGY_ROOT.toString());
+            writer.startDocument(VOWLVocabulary.VERSIONED_ONTOLOGY_ROOT.toString());
         }
         catch (IOException e) {
             throw new OWLRendererIOException(e);
@@ -200,7 +200,7 @@ public class OWLXMLVersionedOntologyWriter extends OWLXMLWriter {
     /**
      * 2012.02.27 Hilpold
      */
-    public void writeStartElement(VersionedObjectVocabulary name) {
+    public void writeStartElement(VOWLVocabulary name) {
     	startElementCount ++;
         try {
             writer.writeStartElement(name.getURI().toString());

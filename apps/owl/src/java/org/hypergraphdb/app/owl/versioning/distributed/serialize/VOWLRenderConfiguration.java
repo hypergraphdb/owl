@@ -1,14 +1,14 @@
 package org.hypergraphdb.app.owl.versioning.distributed.serialize;
 
 import org.hypergraphdb.app.owl.versioning.VersioningObject;
-import org.hypergraphdb.app.owl.versioning.VersioningObjectVisitor;
+import org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor;
 
 /**
- * VersionedOntologyRenderConfiguration.
+ * VOWLRenderConfiguration.
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Feb 24, 2012
  */
-public class VersionedOntologyRenderConfiguration implements VersioningObject {
+public class VOWLRenderConfiguration implements VersioningObject {
 
 	private int firstRevisionIndex;
 	private int lastRevisionIndex;
@@ -18,7 +18,7 @@ public class VersionedOntologyRenderConfiguration implements VersioningObject {
 	/**
 	 * Default is render all revisions, head data and uncommitted.
 	 */
-	public VersionedOntologyRenderConfiguration() {
+	public VOWLRenderConfiguration() {
 		setFirstRevisionIndex(0);
 		setLastRevisionIndex(Integer.MAX_VALUE);
 		setLastRevisionData(true);
@@ -29,7 +29,7 @@ public class VersionedOntologyRenderConfiguration implements VersioningObject {
 	 * Revisions and Changesets only, starting with first, no uncommitted, no data.
 	 * @param first
 	 */
-	public VersionedOntologyRenderConfiguration(int first) {
+	public VOWLRenderConfiguration(int first) {
 		setFirstRevisionIndex(first);
 		setLastRevisionIndex(Integer.MAX_VALUE);
 		setLastRevisionData(false);
@@ -106,10 +106,10 @@ public class VersionedOntologyRenderConfiguration implements VersioningObject {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.hypergraphdb.app.owl.versioning.VersioningObject#accept(org.hypergraphdb.app.owl.versioning.VersioningObjectVisitor)
+	 * @see org.hypergraphdb.app.owl.versioning.VersioningObject#accept(org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor)
 	 */
 	@Override
-	public void accept(VersioningObjectVisitor visitor) {
+	public void accept(VOWLObjectVisitor visitor) {
 		visitor.visit(this);
 	}
 }

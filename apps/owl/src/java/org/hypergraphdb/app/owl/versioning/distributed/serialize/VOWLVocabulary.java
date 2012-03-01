@@ -1,15 +1,15 @@
-package org.hypergraphdb. app.owl.versioning.distributed.serialize;
+package org.hypergraphdb.app.owl.versioning.distributed.serialize;
 
 import java.net.URI;
 
 import org.semanticweb.owlapi.model.IRI;
 
 /**
- * VersionedObjectVocabulary.
+ * VOWLVocabulary.
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Feb 24, 2012
  */
-public enum VersionedObjectVocabulary  {
+public enum VOWLVocabulary  {
 
     VERSIONED_ONTOLOGY_ROOT("VersionedOntologyRoot"),
     RENDER_CONFIGURATION("RenderConfiguration"),
@@ -27,7 +27,8 @@ public enum VersionedObjectVocabulary  {
     V_REMOVE_ONTOLOGY_ANNOTATION_CHANGE("VRemoveOntologyAnnotationChange")
     ;
     
-	public final static String NAMESPACE = "http://www.w3.org/2002/07/owl#";
+	public final static String NAMESPACE = "http://www.miamidade.gov/ciao/VOWLVocabulary#";
+	public final static String NAMESPACE_PREFIX = "vo:";
 
     private IRI iri;
 
@@ -36,7 +37,7 @@ public enum VersionedObjectVocabulary  {
     /**
 	 * 
 	 */
-	private VersionedObjectVocabulary(String name) {
+	private VOWLVocabulary(String name) {
         this.iri = IRI.create(NAMESPACE + name);
         shortName = name;
     }

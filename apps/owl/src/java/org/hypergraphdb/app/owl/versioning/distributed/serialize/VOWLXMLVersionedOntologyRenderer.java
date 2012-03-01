@@ -16,16 +16,16 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.vocab.Namespaces;
 
 /**
- * OWLXMLVersionedOntologyRenderer.
+ * VOWLXMLVersionedOntologyRenderer.
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Feb 24, 2012
  */
-public class OWLXMLVersionedOntologyRenderer extends AbstractOWLRenderer {
+public class VOWLXMLVersionedOntologyRenderer extends AbstractOWLRenderer {
 
 	/**
 	 * @param owlOntologyManager
 	 */
-	public OWLXMLVersionedOntologyRenderer(OWLOntologyManager owlOntologyManager) {
+	public VOWLXMLVersionedOntologyRenderer(OWLOntologyManager owlOntologyManager) {
 		super(owlOntologyManager);
 	}
 
@@ -54,13 +54,13 @@ public class OWLXMLVersionedOntologyRenderer extends AbstractOWLRenderer {
 	}
 
 	public void render(VersionedOntology vonto, Writer writer) throws OWLRendererException {
-    	render(vonto, writer, new VersionedOntologyRenderConfiguration());
+    	render(vonto, writer, new VOWLRenderConfiguration());
     }
 
-    public void render(VersionedOntology vonto, Writer writer, VersionedOntologyRenderConfiguration configuration) throws OWLRendererException {
+    public void render(VersionedOntology vonto, Writer writer, VOWLRenderConfiguration configuration) throws OWLRendererException {
 		StopWatch s = new StopWatch(true);
     	try {
-        	OWLXMLVersionedOntologyWriter vw = new OWLXMLVersionedOntologyWriter(writer, vonto);
+        	VOWLXMLWriter vw = new VOWLXMLWriter(writer, vonto);
             
             vw.startDocument(vonto);
 
@@ -68,14 +68,14 @@ public class OWLXMLVersionedOntologyRenderer extends AbstractOWLRenderer {
             vw.writePrefix("rdfs:", Namespaces.RDFS.toString());
             vw.writePrefix("xsd:", Namespaces.XSD.toString());
             vw.writePrefix("owl:", Namespaces.OWL.toString());
-            vw.writePrefix("vo:", VersionedObjectVocabulary.NAMESPACE.toString());
+            vw.writePrefix(VOWLVocabulary.NAMESPACE_PREFIX.toString(), VOWLVocabulary.NAMESPACE.toString());
 
-            OWLXMLVersioningObjectRenderer vren = new OWLXMLVersioningObjectRenderer(vw, configuration);
+            VOWLXMLObjectRenderer vren = new VOWLXMLObjectRenderer(vw, configuration);
             configuration.accept(vren);
             vonto.accept(vren);
             vw.endDocument();
             writer.flush();
-            s.stop("OWLXMLVersionedOntologyRenderer Render Process " + vonto.getHeadRevision().getOntologyID() + " Elements: " + vw.getStartElementCount() + " Duration: ");
+            s.stop("VOWLXMLVersionedOntologyRenderer Render Process " + vonto.getHeadRevision().getOntologyID() + " Elements: " + vw.getStartElementCount() + " Duration: ");
         }
         catch (IOException e) {
             throw new OWLRendererIOException(e);
