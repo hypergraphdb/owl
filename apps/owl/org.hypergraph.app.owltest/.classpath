@@ -6,6 +6,12 @@
 	<classpathentry kind="src" path="apibinding/src/test/resources"/>
 	<classpathentry kind="src" path="apibinding/src/test/java"/>
 	<classpathentry kind="lib" path="/41org.protege.editor.owl/lib/protege-owlapi-extensions.jar" sourcepath="C:/_CiRM/workspaceecI/Protege4Libraries/owlapi-extensions/trunk/src/main/java"/>
-	<classpathentry kind="lib" path="/org.hypergraph.app.owl/lib/hgdb.jar"/>
+	<classpathentry kind="lib" path="/org.hypergraph.app.owl/lib/db.jar"/>
+	<classpathentry kind="lib" path="/org.hypergraph.app.owl/lib/hgbdbnative.jar"/>
+	<classpathentry kind="lib" path="/org.hypergraph.app.owl/lib/hgdbmanagement.jar" sourcepath="/hypergraphdb/apps/management/src/java"/>
+	<classpathentry kind="lib" path="/org.hypergraph.app.owl/lib/hgdbp2p.jar"/>
+	<classpathentry kind="lib" path="/org.hypergraph.app.owl/lib/smack.jar"/>
+	<classpathentry kind="lib" path="/org.hypergraph.app.owl/lib/smackx.jar"/>
+	<classpathentry kind="lib" path="/org.hypergraph.app.owl/lib/hgdb.jar" sourcepath="/hypergraphdb/core/src/java"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
