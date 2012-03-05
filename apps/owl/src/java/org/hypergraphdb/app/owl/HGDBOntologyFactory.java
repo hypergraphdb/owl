@@ -53,11 +53,10 @@ public class HGDBOntologyFactory implements OWLOntologyFactory {
 			//
 			HGDBOntology ontology =  repository.createOWLOntology(ontologyID, documentIRI);
 			ontology.setOWLOntologyManager(manager);
-			HGDBOntologyFormat ontologyFormat = new HGDBOntologyFormat();
-			ontologyFormat.setParameter(HGDBOntologyFormat.PARAMETER_IRI, documentIRI);
+			//HGDBOntologyFormat ontologyFormat = new HGDBOntologyFormat();
+			//ontologyFormat.setParameter(HGDBOntologyFormat.PARAMETER_IRI, documentIRI);
 			handler.setOntologyFormat(ontology, new  HGDBOntologyFormat());
 			handler.ontologyCreated(ontology);	
-			
 			return ontology;
 		} else {
 			logger.severe("Ontology with documentIRI" + documentIRI + " already exists.");
