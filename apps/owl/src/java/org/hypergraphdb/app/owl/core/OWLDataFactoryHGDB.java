@@ -2235,6 +2235,20 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		//return new OWLDatatypeDefinitionAxiomImpl(this, datatype, dataRange, annotations);
 	}
 
+
+	//
+	// IRI methods
+	//
+	
+	/**
+	 * Asserts that a given IRI is in the graph.
+	 * @param iri
+	 * @return
+	 */
+	public HGHandle assertIRI(IRI iri) {
+		return data.findOrAddIRIHandle(iri);
+	}
+
 	//
 	// Hypergraph
 	//
@@ -2309,4 +2323,5 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		}
 		return lHandles;
 	}
+	
 }
