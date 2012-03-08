@@ -52,6 +52,10 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject {
 	public ChangeSet(HGHandle...args) {
 		changes = new ArrayList<HGHandle>(Arrays.asList(args));
     }
+
+	public ChangeSet(List<HGHandle> changes) {
+		changes = new ArrayList<HGHandle>(changes);
+    }
 	
 	/**
 	 * Stores a change in the graph and adds it to the changeset. 
