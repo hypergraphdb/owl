@@ -16,11 +16,11 @@ public class Revision extends RevisionID implements HGHandleHolder, VersioningOb
 	public static final long TIMESTAMP_UNDEFINED = Long.MIN_VALUE; 
 	public static final String USER_ANONYMOUS = null; 
 	
-	Date timeStamp;
-	String user; 
-	String revisionComment;
+	private Date timeStamp;
+	private String user; 
+	private String revisionComment;
 //	boolean hasRevisionData;
-	HGHandle handle;
+	private HGHandle handle;
 
 	public Revision() {
 		//do nothing
@@ -81,7 +81,6 @@ public class Revision extends RevisionID implements HGHandleHolder, VersioningOb
 //	public void setHasRevisionData(boolean hasRevisionData) {
 //		this.hasRevisionData = hasRevisionData;
 //	}
-
 
 	/* (non-Javadoc)
 	 * @see org.hypergraphdb.HGHandleHolder#getAtomHandle()
