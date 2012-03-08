@@ -90,6 +90,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor {
 			writer.writeStartElement(REVISION);
 			//writer.writeStartElement("ontologyID");
 			writer.writeAttribute("ontologyID", revision.getOntologyID().toString());
+			writer.writeAttribute("revision", Integer.toString(revision.getRevision()));
 			writer.writeAttribute("user", revision.getUser());
 			writer.writeAttribute("timeStamp", revision.getTimeStamp().toString());
 			writer.writeAttribute("revisionComment", revision.getRevisionComment());
