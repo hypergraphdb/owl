@@ -15,6 +15,10 @@ public class VModifyOntologyIDChange extends VOWLChange {
 
 	private HGHandle newOntologyIDHandle;
 	
+	/**
+	 * old = [0], new = [1].
+	 * @param args
+	 */
 	public VModifyOntologyIDChange(HGHandle...args) {
     	oldOntologyIDHandle = args[0];
     	newOntologyIDHandle = args[1];    	
