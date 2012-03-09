@@ -102,7 +102,7 @@ public class PushVersionedOntology extends FSMActivity {
 	@Override
 	public void initiate() {
         Message msg = createMessage(Performative.QueryIf, this);
-        combine(msg, struct(CONTENT, sourceVersionedOnto.getHeadRevision().getOntologyID())); 
+        combine(msg, struct(CONTENT, sourceVersionedOnto.getHeadRevision().getOntologyUUID())); 
         send(targetPeerID, msg);
         if (DBG) {
         	getThisPeer().getGraph().getLogger().trace("Query if target push : " + sourceVersionedOnto.getHeadRevision());
