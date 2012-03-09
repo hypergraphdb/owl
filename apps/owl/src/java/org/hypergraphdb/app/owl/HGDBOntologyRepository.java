@@ -13,6 +13,7 @@ import org.hypergraphdb.HGConfiguration;
 import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
+import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.IncidenceSet;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
@@ -20,6 +21,7 @@ import org.hypergraphdb.app.management.HGManagement;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryInternalsHGDB;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
+import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyUUIDException;
 import org.hypergraphdb.app.owl.gc.GarbageCollector;
 import org.hypergraphdb.app.owl.gc.GarbageCollectorStatistics;
 //import org.hypergraphdb.app.owl.test.TestData;
@@ -188,6 +190,28 @@ public class HGDBOntologyRepository {
 		HGDBOntology o;
 		o = new HGDBOntologyImpl(ontologyID, documentIRI, graph);
 		addOntology(o);			
+		return o;
+	}
+
+	/**
+	 * Creates an Ontology and adds it to the graph, if an Ontology with the same ontologyID does not yet exist.
+	 * The graph will create an Internals object.
+	 * @param ontologyID not null
+	 * @param documentIRI not null
+	 * @return created ontology
+	 * @throws HGDBOntologyAlreadyExistsByDocumentIRIException 
+	 * @throws HGDBOntologyAlreadyExistsByOntologyIDException 
+	 * @throws HGDBOntologyAlreadyExistsByOntologyUUIDException 
+	 */
+	public HGDBOntology createOWLOntology(OWLOntologyID ontologyID,
+			IRI documentIRI, HGPersistentHandle ontologyUUID) throws HGDBOntologyAlreadyExistsByDocumentIRIException, HGDBOntologyAlreadyExistsByOntologyIDException, HGDBOntologyAlreadyExistsByOntologyUUIDException {
+		if (ontologyID == null || documentIRI == null) throw new IllegalArgumentException();
+		if (existsOntologyByDocumentIRI(documentIRI)) throw new HGDBOntologyAlreadyExistsByDocumentIRIException(documentIRI);
+		if (existsOntology(ontologyID)) throw new HGDBOntologyAlreadyExistsByOntologyIDException(ontologyID);
+		if (graph.get(ontologyUUID) != null) throw new HGDBOntologyAlreadyExistsByOntologyUUIDException(ontologyUUID);
+		HGDBOntology o;
+		o = new HGDBOntologyImpl(ontologyID, documentIRI, graph);
+		graph.define(ontologyUUID, o);			
 		return o;
 	}
 	
