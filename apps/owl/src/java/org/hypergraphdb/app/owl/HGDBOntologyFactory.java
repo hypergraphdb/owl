@@ -3,6 +3,7 @@ package org.hypergraphdb.app.owl;
 import java.util.logging.Logger;
 
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
+import org.hypergraphdb.handle.UUIDPersistentHandle;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
@@ -63,9 +64,37 @@ public class HGDBOntologyFactory implements OWLOntologyFactory {
 			throw new HGDBOntologyAlreadyExistsByDocumentIRIException(documentIRI);
 		}
 	}
+	/**
+	 * Creates an ontology with a specified UUID.
+	 * 
+	 * @param ontologyID
+	 * @param documentIRI
+	 * @param ontologyUniqueID
+	 * @return
+	 * @throws OWLOntologyCreationException
+	 */
+	public HGDBOntology createOWLOntology(OWLOntologyID ontologyID,
+			IRI documentIRI, UUIDPersistentHandle ontologyUUID)
+			throws OWLOntologyCreationException {
+		logger.info("HGDB createOWLOntology UUID :" + ontologyUUID + " docIRI: " + documentIRI);
+		//Check if exists by docIRI
+		if (!repository.existsOntologyByDocumentIRI(documentIRI)) {
+			//
+			HGDBOntology ontology =  repository.createOWLOntology(ontologyID, documentIRI);
+			ontology.setOWLOntologyManager(manager);
+			//HGDBOntologyFormat ontologyFormat = new HGDBOntologyFormat();
+			//ontologyFormat.setParameter(HGDBOntologyFormat.PARAMETER_IRI, documentIRI);
+			//handler.setOntologyFormat(ontology, new  HGDBOntologyFormat());
+			//handler.ontologyCreated(ontology);	
+			return ontology;
+		} else {
+			logger.severe("Ontology with documentIRI" + documentIRI + " already exists.");
+			throw new HGDBOntologyAlreadyExistsByDocumentIRIException(documentIRI);
+		}
+	}
 
 	@Override
-	public OWLOntology loadOWLOntology(
+	public HGDBOntology loadOWLOntology(
 			OWLOntologyDocumentSource documentSource,
 			OWLOntologyCreationHandler handler)
 			throws OWLOntologyCreationException {
@@ -94,7 +123,7 @@ public class HGDBOntologyFactory implements OWLOntologyFactory {
 	}
 	
 	@Override
-	public OWLOntology loadOWLOntology(
+	public HGDBOntology loadOWLOntology(
 			OWLOntologyDocumentSource documentSource,
 			OWLOntologyCreationHandler handler,
 			OWLOntologyLoaderConfiguration configuration)
