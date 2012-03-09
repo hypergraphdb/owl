@@ -23,7 +23,7 @@ public class RevisionID implements Comparable<RevisionID> {
 	/**
 	 * Persistent handle to the OWLOntology that this Revision represents.
 	 */
-	private HGPersistentHandle ontologyID;
+	private HGPersistentHandle ontologyUUID;
 	
 	private int revision;
 	
@@ -32,17 +32,17 @@ public class RevisionID implements Comparable<RevisionID> {
 		revision = REVISION_FIRST;
 	}
 	
-	public RevisionID(HGPersistentHandle ontologyID, int revision) {
-		this.ontologyID = ontologyID;
+	public RevisionID(HGPersistentHandle ontologyUUID, int revision) {
+		this.ontologyUUID = ontologyUUID;
 		this.revision = revision;
 	}
 	
-	public HGPersistentHandle getOntologyID() {
-		return ontologyID;
+	public HGPersistentHandle getOntologyUUID() {
+		return ontologyUUID;
 	}
 	
-	public void setOntologyID(HGPersistentHandle ontologyID) {
-		this.ontologyID = ontologyID;
+	public void setOntologyUUID(HGPersistentHandle ontologyID) {
+		this.ontologyUUID = ontologyID;
 	}
 		
 	public int getRevision() {
@@ -61,7 +61,7 @@ public class RevisionID implements Comparable<RevisionID> {
 		if (o == this) {
 			return 0;
 		} else {
-			int ontoComp = ontologyID.compareTo(o.getOntologyID());
+			int ontoComp = ontologyUUID.compareTo(o.getOntologyUUID());
 			if (ontoComp != 0) {
 				return ontoComp;
 			} else {

@@ -65,7 +65,42 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 		revisionAndChangeSetPairs = new ArrayList<HGHandle>(Arrays.asList(targets));
 		//assert at least one Pair.
 	}
-	
+
+	/**
+	 * Creates a versionedOntology containing the given list of revisions and changesets.
+	 * All revisions, changesets, changes and axioms, importdecls and ontoAnnotations are
+	 * expected to be stored in the graph and currently loaded.
+	 * The creator shall add this object to the graph.
+	 *  
+	 * @param revisions
+	 * @param changeSets
+	 */
+	public VersionedOntology(final List<Revision> revisions, final List<ChangeSet> changeSets, HyperGraph graph) {
+		this.graph = graph;
+		if (revisions.size() - changeSets.size() > 1) throw new IllegalArgumentException("Sizes must match by 1;" 
+				+ " only last changeset may be omitted. \n Revisions: " + revisions.size()
+				+ " Changesets: " + changeSets.size());
+		if (revisions.size() - changeSets.size() < 0) throw new IllegalArgumentException("Must not have less revisions than changesets."); 
+		revisionAndChangeSetPairs = new ArrayList<HGHandle>(revisions.size());
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+			public Object call() {
+				for (int i = 0; i < revisionAndChangeSetPairs.size(); i++) {
+					HGHandle curCsHandle;
+					if (i < changeSets.size()) {
+						curCsHandle = VersionedOntology.this.graph.getHandle(changeSets.get(i));
+					} else {
+						curCsHandle = VersionedOntology.this.graph.add(new ChangeSet());
+					}
+					if (curCsHandle == null) throw new NullPointerException("Changeset must be in graph and loaded:" + changeSets.get(i));
+					Pair<Revision, HGHandle> pair = new Pair<Revision, HGHandle>(revisions.get(i), curCsHandle);
+					HGHandle pairHandle = VersionedOntology.this.graph.add(pair);
+					revisionAndChangeSetPairs.add(pairHandle);
+				}
+				return null;
+			}});
+		//assert at least one Pair.
+	}
+
 	/**
 	 * Creates an 
 	 * 
@@ -107,7 +142,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	public HGDBOntology getWorkingSetData(){
 		return graph.getTransactionManager().ensureTransaction(new Callable<HGDBOntology>() {
 			public HGDBOntology call() {
-					return graph.get(getHeadRevision().getOntologyID());
+					return graph.get(getHeadRevision().getOntologyUUID());
 			}}, HGTransactionConfig.READONLY);
 	}
 	
@@ -254,7 +289,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 		// asssert head change set not empty
 		// assert head.getOntologyID.equals(ontohandle)
 		Revision newRevision = new Revision();
-		newRevision.setOntologyID(ontoHandle);
+		newRevision.setOntologyUUID(ontoHandle);
 		newRevision.setRevision(revision);
 		newRevision.setUser(user);
 		newRevision.setRevisionComment(comment);
@@ -467,7 +502,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
 			public Object call() {
 				int headRevision = getHeadRevision().getRevision();		
-				commitInternal(getHeadRevision().getOntologyID(), user, headRevision + revisionIncrement, comment);
+				commitInternal(getHeadRevision().getOntologyUUID(), user, headRevision + revisionIncrement, comment);
 				return null;
 			}});
 	}
@@ -610,5 +645,4 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	public void accept(VOWLObjectVisitor visitor) {
 		visitor.visit(this);
 	}
-		
 }

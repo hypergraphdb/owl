@@ -54,7 +54,7 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject {
     }
 
 	public ChangeSet(List<HGHandle> changes) {
-		changes = new ArrayList<HGHandle>(changes);
+		this.changes = new ArrayList<HGHandle>(changes);
     }
 	
 	/**
