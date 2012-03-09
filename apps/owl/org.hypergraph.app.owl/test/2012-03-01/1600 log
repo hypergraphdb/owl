@@ -1,0 +1,64 @@
+1600 Log ONLY DATABASE
+Init Database :Thu Mar 01 15:54:48 EST 2012
+HGDB REPOSITORY AT: c:/temp/ontdb
+TOP HANDLE: weakHandle(bb8854fb-0d34-11da-ac60-932fd7ea200d)
+Mar 1, 2012 3:54:49 PM org.hypergraphdb.app.owl.HGDBOntologyRepository ensureHypergraph
+INFO: Hypergraph contains 277418 Atoms
+Mar 1, 2012 3:54:49 PM org.hypergraphdb.app.owl.HGDBOntologyInternalsImpl <clinit>
+INFO: Asserts are disabled for HGDBOntologyInternalsImpl
+************* ONTOLOGIES IN HYPERGRAPH REPOSITORY *************
+----------------------------------------------------------------------
+DD IRI http://www.miamidade.gov/ontology
+ON IRI http://www.miamidade.gov/ontology
+V  IRI null
+DOCIRI hgdb://www.miamidade.gov/ontology
+----------------------------------------------------------------------
+DD IRI http://www.miamidade.gov/cirm/legacy
+ON IRI http://www.miamidade.gov/cirm/legacy
+V  IRI null
+DOCIRI hgdb://www.miamidade.gov/cirm/legacy
+************* ONTOLOGIES IN HYPERGRAPH REPOSITORY *************
+----------------------------------------------------------------------
+DD IRI http://www.miamidade.gov/ontology
+ON IRI http://www.miamidade.gov/ontology
+V  IRI null
+DOCIRI hgdb://www.miamidade.gov/ontology
+----------------------------------------------------------------------
+DD IRI http://www.miamidade.gov/cirm/legacy
+ON IRI http://www.miamidade.gov/cirm/legacy
+V  IRI null
+DOCIRI hgdb://www.miamidade.gov/cirm/legacy
+*************** HYPERGRAPH STATISTICS ***************
+* Location     : C:\TEMP\ontdb
+* Now is       : Mar 1, 2012 3:54:49 PM
+*       LINKS  : 225463
+* NoLink ATOMS : 51955
+* TOTAL ATOMS  : 277418
+*                                                   
+*      AXIOMS  : 145427
+*    ENTITIES  : 25902
+*****************************************************
+End Init Database :Thu Mar 01 15:54:49 EST 2012
+Test with Database :Thu Mar 01 15:54:49 EST 2012
+HGDBIRIMapper: http://www.miamidade.gov/ontology -> hgdb://www.miamidade.gov/ontology
+Mar 1, 2012 3:54:49 PM org.hypergraphdb.app.owl.HGDBOntologyFactory loadOWLOntology
+INFO: HGDB loadOWLOntology with config
+Mar 1, 2012 3:54:49 PM org.hypergraphdb.app.owl.HGDBOntologyFactory loadOWLOntology
+INFO: HGDB loadOWLOntology from hgdb://www.miamidade.gov/ontology
+Mar 1, 2012 3:54:49 PM org.hypergraphdb.app.owl.HGDBOntologyFactory loadOWLOntology
+INFO: Loaded: Ontology<http://www.miamidade.gov/ontology>
+HGDBIRIMapper: http://www.miamidade.gov/cirm/legacy -> hgdb://www.miamidade.gov/cirm/legacy
+Mar 1, 2012 3:54:49 PM org.hypergraphdb.app.owl.HGDBOntologyFactory loadOWLOntology
+INFO: HGDB loadOWLOntology with config
+Mar 1, 2012 3:54:49 PM org.hypergraphdb.app.owl.HGDBOntologyFactory loadOWLOntology
+INFO: HGDB loadOWLOntology from hgdb://www.miamidade.gov/cirm/legacy
+Mar 1, 2012 3:54:49 PM org.hypergraphdb.app.owl.HGDBOntologyFactory loadOWLOntology
+INFO: Loaded: Ontology<http://www.miamidade.gov/cirm/legacy>
+|org.hypergraphdb.app.owl.HGDBOntologyManagerImpl@2a6ff
+org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB@21d23b
+[Ontology(<http://www.miamidade.gov/cirm/legacy>)]
+//
+// hilpold: interesting: only legacy in importclosure as seen above.
+//
+|Nodeset[]
+END: Test with Database :Thu Mar 01 15:55:14 EST 2012
