@@ -16,6 +16,7 @@ import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVoca
 
 import java.util.List;
 
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument.DATE_FORMAT;
 import org.coode.owlapi.owlxml.renderer.OWLXMLObjectRenderer;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
@@ -53,7 +54,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor {
 		public void visit(VersionedOntology vo) {
 			List<Revision> revisions = vo.getRevisions();
             writer.writeStartElement(VERSIONED_ONTOLOGY);
-            writer.writeAttribute(VOWLVocabulary.NAMESPACE + "ontologyID", vo.getHeadRevision().getOntologyID().toString());
+            writer.writeAttribute(VOWLVocabulary.NAMESPACE + "ontologyID", vo.getHeadRevision().getOntologyUUID().toString());
             writer.writeAttribute(VOWLVocabulary.NAMESPACE + "headRevisionIndex", Integer.toString((revisions.size() - 1)));
             //writer.writeTextContent(decl.getURI().toString());
 			List<ChangeSet> changeSets = vo.getChangeSets();
@@ -89,10 +90,10 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor {
 		public void visit(Revision revision) {
 			writer.writeStartElement(REVISION);
 			//writer.writeStartElement("ontologyID");
-			writer.writeAttribute("ontologyID", revision.getOntologyID().toString());
+			writer.writeAttribute("ontologyID", revision.getOntologyUUID().toString());
 			writer.writeAttribute("revision", Integer.toString(revision.getRevision()));
 			writer.writeAttribute("user", revision.getUser());
-			writer.writeAttribute("timeStamp", revision.getTimeStamp().toString());
+			writer.writeAttribute("timeStamp", DATE_FORMAT.format(revision.getTimeStamp()));
 			writer.writeAttribute("revisionComment", revision.getRevisionComment());
 			writer.writeEndElement();
 		}
@@ -103,7 +104,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor {
 		@Override
 		public void visit(ChangeSet changeSet) {
 			writer.writeStartElement(CHANGE_SET);
-			writer.writeAttribute("createdDate", changeSet.getCreatedDate().toString());
+			writer.writeAttribute("createdDate", DATE_FORMAT.format(changeSet.getCreatedDate()));
 			List <VOWLChange> changes = changeSet.getChanges();
 			for (VOWLChange c : changes) {
 				c.accept(this);

@@ -75,7 +75,7 @@ public class VOWLXMLVersionedOntologyRenderer extends AbstractOWLRenderer {
             vonto.accept(vren);
             vw.endDocument();
             writer.flush();
-            s.stop("VOWLXMLVersionedOntologyRenderer Render Process " + vonto.getHeadRevision().getOntologyID() + " Elements: " + vw.getStartElementCount() + " Duration: ");
+            s.stop("VOWLXMLVersionedOntologyRenderer Render Process " + vonto.getHeadRevision().getOntologyUUID() + " Elements: " + vw.getStartElementCount() + " Duration: ");
         }
         catch (IOException e) {
             throw new OWLRendererIOException(e);

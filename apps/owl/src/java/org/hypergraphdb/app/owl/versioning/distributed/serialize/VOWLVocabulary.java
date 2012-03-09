@@ -11,7 +11,7 @@ import org.semanticweb.owlapi.model.IRI;
  */
 public enum VOWLVocabulary  {
 
-    VERSIONED_ONTOLOGY_ROOT("VersionedOntologyRoot"),
+    VERSIONED_ONTOLOGY_ROOT("VOWLXMLDocument"),
     RENDER_CONFIGURATION("RenderConfiguration"),
     VERSIONED_ONTOLOGY("VersionedOntology"),
     CHANGE_SET("ChangeSet"),
