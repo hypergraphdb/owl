@@ -1,24 +1,101 @@
 package org.hypergraphdb.app.owl.versioning.distributed.serialize.parse;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserHandler;
-import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.HGPersistentHandle;
+import org.hypergraphdb.app.owl.versioning.ChangeSet;
+import org.hypergraphdb.app.owl.versioning.Revision;
+//import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.handle.UUIDPersistentHandle;
 import org.semanticweb.owlapi.io.OWLParserException;
+import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.UnloadableImportException;
 
 /**
  * VersionedOntologyElementHandler.
+ * 
+ * This class does not create a VersionedOntology, because it cannot be determined here, if a whole
+ * versionedOntology was parsed. The VersionedOntologyRootHandler will interpret the render configuration
+ * information and our data and will determine, if a new VersionedOntology shall be created. 
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Feb 29, 2012
  */
-public class VersionedOntologyElementHandler extends AbstractVOWLElementHandler<VersionedOntology> {
+public class VersionedOntologyElementHandler extends AbstractVOWLElementHandler<Object> {
 
+	private HGPersistentHandle ontologyID;
+	private int headRevisionIndex; // -1 is undefined
+
+	private List<Revision> revisions;
+	private List<ChangeSet> changeSets;
+	private OWLOntology ontologyHeadData;
+	
 	/**
 	 * @param handler
 	 */
 	public VersionedOntologyElementHandler(OWLXMLParserHandler handler) {
 		super(handler);
-		// TODO Auto-generated constructor stub
+		reset();
+	}
+
+	public void reset() {
+		ontologyID = null;
+		headRevisionIndex = -1;
+		revisions = new LinkedList<Revision>();
+		changeSets = new LinkedList<ChangeSet>();
+		ontologyHeadData = null;
+	}
+	
+	@Override
+	public void attribute(String localName, String value) throws OWLParserException {
+        if (localName.equals("ontologyID")) {
+        	ontologyID = UUIDPersistentHandle.makeHandle(value.trim());
+        }
+        if (localName.equals("headRevisionIndex")) {
+        	headRevisionIndex = Integer.parseInt(value.trim());
+        }
+    }
+
+	/* (non-Javadoc)
+	 * @see org.coode.owlapi.owlxmlparser.AbstractOWLElementHandler#startElement(java.lang.String)
+	 */
+	@Override
+	public void startElement(String name) throws OWLXMLParserException {
+		//reset();
+	}
+
+    
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.AbstractVOWLElementHandler#handleChild(org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.RevisionElementHandler)
+	 */
+	@Override
+	public void handleChild(RevisionElementHandler h) throws OWLXMLParserException {
+		Revision r= h.getOWLObject();
+		//Add Revision to Graph or not??
+		getHyperGraph().add(r);
+		revisions.add(r);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.AbstractVOWLElementHandler#handleChild(org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.ChangeSetElementHandler)
+	 */
+	@Override
+	public void handleChild(ChangeSetElementHandler h) throws OWLXMLParserException {
+		//Add Changeset link to Graph or not?? 
+		ChangeSet c = h.getOWLObject();
+		getHyperGraph().add(c);
+		changeSets.add(c);		
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.AbstractVOWLElementHandler#handleChild(org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.OWLOntologyHandlerModified)
+	 */
+	@Override
+	public void handleChild(OWLOntologyHandlerModified h) throws OWLXMLParserException {
+		ontologyHeadData = h.getOWLObject();
 	}
 
 	/* (non-Javadoc)
@@ -26,17 +103,55 @@ public class VersionedOntologyElementHandler extends AbstractVOWLElementHandler<
 	 */
 	@Override
 	public void endElement() throws OWLParserException, UnloadableImportException {
-		// TODO Auto-generated method stub
-		
+		getParentHandler().handleChild(this);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.coode.owlapi.owlxmlparser.OWLElementHandler#getOWLObject()
+	/**
+	 * Unsupported exception thrown here; use other methods to get parsed objects.
 	 */
 	@Override
-	public VersionedOntology getOWLObject() throws OWLXMLParserException {
-		// TODO Auto-generated method stub
-		return null;
+	public Object getOWLObject() throws OWLXMLParserException {
+		throw new UnsupportedOperationException("Use the other methods to get changesets and revisions");
 	}
 
+	/**
+	 * @return the ontologyID
+	 */
+	public HGPersistentHandle getOntologyID() throws OWLXMLParserException {
+		return ontologyID;
+	}
+
+	/**
+	 * @return the headRevisionIndex
+	 */
+	public int getHeadRevisionIndex() throws OWLXMLParserException {
+		return headRevisionIndex;
+	}
+
+	/**
+	 * Each revision will also be stored in the graph.
+	 * @return the revisions
+	 */
+	public List<Revision> getRevisions() throws OWLXMLParserException {
+		return revisions;
+	}
+
+	/**
+	 * Each changeset, changes and axioms will also be stored in the graph.
+	 * @return the changeSets
+	 */
+	public List<ChangeSet> getChangeSets() throws OWLXMLParserException {
+		return changeSets;
+	}
+
+	/**
+	 * All ontology axioms, annotations and importDeclarations will be part of the ontology, 
+	 * applied as changes directly; bypassing the manager to avoid change tracking.
+	 * In case of an HGDBOntologyImpl, all a
+	 * 
+	 * @return the ontologyHeadData
+	 */
+	public OWLOntology getOntologyHeadData() throws OWLXMLParserException {
+		return ontologyHeadData;
+	}
 }

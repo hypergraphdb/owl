@@ -1,27 +1,13 @@
 package org.hypergraphdb.app.owl.versioning.distributed.serialize.parse;
 
-import org.coode.owlapi.owlxmlparser.AbstractClassExpressionElementHandler;
-import org.coode.owlapi.owlxmlparser.AbstractIRIElementHandler;
-import org.coode.owlapi.owlxmlparser.AbstractOWLAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.AbstractOWLDataRangeHandler;
 import org.coode.owlapi.owlxmlparser.AbstractOWLElementHandler;
-import org.coode.owlapi.owlxmlparser.AbstractOWLObjectPropertyElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLAnnotationElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLAnnotationPropertyElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLAnonymousIndividualElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDataPropertyElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDatatypeFacetRestrictionElementHandler;
 import org.coode.owlapi.owlxmlparser.OWLElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLIndividualElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLLiteralElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLSubObjectPropertyChainElementHandler;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserHandler;
-import org.coode.owlapi.owlxmlparser.SWRLAtomElementHandler;
-import org.coode.owlapi.owlxmlparser.SWRLAtomListElementHandler;
-import org.coode.owlapi.owlxmlparser.SWRLVariableElementHandler;
-import org.semanticweb.owlapi.io.OWLParserException;
-import org.semanticweb.owlapi.model.UnloadableImportException;
+import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLParserHandler;
 
 /**
  * AbstractVOWLElementHandler.
@@ -30,46 +16,82 @@ import org.semanticweb.owlapi.model.UnloadableImportException;
  */
 public abstract class AbstractVOWLElementHandler<O> extends AbstractOWLElementHandler<O> implements VOWLElementHandler<O> {
 
+	private VOWLXMLParserHandler handler;
+	
 	/**
 	 * @param handler
 	 */
 	protected AbstractVOWLElementHandler(OWLXMLParserHandler handler) {
 		super(handler);
+		this.handler = (VOWLXMLParserHandler)handler;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VOWLElementHandler#handleChild(org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.RevisionElementHandler)
-	 */
-	@Override
-	public void handleChild(RevisionElementHandler h) {
-	}
+	public void setParentHandler(OWLElementHandler<?> handler) {
+        super.setParentHandler((VOWLElementHandler<?>)handler);
+    }
 
-	/* (non-Javadoc)
+	public VOWLXMLDocument getDocumentRoot() {
+        return handler.getDocumentRoot();
+    }	
+
+    public VOWLElementHandler<?> getParentHandler() {
+        return (VOWLElementHandler<?>)super.getParentHandler();
+    }	
+    
+    HyperGraph getHyperGraph() {
+    	return getOWLDataFactory().getHyperGraph();
+    }
+    
+    public OWLDataFactoryHGDB getOWLDataFactory() {
+    	return ((OWLDataFactoryHGDB)super.getOWLDataFactory());
+    }
+
+    /* (non-Javadoc)
 	 * @see org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VOWLElementHandler#handleChild(org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.RenderConfigurationElementHandler)
 	 */
 	@Override
-	public void handleChild(RenderConfigurationElementHandler h) {
-	}
-
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VOWLElementHandler#handleChild(org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.ChangeSetElementHandler)
-	 */
-	@Override
-	public void handleChild(ChangeSetElementHandler h) {
+	public void handleChild(RenderConfigurationElementHandler h) throws OWLXMLParserException {
 	}
 
 	/* (non-Javadoc)
 	 * @see org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VOWLElementHandler#handleChild(org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VersionedOntologyElementHandler)
 	 */
 	@Override
-	public void handleChild(VersionedOntologyElementHandler h) {
+	public void handleChild(VersionedOntologyElementHandler h) throws OWLXMLParserException {
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VOWLElementHandler#handleChild(org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.RevisionElementHandler)
+	 */
+	@Override
+	public void handleChild(RevisionElementHandler h) throws OWLXMLParserException {
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VOWLElementHandler#handleChild(org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.ChangeSetElementHandler)
+	 */
+	@Override
+	public void handleChild(ChangeSetElementHandler h) throws OWLXMLParserException {
 	}
 
 	/* (non-Javadoc)
 	 * @see org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VOWLElementHandler#handleChild(org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VOWLChangeElementHandler)
 	 */
 	@Override
-	public void handleChild(VOWLChangeElementHandler h) {
+	public void handleChild(VOWLChangeElementHandler h) throws OWLXMLParserException {
 	}
 
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VOWLElementHandler#handleChild(org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.OWLOntologyHandlerModified)
+	 */
+	@Override
+	public void handleChild(OWLOntologyHandlerModified h) throws OWLXMLParserException {
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VOWLElementHandler#handleChild(org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.OWLImportsHandlerModified)
+	 */
+	@Override
+	public void handleChild(OWLImportsHandlerModified h) throws OWLXMLParserException {
+	}
 }

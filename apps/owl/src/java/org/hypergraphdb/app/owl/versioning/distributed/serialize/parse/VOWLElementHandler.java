@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl.versioning.distributed.serialize.parse;
 
 import org.coode.owlapi.owlxmlparser.OWLElementHandler;
+import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
 
 /**
  * VOWLElementHandler.
@@ -8,9 +9,11 @@ import org.coode.owlapi.owlxmlparser.OWLElementHandler;
  * @created Feb 29, 2012
  */
 public interface VOWLElementHandler<O> extends OWLElementHandler<O> {
-	void handleChild(RevisionElementHandler h);
-	void handleChild(RenderConfigurationElementHandler h);
-	void handleChild(ChangeSetElementHandler h);
-	void handleChild(VersionedOntologyElementHandler h);
-	void handleChild(VOWLChangeElementHandler h);
+	void handleChild(RevisionElementHandler h) throws OWLXMLParserException;
+	void handleChild(RenderConfigurationElementHandler h) throws OWLXMLParserException;
+	void handleChild(ChangeSetElementHandler h) throws OWLXMLParserException;
+	void handleChild(VersionedOntologyElementHandler h) throws OWLXMLParserException;
+	void handleChild(VOWLChangeElementHandler h) throws OWLXMLParserException;
+	void handleChild(OWLImportsHandlerModified h) throws OWLXMLParserException;
+	void handleChild(OWLOntologyHandlerModified h) throws OWLXMLParserException;
 }
