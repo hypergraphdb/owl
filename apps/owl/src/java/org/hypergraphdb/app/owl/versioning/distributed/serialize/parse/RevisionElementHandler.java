@@ -84,7 +84,7 @@ public class RevisionElementHandler extends AbstractVOWLElementHandler<Revision>
 	 */
 	@Override
 	public void endElement() throws OWLParserException, UnloadableImportException {
-		System.out.println("RevisionElementHandler");
+		System.out.println("RevisionElementHandler end Element RevNr: " + revisionNumber);
 		if (ontologyID == null) throw new OWLParserException("was null");
 		if (revisionNumber < 0) throw new OWLParserException("revision (int) was not parsed");
 		if (!userParsed) throw new OWLParserException("user was not parsed");
@@ -96,6 +96,7 @@ public class RevisionElementHandler extends AbstractVOWLElementHandler<Revision>
 		revision.setUser(user);
 		revision.setTimeStamp(timeStamp);
 		revision.setRevisionComment(revisionCommment);
+		getParentHandler().handleChild(this);
 	}
 
 
