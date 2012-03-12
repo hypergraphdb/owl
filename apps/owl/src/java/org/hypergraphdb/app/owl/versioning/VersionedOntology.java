@@ -84,7 +84,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 		revisionAndChangeSetPairs = new ArrayList<HGHandle>(revisions.size());
 		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
 			public Object call() {
-				for (int i = 0; i < revisionAndChangeSetPairs.size(); i++) {
+				for (int i = 0; i < revisions.size(); i++) {
 					HGHandle curCsHandle;
 					if (i < changeSets.size()) {
 						curCsHandle = VersionedOntology.this.graph.getHandle(changeSets.get(i));
