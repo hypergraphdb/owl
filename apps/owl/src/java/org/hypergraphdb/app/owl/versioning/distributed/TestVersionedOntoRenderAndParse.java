@@ -2,8 +2,12 @@ package org.hypergraphdb.app.owl.versioning.distributed;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -100,7 +104,7 @@ public class TestVersionedOntoRenderAndParse {
 				//File fx = new File("C:\\_CiRM\\testontos\\CountyVersioned-Rev-"+ i + ".vowlxml");
 				renderedFiles.add(fx);
 				//File fx = new File("C:\\_CiRM\\testontos\\1 csr-Rev-"+ i + ".vowlxml");
-				FileWriter fwriter = new FileWriter(fx);
+				Writer fwriter = new OutputStreamWriter(new FileOutputStream(fx), Charset.forName("UTF-8"));
 				//	Full export
 				r.render(vo, fwriter, c);
 			}
@@ -176,9 +180,9 @@ public class TestVersionedOntoRenderAndParse {
 				System.out.println("Rendering full versioned ontology after parse and store: " + ontologyUUID);
 				VOWLXMLVersionedOntologyRenderer r = new VOWLXMLVersionedOntologyRenderer(manager);
 				File fx = new File(TESTFILE.getAbsolutePath() + "FULL-afterParse.xml");
-				FileWriter fwriter;
+				Writer fwriter;
 				try {
-					fwriter = new FileWriter(fx);
+					fwriter = new OutputStreamWriter(new FileOutputStream(fx), Charset.forName("UTF-8"));
 					r.render(voParsed, fwriter);
 				} catch (IOException e) {
 					e.printStackTrace();
