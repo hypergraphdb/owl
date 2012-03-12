@@ -205,7 +205,6 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 					//HGHandle atom = getHyperGraph().add(new Date());
 					Activity activity = new PushVersionedOntology(peer, voN , target);
 					peer.getActivityManager().initiateActivity(activity);
-					
 			//System.out.println("SENT Dates: " + getHyperGraph().count(hg.type(Date.class)));
 		} else { 
 			//System.out.println("RECEIVED Dates: " + getHyperGraph().count(hg.type(Date.class)));
