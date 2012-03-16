@@ -25,7 +25,7 @@ import org.hypergraphdb.app.owl.gc.GarbageCollector;
 import org.hypergraphdb.app.owl.usage.ImportOntologies;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLRenderConfiguration;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLRenderConfiguration;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLParser;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVersionedOntologyRenderer;
@@ -97,7 +97,7 @@ public class TestVersionedOntoRenderAndParse {
 			}
 			// RENDER VERSIONED ONTOLOGY, includes data
 			for (int i = 0; i < vo.getArity(); i ++) {
-				VOWLRenderConfiguration c = new VOWLRenderConfiguration();
+				VOWLXMLRenderConfiguration c = new VOWLXMLRenderConfiguration();
 				c.setLastRevisionIndex(i);
 				VOWLXMLVersionedOntologyRenderer r = new VOWLXMLVersionedOntologyRenderer(manager);
 				File fx = new File(TESTFILE.getAbsolutePath() + " Revision-" + i + ".xml");
