@@ -1,6 +1,5 @@
 package org.hypergraphdb.app.owl.versioning.distributed.serialize.parse;
 
-import java.text.ParseException;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -8,7 +7,6 @@ import java.util.List;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserHandler;
 
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument.DATE_FORMAT;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
@@ -51,14 +49,15 @@ public class ChangeSetElementHandler extends AbstractVOWLElementHandler<ChangeSe
 
 	@Override
 	public void attribute(String localName, String value) throws OWLParserException {
-		//createdDate="Mon Mar 05 15:40:55 EST 2012"
-        if (localName.equals("createdDate")) {
+		//createdDateLong ="Mon Mar 05 15:40:55 EST 2012"
+        if (localName.equals("createdDateLong")) {
         	try {
-        		createdDate = DATE_FORMAT.parse(value.trim());
-        	} catch (ParseException e) {
-        		throw new OWLParserException("Could not parse createdDate: " + value);
+        		createdDate = new Date(Long.parseLong(value.trim()));
+        	} catch (NumberFormatException e) {
+        		throw new OWLParserException("Could not parse createdDateLong: " + value);
         	}
-        }
+        } 
+        //createdDate ignored!
 	}
 	
 	/* (non-Javadoc)
