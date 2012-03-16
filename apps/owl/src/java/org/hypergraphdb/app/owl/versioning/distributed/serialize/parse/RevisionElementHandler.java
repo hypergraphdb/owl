@@ -1,12 +1,10 @@
 package org.hypergraphdb.app.owl.versioning.distributed.serialize.parse;
 
-import java.text.ParseException;
 import java.util.Date;
 
 import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserHandler;
 
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument.DATE_FORMAT;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.handle.UUIDPersistentHandle;
@@ -57,12 +55,14 @@ public class RevisionElementHandler extends AbstractVOWLElementHandler<Revision>
         		user = Revision.USER_ANONYMOUS;
         	}
         	userParsed = true;
-        } else if (localName.equals("timeStamp")) {
-        	 //timeStamp="Mon Mar 05 15:40:55 EST 2012"
+        } else if (localName.equals("timeStamp") ){
+        	//timeStamp="Mon Mar 05 15:40:55 EST 2012"
+        	//ignored
+        } else if (localName.equals("timeStampLong")) {
         	try {
-				timeStamp = DATE_FORMAT.parse(value.trim());
-			} catch (ParseException e) {
-				throw new OWLParserException("Could not parse timeStamp " + value, getLineNumber(), getColumnNumber());
+				timeStamp = new Date(Long.parseLong(value.trim()));
+			} catch (NumberFormatException e) {
+				throw new OWLParserException("Could not parse timeStampLong " + value, getLineNumber(), getColumnNumber());
 			}
         } else if (localName.equals("revisionComment")) {
         	revisionCommment = value;
