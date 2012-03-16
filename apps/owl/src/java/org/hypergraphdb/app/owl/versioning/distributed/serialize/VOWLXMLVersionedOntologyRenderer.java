@@ -54,10 +54,10 @@ public class VOWLXMLVersionedOntologyRenderer extends AbstractOWLRenderer {
 	}
 
 	public void render(VersionedOntology vonto, Writer writer) throws OWLRendererException {
-    	render(vonto, writer, new VOWLRenderConfiguration());
+    	render(vonto, writer, new VOWLXMLRenderConfiguration());
     }
 
-    public void render(VersionedOntology vonto, Writer writer, VOWLRenderConfiguration configuration) throws OWLRendererException {
+    public void render(VersionedOntology vonto, Writer writer, VOWLXMLRenderConfiguration configuration) throws OWLRendererException {
 		StopWatch s = new StopWatch(true);
     	try {
         	VOWLXMLWriter vw = new VOWLXMLWriter(writer, vonto);
@@ -68,7 +68,7 @@ public class VOWLXMLVersionedOntologyRenderer extends AbstractOWLRenderer {
             vw.writePrefix("rdfs:", Namespaces.RDFS.toString());
             vw.writePrefix("xsd:", Namespaces.XSD.toString());
             vw.writePrefix("owl:", Namespaces.OWL.toString());
-            vw.writePrefix(VOWLVocabulary.NAMESPACE_PREFIX.toString(), VOWLVocabulary.NAMESPACE.toString());
+            vw.writePrefix(VOWLXMLVocabulary.NAMESPACE_PREFIX.toString(), VOWLXMLVocabulary.NAMESPACE.toString());
 
             VOWLXMLObjectRenderer vren = new VOWLXMLObjectRenderer(vw, configuration);
             configuration.accept(vren);
