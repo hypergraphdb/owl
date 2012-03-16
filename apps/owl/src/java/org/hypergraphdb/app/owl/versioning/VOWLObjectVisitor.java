@@ -4,7 +4,7 @@ import org.hypergraphdb.app.owl.versioning.change.VAxiomChange;
 import org.hypergraphdb.app.owl.versioning.change.VImportChange;
 import org.hypergraphdb.app.owl.versioning.change.VModifyOntologyIDChange;
 import org.hypergraphdb.app.owl.versioning.change.VOntologyAnnotationChange;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLRenderConfiguration;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLRenderConfiguration;
 
 /**
  * VOWLObjectVisitor.
@@ -27,6 +27,6 @@ public interface VOWLObjectVisitor  {
 	
 	public void visit(VModifyOntologyIDChange change);
 	
-	public void visit(VOWLRenderConfiguration configuration);
+	public void visit(VOWLXMLRenderConfiguration configuration);
 	
 }
