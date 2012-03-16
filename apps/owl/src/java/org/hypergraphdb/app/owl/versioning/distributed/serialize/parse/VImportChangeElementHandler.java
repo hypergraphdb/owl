@@ -7,7 +7,7 @@ import org.hypergraphdb.app.owl.versioning.change.VAddImportChange;
 import org.hypergraphdb.app.owl.versioning.change.VImportChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.app.owl.versioning.change.VRemoveImportChange;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary;
 import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.UnloadableImportException;
 
@@ -44,11 +44,11 @@ public class VImportChangeElementHandler extends VOWLChangeElementHandler {
 	@Override
 	public void endElement() throws OWLParserException, UnloadableImportException {
 		String name = getElementName();		
-		if (name.equals(VOWLVocabulary.V_ADD_IMPORT_CHANGE.getShortName())) {
+		if (name.equals(VOWLXMLVocabulary.V_ADD_IMPORT_CHANGE.getShortName())) {
 			HGHandle importDeclHandle = getHyperGraph().add(importsDeclaration);
 			importChange = new VAddImportChange(importDeclHandle);
 			getParentHandler().handleChild(this);
-		} else if (name.equals(VOWLVocabulary.V_REMOVE_IMPORT_CHANGE.getShortName())) {
+		} else if (name.equals(VOWLXMLVocabulary.V_REMOVE_IMPORT_CHANGE.getShortName())) {
 			HGHandle importDeclHandle = getHyperGraph().add(importsDeclaration);
 			importChange = new VRemoveImportChange(importDeclHandle);
 			getParentHandler().handleChild(this);
