@@ -55,7 +55,7 @@ public class VOWLXMLWriter extends OWLXMLWriter {
         nsm.setPrefix("rdf", Namespaces.RDF.toString());
         nsm.setPrefix("rdfs", Namespaces.RDFS.toString());
         nsm.setPrefix("xml", Namespaces.XML.toString());
-        nsm.setPrefix("vo", VOWLVocabulary.NAMESPACE.toString());
+        nsm.setPrefix("vo", VOWLXMLVocabulary.NAMESPACE.toString());
         String base = Namespaces.OWL.toString();
         if (ontology != null && !ontology.isAnonymous()) {
             base = ontology.getOntologyID().getOntologyIRI().toString();
@@ -65,7 +65,7 @@ public class VOWLXMLWriter extends OWLXMLWriter {
 	
     public void startDocument(VersionedOntology vontology) throws OWLRendererException {
         try {
-            writer.startDocument(VOWLVocabulary.VERSIONED_ONTOLOGY_ROOT.toString());
+            writer.startDocument(VOWLXMLVocabulary.VERSIONED_ONTOLOGY_ROOT.toString());
         }
         catch (IOException e) {
             throw new OWLRendererIOException(e);
@@ -200,7 +200,7 @@ public class VOWLXMLWriter extends OWLXMLWriter {
     /**
      * 2012.02.27 Hilpold
      */
-    public void writeStartElement(VOWLVocabulary name) {
+    public void writeStartElement(VOWLXMLVocabulary name) {
     	startElementCount ++;
         try {
             writer.writeStartElement(name.getURI().toString());
