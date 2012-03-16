@@ -4,9 +4,7 @@ import java.text.DateFormat;
 import java.util.List;
 import java.util.Locale;
 
-import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGPersistentHandle;
-import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
 //import org.hypergraphdb.app.owl.versioning.VersionedOntology;
@@ -25,7 +23,7 @@ public class VOWLXMLDocument {
 	
     public final static DateFormat DATE_FORMAT = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG, Locale.US);
 
-    private VOWLRenderConfiguration renderConfig;
+    private VOWLXMLRenderConfiguration renderConfig;
 	//private VersionedOntology versionedOntology;
 	private List<Revision> revisions;
 	private List<ChangeSet> changesets;
@@ -40,7 +38,7 @@ public class VOWLXMLDocument {
 	 * @param onto the empty OWLOntoloy to add all revision Data to; may be null.
 	 */
 	public VOWLXMLDocument(OWLOntology onto) {
-		setRenderConfig(new VOWLRenderConfiguration());
+		setRenderConfig(new VOWLXMLRenderConfiguration());
 		//setVersionedOntology(vo);
 		setRevisionData(onto);
 	}
@@ -81,7 +79,7 @@ public class VOWLXMLDocument {
 	 */
 	public boolean isCompleteVersionedOntology() {
 		return renderConfig.getFirstRevisionIndex() == 0
-		&& (renderConfig.getLastRevisionIndex() == headRevisionIndex)
+		&& (renderConfig.getLastRevisionIndex() >= headRevisionIndex)
 		&& renderConfig.isLastRevisionData();
 	}
 	
@@ -131,13 +129,13 @@ public class VOWLXMLDocument {
 	/**
 	 * @return the renderConfig
 	 */
-	public VOWLRenderConfiguration getRenderConfig() {
+	public VOWLXMLRenderConfiguration getRenderConfig() {
 		return renderConfig;
 	}
 	/**
 	 * @param renderConfig the renderConfig to set
 	 */
-	public void setRenderConfig(VOWLRenderConfiguration renderConfig) {
+	public void setRenderConfig(VOWLXMLRenderConfiguration renderConfig) {
 		this.renderConfig = renderConfig;
 	}
 	/**
