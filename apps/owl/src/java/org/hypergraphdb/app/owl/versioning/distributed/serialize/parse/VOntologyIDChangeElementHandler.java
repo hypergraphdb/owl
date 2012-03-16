@@ -5,7 +5,7 @@ import org.coode.owlapi.owlxmlparser.OWLXMLParserHandler;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.app.owl.versioning.change.VModifyOntologyIDChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary;
 import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyID;
@@ -64,17 +64,17 @@ public class VOntologyIDChangeElementHandler extends VOWLChangeElementHandler {
 	 */
 	@Override
 	public void endElement() throws OWLParserException, UnloadableImportException {
-		if (getElementName().equals(VOWLVocabulary.V_MODIFY_ONTOLOGY_ID_CHANGE)) {
+		if (getElementName().equals(VOWLXMLVocabulary.V_MODIFY_ONTOLOGY_ID_CHANGE)) {
 			HGHandle oldIDH = getHyperGraph().add(oldId);
 			HGHandle newIDH = getHyperGraph().add(newId);
 			modifyOntologyIDChange = new VModifyOntologyIDChange(oldIDH, newIDH);
 			//getAbbreviatedIRI(abbreviatedIRI)modifyOntologyIDChange.
 			getParentHandler().handleChild(this);
-		} else if (getElementName().equals(VOWLVocabulary.V_MODIFY_ONTOLOGY_ID_NEW_ID)) {
+		} else if (getElementName().equals(VOWLXMLVocabulary.V_MODIFY_ONTOLOGY_ID_NEW_ID)) {
 			newId = new OWLOntologyID(ontologyIRI, versionIRI);
 			ontologyIRI = null; 
 			versionIRI = null;
-		} else if (getElementName().equals(VOWLVocabulary.V_MODIFY_ONTOLOGY_ID_OLD_ID)) {
+		} else if (getElementName().equals(VOWLXMLVocabulary.V_MODIFY_ONTOLOGY_ID_OLD_ID)) {
 			oldId = new OWLOntologyID(ontologyIRI, versionIRI);
 			ontologyIRI = null; 
 			versionIRI = null;
