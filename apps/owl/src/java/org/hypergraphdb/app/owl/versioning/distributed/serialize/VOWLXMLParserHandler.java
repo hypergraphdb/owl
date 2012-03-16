@@ -1,20 +1,20 @@
 package org.hypergraphdb.app.owl.versioning.distributed.serialize;
 
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.CHANGE_SET;
-//import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.NAMESPACE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.RENDER_CONFIGURATION;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.REVISION;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.V_ADD_AXIOM_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.V_ADD_IMPORT_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.V_ADD_ONTOLOGY_ANNOTATION_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.V_MODIFY_ONTOLOGY_ID_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.V_MODIFY_ONTOLOGY_ID_NEW_ID;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.V_MODIFY_ONTOLOGY_ID_OLD_ID;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.V_REMOVE_AXIOM_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.V_REMOVE_IMPORT_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.V_REMOVE_ONTOLOGY_ANNOTATION_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.VERSIONED_ONTOLOGY;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.VERSIONED_ONTOLOGY_ROOT;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.CHANGE_SET;
+//import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.NAMESPACE;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.RENDER_CONFIGURATION;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.REVISION;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_AXIOM_CHANGE;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_IMPORT_CHANGE;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_ONTOLOGY_ANNOTATION_CHANGE;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_MODIFY_ONTOLOGY_ID_CHANGE;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_MODIFY_ONTOLOGY_ID_NEW_ID;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_MODIFY_ONTOLOGY_ID_OLD_ID;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_REMOVE_AXIOM_CHANGE;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_REMOVE_IMPORT_CHANGE;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_REMOVE_ONTOLOGY_ANNOTATION_CHANGE;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.VERSIONED_ONTOLOGY;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.VERSIONED_ONTOLOGY_ROOT;
 import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.ABBREVIATED_IRI_ELEMENT;
 import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.ANNOTATION;
 import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.ANNOTATION_ASSERTION;
@@ -234,7 +234,36 @@ import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 
 /**
- * OWLXMLVParserHandler.
+ * OWLXMLVParserHandler parses the following xml structure:
+ * <pre>
+ * <vo:VOWLXMLDocument ..>
+ * 
+ * <vo:RenderConfiguration atts />
+ * <vo:VersionedOntology>
+ * 		<!-- Contains Revision and Changesets pairwise as configured by RenderConfiguration -->
+ *     <vo:Revision atts />
+ *     <vo:ChangeSet>
+ *     <vo:AConcreteChangeElement>
+ *     	   <!-- may contain axioms, import declarations or ontology annotations which are handled by regular
+ *     			OWLXML handlers . -->
+ *     </vo:AConcreteChangeElement>
+ *     </vo:ChangeSet>
+ * 
+ *     <Ontology >
+ *     <!-- optional; contains head revision Ontology Data as described in RenderConFiguration 
+ *          which will be parsed by regular OWLXML handlers. 
+ *     -->
+ *     </Ontology>
+ * 	  
+ * </vo:VersionedOntology>
+ * 
+ * <vo:VOWLXMLDocument ..>
+ * </pre>
+ * 
+ * We were forced to extend the superclass, shield all superclass methods and copy a lot of it's code.
+ * Reason: Superclass does not allow to set a parent handler for the AxiomHandlers. We need our ChangeElementHandlers to be 
+ * parent handlers to axiom, Import and Annotation handlers.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Feb 29, 2012
  */
