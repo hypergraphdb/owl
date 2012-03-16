@@ -2,6 +2,8 @@ package org.hypergraphdb.app.owl.versioning;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.Callable;
@@ -68,9 +70,11 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 
 	/**
 	 * Creates a versionedOntology containing the given list of revisions and changesets.
-	 * All revisions, changesets, changes and axioms, importdecls and ontoAnnotations are
-	 * expected to be stored in the graph and currently loaded.
-	 * The creator shall add this object to the graph.
+	 * The last changeset is allowed to miss (workingset), an empty one will be created.
+	 * Revision objects must not to be stored in the graph before calling. 
+	 * Changesets, Changes and axioms, importdecls and ontoAnnotations must 
+	 * be stored in the graph and currently loaded.
+	 * The caller shall add the Versionedontology object to the graph.
 	 *  
 	 * @param revisions
 	 * @param changeSets
@@ -88,10 +92,14 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 					HGHandle curCsHandle;
 					if (i < changeSets.size()) {
 						curCsHandle = VersionedOntology.this.graph.getHandle(changeSets.get(i));
-					} else {
+					} else if (i == changeSets.size()){
 						curCsHandle = VersionedOntology.this.graph.add(new ChangeSet());
+					} else {
+						throw new IllegalArgumentException("Too many changesets. This should be unreachable code.");
 					}
-					if (curCsHandle == null) throw new NullPointerException("Changeset must be in graph and loaded:" + changeSets.get(i));
+					if (curCsHandle == null) {
+						throw new NullPointerException("Changeset must be in graph and loaded:" + changeSets.get(i));
+					}
 					Pair<Revision, HGHandle> pair = new Pair<Revision, HGHandle>(revisions.get(i), curCsHandle);
 					HGHandle pairHandle = VersionedOntology.this.graph.add(pair);
 					revisionAndChangeSetPairs.add(pairHandle);
@@ -296,10 +304,23 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 		// ChangeSet
 		ChangeSet emptyCs = new ChangeSet();
 		newRevision.setTimeStamp(emptyCs.getCreatedDate());
-		HGHandle csHandle = graph.add(emptyCs);
-		// HGPersistentHandle csHandleP = csHandle.getPersistent();
-		// Pair
-		Pair<Revision, HGHandle> pair = new Pair<Revision, HGHandle>(newRevision, csHandle);
+		HGHandle changeSetHandle = graph.add(emptyCs);
+		// 
+		addPair(newRevision, changeSetHandle);
+	}
+	
+	/**
+	 * Adds a revision and changeset to the versionedOntology by creating a new Pair.
+	 * Tests, if both are in the graph and throws exception if not.
+	 * 
+	 *  
+	 * @param r
+	 * @param cs
+	 */
+	private void addPair(Revision revision, HGHandle changesetHandle) {
+		//HGHandle changesetHandle = graph.getHandle(changeset);
+		if (changesetHandle == null) throw new IllegalArgumentException("Changeset must be in graph");
+		Pair<Revision, HGHandle> pair = new Pair<Revision, HGHandle>(revision, changesetHandle);
 		HGHandle pairHandle = graph.add(pair);
 		revisionAndChangeSetPairs.add(pairHandle);
 		//this link needs to be graph.updated now.
@@ -309,6 +330,27 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 		// else {
 		//	graph.add(this);
 		//}
+	}
+	
+	/**
+	 * Removes an empty WorkingSet Changeset from the graph and replaces it with the given changeset.
+	 * 
+	 * After this method gets called, the versioned ontology appears to have uncommitted changes.
+	 * this will be graphj.updated.
+	 * 
+	 * @param newChangeSetHandle a handle pointing to a changeset.
+	 */
+	private void replaceEmptyWorkingChangeSet(HGHandle newChangeSetHandle) {
+		if (!getWorkingSetChanges().isEmpty()) throw new IllegalStateException("The Workingchanges set must be empty.");
+		HGHandle headPairHandle = revisionAndChangeSetPairs.get(revisionAndChangeSetPairs.size() - 1);
+		Pair<Revision, HGHandle> headPair = graph.get(headPairHandle);
+		Pair<Revision, HGHandle> newHeadPair = new Pair<Revision, HGHandle>(headPair.getFirst(), newChangeSetHandle);
+		HGHandle newHeadPairHandle = graph.add(newHeadPair);
+		//remove old
+		revisionAndChangeSetPairs.set(revisionAndChangeSetPairs.size() - 1,  newHeadPairHandle);
+		graph.remove(headPair.getSecond(), true);
+		graph.remove(headPairHandle, true);
+		graph.update(this);
 	}
 
 	/** 
@@ -573,6 +615,74 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	 */
 	void addChange(VOWLChange vc){ 
 		getWorkingSetChanges().addChange(vc);
+	}
+	
+	/**
+	 * Adds a delta to the versionedOntology and applies it to headRevisionData. 
+	 * (Delta is typically received by a push or pull operation.)
+	 * 
+	 * Changesets, changes should be added to the graph before.
+	 * Revisions must not have been added to the graph.
+	 * Preconditions:
+	 * 1) this must be stored in the graph
+	 * 2) revisions must not, changesets and dependents must be in the graph.
+	 * 3) the first revision in the list must match the current head revision
+	 * 4) the existing current workingset must be empty.
+	 * 
+	 * Postconditions:
+	 * 1) the versionedontology will have all given revisions, except the matching first
+	 * and all changesets without exceptions added. The first changeset will replace the current
+	 * 2) the workingset will be a new empty changeset.
+	 * 3) all revisions/changesets will be stored in the graph as pairs and the versionedontology will be updated.
+	 * 
+	 * @param revisions a list of revisions, where the first matches the existing head revision.
+	 * @param changeSets a list of changesets, where the last empty workingset is not provided.
+	 */
+	public void addApplyDelta(List<Revision> revisions, List<ChangeSet> changeSets) {
+		if (revisions.size() != changeSets.size() + 1) throw new IllegalArgumentException("There must be one more revision than changesets.");
+		if (!getHeadRevision().equals(revisions.get(0))) throw new IllegalArgumentException("The first revision must match the current head.");
+		if (graph.getHandle(this) == null) throw new IllegalStateException("The versioned ontology must be stored in the graph.");
+		if (!getWorkingSetChanges().isEmpty()) throw new IllegalStateException("The workingset must be empty for changes to be applied.");
+		List<HGHandle> changeSetHandles = new LinkedList<HGHandle>();
+		for (ChangeSet c : changeSets) {
+			HGHandle csHandle = graph.getHandle(c);
+			if (csHandle == null) throw new IllegalArgumentException("Changeset number " + changeSets.indexOf(c)
+					+ " not in graph.");
+			changeSetHandles.add(csHandle);
+		}
+		//TRANSACTION:
+		// 1) Apply changes
+		// 2) Add revision and changeset pair, except first.
+		HGDBOntology headData = getWorkingSetData();
+		for (int i = 0; i < revisions.size(); i++) {
+			// TRANSACTION START
+			Revision curR = revisions.get(i);
+			ChangeSet curCS; 
+			HGHandle curCSHandle;  
+			if (i < changeSets.size()) {
+				curCS = changeSets.get(i);
+				curCSHandle = changeSetHandles.get(i);
+			} else if (i == changeSets.size()){
+				// we need a new empty workingset after head
+				curCS = new ChangeSet();
+				curCS.setCreatedDate(new Date());
+				curCSHandle = graph.add(curCS);
+			} else {
+				throw new IllegalStateException("More revisions than changesets + 1. This should be unreachable code.");
+			}
+			if (!curCS.isEmpty()) {
+				// apply the current changeset to our ontology (head revision data)
+				// todo: we might want to hash the current onto to have content adressible
+				curCS.applyTo(headData);
+			}
+			if (i == 0) {
+				if (!getHeadRevision().equals(curR)) throw new IllegalStateException("headrevision does not match first revision (anymore)");
+				replaceEmptyWorkingChangeSet(curCSHandle);
+			} else {
+				addPair(curR, curCSHandle);
+			}
+			// TRANSACTION END
+		}
 	}
 	
 	/**
