@@ -15,7 +15,7 @@ import org.hypergraphdb.app.owl.versioning.change.VAddAxiomChange;
 import org.hypergraphdb.app.owl.versioning.change.VAxiomChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.app.owl.versioning.change.VRemoveAxiomChange;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary;
 import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.UnloadableImportException;
@@ -47,7 +47,7 @@ public class VAxiomChangeElementHandler extends VOWLChangeElementHandler {
 		// add axiom to graph
 		// This will add the axiom and all annotations.
 		addAxiomToGraph();
-		System.out.println("PARSED Axiom change: "  + axiom);
+		//System.out.println("PARSED Axiom change: "  + axiom);
 	}
 
 	/* (non-Javadoc)
@@ -63,11 +63,11 @@ public class VAxiomChangeElementHandler extends VOWLChangeElementHandler {
 		if (axiomHandle == null) {
 			throw new IllegalStateException("Error: axiom must be added to graph." + axiom);
 		}
-		if (name.equals(VOWLVocabulary.V_ADD_AXIOM_CHANGE.getShortName())) {
+		if (name.equals(VOWLXMLVocabulary.V_ADD_AXIOM_CHANGE.getShortName())) {
 			//HGHandle axiomHandle = getHyperGraph().add(axiom);
 			axiomChange = new VAddAxiomChange(axiomHandle);
 			getParentHandler().handleChild(this);
-		} else if (name.equals(VOWLVocabulary.V_REMOVE_AXIOM_CHANGE.getShortName())) {
+		} else if (name.equals(VOWLXMLVocabulary.V_REMOVE_AXIOM_CHANGE.getShortName())) {
 			//HGHandle axiomHandle = getHyperGraph().add(axiom);
 			axiomChange = new VRemoveAxiomChange(axiomHandle);
 			getParentHandler().handleChild(this);
