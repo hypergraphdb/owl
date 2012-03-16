@@ -69,6 +69,28 @@ public class RevisionID implements Comparable<RevisionID> {
 			}
 		}
 	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return ontologyUUID.hashCode() + 13 * revision; 
+	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object anObject) {
+		if (this == anObject) {
+		    return true;
+		}
+		if (anObject instanceof RevisionID) {
+			RevisionID other = (RevisionID) anObject;
+			return compareTo(other) == 0;
+		} else {
+			return false;
+		}
+	}	
 }
- 
