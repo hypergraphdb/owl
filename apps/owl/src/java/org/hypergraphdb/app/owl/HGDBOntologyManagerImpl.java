@@ -21,6 +21,7 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 		//Make sure there is an application, a graph, et.c.
 		if (HGDBApplication.DISTRIBUTED) {
 			ontologyRepository = VDHGDBOntologyRepository.getInstance();
+			((VDHGDBOntologyRepository)ontologyRepository).setOntologyManager(this);
 			this.addOntologyChangeListener(((VDHGDBOntologyRepository)ontologyRepository));
 		} else if (HGDBApplication.VERSIONING) {
 			ontologyRepository = VHGDBOntologyRepository.getInstance();
