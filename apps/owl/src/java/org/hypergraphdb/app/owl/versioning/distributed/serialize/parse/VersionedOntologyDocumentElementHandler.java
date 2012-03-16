@@ -7,7 +7,7 @@ import org.coode.owlapi.owlxmlparser.OWLXMLParserHandler;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLRenderConfiguration;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLRenderConfiguration;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
 import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -20,7 +20,7 @@ import org.semanticweb.owlapi.model.UnloadableImportException;
  */
 public class VersionedOntologyDocumentElementHandler extends AbstractVOWLElementHandler<VOWLXMLDocument> {
 
-	private VOWLRenderConfiguration renderConfig;
+	private VOWLXMLRenderConfiguration renderConfig;
 	//private VersionedOntology versionedOntology;
 	private List<Revision> revisions;
 	private List<ChangeSet> changesets;	
@@ -36,8 +36,7 @@ public class VersionedOntologyDocumentElementHandler extends AbstractVOWLElement
 	 */
 	public VersionedOntologyDocumentElementHandler(OWLXMLParserHandler handler) {
 		super(handler);
-		reset();
-	
+		reset();	
 	}
 	
 	public void reset() {
