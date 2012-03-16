@@ -5,11 +5,11 @@ import java.net.URI;
 import org.semanticweb.owlapi.model.IRI;
 
 /**
- * VOWLVocabulary.
+ * VOWLXMLVocabulary.
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Feb 24, 2012
  */
-public enum VOWLVocabulary  {
+public enum VOWLXMLVocabulary  {
 
     VERSIONED_ONTOLOGY_ROOT("VOWLXMLDocument"),
     RENDER_CONFIGURATION("RenderConfiguration"),
@@ -27,7 +27,7 @@ public enum VOWLVocabulary  {
     V_REMOVE_ONTOLOGY_ANNOTATION_CHANGE("VRemoveOntologyAnnotationChange")
     ;
     
-	public final static String NAMESPACE = "http://www.miamidade.gov/ciao/VOWLVocabulary#";
+	public final static String NAMESPACE = "http://www.miamidade.gov/ciao/VOWLXMLVocabulary#";
 	public final static String NAMESPACE_PREFIX = "vo:";
 
     private IRI iri;
@@ -37,7 +37,7 @@ public enum VOWLVocabulary  {
     /**
 	 * 
 	 */
-	private VOWLVocabulary(String name) {
+	private VOWLXMLVocabulary(String name) {
         this.iri = IRI.create(NAMESPACE + name);
         shortName = name;
     }

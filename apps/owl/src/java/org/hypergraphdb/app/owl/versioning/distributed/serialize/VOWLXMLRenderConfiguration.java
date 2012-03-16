@@ -4,11 +4,11 @@ import org.hypergraphdb.app.owl.versioning.VersioningObject;
 import org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor;
 
 /**
- * VOWLRenderConfiguration.
+ * VOWLXMLRenderConfiguration.
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Feb 24, 2012
  */
-public class VOWLRenderConfiguration implements VersioningObject {
+public class VOWLXMLRenderConfiguration implements VersioningObject {
 
 	private int firstRevisionIndex;
 	private int lastRevisionIndex;
@@ -16,26 +16,26 @@ public class VOWLRenderConfiguration implements VersioningObject {
 	private boolean uncommittedChanges;
 
 	/**
-	 * Default is render all revisions, head data and uncommitted.
+	 * Default is render all revisions, head data but no uncommitted changes.
 	 */
-	public VOWLRenderConfiguration() {
+	public VOWLXMLRenderConfiguration() {
 		setFirstRevisionIndex(0);
 		setLastRevisionIndex(Integer.MAX_VALUE);
 		setLastRevisionData(true);
-		setUncommittedChanges(true);
+		setUncommittedChanges(false);
 	}
 	
 	/**
 	 * Revisions and Changesets only, starting with first, no uncommitted, no data.
 	 * @param first
 	 */
-	public VOWLRenderConfiguration(int first) {
+	public VOWLXMLRenderConfiguration(int first) {
 		setFirstRevisionIndex(first);
 		setLastRevisionIndex(Integer.MAX_VALUE);
 		setLastRevisionData(false);
 		setUncommittedChanges(false);
 	}
-		
+
 	/**
 	 * @return the firstRevisionIndex
 	 */
