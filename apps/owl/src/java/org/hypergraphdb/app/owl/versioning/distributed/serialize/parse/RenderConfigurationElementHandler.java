@@ -2,7 +2,7 @@ package org.hypergraphdb.app.owl.versioning.distributed.serialize.parse;
 
 import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserHandler;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLRenderConfiguration;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLRenderConfiguration;
 import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.UnloadableImportException;
 
@@ -11,7 +11,7 @@ import org.semanticweb.owlapi.model.UnloadableImportException;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Feb 29, 2012
  */
-public class RenderConfigurationElementHandler extends AbstractVOWLElementHandler<VOWLRenderConfiguration> {
+public class RenderConfigurationElementHandler extends AbstractVOWLElementHandler<VOWLXMLRenderConfiguration> {
 	 
 	private int firstRevisionIndex;
 	private int lastRevisionIndex;
@@ -19,7 +19,7 @@ public class RenderConfigurationElementHandler extends AbstractVOWLElementHandle
 	private boolean unCommittedChanges;
 	private boolean lastRevisionDataParsed;
 	private boolean unCommittedChangesParsed;
-	private VOWLRenderConfiguration configuration; 
+	private VOWLXMLRenderConfiguration configuration; 
 	
 	/**
 	 * @param handler
@@ -73,7 +73,7 @@ public class RenderConfigurationElementHandler extends AbstractVOWLElementHandle
 		if (lastRevisionIndex < 0) throw new OWLParserException("lastRevisionIndex index not parsed.", getLineNumber(), getColumnNumber());
 		if (!lastRevisionDataParsed) throw new OWLParserException("lastRevisionDataParsed index not parsed.", getLineNumber(), getColumnNumber());
 		if (!unCommittedChangesParsed) throw new OWLParserException("unCommittedChangesParsed index not parsed.", getLineNumber(), getColumnNumber());
-		configuration = new VOWLRenderConfiguration();
+		configuration = new VOWLXMLRenderConfiguration();
 		configuration.setFirstRevisionIndex(firstRevisionIndex);
 		configuration.setLastRevisionIndex(lastRevisionIndex);
 		configuration.setLastRevisionData(lastRevisionData);
@@ -85,7 +85,7 @@ public class RenderConfigurationElementHandler extends AbstractVOWLElementHandle
 	 * @see org.coode.owlapi.owlxmlparser.OWLElementHandler#getOWLObject()
 	 */
 	@Override
-	public VOWLRenderConfiguration getOWLObject() throws OWLXMLParserException {
+	public VOWLXMLRenderConfiguration getOWLObject() throws OWLXMLParserException {
 		if (configuration == null) throw new OWLXMLParserException("Could not read configuration", getLineNumber(), getColumnNumber());
 		return configuration;
 	}
