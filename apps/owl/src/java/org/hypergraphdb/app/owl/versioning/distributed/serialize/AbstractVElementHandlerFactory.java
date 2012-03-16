@@ -11,7 +11,7 @@ public abstract class AbstractVElementHandlerFactory implements OWLElementHandle
 
     private String elementName;
 
-    public AbstractVElementHandlerFactory(VOWLVocabulary v) {
+    public AbstractVElementHandlerFactory(VOWLXMLVocabulary v) {
         this.elementName = v.getShortName();
     }
 
