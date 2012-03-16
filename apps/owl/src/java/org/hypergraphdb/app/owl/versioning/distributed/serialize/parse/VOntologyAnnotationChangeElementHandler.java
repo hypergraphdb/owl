@@ -9,7 +9,7 @@ import org.hypergraphdb.app.owl.versioning.change.VAddOntologyAnnotationChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.app.owl.versioning.change.VOntologyAnnotationChange;
 import org.hypergraphdb.app.owl.versioning.change.VRemoveOntologyAnnotationChange;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary;
 import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.UnloadableImportException;
 
@@ -47,10 +47,10 @@ public class VOntologyAnnotationChangeElementHandler extends VOWLChangeElementHa
 		String name = getElementName();
 		HGHandle annotationHandle = getHyperGraph().getHandle(annotation);
 		if (annotationHandle == null) throw new OWLParserException("Annotation handle was null");
-		if (name.equals(VOWLVocabulary.V_ADD_ONTOLOGY_ANNOTATION_CHANGE.getShortName())) {
+		if (name.equals(VOWLXMLVocabulary.V_ADD_ONTOLOGY_ANNOTATION_CHANGE.getShortName())) {
 			ontologyAnnotationChange = new VAddOntologyAnnotationChange(annotationHandle);
 			getParentHandler().handleChild(this);
-		} else if (name.equals(VOWLVocabulary.V_REMOVE_ONTOLOGY_ANNOTATION_CHANGE.getShortName())) {
+		} else if (name.equals(VOWLXMLVocabulary.V_REMOVE_ONTOLOGY_ANNOTATION_CHANGE.getShortName())) {
 			ontologyAnnotationChange = new VRemoveOntologyAnnotationChange(annotationHandle);
 			getParentHandler().handleChild(this);
 		} else {
