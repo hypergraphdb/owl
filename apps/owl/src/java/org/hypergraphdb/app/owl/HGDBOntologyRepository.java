@@ -361,7 +361,7 @@ public class HGDBOntologyRepository {
 
 	public void printAllOntologies() {
 		List<HGDBOntology> l = getOntologies();
-		System.out.println("************* ONTOLOGIES IN HYPERGRAPH REPOSITORY *************");		
+		System.out.println("************* ONTOLOGIES IN HYPERGRAPH REPOSITORY " + getHypergraphDBLocation() + "*************");		
 		for (HGDBOntology hgdbMutableOntology : l) {
 			printOntology(hgdbMutableOntology);
 		}			
