@@ -75,7 +75,7 @@ public class VersionedOntologyElementHandler extends AbstractVOWLElementHandler<
 	public void handleChild(RevisionElementHandler h) throws OWLXMLParserException {
 		Revision r= h.getOWLObject();
 		//Add Revision to Graph or not??
-		getHyperGraph().add(r);
+		// > NO, will be added as bean of the Pair object in VersionedOntology getHyperGraph().add(r);
 		revisions.add(r);
 	}
 
@@ -84,8 +84,9 @@ public class VersionedOntologyElementHandler extends AbstractVOWLElementHandler<
 	 */
 	@Override
 	public void handleChild(ChangeSetElementHandler h) throws OWLXMLParserException {
-		//Add Changeset link to Graph or not?? 
 		ChangeSet c = h.getOWLObject();
+		//Add Changeset link to Graph or not?? 
+		// > Yes so we can remove changes more easily later if things go wrong. 
 		getHyperGraph().add(c);
 		changeSets.add(c);		
 	}
