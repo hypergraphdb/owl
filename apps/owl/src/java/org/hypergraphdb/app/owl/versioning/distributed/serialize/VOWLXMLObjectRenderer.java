@@ -1,18 +1,18 @@
 package org.hypergraphdb.app.owl.versioning.distributed.serialize;
 
 import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.IMPORT;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.VERSIONED_ONTOLOGY;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.REVISION;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.CHANGE_SET;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.V_ADD_AXIOM_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.V_ADD_IMPORT_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.V_ADD_ONTOLOGY_ANNOTATION_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.V_MODIFY_ONTOLOGY_ID_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.V_MODIFY_ONTOLOGY_ID_NEW_ID;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.V_MODIFY_ONTOLOGY_ID_OLD_ID;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.V_REMOVE_AXIOM_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.V_REMOVE_IMPORT_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLVocabulary.V_REMOVE_ONTOLOGY_ANNOTATION_CHANGE;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.VERSIONED_ONTOLOGY;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.REVISION;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.CHANGE_SET;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_AXIOM_CHANGE;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_IMPORT_CHANGE;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_ONTOLOGY_ANNOTATION_CHANGE;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_MODIFY_ONTOLOGY_ID_CHANGE;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_MODIFY_ONTOLOGY_ID_NEW_ID;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_MODIFY_ONTOLOGY_ID_OLD_ID;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_REMOVE_AXIOM_CHANGE;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_REMOVE_IMPORT_CHANGE;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_REMOVE_ONTOLOGY_ANNOTATION_CHANGE;
 
 import java.util.List;
 
@@ -39,9 +39,9 @@ import org.semanticweb.owlapi.vocab.Namespaces;
 public class VOWLXMLObjectRenderer implements VOWLObjectVisitor {
 	    private VOWLXMLWriter writer;
 	    private OWLXMLObjectRenderer owlObjectRenderer;
-	    private VOWLRenderConfiguration configuration;
+	    private VOWLXMLRenderConfiguration configuration;
 	    
-	    public VOWLXMLObjectRenderer(VOWLXMLWriter writer, VOWLRenderConfiguration configuration) {
+	    public VOWLXMLObjectRenderer(VOWLXMLWriter writer, VOWLXMLRenderConfiguration configuration) {
 	        this.writer = writer;
 	        this.configuration = configuration;
 	        owlObjectRenderer = new OWLXMLObjectRenderer(writer);
@@ -54,8 +54,8 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor {
 		public void visit(VersionedOntology vo) {
 			List<Revision> revisions = vo.getRevisions();
             writer.writeStartElement(VERSIONED_ONTOLOGY);
-            writer.writeAttribute(VOWLVocabulary.NAMESPACE + "ontologyID", vo.getHeadRevision().getOntologyUUID().toString());
-            writer.writeAttribute(VOWLVocabulary.NAMESPACE + "headRevisionIndex", Integer.toString((revisions.size() - 1)));
+            writer.writeAttribute(VOWLXMLVocabulary.NAMESPACE + "ontologyID", vo.getHeadRevision().getOntologyUUID().toString());
+            writer.writeAttribute(VOWLXMLVocabulary.NAMESPACE + "headRevisionIndex", Integer.toString((revisions.size() - 1)));
             //writer.writeTextContent(decl.getURI().toString());
 			List<ChangeSet> changeSets = vo.getChangeSets();
 
@@ -94,6 +94,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor {
 			writer.writeAttribute("revision", Integer.toString(revision.getRevision()));
 			writer.writeAttribute("user", revision.getUser());
 			writer.writeAttribute("timeStamp", DATE_FORMAT.format(revision.getTimeStamp()));
+			writer.writeAttribute("timeStampLong", "" + revision.getTimeStamp().getTime());
 			writer.writeAttribute("revisionComment", revision.getRevisionComment());
 			writer.writeEndElement();
 		}
@@ -105,6 +106,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor {
 		public void visit(ChangeSet changeSet) {
 			writer.writeStartElement(CHANGE_SET);
 			writer.writeAttribute("createdDate", DATE_FORMAT.format(changeSet.getCreatedDate()));
+			writer.writeAttribute("createdDateLong", "" + changeSet.getCreatedDate().getTime());
 			List <VOWLChange> changes = changeSet.getChanges();
 			for (VOWLChange c : changes) {
 				c.accept(this);
@@ -195,15 +197,15 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor {
 		}
 
 		/* (non-Javadoc)
-		 * @see org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor#visit(org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLRenderConfiguration)
+		 * @see org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor#visit(org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLRenderConfiguration)
 		 */
 		@Override
-		public void visit(VOWLRenderConfiguration configuration) {
-			writer.writeStartElement(VOWLVocabulary.RENDER_CONFIGURATION);
-			writer.writeAttribute(VOWLVocabulary.NAMESPACE + "firstRevisionIndex", "" + configuration.getFirstRevisionIndex());
-			writer.writeAttribute(VOWLVocabulary.NAMESPACE + "lastRevisionIndex", "" + configuration.getLastRevisionIndex());
-			writer.writeAttribute(VOWLVocabulary.NAMESPACE + "lastRevisionData", "" + configuration.isLastRevisionData());
-			writer.writeAttribute(VOWLVocabulary.NAMESPACE + "unCommittedChanges", "" + configuration.isUncommittedChanges());
+		public void visit(VOWLXMLRenderConfiguration configuration) {
+			writer.writeStartElement(VOWLXMLVocabulary.RENDER_CONFIGURATION);
+			writer.writeAttribute(VOWLXMLVocabulary.NAMESPACE + "firstRevisionIndex", "" + configuration.getFirstRevisionIndex());
+			writer.writeAttribute(VOWLXMLVocabulary.NAMESPACE + "lastRevisionIndex", "" + configuration.getLastRevisionIndex());
+			writer.writeAttribute(VOWLXMLVocabulary.NAMESPACE + "lastRevisionData", "" + configuration.isLastRevisionData());
+			writer.writeAttribute(VOWLXMLVocabulary.NAMESPACE + "unCommittedChanges", "" + configuration.isUncommittedChanges());
 			writer.writeEndElement();
 		}	   
 }
