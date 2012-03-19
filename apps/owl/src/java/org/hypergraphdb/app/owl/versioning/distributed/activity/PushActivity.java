@@ -10,6 +10,7 @@ import static org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepo
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -24,6 +25,9 @@ import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
+import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
+import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
+import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyUUIDException;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
@@ -42,6 +46,7 @@ import org.hypergraphdb.peer.workflow.OnMessage;
 import org.hypergraphdb.peer.workflow.PossibleOutcome;
 import org.hypergraphdb.peer.workflow.WorkflowStateConstant;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
+import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
@@ -51,8 +56,10 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyChangeException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
+import org.semanticweb.owlapi.model.UnloadableImportException;
 
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
 
@@ -117,8 +124,7 @@ public class PushActivity extends FSMActivity {
         	throw new IllegalArgumentException("Peer's object context must contain OBJECTCONTEXT_REPOSITORY.");
         }
         repository = (VDHGDBOntologyRepository) sourcePeer.getObjectContext().get(OBJECTCONTEXT_REPOSITORY);
-	}
-	
+	}	
 	
 	/**
 	 * @param completedMessage the completedMessage to set
@@ -180,9 +186,6 @@ public class PushActivity extends FSMActivity {
 		        } else {
 		        	//Target has uncommitted - cannot push
 		        	throw new VOWLSourceTargetConflictException("Target has uncommitted changes. Cannot push.");
-//			        Message reply = getReply(msg, Performative.Cancel);
-//			        send(getSender(msg), reply);
-//			        return WorkflowStateConstant.Canceled;
 		        }
 			}
 		}
@@ -233,77 +236,71 @@ public class PushActivity extends FSMActivity {
     public WorkflowStateConstant targetExistsDisconfirmedNowReceiveOntology(Message msg) throws Throwable {
 //		boolean failed = false;
 //		Object failedActivityObject = null;
-		String owlxmlStringOntology = getPart(msg, CONTENT);
-		OWLOntologyDocumentSource ds = new StringDocumentSource(owlxmlStringOntology);
+		String vowlxmlStringOntology = getPart(msg, CONTENT);
+		//
+		VersionedOntology voParsed = storeVersionedOntology(new StringDocumentSource(vowlxmlStringOntology), repository.getOntologyManager());
+		//TODO HANDLE EXCEPTION, GC created objects			
+		// Neither Ontology, nor VersionedOntology was stored, 
+		// but ontology axioms & entities, revisions and changeset, changes, axioms were.
+		// Run a GC, which also collects dangling changesets, changes and revisions?
+		if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
+			repository.printAllOntologies();
+			repository.renderFullVersionedontologyToVOWLXML(voParsed, new File("C:\\temp\\received"));
+		}
+		//RESPOND
+        Message reply = getReply(msg, Performative.AcceptProposal);
+        send(getSender(msg), reply);
+        setCompletedMessage("Full versioned ontology received. Size: " + (vowlxmlStringOntology.length()/1024) + " kilo characters");
+		return WorkflowStateConstant.Completed;
+	}
+
+	/**
+	 * Parses a complete versioned ontology (revisions, change sets, head revision data) from a VOWLXML string and stores it as new ontology with versioning in the repository.
+	 * 
+	 * @param vowlXMLString
+	 * @param manager
+	 * @throws OWLOntologyChangeException
+	 * @throws UnloadableImportException
+	 * @throws OWLParserException
+	 * @throws IOException
+	 * @throws HGDBOntologyAlreadyExistsByDocumentIRIException
+	 * @throws HGDBOntologyAlreadyExistsByOntologyIDException
+	 * @throws HGDBOntologyAlreadyExistsByOntologyUUIDException
+	 */
+	private VersionedOntology storeVersionedOntology(OWLOntologyDocumentSource vowlDocumentSource, HGDBOntologyManager manager) throws OWLOntologyChangeException, 
+																													UnloadableImportException, 
+																													OWLParserException, 
+																													IOException, 
+																													HGDBOntologyAlreadyExistsByDocumentIRIException, 
+																													HGDBOntologyAlreadyExistsByOntologyIDException, 
+																													HGDBOntologyAlreadyExistsByOntologyUUIDException {
+		//OWLOntologyDocumentSource ds = new StringDocumentSource(vowlXMLString);
 		VOWLXMLParser vowlxmlParser = new VOWLXMLParser();
-		HGDBOntologyManager manager = repository.getOntologyManager();
 		//Create an partial in mem onto with a hgdb manager and hgdb data factory to use.
 		OWLOntology partialInMemOnto = new OWLOntologyImpl(manager, new OWLOntologyID());
 		VOWLXMLDocument vowlxmlDoc = new VOWLXMLDocument(partialInMemOnto);
 		//The newly created ontology will hold the manager and the parser will use the manager's
 		//data factory.
-		System.out.println("RECEIVING initial ontology");
-		vowlxmlParser.parse(ds, vowlxmlDoc, new OWLOntologyLoaderConfiguration());
-		if (vowlxmlDoc.isCompleteVersionedOntology()) {
-			OWLOntologyID ontologyID = vowlxmlDoc.getRevisionData().getOntologyID();
-			IRI documentIRI = IRI.create("hgdb://" + ontologyID.getDefaultDocumentIRI().toString().substring(7));
-			HGPersistentHandle ontologyUUID = vowlxmlDoc.getVersionedOntologyID();
-//			try {
-				System.out.println("Storing ontology data for : " + ontologyUUID);
-				HGDBOntology o = manager.getOntologyRepository().createOWLOntology(ontologyID, documentIRI, ontologyUUID);
-				o.setOWLOntologyManager(manager);
-				storeFromTo(vowlxmlDoc.getRevisionData(), o);
-//			} catch (HGDBOntologyAlreadyExistsByDocumentIRIException e) {
-//	        	throw new IllegalStateException("Target ontology cannot be created.", e);
-//				failed = true;
-//				failedActivityObject = e;
-//				e.printStackTrace();
-//			} catch (HGDBOntologyAlreadyExistsByOntologyIDException e) {
-//	        	throw new IllegalStateException("Target ontology cannot be created.", e);
-//				failed = true;
-//				failedActivityObject = e;
-//				e.printStackTrace();
-//			} catch (HGDBOntologyAlreadyExistsByOntologyUUIDException e) {
-//	        	throw new IllegalStateException("Target ontology cannot be created.", e);
-//				failed = true;
-//				failedActivityObject = e;
-//				e.printStackTrace();
-//			}
-//			if (!failed) {
-				HyperGraph graph = repository.getHyperGraph();
-				//Add version control with full matching history.
-				System.out.println("Creating and adding version control information for : " + ontologyUUID);
-				VersionedOntology voParsed = new VersionedOntology(vowlxmlDoc.getRevisions(), vowlxmlDoc.getChangesets(), graph);
-				// VALIDATE EVERYTHING HERE
-				graph.add(voParsed);
-				if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
-					repository.printAllOntologies();
-					repository.renderFullVersionedontologyToVOWLXML(voParsed, new File("C:\\temp\\received"));
-				}
-//			} else {
-//				//Neither Ontology, nor VersionedOntology was stored, 
-//				// but ontology axioms & entities, revisions and changeset, changes, axioms were.
-//				//TODO Run a GC, which also collects dangling changesets, changes and revisions?
-//				//Delete what was created?
-//			}
-		} else {
-			throw new IllegalStateException("The transmitted ontology was not complete.");
+		vowlxmlParser.parse(vowlDocumentSource, vowlxmlDoc, new OWLOntologyLoaderConfiguration());
+		if (!vowlxmlDoc.isCompleteVersionedOntology()) {
+			throw new OWLParserException("The transmitted ontology was not complete.");
 		}
-		//RESPOND
-//		if (!failed) {
-	        Message reply = getReply(msg, Performative.AcceptProposal);
-	        send(getSender(msg), reply);
-	        setCompletedMessage("Full versioned ontology received. Size: " + (owlxmlStringOntology.length()/1024) + " kilo characters");
-			return WorkflowStateConstant.Completed;
-//		} else {
-//	        Message reply = getReply(msg, Performative.RejectProposal);
-//	        combine(msg, struct(CONTENT, failedActivityObject)); 
-//	        errorObject = failedActivityObject;
-//	        send(getSender(msg), reply);
-//			return WorkflowStateConstant.Failed;
-//		}
+		OWLOntologyID ontologyID = vowlxmlDoc.getRevisionData().getOntologyID();
+		IRI documentIRI = IRI.create("hgdb://" + ontologyID.getDefaultDocumentIRI().toString().substring(7));
+		HGPersistentHandle ontologyUUID = vowlxmlDoc.getVersionedOntologyID();
+		System.out.println("Storing ontology data for : " + ontologyUUID + " using docIRI: " + documentIRI);
+		HGDBOntology o = manager.getOntologyRepository().createOWLOntology(ontologyID, documentIRI, ontologyUUID);
+		o.setOWLOntologyManager(manager);
+		storeFromTo(vowlxmlDoc.getRevisionData(), o);
+		HyperGraph graph = repository.getHyperGraph();
+		//Add version control with full matching history.
+		System.out.println("Creating and adding version control information for : " + ontologyUUID);
+		VersionedOntology voParsed = new VersionedOntology(vowlxmlDoc.getRevisions(), vowlxmlDoc.getChangesets(), graph);
+		//TODO VALIDATE EVERYTHING HERE, even though we have a lot of validation by getting here.
+		graph.add(voParsed);
+		return voParsed;
 	}
-
+	
 	/**
 	 * Exits activity.
 	 * @param msg
@@ -319,21 +316,6 @@ public class PushActivity extends FSMActivity {
 		return WorkflowStateConstant.Completed;
 	}
 
-//	/**
-//	 * Exits activity.
-//	 * Call getErrorObject to retrieve a reason for the failure.
-//	 * @param msg
-//	 * @return
-//	 * @throws Throwable
-//	 */
-//	@FromState("SendingInitial") //SOURCE
-//    @OnMessage(performative="RejectProposal")
-//    @PossibleOutcome({"Failed"}) 
-//    //@AtActivity(CONTENT);
-//    public WorkflowStateConstant sourceFullVersionedOntologyReceiveFailed(Message msg) throws Throwable {
-//		errorObject = getPart(CONTENT);
-//		return WorkflowStateConstant.Failed;
-//	}
 	
 	//------------------------------------------------------------------------------------
 	// TARGET HAS ONTOLOGY -> VALIDATING AND PUSHING MISSING CHANGES
@@ -450,15 +432,81 @@ public class PushActivity extends FSMActivity {
     @OnMessage(performative="Propose")
     //@PossibleOutcome({"Completed", "Failed"}) 
     //@AtActivity(CONTENT);
-    public WorkflowStateConstant targetReceivingDelta(Message msg) throws Throwable {
+    public WorkflowStateConstant targetExistsConfirmedNowReceiveDelta(Message msg) throws Throwable {
 		//
 		// Test if received last revision matches target head and all other prerequisites are still met.
 		//
 		Revision lastMatchingRevision = getPart(msg, KEY_LAST_MATCHING_REVISION);
 		// Validate if lastMatchingRevision still is target HEAD, keep UUID
+		//Throws exceptions if not.
+		VersionedOntology targetVersionedOntology = getVersionedOntologyForDeltaFrom(lastMatchingRevision);
+		System.out.println("RECEIVING delta");
+		String vowlxmlStringDelta = getPart(msg, CONTENT);
+		OWLOntologyDocumentSource ds = new StringDocumentSource(vowlxmlStringDelta);
+		// Parse, apply and append the delta
+		appendDeltaTo(ds, targetVersionedOntology);
+		//assert targetVersionedOntology contains delta
+		if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
+			repository.printAllOntologies();
+			repository.renderFullVersionedontologyToVOWLXML(targetVersionedOntology, new File("C:\\temp"));
+		}
+		Message reply = getReply(msg, Performative.AcceptProposal);
+		send(getSender(msg), reply);
+		setCompletedMessage("Delta received and applied. Size: " + (vowlxmlStringDelta.length()/1024) + " kilo characters");
+		return WorkflowStateConstant.Completed;
+	}
+	
+	/**
+	 * Appends the given Changeset and Revision delta information to the targetVersionedOntology.
+	 * The vowlxmlDeltaSource has to contain at least one Revision and zero Changesets.
+	 * The first revision has to match the head of targetVersionedOntology.
+	 * 
+	 * @param vowlxmlDeltaSource
+	 * @param targetVersionedOntology
+	 * @throws OWLOntologyChangeException
+	 * @throws UnloadableImportException
+	 * @throws OWLParserException
+	 * @throws IOException
+	 */
+	void appendDeltaTo(OWLOntologyDocumentSource vowlxmlDeltaSource, VersionedOntology targetVersionedOntology) throws OWLOntologyChangeException, UnloadableImportException, OWLParserException, IOException {
+		VOWLXMLParser vowlxmlParser = new VOWLXMLParser();
+		HGDBOntologyManager manager = repository.getOntologyManager();
+		//Create an dummy in mem onto with a hgdb manager and hgdb data factory to use.
+		OWLOntology dummyOnto = new OWLOntologyImpl(manager, new OWLOntologyID());
+		VOWLXMLDocument vowlxmlDoc = new VOWLXMLDocument(dummyOnto);
+		//The newly created ontology will hold the manager and the parser will use the manager's
+		//data factory.
+		vowlxmlParser.parse(vowlxmlDeltaSource, vowlxmlDoc, new OWLOntologyLoaderConfiguration());
+		VOWLXMLRenderConfiguration renderConf = vowlxmlDoc.getRenderConfig();
+		if (renderConf.isLastRevisionData() || renderConf.isUncommittedChanges()) {
+			throw new IllegalStateException("Transmitted data contains unexpected content: revision data or uncommitted.");
+		}
+		List<Revision> deltaRevisions = vowlxmlDoc.getRevisions();
+		List<ChangeSet> deltaChangeSets = vowlxmlDoc.getChangesets();
+		if (deltaRevisions.size() != deltaChangeSets.size() + 1) {
+			throw new IllegalStateException("Expecting exactly one more Revision than changesets." 
+					+ "The workingset changeset after head must not be included in the transmission");
+		}
+		// Apply and store changesets.
+//		if (!deltaRevisions.get(0).equals(lastMatchingRevision)) {
+//			throw new IllegalStateException("Internal error. The transmissions lastMatchingRevision data did not match the first owlxml revision.");
+//		}
+		// This might cause 
+		targetVersionedOntology.addApplyDelta(deltaRevisions, deltaChangeSets);
+	}
+	
+	/**
+	 * Returns the VersionedOntology specified by the revision object and checks, if it is ready to have delta applied to it.
+	 * In particular it checks, if a vo with the revision UUID is available, if the given revision matches the head and that all changes are committed.
+	 * 
+	 * @param lastMatchingRevision
+	 * @return a valid versionedontology and never null (will throw exception instead)
+	 * @throws IllegalStateException in all problem cases.
+	 */
+	VersionedOntology getVersionedOntologyForDeltaFrom(Revision lastMatchingRevision) throws IllegalStateException {
 		HGPersistentHandle ontoUUID = lastMatchingRevision.getOntologyUUID();
 		HGDBOntology onto = (HGDBOntology)repository.getHyperGraph().get(ontoUUID);
-		boolean applyDelta = false;
+		//boolean applyDelta = false;
 		VersionedOntology targetVersionedOntology;
 		if (onto != null) {
 			targetVersionedOntology = repository.getVersionControlledOntology(onto);
@@ -467,7 +515,8 @@ public class PushActivity extends FSMActivity {
 					//	we're good.
 					if (targetVersionedOntology.getWorkingSetChanges().isEmpty()) {
 						//do it.
-						applyDelta = true;
+						//applyDelta = true;
+						return targetVersionedOntology;
 					} else {
 						throw new IllegalStateException("Delta not applicable, because uncommitted changes exist in target.");
 					}
@@ -483,45 +532,7 @@ public class PushActivity extends FSMActivity {
 			// 
 			throw new IllegalStateException("Delta refers to an ontology that does currently not exist.");
 		}
-		if (applyDelta) {
-			String owlxmlStringDelta = getPart(msg, CONTENT);
-			OWLOntologyDocumentSource ds = new StringDocumentSource(owlxmlStringDelta);
-			VOWLXMLParser vowlxmlParser = new VOWLXMLParser();
-			HGDBOntologyManager manager = repository.getOntologyManager();
-			//Create an dummy in mem onto with a hgdb manager and hgdb data factory to use.
-			OWLOntology dummyOnto = new OWLOntologyImpl(manager, new OWLOntologyID());
-			VOWLXMLDocument vowlxmlDoc = new VOWLXMLDocument(dummyOnto);
-			//The newly created ontology will hold the manager and the parser will use the manager's
-			//data factory.
-			System.out.println("RECEIVING delta");
-			vowlxmlParser.parse(ds, vowlxmlDoc, new OWLOntologyLoaderConfiguration());
-			VOWLXMLRenderConfiguration renderConf = vowlxmlDoc.getRenderConfig();
-			if (renderConf.isLastRevisionData() || renderConf.isUncommittedChanges()) {
-				throw new IllegalStateException("Transmitted data contains unexpected content: revision data or uncommitted.");
-			}
-			List<Revision> deltaRevisions = vowlxmlDoc.getRevisions();
-			List<ChangeSet> deltaChangeSets = vowlxmlDoc.getChangesets();
-			if (deltaRevisions.size() != deltaChangeSets.size() + 1) {
-				throw new IllegalStateException("Expecting exactly one more Revision than changesets." 
-						+ "The workingset changeset after head must not be included in the transmission");
-			}
-			// Apply and store changesets.
-			if (!deltaRevisions.get(0).equals(lastMatchingRevision)) {
-				throw new IllegalStateException("Internal error. The transmissions lastMatchingRevision data did not match the first owlxml revision.");
-			}
-			// This might cause 
-			targetVersionedOntology.addApplyDelta(deltaRevisions, deltaChangeSets);
-			if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
-				repository.printAllOntologies();
-				repository.renderFullVersionedontologyToVOWLXML(targetVersionedOntology, new File("C:\\temp"));
-			}
-			Message reply = getReply(msg, Performative.AcceptProposal);
-			send(getSender(msg), reply);
-			setCompletedMessage("Delta received and applied. Size: " + (owlxmlStringDelta.length()/1024) + " kilo characters");
-			return WorkflowStateConstant.Completed;
-		} else {
-			throw new IllegalStateException("This should be unreachable code!");
-		}
+		//return applyDelta;
 	}
 
 	@FromState("SendingDelta") //Source
