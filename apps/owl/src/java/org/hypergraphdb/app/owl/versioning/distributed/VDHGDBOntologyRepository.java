@@ -18,11 +18,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.distributed.activity.PullActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.PushActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLRenderConfiguration;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVersionedOntologyRenderer;
@@ -201,15 +203,17 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 		return null;
 	}
 
-	public Future<RemoteRepositoryActionResult> pull(VersionedOntology vo, HGPeerIdentity remote) {
+	public PullActivity pull(HGPersistentHandle ontologyUUID, HGPeerIdentity remote) {
 		// 1) Target available
 		// 2) Target has vo? No: no pull
 		// 3) Can pull == local master head revision is older and equal to one revision in remote 
 		//	  branches history 
 		// 4) 
 		// 
-		return null;
-		
+		System.out.println("Pulling versioned onto: " + ontologyUUID);
+		PullActivity activity = new PullActivity(peer, ontologyUUID, remote);
+		peer.getActivityManager().initiateActivity(activity);
+		return activity;
 	}
 	
 	public PushActivity push(VersionedOntology vo, HGPeerIdentity remote) {
@@ -222,7 +226,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 		// 6) remote will receive one changeset/Revision, then apply those changes within one transaction
 		//  
 		//
-		System.out.println("Sending versioned onto: " + vo.getWorkingSetData().getOntologyID());
+		System.out.println("Pushing versioned onto: " + vo.getWorkingSetData().getOntologyID());
 		PushActivity activity = new PushActivity(peer, vo, remote);
 		peer.getActivityManager().initiateActivity(activity);
 		return activity;
