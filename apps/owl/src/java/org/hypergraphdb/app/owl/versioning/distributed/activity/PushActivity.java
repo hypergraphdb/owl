@@ -47,6 +47,7 @@ import org.hypergraphdb.peer.workflow.PossibleOutcome;
 import org.hypergraphdb.peer.workflow.WorkflowStateConstant;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.OWLParserException;
+import org.semanticweb.owlapi.io.OWLRendererException;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
@@ -205,23 +206,33 @@ public class PushActivity extends FSMActivity {
     @PossibleOutcome({"SendingInitial"}) 
     //@AtActivity(CONTENT);
     public WorkflowStateConstant sourceExistsDisconfirmedNowSendOntology(Message msg) throws Throwable {
+		// PROPOSE
+		String vowlxmlStringOntology = renderVersionedOntology(sourceVersionedOnto);
+		msg = createMessage(Performative.Propose, this);
+		// send full head revision data, not versioned yet.
+        combine(msg, struct(CONTENT, vowlxmlStringOntology)); 
+        send(targetPeerID, msg);
+        if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
+        	repository.renderFullVersionedontologyToVOWLXML(sourceVersionedOnto, new File("C:\\temp\\sent"));
+        }
+		return SendingInitial;
+	}
+	
+	/**
+	 * Renders a full versioned ontology (All Changesets, Revisions and Head Revision data).
+	 * @param versionedOnto
+	 * @return
+	 * @throws OWLRendererException
+	 */
+	String renderVersionedOntology(VersionedOntology versionedOnto) throws OWLRendererException {
 		VOWLXMLRenderConfiguration conf = new VOWLXMLRenderConfiguration();
 		conf.setLastRevisionData(true);
 		conf.setUncommittedChanges(false);
 		StringWriter stringWriter = new StringWriter(RENDER_BUFFER_INITIAL_SIZE);
 		//Would need OWLOntologyManager for Format, but null ok here.
 		VOWLXMLVersionedOntologyRenderer owlxmlRenderer = new VOWLXMLVersionedOntologyRenderer(sourceVersionedOnto.getWorkingSetData().getOWLOntologyManager());
-		owlxmlRenderer.render(sourceVersionedOnto, stringWriter, conf);
-		// PROPOSE
-		msg = createMessage(Performative.Propose, this);
-		// send full head revision data, not versioned yet.
-		String owlxmlStringOntology = stringWriter.toString();
-        combine(msg, struct(CONTENT, owlxmlStringOntology)); 
-        send(targetPeerID, msg);
-        if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
-        	repository.renderFullVersionedontologyToVOWLXML(sourceVersionedOnto, new File("C:\\temp\\sent"));
-        }
-		return SendingInitial;
+		owlxmlRenderer.render(versionedOnto, stringWriter, conf);
+		return stringWriter.toString();
 	}
 	
 	/**
@@ -333,94 +344,155 @@ public class PushActivity extends FSMActivity {
     //@AtActivity(CONTENT);
     public WorkflowStateConstant sourceExistsConfirmedNowSendDelta(Message msg) throws Throwable {
 		Message reply; 
-		WorkflowStateConstant nextState;
+		WorkflowStateConstant nextState = WorkflowStateConstant.Completed;
+		int lastCommonRevisionIndex; 
+		boolean allSourceRevisionsAreInTarget;
+		boolean allTargetRevisionsAreInSource;
 		List<Revision> targetRevisions = getPart(msg, CONTENT);
 		List<Revision> sourceRevisions = sourceVersionedOnto.getRevisions();
-		ListIterator<Revision> sourceIt = sourceRevisions.listIterator();
-		ListIterator<Revision> targetIt = targetRevisions.listIterator(); 
-		int sourceIndex = 0; 
-		boolean sharedAreEqual = true;
-		while (sharedAreEqual && sourceIt.hasNext() && targetIt.hasNext()){
-			Revision targetR = targetIt.next();			
-			Revision sourceR = sourceIt.next();
-			//TODO we'll need content dependent comparison here in the future (SHA1?)
-			if (!targetR.equals(sourceR)) {
-				sharedAreEqual = false; 
-			} else {
-				sourceIndex ++;
-			}
+//		ListIterator<Revision> sourceIt = sourceRevisions.listIterator();
+//		ListIterator<Revision> targetIt = targetRevisions.listIterator(); 
+		lastCommonRevisionIndex = getLastCommonRevisionIndex(sourceRevisions, targetRevisions);
+//		while (sharedAreEqual && sourceIt.hasNext() && targetIt.hasNext()){
+		allSourceRevisionsAreInTarget = lastCommonRevisionIndex + 1 == sourceRevisions.size();
+		allTargetRevisionsAreInSource = lastCommonRevisionIndex + 1 == targetRevisions.size();
+		if (lastCommonRevisionIndex >= 0) { 
+				if (allTargetRevisionsAreInSource) {
+					if (!allSourceRevisionsAreInTarget) {
+						//we send delta
+						// send Revisions and changeset starting sourceIndex, no data, no uncommitted
+						// Send, including the LAST MATCHING REVISION at which index the first necessary 
+						// delta changeset will be.
+						// PROPOSE
+						reply = getReply(msg, Performative.Propose);
+						String owlxmlStringOntology = renderVersionedOntologyDelta(sourceVersionedOnto, lastCommonRevisionIndex);
+				        combine(reply, struct(CONTENT, owlxmlStringOntology));
+				        combine(reply, struct(KEY_LAST_MATCHING_REVISION, sourceRevisions.get(lastCommonRevisionIndex)));
+				        send(targetPeerID, reply);
+				        setCompletedMessage("Source sent " + (sourceRevisions.size() - lastCommonRevisionIndex + 1) + " changesets to target." 
+				        		+ " size was : " + (owlxmlStringOntology.length()/1024) + " kilo characters ");
+				        nextState = SendingDelta;
+				        if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
+				        	try {
+				        		File sent = new File("C:\\temp\\SentDelta-" +  new Date().getTime() + ".xml");
+				        		Writer writer = new OutputStreamWriter(new FileOutputStream(sent), Charset.forName("UTF-8"));
+				        		writer.write(owlxmlStringOntology);
+				        		writer.close();
+				        	} catch (Exception e) {
+				        		System.err.println("Push: Exception during debug output ignored:");
+				        		e.printStackTrace();
+							}
+				        }
+					} else {
+						// source equals target
+						reply = getReply(msg, Performative.Confirm);
+						combine(reply, struct(CONTENT, "Source and Target are equal."));
+						setCompletedMessage("Source and Target are equal. Nothing to transmit.");
+						nextState = WorkflowStateConstant.Completed;
+					}
+				} else {
+					//target has more than source, but some inital match
+					reply = getReply(msg, Performative.Confirm);
+			        combine(reply, struct(CONTENT, "Target is newer than source."));
+			        setCompletedMessage("Target is newer than source. A pull is suggested.");
+			        nextState = WorkflowStateConstant.Completed;
 		}
-		//Move back one to include last matching revision == first necessary source changeset
-		sourceIndex = sourceIndex - 1;
+		//			Revision targetR = targetIt.next();			
+//			Revision sourceR = sourceIt.next();
+//			//TODO we'll need content dependent comparison here in the future (SHA1?)
+//			if (!targetR.equals(sourceR)) {
+//				sharedAreEqual = false; 
+//			} else {
+//				sourceIndex ++;
+//			}
+//		}
+//		//Move back one to include last matching revision == first necessary source changeset
+//		sourceIndex = sourceIndex - 1;
+		
 		
 		//Push iff:
 		// A) sourceIndex >= 0 () is base and must be at target already.
-		if (sharedAreEqual && sourceIndex >= 0) {
-				if (!targetIt.hasNext()   // we have found each target revision is equal to a source revision.  
-				    && sourceIt.hasNext() // we have something to push, also need to push previous changeset
-				) { // at least base is equal
-					// send Revisions and changeset starting sourceIndex, no data, no uncommitted
-					// Send, including the LAST MATCHING REVISION at which index the first necessary 
-					// delta changeset will be.
-					VOWLXMLRenderConfiguration conf = new VOWLXMLRenderConfiguration(sourceIndex);
-					StringWriter stringWriter = new StringWriter(5 * 1024 * 1024);
-					VOWLXMLVersionedOntologyRenderer owlxmlRenderer = new VOWLXMLVersionedOntologyRenderer(repository.getOntologyManager());
-					owlxmlRenderer.render(sourceVersionedOnto, stringWriter, conf);
-					// PROPOSE
-					//Performative.Inform
-					reply = getReply(msg, Performative.Propose);
-					String owlxmlStringOntology = stringWriter.toString();
-			        combine(reply, struct(CONTENT, owlxmlStringOntology));
-			        combine(reply, struct(KEY_LAST_MATCHING_REVISION, sourceRevisions.get(sourceIndex)));
-			        send(targetPeerID, reply);
-			        setCompletedMessage("Source sent " + (sourceRevisions.size() - sourceIndex + 1) + " revisions and changesets to target." 
-			        		+ " size was : " + (stringWriter.getBuffer().length()/1024) + " kilo characters ");
-			        nextState = SendingDelta;
-			        if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
-			        	try {
-			        		File sent = new File("C:\\temp\\SentDelta-" +  new Date().getTime() + ".xml");
-			        		Writer writer = new OutputStreamWriter(new FileOutputStream(sent), Charset.forName("UTF-8"));
-			        		writer.write(stringWriter.toString());
-			        		writer.close();
-			        	} catch (Exception e) {
-			        		System.err.println("Push: Exception during debug output ignored:");
-			        		e.printStackTrace();
-						}
-			        }
-			        stringWriter.close();
-				} else {
-					if (sourceRevisions.size() == targetRevisions.size()) {
-						//TARGET IS EQUAL TO SOURCE, source might have uncommitted.
-						reply = getReply(msg, Performative.Confirm);
-				        combine(reply, struct(CONTENT, "Source and Target are equal."));
-				        setCompletedMessage("Source and Target are equal. Nothing to transmit.");
-				        nextState = WorkflowStateConstant.Completed;
-					} else {
-						//Target has more than source, should pull, if no uncommitted.
-						reply = getReply(msg, Performative.Confirm);
-				        combine(reply, struct(CONTENT, "Target is newer than source."));
-				        setCompletedMessage("Target is newer than source. A pull is suggested.");
-				        nextState = WorkflowStateConstant.Completed;
-					}
+//		if (sharedAreEqual && sourceIndex >= 0) {
+//				if (!targetIt.hasNext()   // we have found each target revision is equal to a source revision.  
+//				    && sourceIt.hasNext() // we have something to push, also need to push previous changeset
+//				) { // at least base is equal
+//				} else {
+//					if (sourceRevisions.size() == targetRevisions.size()) {
+//						//TARGET IS EQUAL TO SOURCE, source might have uncommitted.
+//						reply = getReply(msg, Performative.Confirm);
+//				        combine(reply, struct(CONTENT, "Source and Target are equal."));
+//				        setCompletedMessage("Source and Target are equal. Nothing to transmit.");
+//				        nextState = WorkflowStateConstant.Completed;
+//					} else {
+//						//Target has more than source, should pull, if no uncommitted.
+//						reply = getReply(msg, Performative.Confirm);
+//				        combine(reply, struct(CONTENT, "Target is newer than source."));
+//				        setCompletedMessage("Target is newer than source. A pull is suggested.");
+//				        nextState = WorkflowStateConstant.Completed;
+//					}
 				}
-		} else {
-			reply = getReply(msg, Performative.Failure);
-	        nextState = WorkflowStateConstant.Failed;
-			if (sharedAreEqual) {
-				assert(sourceIndex == 0);
-				//System error: nothing compared!!
-		        combine(reply, struct(CONTENT, "System failure: Nothing was compared.")); 
-			} else {
-				// We found one unequal revision, no push possible.
-				// Need to revert target to last equal revision, which is:
-		        combine(reply, struct(CONTENT, "Cannot push: Target revision at index " + sourceIndex + " does not match source."));
-			}
-		}
-		msg = createMessage(Performative.QueryIf, this);
-		// send full revision Array
-        combine(msg, struct(CONTENT, sourceVersionedOnto.getRevisions())); 
-        send(targetPeerID, reply);
+//		} else {
+//			reply = getReply(msg, Performative.Failure);
+//	        nextState = WorkflowStateConstant.Failed;
+//			if (sharedAreEqual) {
+//				assert(sourceIndex == 0);
+//				//System error: nothing compared!!
+//		        combine(reply, struct(CONTENT, "System failure: Nothing was compared.")); 
+//			} else {
+//				// We found one unequal revision, no push possible.
+//				// Need to revert target to last equal revision, which is:
+//		        combine(reply, struct(CONTENT, "Cannot push: Target revision at index " + sourceIndex + " does not match source."));
+//			}
+//		}
+//		msg = createMessage(Performative.QueryIf, this);
+//		// send full revision Array
+//        combine(msg, struct(CONTENT, sourceVersionedOnto.getRevisions())); 
+//        send(targetPeerID, reply);
+//		return nextState;
 		return nextState;
+	}
+	
+	/**
+	 * Renders the revisions and changesets starting with the given index.
+	 * 
+	 * @param versionedOntology
+	 * @param startRevisionIndex
+	 * @return
+	 * @throws OWLRendererException
+	 */
+	String renderVersionedOntologyDelta(VersionedOntology versionedOntology, int startRevisionIndex) throws OWLRendererException {
+		VOWLXMLRenderConfiguration conf = new VOWLXMLRenderConfiguration(startRevisionIndex);
+		StringWriter stringWriter = new StringWriter(RENDER_BUFFER_INITIAL_SIZE);
+		VOWLXMLVersionedOntologyRenderer owlxmlRenderer = new VOWLXMLVersionedOntologyRenderer(repository.getOntologyManager());
+		owlxmlRenderer.render(sourceVersionedOnto, stringWriter, conf);
+		return stringWriter.toString();
+	}
+	
+	/**
+	 * <pre>
+	 * Returns
+	 * 0..source.size()-1 the index of the last matching revision
+	 * -1 no common history 
+	 * </pre>
+	 * 
+	 * @param source
+	 * @param target
+	 * @return
+	 */
+	int getLastCommonRevisionIndex(List<Revision> branchA, List<Revision> branchB) {
+		ListIterator<Revision> aIt = branchA.listIterator();
+		ListIterator<Revision> bIt = branchB.listIterator(); 
+		int commonIndex = -1; 
+		boolean commonAreEqual = true;
+		while (commonAreEqual && aIt.hasNext() && bIt.hasNext()){
+			commonIndex ++;
+			Revision revisionA = aIt.next();			
+			Revision revisionB = bIt.next();
+			//TODO we'll need content dependent comparison here in the future (SHA1?)
+			commonAreEqual = revisionA.equals(revisionB);
+		}
+		//Enforce all common equal: 
+		return commonIndex;
 	}
 	
 	/**
@@ -487,6 +559,7 @@ public class PushActivity extends FSMActivity {
 			throw new IllegalStateException("Expecting exactly one more Revision than changesets." 
 					+ "The workingset changeset after head must not be included in the transmission");
 		}
+		
 		// Apply and store changesets.
 //		if (!deltaRevisions.get(0).equals(lastMatchingRevision)) {
 //			throw new IllegalStateException("Internal error. The transmissions lastMatchingRevision data did not match the first owlxml revision.");
