@@ -174,7 +174,8 @@ public class OWLObjectOneOfHGDB extends OWLAnonymousClassExpressionHGDB implemen
 	public void notifyTargetRemoved(int i) {
 		if (!(i >= 0 && i < getArity()))
 			throw new IllegalArgumentException("Index has to be 0 and less than " + getArity());
-		valueHandles.set(i, null);
+		//valueHandles.set(i, null);
+		valueHandles.remove(i);
 	}
 
 	/* (non-Javadoc)
