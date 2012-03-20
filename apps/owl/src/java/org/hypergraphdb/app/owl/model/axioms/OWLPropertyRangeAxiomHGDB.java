@@ -4,7 +4,6 @@ import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
 import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import org.semanticweb.owlapi.model.OWLPropertyRange;
@@ -54,7 +53,7 @@ public abstract class OWLPropertyRangeAxiomHGDB <P extends OWLPropertyExpression
 	 */
 	@Override
 	public int getArity() {
-		return super.getArity() + 1;
+		return 2;
 	}
 
 	/* (non-Javadoc)
@@ -95,7 +94,7 @@ public abstract class OWLPropertyRangeAxiomHGDB <P extends OWLPropertyExpression
 		if (i == 0) {
 			super.notifyTargetRemoved(i);
 		} else {
-			rangeHandle = null;
+			rangeHandle = getHyperGraph().getHandleFactory().nullHandle();
 		}
 	}
 }

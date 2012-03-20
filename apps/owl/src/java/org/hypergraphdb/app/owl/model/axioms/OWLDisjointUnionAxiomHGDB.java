@@ -174,7 +174,7 @@ public class OWLDisjointUnionAxiomHGDB extends OWLClassAxiomHGDB implements OWLD
 	public void notifyTargetRemoved(int i) {
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
 		if (i == 0) {
-			owlClassHandle = null;
+			owlClassHandle = getHyperGraph().getHandleFactory().nullHandle();
 		} else {
 			classExpressionsHandles.set(i - 1, null);
 		}

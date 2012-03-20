@@ -193,9 +193,9 @@ public class OWLAnnotationHGDB extends OWLObjectHGDB implements HGLink, OWLAnnot
 	public void notifyTargetRemoved(int i) {
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
 		if (i == 0) {
-			propertyHandle = null;
+			propertyHandle = getHyperGraph().getHandleFactory().nullHandle();
 		} else if (i == 1) {
-			valueHandle = null;
+			valueHandle = getHyperGraph().getHandleFactory().nullHandle();
 		} else { //> 1 and < arity
 			annotationsHandles.remove(i - 2);
 		}

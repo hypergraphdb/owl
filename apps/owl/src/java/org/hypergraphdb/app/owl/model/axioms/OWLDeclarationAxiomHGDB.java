@@ -149,6 +149,6 @@ public class OWLDeclarationAxiomHGDB extends OWLAxiomHGDB implements OWLDeclarat
 	@Override
 	public void notifyTargetRemoved(int i) {
 		if (i != 0) throw new HGException("Index i must be 0");		
-		owlEntityHandle = null;
+		owlEntityHandle = getHyperGraph().getHandleFactory().nullHandle();
 	}
 }

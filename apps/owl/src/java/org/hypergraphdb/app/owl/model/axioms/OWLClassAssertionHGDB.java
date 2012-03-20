@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.HGLink;
 import org.hypergraphdb.app.owl.core.HGChangeableLink;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -151,9 +150,9 @@ public class OWLClassAssertionHGDB extends OWLIndividualAxiomHGDB implements HGC
 	public void notifyTargetRemoved(int i) {
 		if (i != 0 && i != 1) throw new IllegalArgumentException("Index has to be 0 or 1"); 
 		if (i == 0) {
-			individualHandle = null;
+			individualHandle = getHyperGraph().getHandleFactory().nullHandle();
 		} else {
-			classExpressionHandle = null;
+			classExpressionHandle = getHyperGraph().getHandleFactory().nullHandle();
 		}
 	}
 

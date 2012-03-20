@@ -170,9 +170,9 @@ public class OWLSubClassOfAxiomHGDB extends OWLClassAxiomHGDB implements OWLSubC
 	public void notifyTargetRemoved(int i) {
 		if (i != 0 && i != 1) throw new IllegalArgumentException("Index has to be 0 or 1"); 
 		if (i == 0) {
-			subClassHandle = null; //getHyperGraph().getHandleFactory().nullHandle();
+			subClassHandle = getHyperGraph().getHandleFactory().nullHandle();
 		} else {
-			superClassHandle = null; //getHyperGraph().getHandleFactory().nullHandle();;
+			superClassHandle = getHyperGraph().getHandleFactory().nullHandle();
 		}
 	}	
 }

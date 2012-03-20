@@ -104,7 +104,7 @@ public class OWLObjectComplementOfHGDB extends OWLAnonymousClassExpressionHGDB i
 	 */
 	@Override
 	public int getArity() {
-		return 1;
+		return operandHandle == null? 0 : 1;
 	}
 
 

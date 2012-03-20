@@ -77,7 +77,7 @@ public class SWRLIndividualArgumentHGDB extends OWLObjectHGDB implements HGLink,
 	 */
 	@Override
 	public int getArity() {
-		return 1;
+		return individualHandle == null? 0 : 1;
 	}
 
 	/* (non-Javadoc)

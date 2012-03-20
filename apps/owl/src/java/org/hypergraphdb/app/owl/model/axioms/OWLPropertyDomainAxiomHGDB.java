@@ -55,7 +55,7 @@ public abstract class OWLPropertyDomainAxiomHGDB<P extends OWLPropertyExpression
 	 */
 	@Override
 	public int getArity() {
-		return super.getArity() + 1;
+		return 2;
 	}
 
 	/* (non-Javadoc)
@@ -96,7 +96,7 @@ public abstract class OWLPropertyDomainAxiomHGDB<P extends OWLPropertyExpression
 		if (i == 0) {
 			super.notifyTargetRemoved(i);
 		} else {
-			domainHandle = null;
+			domainHandle = getHyperGraph().getHandleFactory().nullHandle();
 		}
 	}
 }

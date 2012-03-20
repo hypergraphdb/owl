@@ -86,7 +86,11 @@ public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLin
 	}
 
 	public void notifyTargetRemoved(int i) {
-		throw new UnsupportedOperationException();
+		if (i == 0)
+			bodyHandle = getHyperGraph().getHandleFactory().nullHandle();
+		else if (i == 1)
+			headHandle = getHyperGraph().getHandleFactory().nullHandle();
+		// throw new UnsupportedOperationException();
 	}
 
 	public SWRLRule getAxiomWithoutAnnotations() {

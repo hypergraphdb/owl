@@ -110,7 +110,7 @@ public class OWLDataComplementOfHGDB extends OWLObjectHGDB implements HGLink, OW
 	 */
 	@Override
 	public int getArity() {
-		return 1;
+		return dataRangeHandle == null? 0 : 1;
 	}
 
 	/* (non-Javadoc)

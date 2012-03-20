@@ -106,11 +106,9 @@ public abstract class OWLSubPropertyAxiomHGDB<P extends OWLPropertyExpression<?,
 	public void notifyTargetRemoved(int i) {
 		if (i != 0 && i != 1) throw new IllegalArgumentException("Index has to be 0 or 1"); 
 		if (i == 0) {
-			subPropertyHandle = null;
+			subPropertyHandle = getHyperGraph().getHandleFactory().nullHandle();
 		} else {
-			superPropertyHandle = null;
+			superPropertyHandle = getHyperGraph().getHandleFactory().nullHandle();
 		}
 	}
-
-
 }

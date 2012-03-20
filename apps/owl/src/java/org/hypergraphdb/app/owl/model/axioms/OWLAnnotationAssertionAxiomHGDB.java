@@ -180,11 +180,11 @@ public class OWLAnnotationAssertionAxiomHGDB extends OWLAxiomHGDB implements HGL
 	public void notifyTargetRemoved(int i) {
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
 		if (i == 0) {
-			subjectHandle = null;
+			subjectHandle = getHyperGraph().getHandleFactory().nullHandle();
 		} else if (i == 1){
-			propertyHandle = null;
+			propertyHandle = getHyperGraph().getHandleFactory().nullHandle();
 		} else { //2 if arity 3
-			valueHandle = null;
+			valueHandle = getHyperGraph().getHandleFactory().nullHandle();
 		}
 	}        
 }

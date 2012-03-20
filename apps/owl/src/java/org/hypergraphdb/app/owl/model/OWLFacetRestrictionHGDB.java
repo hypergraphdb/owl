@@ -92,7 +92,7 @@ public class OWLFacetRestrictionHGDB extends OWLObjectHGDB implements HGLink, OW
 	 */
 	@Override
 	public int getArity() {
-		return 1;
+		return facetValueHandle == null? 0 : 1;
 	}
 
 	/* (non-Javadoc)

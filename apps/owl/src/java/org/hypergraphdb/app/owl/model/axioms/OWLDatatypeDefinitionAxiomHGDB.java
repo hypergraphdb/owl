@@ -149,9 +149,9 @@ public class OWLDatatypeDefinitionAxiomHGDB extends OWLAxiomHGDB implements HGLi
 	public void notifyTargetRemoved(int i) {
 		if (i != 0 && i != 1) throw new IllegalArgumentException("Index has to be 0 or 1"); 
 		if (i == 0) {
-			datatypeHandle = null;
+			datatypeHandle = getHyperGraph().getHandleFactory().nullHandle();
 		} else {
-			dataRangeHandle = null;
+			dataRangeHandle = getHyperGraph().getHandleFactory().nullHandle();
 		}
 	}
 }

@@ -205,7 +205,7 @@ public class OWLLiteralHGDB extends OWLObjectHGDB implements OWLLiteral, HGLink 
 	 */
 	@Override
 	public int getArity() {
-		return 1;
+		return datatypeHandle ==null? 0 : 1;
 	}
 
 	/* (non-Javadoc)

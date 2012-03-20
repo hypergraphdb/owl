@@ -126,7 +126,7 @@ public abstract class OWLCardinalityRestrictionHGDB<R extends OWLPropertyRange, 
 		if (i == 0) {
 			super.notifyTargetRemoved(i);
 		} else { // i == 1
-			fillerHandle = null;
+			fillerHandle = getHyperGraph().getHandleFactory().nullHandle();
 		}
 	}
 }

@@ -192,9 +192,9 @@ public class OWLDatatypeRestrictionHGDB extends OWLObjectHGDB implements HGLink,
 	public void notifyTargetRemoved(int i) {
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
 		if (i == 0) {
-			datatypeHandle = null;
+			datatypeHandle = getHyperGraph().getHandleFactory().nullHandle();
 		} else {
-			facetRestrictionsHandles.set(i - 1, null);
+			facetRestrictionsHandles.remove(i - 1);
 		}
 	}
 }

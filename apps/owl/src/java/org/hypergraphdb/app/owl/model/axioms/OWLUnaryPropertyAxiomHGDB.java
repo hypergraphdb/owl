@@ -72,7 +72,6 @@ public abstract class OWLUnaryPropertyAxiomHGDB <P extends OWLPropertyExpression
 	@Override
 	public void notifyTargetRemoved(int i) {
 		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
-		propertyHandle= null;
+		propertyHandle= getHyperGraph().getHandleFactory().nullHandle();
 	}
-
 }

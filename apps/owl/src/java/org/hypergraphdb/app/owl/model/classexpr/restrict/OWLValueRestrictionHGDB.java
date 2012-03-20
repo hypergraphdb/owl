@@ -94,7 +94,7 @@ public abstract class OWLValueRestrictionHGDB<R extends OWLPropertyRange, P exte
 		if (i == 0) {
 			super.notifyTargetRemoved(i);
 		} else { // i == 1
-			valueHandle = null;
+			valueHandle = getHyperGraph().getHandleFactory().nullHandle();
 		}
 	}
 	/**

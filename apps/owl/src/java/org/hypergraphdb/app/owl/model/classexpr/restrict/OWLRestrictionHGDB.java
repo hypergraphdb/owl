@@ -82,6 +82,6 @@ public abstract class OWLRestrictionHGDB<R extends OWLPropertyRange, P extends O
 	@Override
 	public void notifyTargetRemoved(int i) {
 		if (i < 0 || i >= getArity()) throw new HGException("Index i must be within [0..getArity()-1]. Was : " + i);
-		propertyHandle = null;
+		propertyHandle = getHyperGraph().getHandleFactory().nullHandle();
 	}
 }

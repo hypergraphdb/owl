@@ -155,6 +155,6 @@ public class OWLObjectInverseOfHGDB extends OWLObjectPropertyExpressionHGDB impl
 	@Override
 	public void notifyTargetRemoved(int i) {
 		if (i != 0) throw new HGException("Index i must be 0");		
-		inversePropertyHandle = null;
+		inversePropertyHandle = getHyperGraph().getHandleFactory().nullHandle();
 	}
 }

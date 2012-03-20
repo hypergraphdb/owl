@@ -79,6 +79,6 @@ public abstract class OWLObjectPropertyCharacteristicAxiomHGDB extends OWLProper
 	@Override
 	public void notifyTargetRemoved(int i) {
 		if (i != 0) throw new HGException("Index i must be 0");		
-		propertyHandle = null;
+		propertyHandle = getHyperGraph().getHandleFactory().nullHandle();
 	}
 }
