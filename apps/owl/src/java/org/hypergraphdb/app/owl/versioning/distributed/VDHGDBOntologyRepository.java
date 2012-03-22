@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -20,6 +21,7 @@ import java.util.concurrent.TimeoutException;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HGQuery.hg;
+import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
@@ -32,8 +34,10 @@ import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.PeerPresenceListener;
 import org.hypergraphdb.peer.workflow.Activity;
+import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.jivesoftware.smack.XMPPConnection;
 import org.semanticweb.owlapi.io.OWLRendererException;
+import org.semanticweb.owlapi.model.OWLOntology;
 
 /**
  * VDHGDBOntologyRepository.
@@ -233,22 +237,24 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 	}
 	
 	/**
-	 * Renders a Full Versioned Ontology to a file using default render configuration.
-	 * The filename will consist of the UUID and a timstamp in millisecs.
-	 * @param vo
-	 * @param directory
-	 * @throws FileNotFoundException
-	 * @throws OWLRendererException
+	 * Get a version controlled ontology by UUID.
+	 * @param ontologyUUID the ontology data uuid
+	 * @return
 	 */
-	public void renderFullVersionedontologyToVOWLXML(VersionedOntology vo, File directory) throws FileNotFoundException, OWLRendererException {
-		VOWLXMLVersionedOntologyRenderer r = new VOWLXMLVersionedOntologyRenderer(ontologyManager);
-		if (!directory.isDirectory() || !directory.exists()) throw new IllegalArgumentException("Directory does not exist or is a file");
-		String filePath = directory.getAbsolutePath() + File.pathSeparator + vo.getHeadRevision().getOntologyUUID() + "time:" + (new Date()).getTime() + ".xml";
-		File fx = new File(filePath);
-		Writer fwriter = new OutputStreamWriter(new FileOutputStream(fx), Charset.forName("UTF-8"));
-		r.render(vo, fwriter, new VOWLXMLRenderConfiguration());
+	public VersionedOntology getVersionControlledOntology(final HGPersistentHandle ontologyUUID) {
+		return getHyperGraph().getTransactionManager().ensureTransaction(new Callable<VersionedOntology>() {
+			public VersionedOntology call() {
+				//TODO maybe not loaded here? -> NPE; Check out callers
+				HGDBOntology onto = getHyperGraph().get(ontologyUUID);
+				if (onto == null) {
+					System.out.println("No ontology at " + ontologyUUID);
+					return null;
+				} else {
+					return getVersionControlledOntology(onto);
+				}
+			}}, HGTransactionConfig.READONLY);
 	}
-	
+
 	public enum RemoteRepositoryActionResult {SUCCESS, DENIED_LOCAL_OUT_OF_DATE, DENIED_WERE_EQUAL, DENIED_REMOTE_OUT_OF_DATE}; 
 	
 
