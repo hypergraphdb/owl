@@ -9,31 +9,17 @@ import static org.hypergraphdb.peer.Structs.getPart;
 import static org.hypergraphdb.peer.Structs.struct;
 import static org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository.OBJECTCONTEXT_REPOSITORY;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.nio.charset.Charset;
-import java.util.Date;
+import java.io.IOException;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 
-import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
-import org.hypergraphdb.app.owl.HGDBOntologyManager;
-import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLParser;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVersionedOntologyRenderer;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLRenderConfiguration;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.Message;
@@ -43,22 +29,15 @@ import org.hypergraphdb.peer.workflow.FromState;
 import org.hypergraphdb.peer.workflow.OnMessage;
 import org.hypergraphdb.peer.workflow.PossibleOutcome;
 import org.hypergraphdb.peer.workflow.WorkflowStateConstant;
+import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
+import org.semanticweb.owlapi.io.OWLRendererException;
 import org.semanticweb.owlapi.io.StringDocumentSource;
-import org.semanticweb.owlapi.model.AddAxiom;
-import org.semanticweb.owlapi.model.AddImport;
-import org.semanticweb.owlapi.model.AddOntologyAnnotation;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLImportsDeclaration;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyID;
-import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 
-import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
 /**
- * PullActivity.
+ * PullActivity. Pulls all changes from a target repository, which has the same VersionedOntology and 
+ * a change history that is longer (newer) than the source (initiator).
+ *  
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Mar 19, 2012
  */
@@ -66,28 +45,28 @@ public class PullActivity extends FSMActivity {
 
     public static final String TYPENAME = "pull-VersionedOntology";
 
-    //public static final String ERROR_OBJECT_KEY = "ErrorObject";
-
     public static final String KEY_LAST_MATCHING_REVISION = "LastMatchingRevision";
-
-    public static final int RENDER_BUFFER_INITIAL_SIZE = 5 * 1024 * 1024; //characters
 
     public static boolean DBG = true;
 
     public static boolean DBG_RENDER_ONTOLOGIES_TO_FILE = true;
     
-    //public static final WorkflowStateConstant TargetHasOntology = WorkflowStateConstant.makeStateConstant("SendingInitial");
     public static final WorkflowStateConstant SendingInitial = WorkflowStateConstant.makeStateConstant("SendingInitial");
-    //public static final WorkflowStateConstant ReceivingInitial = WorkflowStateConstant.makeStateConstant("ReceivingInitial");
+    public static final WorkflowStateConstant ReceivingInitial = WorkflowStateConstant.makeStateConstant("ReceivingInitial");
     public static final WorkflowStateConstant SendingDelta = WorkflowStateConstant.makeStateConstant("SendingDelta");
-    //public static final WorkflowStateConstant ReceivingDelta= WorkflowStateConstant.makeStateConstant("ReceivingDelta");
+    public static final WorkflowStateConstant ReceivingDelta= WorkflowStateConstant.makeStateConstant("ReceivingDelta");
     
     private VDHGDBOntologyRepository repository;
-    private VersionedOntology sourceVersionedOnto;
-    private HGPersistentHandle sourceVersionedOntoUUID;
-    //private VersionedOntology targetVersionedOnto;
+
+    /**
+     * The versioned ontology at the initiator that shall be modified by the pull.
+     */
+    private HGPersistentHandle ontologyUUID; //on source and target
     private HGPeerIdentity targetPeerID;
     private String completedMessage;
+    private HyperGraph graph;
+    
+    private ActivityUtils activityUtils =  new ActivityUtils();
     
 	public PullActivity(HyperGraphPeer thisPeer, UUID id)
     {
@@ -97,21 +76,23 @@ public class PullActivity extends FSMActivity {
         	throw new IllegalArgumentException("Peer's object context must contain OBJECTCONTEXT_REPOSITORY.");
         }
         repository = (VDHGDBOntologyRepository) thisPeer.getObjectContext().get(OBJECTCONTEXT_REPOSITORY);
+        graph = repository.getHyperGraph();
     }
 
 	/**
 	 * @param thisPeer
 	 */
-	public PullActivity(HyperGraphPeer sourcePeer, HGPersistentHandle sourceVersionedOntoUUID, HGPeerIdentity targetPeerID) {
+	public PullActivity(HyperGraphPeer sourcePeer, HGPersistentHandle ontologyUUID, HGPeerIdentity targetPeerID) {
 		super(sourcePeer);
 		//this.sourceVersionedOnto = sourceVersionedOnto;
-		this.sourceVersionedOntoUUID = sourceVersionedOntoUUID;
+		this.ontologyUUID = ontologyUUID;
 		this.targetPeerID = targetPeerID;
         if(!sourcePeer.getObjectContext().containsKey(OBJECTCONTEXT_REPOSITORY)) {
         	System.err.println("PROBLEM DETECTED: NO OBJECTCONTEXT REPO");
         	throw new IllegalArgumentException("Peer's object context must contain OBJECTCONTEXT_REPOSITORY.");
         }
         repository = (VDHGDBOntologyRepository) sourcePeer.getObjectContext().get(OBJECTCONTEXT_REPOSITORY);
+        graph = repository.getHyperGraph();
 	}	
 	
 	/**
@@ -133,47 +114,46 @@ public class PullActivity extends FSMActivity {
 	 * @see org.hypergraphdb.peer.workflow.FSMActivity#initiate()
 	 */
 	@Override
-    public void initiate() {
-        //Message msg = createMessage(Performative.Confirm, this);
-//        combine(msg, struct(CONTENT, sourceVersionedOntoUUID)); 
-//        send(targetPeerID, msg);
-//        if (DBG) {
-//        	getThisPeer().getGraph().getLogger().trace("Query if target push : " + sourceVersionedOnto.getHeadRevision());
-//        }
-		HyperGraph graph = this.getThisPeer().getGraph();
-		VDHGDBOntologyRepository repo = VDHGDBOntologyRepository.getInstance();
-		// msg parsing
-		HGPersistentHandle headRevisionOntologyID = sourceVersionedOntoUUID; //= getPart(msg, CONTENT);
+	public void initiate() {
 		// Look up in repository
-		OWLOntology o = graph.get(headRevisionOntologyID);
-		if (o != null) {
-			sourceVersionedOnto = repo.getVersionControlledOntology(o); 
-			if (sourceVersionedOnto != null) {
-				// send Confirm with existing revisions objects
-				// and tell if we have uncommitted changes.
-				// TODO send content hash
-		        if (sourceVersionedOnto.getWorkingSetChanges().isEmpty()) {
-		        	Message msg = createMessage(Performative.Confirm, this);
-		        	List<Revision> revList = sourceVersionedOnto.getRevisions();
-			        combine(msg, struct(CONTENT, revList));
-			        send(targetPeerID, msg);
-					//return ReceivingDelta;
-		        } else {
-		        	//Source has uncommitted - cannot push
-		        	throw new RuntimeException(new VOWLSourceTargetConflictException("Source has uncommitted changes. Cannot push."));
-		        }
-			}
-		}
-		// o null or targetVersionedOnto null
-		// send Confirm
-        Message msg = createMessage(Performative.Disconfirm, this);
-        combine(msg, struct(CONTENT, headRevisionOntologyID));
-        send(targetPeerID, msg);
-		//return ReceivingInitial;
-        // STATE WILL BE STARTED AT SOURCE
+		//TRANSACTION START
+		Message message;
+		message = graph.getTransactionManager().transact(new Callable<Message>() {
+			public Message call() {
+				HGDBOntology o = graph.get(ontologyUUID);
+				Message msg;
+				if (o != null) {
+					VersionedOntology sourceVersionedOnto = repository.getVersionControlledOntology(o); 
+					if (sourceVersionedOnto != null) {
+						// send Confirm with existing revisions objects
+						// and tell if we have uncommitted changes.
+						// TODO send content hash
+				        if (sourceVersionedOnto.getWorkingSetChanges().isEmpty()) {
+				        	msg = createMessage(Performative.Confirm, null);
+				        	List<Revision> revList = sourceVersionedOnto.getRevisions();
+					        combine(msg, struct(CONTENT, revList));
+					        return msg;
+					        // Started return ReceivingDelta;
+				        } else {
+				        	// Source has uncommitted - cannot pull
+				        	throw new RuntimeException(new VOWLSourceTargetConflictException("Source has uncommitted changes. Cannot pull."));
+						}
+					} else {
+							// Ontology but no versioning information, 
+							// cannot determine
+				        	// Source has uncommitted - cannot pull
+				        	throw new RuntimeException(new VOWLSourceTargetConflictException("Source ontology exists without versioning. Cannot match revisions. Cannot pull."));
+					}
+				} else {
+					// ontology unknown here.
+					msg = createMessage(Performative.Disconfirm, ontologyUUID);
+					return msg;
+					//TRANSACTION END
+				}
+			}});
+		send(targetPeerID, message);
 	}
 
-	
 //	/**
 //	 * 
 //	 * @param msg
@@ -184,36 +164,7 @@ public class PullActivity extends FSMActivity {
 //    @OnMessage(performative="QueryIf")
 //    @PossibleOutcome({"ReceivingDelta", "ReceivingInitial"})
 //    //@AtActivity(CONTENT);
-//    public WorkflowStateConstant sourceExistsVersionedOntology(Message msg) throws Throwable {
-//		HyperGraph graph = this.getThisPeer().getGraph();
-//		VDHGDBOntologyRepository repo = VDHGDBOntologyRepository.getInstance();
-//		// msg parsing
-//		HGPersistentHandle headRevisionOntologyID = getPart(msg, CONTENT);
-//		// Look up in repository
-//		OWLOntology o = graph.get(headRevisionOntologyID);
-//		if (o != null) {
-//			VersionedOntology targetVersionedOnto = repo.getVersionControlledOntology(o); 
-//			if (targetVersionedOnto != null) {
-//				// send Confirm with existing revisions objects
-//				// and tell if we have uncommitted changes.
-//				// TODO send content hash
-//		        if (targetVersionedOnto.getWorkingSetChanges().isEmpty()) {
-//		        	Message reply = getReply(msg, Performative.Confirm);
-//		        	List<Revision> revList = targetVersionedOnto.getRevisions();
-//			        combine(reply, struct(CONTENT, revList));
-//			        send(getSender(msg), reply);
-//					return ReceivingDelta;
-//		        } else {
-//		        	//Target has uncommitted - cannot push
-//		        	throw new VOWLSourceTargetConflictException("Target has uncommitted changes. Cannot push.");
-//		        }
-//			}
-//		}
-//		// o null or targetVersionedOnto null
-//		// send Confirm
-//        Message reply = getReply(msg, Performative.Disconfirm);
-//        send(getSender(msg), reply);
-//		return ReceivingInitial;
+//    public WorkflowStateConstant targetExistsVersionedOntology(final Message msg) throws Throwable {
 //    }
 	
 	//------------------------------------------------------------------------------------
@@ -224,23 +175,35 @@ public class PullActivity extends FSMActivity {
     @OnMessage(performative="Disconfirm")
     @PossibleOutcome({"SendingInitial"}) 
     //@AtActivity(CONTENT);
-    public WorkflowStateConstant targetExistsDisconfirmedNowSendOntology(Message msg) throws Throwable {
-		VOWLXMLRenderConfiguration conf = new VOWLXMLRenderConfiguration();
-		conf.setLastRevisionData(true);
-		conf.setUncommittedChanges(false);
-		StringWriter stringWriter = new StringWriter(RENDER_BUFFER_INITIAL_SIZE);
-		//Would need OWLOntologyManager for Format, but null ok here.
-		VOWLXMLVersionedOntologyRenderer owlxmlRenderer = new VOWLXMLVersionedOntologyRenderer(sourceVersionedOnto.getWorkingSetData().getOWLOntologyManager());
-		owlxmlRenderer.render(sourceVersionedOnto, stringWriter, conf);
+    public WorkflowStateConstant targetSendFullVersionedOntology(final Message msg) throws Throwable {
 		// PROPOSE
-		msg = createMessage(Performative.Propose, this);
+		Message reply;
+		String vowlxmlStringOntology  = graph.getTransactionManager().transact(new Callable<String>() {
+			public String call() {
+				VersionedOntology targetVersionedOnto;
+				//TRANSACTION START	
+				ontologyUUID = getPart(msg, CONTENT);
+				HGDBOntology onto = graph.get(ontologyUUID);
+				if (onto != null) {
+					targetVersionedOnto = repository.getVersionControlledOntology(onto);
+					if (targetVersionedOnto != null) {
+						try {
+							return activityUtils.renderVersionedOntology(targetVersionedOnto);
+						} catch (OWLRendererException e) {
+							throw new RuntimeException(e);
+						}
+					} else {
+						throw new IllegalStateException("Ontology found at target, but not version controlled. Cannot Send.");
+					}
+				} else {
+					throw new IllegalStateException("No Ontology found for : " + ontologyUUID + " Cannot Send.");
+				}
+				//TRANSACTION END
+			}}, HGTransactionConfig.READONLY);
+		reply = getReply(msg, Performative.Propose);
 		// send full head revision data, not versioned yet.
-		String owlxmlStringOntology = stringWriter.toString();
-        combine(msg, struct(CONTENT, owlxmlStringOntology)); 
+        combine(reply, struct(CONTENT, vowlxmlStringOntology)); 
         send(targetPeerID, msg);
-        if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
-        	repository.renderFullVersionedontologyToVOWLXML(sourceVersionedOnto, new File("C:\\temp\\sent"));
-        }
 		return SendingInitial;
 	}
 	
@@ -253,54 +216,41 @@ public class PullActivity extends FSMActivity {
     @OnMessage(performative="Propose")
     //@PossibleOutcome({"Completed", "Failed"}) 
     //@AtActivity(CONTENT);
-    public WorkflowStateConstant sourceReceiveNewOntology(Message msg) throws Throwable {
-//		boolean failed = false;
-//		Object failedActivityObject = null;
-		String owlxmlStringOntology = getPart(msg, CONTENT);
-		OWLOntologyDocumentSource ds = new StringDocumentSource(owlxmlStringOntology);
-		VOWLXMLParser vowlxmlParser = new VOWLXMLParser();
-		HGDBOntologyManager manager = repository.getOntologyManager();
-		//Create an partial in mem onto with a hgdb manager and hgdb data factory to use.
-		OWLOntology partialInMemOnto = new OWLOntologyImpl(manager, new OWLOntologyID());
-		VOWLXMLDocument vowlxmlDoc = new VOWLXMLDocument(partialInMemOnto);
-		//The newly created ontology will hold the manager and the parser will use the manager's
-		//data factory.
-		System.out.println("RECEIVING initial ontology");
-		vowlxmlParser.parse(ds, vowlxmlDoc, new OWLOntologyLoaderConfiguration());
-		if (vowlxmlDoc.isCompleteVersionedOntology()) {
-			OWLOntologyID ontologyID = vowlxmlDoc.getRevisionData().getOntologyID();
-			IRI documentIRI = IRI.create("hgdb://" + ontologyID.getDefaultDocumentIRI().toString().substring(7));
-			HGPersistentHandle ontologyUUID = vowlxmlDoc.getVersionedOntologyID();
-			System.out.println("Storing ontology data for : " + ontologyUUID);
-			HGDBOntology o = manager.getOntologyRepository().createOWLOntology(ontologyID, documentIRI, ontologyUUID);
-			o.setOWLOntologyManager(manager);
-			storeFromTo(vowlxmlDoc.getRevisionData(), o);
-			HyperGraph graph = repository.getHyperGraph();
-			//Add version control with full matching history.
-			System.out.println("Creating and adding version control information for : " + ontologyUUID);
-			VersionedOntology voParsed = new VersionedOntology(vowlxmlDoc.getRevisions(), vowlxmlDoc.getChangesets(), graph);
-			// VALIDATE EVERYTHING HERE
-			graph.add(voParsed);
-			if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
-				repository.printAllOntologies();
-				repository.renderFullVersionedontologyToVOWLXML(voParsed, new File("C:\\temp\\received"));
-			}
-//TODO HANDLE EXCEPTION, GC created objects			
-//				//Neither Ontology, nor VersionedOntology was stored, 
-//				// but ontology axioms & entities, revisions and changeset, changes, axioms were.
-//				//TODO Run a GC, which also collects dangling changesets, changes and revisions?
-//				//Delete what was created?
-//			}
-		} else {
-			throw new IllegalStateException("The transmitted ontology was not complete.");
-		}
+    public WorkflowStateConstant sourceReceiveFullVersionedOntologyAsNew(Message msg) throws Throwable {
+		final String vowlxmlStringOntology = getPart(msg, CONTENT);		
+		graph.getTransactionManager().transact(new Callable<Object>() {
+			public Object call() {
+				//TRANSACTION START
+				VersionedOntology voParsed;
+				try {
+					voParsed = activityUtils.storeVersionedOntology(new StringDocumentSource(vowlxmlStringOntology), repository.getOntologyManager());
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+				//TODO HANDLE EXCEPTION, GC created objects			
+				// Neither Ontology, nor VersionedOntology was stored, 
+				// but ontology axioms & entities, revisions and changeset, changes, axioms were.
+				// Run a GC, which also collects dangling changesets, changes and revisions?
+				if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
+					repository.printAllOntologies();
+					try {
+						activityUtils.saveVersionedOntologyXML(voParsed, "FULL-RECEIVED-SOURCE" + getThisPeer().getIdentity().getId());
+					} catch (OWLRendererException e) {
+						//Ignore DBG Exceptions
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+				return null;
+				//TRANSACTION END
+		}}, HGTransactionConfig.DEFAULT);
 		//RESPOND
         Message reply = getReply(msg, Performative.AcceptProposal);
         send(getSender(msg), reply);
-        setCompletedMessage("Full versioned ontology received. Size: " + (owlxmlStringOntology.length()/1024) + " kilo characters");
+        setCompletedMessage("Full versioned ontology received. Size: " + (vowlxmlStringOntology.length()/1024) + " kilo characters");
 		return WorkflowStateConstant.Completed;
 	}
-
 	
 	/**
 	 * Exits activity.
@@ -310,206 +260,161 @@ public class PullActivity extends FSMActivity {
 	 */
 	@FromState("SendingInitial") //TARGET
     @OnMessage(performative="AcceptProposal")
-    @PossibleOutcome({"Completed"}) 
+    //@PossibleOutcome({"Completed"}) 
     //@AtActivity(CONTENT);
-    public WorkflowStateConstant targetFullVersionedOntologyReceived(Message msg) throws Throwable {
-        setCompletedMessage("Target reported: accepted full versioned ontology. All changes were applied.");
+    public WorkflowStateConstant targetReceiveConfirmationForFullVersionedOntology(Message msg) throws Throwable {
+        setCompletedMessage("Source reported: accepted full versioned ontology. All changes were applied.");
 		return WorkflowStateConstant.Completed;
 	}
-
 	
 	//------------------------------------------------------------------------------------
-	// SOURCE HAS ONTOLOGY -> PULLING MISSING CHANGES
+	// TARGET HAS ONTOLOGY -> VALIDATING AND PUSHING MISSING CHANGES
+	// OR CANCEL -> has 
 	//
 	
 	/**
-	 * Send a list of revisions from source and determine,
-	 * A) if pull is possible
+	 * Receive a list of revisions from target and determine,
+	 * A) if push is possible -> send Cancel
 	 * B) which changesets to send -> send Rendered Missing Changesets
 	 */
-	@FromState("Started") //TARGET
+	@FromState("Started") //SOURCE
     @OnMessage(performative="Confirm")
     @PossibleOutcome({"SendingDelta"}) 
     //@AtActivity(CONTENT);
-    public WorkflowStateConstant targetExistsConfirmedNowSendDelta(Message msg) throws Throwable {
-		Message reply; 
-		WorkflowStateConstant nextState;
-		List<Revision> targetRevisions = getPart(msg, CONTENT);
-		List<Revision> sourceRevisions = sourceVersionedOnto.getRevisions();
-		ListIterator<Revision> sourceIt = sourceRevisions.listIterator();
-		ListIterator<Revision> targetIt = targetRevisions.listIterator(); 
-		int sourceIndex = 0; 
-		boolean sharedAreEqual = true;
-		while (sharedAreEqual && sourceIt.hasNext() && targetIt.hasNext()){
-			Revision targetR = targetIt.next();			
-			Revision sourceR = sourceIt.next();
-			//TODO we'll need content dependent comparison here in the future (SHA1?)
-			if (!targetR.equals(sourceR)) {
-				sharedAreEqual = false; 
-			} else {
-				sourceIndex ++;
-			}
-		}
-		//Move back one to include last matching revision == first necessary source changeset
-		sourceIndex = sourceIndex - 1;
-		
-		//Push iff:
-		// A) sourceIndex >= 0 () is base and must be at target already.
-		if (sharedAreEqual && sourceIndex >= 0) {
-				if (!targetIt.hasNext()   // we have found each target revision is equal to a source revision.  
-				    && sourceIt.hasNext() // we have something to push, also need to push previous changeset
-				) { // at least base is equal
-					// send Revisions and changeset starting sourceIndex, no data, no uncommitted
-					// Send, including the LAST MATCHING REVISION at which index the first necessary 
-					// delta changeset will be.
-					VOWLXMLRenderConfiguration conf = new VOWLXMLRenderConfiguration(sourceIndex);
-					StringWriter stringWriter = new StringWriter(5 * 1024 * 1024);
-					VOWLXMLVersionedOntologyRenderer owlxmlRenderer = new VOWLXMLVersionedOntologyRenderer(repository.getOntologyManager());
-					owlxmlRenderer.render(sourceVersionedOnto, stringWriter, conf);
-					// PROPOSE
-					//Performative.Inform
-					reply = getReply(msg, Performative.Propose);
-					String owlxmlStringOntology = stringWriter.toString();
-			        combine(reply, struct(CONTENT, owlxmlStringOntology));
-			        combine(reply, struct(KEY_LAST_MATCHING_REVISION, sourceRevisions.get(sourceIndex)));
-			        send(targetPeerID, reply);
-			        setCompletedMessage("Source sent " + (sourceRevisions.size() - sourceIndex + 1) + " revisions and changesets to target." 
-			        		+ " size was : " + (stringWriter.getBuffer().length()/1024) + " kilo characters ");
-			        nextState = SendingDelta;
-			        if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
-			        	try {
-			        		File sent = new File("C:\\temp\\SentDelta-" +  new Date().getTime() + ".xml");
-			        		Writer writer = new OutputStreamWriter(new FileOutputStream(sent), Charset.forName("UTF-8"));
-			        		writer.write(stringWriter.toString());
-			        		writer.close();
-			        	} catch (Exception e) {
-			        		System.err.println("Push: Exception during debug output ignored:");
-			        		e.printStackTrace();
+    public WorkflowStateConstant targetSendVersionedOntologyDelta(final Message msg) throws Throwable {
+		final List<Revision> sourceRevisions = getPart(msg, CONTENT);
+		return graph.getTransactionManager().transact(new Callable<WorkflowStateConstant>() {
+			public WorkflowStateConstant call() {
+				Message reply; 
+				WorkflowStateConstant nextState;
+				int lastCommonRevisionIndex; 
+				boolean allSourceRevisionsAreInTarget;
+				boolean allTargetRevisionsAreInSource;
+				String owlxmlStringOntology;
+				//TRANSACTION START
+				VersionedOntology targetVersionedOnto = repository.getVersionControlledOntology(ontologyUUID);
+				List<Revision> targetRevisions = targetVersionedOnto.getRevisions();
+				lastCommonRevisionIndex = activityUtils.findLastCommonRevisionIndex(sourceRevisions, targetRevisions);
+				allSourceRevisionsAreInTarget = lastCommonRevisionIndex + 1 == sourceRevisions.size();
+				allTargetRevisionsAreInSource = lastCommonRevisionIndex + 1 == targetRevisions.size();
+				if (lastCommonRevisionIndex >= 0) { 
+					if (allSourceRevisionsAreInTarget) {
+						if (!allTargetRevisionsAreInSource) {
+							//S C0C1C2
+							//T C0C1C2T3
+							// send target's Revisions and changesets starting at sourceIndex, no data, no uncommitted
+							// Send, including the LAST MATCHING REVISION at which index the first necessary 
+							// delta changeset will be.
+							reply = getReply(msg, Performative.Propose);
+							try {
+								owlxmlStringOntology = activityUtils.renderVersionedOntologyDelta(targetVersionedOnto, lastCommonRevisionIndex);
+							} catch(Exception e) {
+								throw new RuntimeException(e);
+							}
+					        combine(reply, struct(CONTENT, owlxmlStringOntology));
+					        combine(reply, struct(KEY_LAST_MATCHING_REVISION, targetRevisions.get(lastCommonRevisionIndex)));
+					        setCompletedMessage("Target sent " + (targetRevisions.size() - lastCommonRevisionIndex + 1) + " changesets to source." 
+					        		+ " size was : " + (owlxmlStringOntology.length()/1024) + " kilo characters ");
+					        nextState = SendingDelta;
+					        if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
+					        	try {
+					        		activityUtils.saveStringXML(owlxmlStringOntology, "DELTA-SENT-BY-PULL-TARGET");
+					        	} catch (Exception e) {
+					        		System.err.println("Push: Exception during debug output ignored:");
+					        		e.printStackTrace();
+								}
+					        }
+						} else {
+							//S C0C1C2
+							//T C0C1C2
+							// target equals source
+							reply = getReply(msg, Performative.Confirm);
+							combine(reply, struct(CONTENT, "Target and Source are equal."));
+							setCompletedMessage("Target and Source are equal. Nothing to transmit.");
+							nextState = WorkflowStateConstant.Completed;
 						}
-			        }
-			        stringWriter.close();
-				} else {
-					if (sourceRevisions.size() == targetRevisions.size()) {
-						//TARGET IS EQUAL TO SOURCE, source might have uncommitted.
-						reply = getReply(msg, Performative.Confirm);
-				        combine(reply, struct(CONTENT, "Source and Target are equal."));
-				        setCompletedMessage("Source and Target are equal. Nothing to transmit.");
-				        nextState = WorkflowStateConstant.Completed;
 					} else {
-						//Target has more than source, should pull, if no uncommitted.
-						reply = getReply(msg, Performative.Confirm);
-				        combine(reply, struct(CONTENT, "Target is newer than source."));
-				        setCompletedMessage("Target is newer than source. A pull is suggested.");
-				        nextState = WorkflowStateConstant.Completed;
+						if (allTargetRevisionsAreInSource) {
+							//S C0C1C2S4
+							//T C0C1C2
+							//Suggest Push
+							//target has more than source, but some inital match
+							reply = getReply(msg, Performative.Confirm);
+							combine(reply, struct(CONTENT, "Source is newer than target."));
+							setCompletedMessage("Source is newer than target. A push is suggested and possible.");
+							nextState = WorkflowStateConstant.Completed;
+						} else {
+							//S C0C1C2S3
+							//T C0C1C2T3 S3 <> T3  
+							// Both have exclusive revisions after a common history,
+							// push or pull only possible with branching, which is not available.
+							// Here in the linear model it is a conflict.
+							// Revert source or target and pull or push.
+							throw new RuntimeException(new VOWLSourceTargetConflictException("Both have excusive revisions after a common history"));
+						}
 					}
+				} else {
+					// no shared history
+					throw new RuntimeException(new VOWLSourceTargetConflictException("No common revision at beginning of source and target histories."));
 				}
-		} else {
-			reply = getReply(msg, Performative.Failure);
-	        nextState = WorkflowStateConstant.Failed;
-			if (sharedAreEqual) {
-				assert(sourceIndex == 0);
-				//System error: nothing compared!!
-		        combine(reply, struct(CONTENT, "System failure: Nothing was compared.")); 
-			} else {
-				// We found one unequal revision, no push possible.
-				// Need to revert target to last equal revision, which is:
-		        combine(reply, struct(CONTENT, "Cannot push: Target revision at index " + sourceIndex + " does not match source."));
-			}
-		}
-		msg = createMessage(Performative.QueryIf, this);
-		// send full revision Array
-        combine(msg, struct(CONTENT, sourceVersionedOnto.getRevisions())); 
-        send(targetPeerID, reply);
-		return nextState;
+				//TRANSACTION END
+		        send(targetPeerID, reply);
+				return nextState;
+			}});
 	}
-	
+		
 	/**
 	 * @param msg
 	 * @return
 	 * @throws Throwable
 	 */
-	@FromState("ReceivingDelta") //SOURCE
+	@FromState("ReceivingDelta") //SOURCE 
     @OnMessage(performative="Propose")
     //@PossibleOutcome({"Completed", "Failed"}) 
     //@AtActivity(CONTENT);
-    public WorkflowStateConstant sourceReceiveDelta(Message msg) throws Throwable {
+    public WorkflowStateConstant sourceReceiveVersionedOntologyDelta(final Message msg) throws Throwable {
 		//
 		// Test if received last revision matches target head and all other prerequisites are still met.
 		//
-		Revision lastMatchingRevision = getPart(msg, KEY_LAST_MATCHING_REVISION);
+		final Revision lastMatchingRevision = getPart(msg, KEY_LAST_MATCHING_REVISION);
 		// Validate if lastMatchingRevision still is target HEAD, keep UUID
-		HGPersistentHandle ontoUUID = lastMatchingRevision.getOntologyUUID();
-		HGDBOntology onto = (HGDBOntology)repository.getHyperGraph().get(ontoUUID);
-		boolean applyDelta = false;
-		VersionedOntology targetVersionedOntology;
-		if (onto != null) {
-			targetVersionedOntology = repository.getVersionControlledOntology(onto);
-			if (targetVersionedOntology != null) {
-				if (targetVersionedOntology.getHeadRevision().equals(lastMatchingRevision)) {
-					//	we're good.
-					if (targetVersionedOntology.getWorkingSetChanges().isEmpty()) {
-						//do it.
-						applyDelta = true;
-					} else {
-						throw new IllegalStateException("Delta not applicable, because uncommitted changes exist in source.");
-					}
-				} else {
-					throw new IllegalStateException("Delta not applicable to target head revision. Might have changed.");
+		//Throws exceptions if not.
+		String vowlxmlStringDelta = graph.getTransactionManager().transact(new Callable<String>() {
+			public String call() {
+				//TRANSACTION START
+				VersionedOntology sourceVersionedOnto = activityUtils.getVersionedOntologyForDeltaFrom(lastMatchingRevision, repository);
+				System.out.println("RECEIVING PULLED delta");
+				String vowlxmlStringDelta = getPart(msg, CONTENT);
+				OWLOntologyDocumentSource ds = new StringDocumentSource(vowlxmlStringDelta);
+				// Parse, apply and append the delta
+				try {
+					activityUtils.appendDeltaTo(ds, sourceVersionedOnto);
+				} catch (Exception e) {
+					throw new RuntimeException(e);
 				}
-			} else {
-				// somebody removed version control in the meantime
-				throw new IllegalStateException("Delta refers to an ontology that is currently not version controlled.");
-			}
-		} else {
-			// somebody removed the onto in the meantime or the source sent wrong revision.
-			// 
-			throw new IllegalStateException("Delta refers to an ontology that does currently not exist.");
-		}
-		if (applyDelta) {
-			String owlxmlStringDelta = getPart(msg, CONTENT);
-			OWLOntologyDocumentSource ds = new StringDocumentSource(owlxmlStringDelta);
-			VOWLXMLParser vowlxmlParser = new VOWLXMLParser();
-			HGDBOntologyManager manager = repository.getOntologyManager();
-			//Create an dummy in mem onto with a hgdb manager and hgdb data factory to use.
-			OWLOntology dummyOnto = new OWLOntologyImpl(manager, new OWLOntologyID());
-			VOWLXMLDocument vowlxmlDoc = new VOWLXMLDocument(dummyOnto);
-			//The newly created ontology will hold the manager and the parser will use the manager's
-			//data factory.
-			System.out.println("RECEIVING delta");
-			vowlxmlParser.parse(ds, vowlxmlDoc, new OWLOntologyLoaderConfiguration());
-			VOWLXMLRenderConfiguration renderConf = vowlxmlDoc.getRenderConfig();
-			if (renderConf.isLastRevisionData() || renderConf.isUncommittedChanges()) {
-				throw new IllegalStateException("Transmitted data contains unexpected content: revision data or uncommitted.");
-			}
-			List<Revision> deltaRevisions = vowlxmlDoc.getRevisions();
-			List<ChangeSet> deltaChangeSets = vowlxmlDoc.getChangesets();
-			if (deltaRevisions.size() != deltaChangeSets.size() + 1) {
-				throw new IllegalStateException("Expecting exactly one more Revision than changesets." 
-						+ "The workingset changeset after head must not be included in the transmission");
-			}
-			// Apply and store changesets.
-			if (!deltaRevisions.get(0).equals(lastMatchingRevision)) {
-				throw new IllegalStateException("Internal error. The transmissions lastMatchingRevision data did not match the first owlxml revision.");
-			}
-			// This might cause 
-			targetVersionedOntology.addApplyDelta(deltaRevisions, deltaChangeSets);
-			if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
-				repository.printAllOntologies();
-				repository.renderFullVersionedontologyToVOWLXML(targetVersionedOntology, new File("C:\\temp"));
-			}
-			Message reply = getReply(msg, Performative.AcceptProposal);
-			send(getSender(msg), reply);
-			setCompletedMessage("Delta received and applied. Size: " + (owlxmlStringDelta.length()/1024) + " kilo characters");
-			return WorkflowStateConstant.Completed;
-		} else {
-			throw new IllegalStateException("This should be unreachable code!");
-		}
+				//assert targetVersionedOntology contains delta
+				if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
+					repository.printAllOntologies();
+					try {
+						activityUtils.saveVersionedOntologyXML(sourceVersionedOnto, "FULL-AFTER-DELTA-APPLIED-PULL-SOURCE");
+					} catch (Exception e) {
+						//DBG exception ignored.
+						e.printStackTrace();
+					}
+				}
+				return vowlxmlStringDelta;
+				//TRANSACTION END
+			}});
+		Message reply = getReply(msg, Performative.AcceptProposal);
+		send(getSender(msg), reply);
+		setCompletedMessage("Delta received and applied. Size: " + (vowlxmlStringDelta.length()/1024) + " kilo characters");
+		return WorkflowStateConstant.Completed;
 	}
 
 	@FromState("SendingDelta") //Source
     @OnMessage(performative="AcceptProposal")
-    @PossibleOutcome({"Completed"}) 
-    public WorkflowStateConstant targetDeltaSentConfirmed(Message msg) throws Throwable {
+    //@PossibleOutcome({"Completed"}) 
+    public WorkflowStateConstant targetReceiveConfirmationForDelta(Message msg) throws Throwable {
 		setCompletedMessage("All changes were applied to source.");
 		return WorkflowStateConstant.Completed;
 	}
@@ -520,31 +425,5 @@ public class PullActivity extends FSMActivity {
 	@Override
 	public String getType() {
 		return TYPENAME;
-	}
-	
-	//
-	// UTILILTY METHODS
-	//TODO put somewhere else
-	//
-	
-	private void storeFromTo(OWLOntology from, HGDBOntology to) {
-		final Set<OWLAxiom> axioms = from.getAxioms();
-		int i = 0;
-		for (OWLAxiom axiom : axioms) {
-			to.applyChange(new AddAxiom(to, axiom));
-			i++;
-			if (DBG && i % 5000 == 0) {
-				System.out.println("storeFromTo: Axioms: " + i);
-			}
-		}
-		if (DBG) System.out.println("storeFromTo: Axioms: " + i);
-		// Add Ontology Annotations
-		for (OWLAnnotation a : from.getAnnotations()) {
-			to.applyChange(new AddOntologyAnnotation(to, a));
-		}
-		// Add Import Declarations
-		for (OWLImportsDeclaration im : from.getImportsDeclarations()) {
-			to.applyChange(new AddImport(to, im));
-		}
-	}
+	}	
 }
