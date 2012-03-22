@@ -1,7 +1,13 @@
 package org.hypergraphdb.app.owl.versioning.distributed.activity;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.StringWriter;
+import java.io.Writer;
+import java.nio.charset.Charset;
+import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
@@ -41,6 +47,9 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
 
 /**
  * ActivityUtils.
+ * 
+ * INTENTIONALLY NOT THREAD SAFE. Synchronize externally.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Mar 21, 2012
  */
@@ -54,6 +63,13 @@ public class ActivityUtils {
     public static final int RENDER_BUFFER_FULL_INITIAL_SIZE = 20 * 1024 * 1024; //characters
     public static final int RENDER_BUFFER_DELTA_INITIAL_SIZE = 1 * 1024 * 1024; //characters
 
+    public static String RENDER_DIR = System.getProperty("java.io.tmpdir");
+    public static int RENDER_COUNTER = 0;
+    
+    static {
+    	System.out.println("ACTIVITY RENDER DIRECTORY: " + RENDER_DIR);
+    }
+    
 	/**
 	 * Renders a full versioned ontology (All Changesets, Revisions and Head Revision data).
 	 * Call within transaction.
@@ -196,7 +212,7 @@ public class ActivityUtils {
 						throw new IllegalStateException("Delta not applicable, because uncommitted changes exist in target.");
 					}
 				} else {
-					throw new IllegalStateException("Delta not applicable to target head revision. Might have changed.");
+					throw new IllegalStateException("Delta not applicable to head revision. Might have changed.");
 				}
 			} else {
 				// somebody removed version control in the meantime
@@ -291,4 +307,41 @@ public class ActivityUtils {
 			to.applyChange(new AddImport(to, im));
 		}
 	}
+
+	//
+	// DBG OUTPUT UTILS 
+	//
+	
+	File getTargetXMLFile(String tag) {
+		RENDER_COUNTER ++;
+		return new File(RENDER_DIR + File.separator 
+				+ (new Date().getTime()) + "-" + RENDER_COUNTER + "-" + tag + ".xml"); 
+	}
+	
+	/**
+	 * Saves a full vo as xml file to RENDER_DIR with a timestamped unique sequential name ends with the given tag.
+	 * eg. 1-8271368127-mytag.xml
+	 * Suggested tags: ONTO-SENT-PEERNAME, ONTO-RECEIVED-PEERNAME
+	 * @param vo
+	 * @param tag
+	 * @throws OWLRendererException
+	 * @throws IOException
+	 */
+	void saveVersionedOntologyXML(VersionedOntology vo, String tag) throws OWLRendererException, IOException {
+		VOWLXMLVersionedOntologyRenderer r = new VOWLXMLVersionedOntologyRenderer(vo.getWorkingSetData().getOWLOntologyManager());
+		Writer fwriter = new OutputStreamWriter(new FileOutputStream(getTargetXMLFile(tag)), Charset.forName("UTF-8"));
+		r.render(vo, fwriter, new VOWLXMLRenderConfiguration());
+		fwriter.close();
+	}
+	
+	/**
+	 * Saves a given string as xml file to RENDER_DIR with a timestamped unique sequential name ends with the given tag.
+	 * Use this for saving DELTA. Suggested tags: DELTA-SENT-PEERNAME, DELTA-RECEIVED-PEERNAME
+	 * eg. 1-8271368127-mytag.xml
+	 */
+	void saveStringXML(String content, String tag) throws IOException {
+		Writer fwriter = new OutputStreamWriter(new FileOutputStream(getTargetXMLFile(tag)), Charset.forName("UTF-8"));
+		fwriter.write(content);
+		fwriter.close();
+	}	
 }
