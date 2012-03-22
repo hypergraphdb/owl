@@ -8,13 +8,7 @@ import static org.hypergraphdb.peer.Structs.getPart;
 import static org.hypergraphdb.peer.Structs.struct;
 import static org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository.OBJECTCONTEXT_REPOSITORY;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.nio.charset.Charset;
-import java.util.Date;
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -41,7 +35,7 @@ import org.semanticweb.owlapi.io.StringDocumentSource;
 
 /**
  * PushActivity. Pushes all changes to a target repository, which has the same VersionedOntology and 
- * a change history that is shorter (older) than the source. 
+ * a change history that is shorter (older) than the source (initiator). 
  * 
  * Logical outcomes:
  * - FAILED_VERSIONED_ONTOLOGY_DOES_NOT_EXIST
@@ -143,7 +137,7 @@ public class PushActivity extends FSMActivity {
     @OnMessage(performative="QueryIf")
     @PossibleOutcome({"ReceivingDelta", "ReceivingInitial"})
     //@AtActivity(CONTENT);
-    public WorkflowStateConstant targetExistsVersionedOntology(final Message msg) throws Throwable {
+    public WorkflowStateConstant targetQueryIfVersionedOntologyExists(final Message msg) throws Throwable {
 		// msg parsing
 		final HGPersistentHandle headRevisionOntologyID = getPart(msg, CONTENT);
 		// Look up in repository
@@ -192,9 +186,9 @@ public class PushActivity extends FSMActivity {
     @OnMessage(performative="Disconfirm")
     @PossibleOutcome({"SendingInitial"}) 
     //@AtActivity(CONTENT);
-    public WorkflowStateConstant sourceExistsDisconfirmedNowSendOntology(Message msg) throws Throwable {
+    public WorkflowStateConstant sourceSendFullVersionedOntology(Message msg) throws Throwable {
 		// PROPOSE
-		String vowlxmlStringOntology  = graph.getTransactionManager().transact(new Callable<String>() {
+		String vowlxmlStringOntology = graph.getTransactionManager().transact(new Callable<String>() {
 			public String call() {
 				//TRANSACTION START		
 				try {
@@ -208,9 +202,6 @@ public class PushActivity extends FSMActivity {
 		// send full head revision data, not versioned yet.
         combine(msg, struct(CONTENT, vowlxmlStringOntology)); 
         send(targetPeerID, msg);
-        if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
-        	repository.renderFullVersionedontologyToVOWLXML(sourceVersionedOnto, new File("C:\\temp\\sent"));
-        }
 		return SendingInitial;
 	}
 	
@@ -223,7 +214,7 @@ public class PushActivity extends FSMActivity {
     @OnMessage(performative="Propose")
     //@PossibleOutcome({"Completed", "Failed"}) 
     //@AtActivity(CONTENT);
-    public WorkflowStateConstant targetExistsDisconfirmedNowReceiveOntology(Message msg) throws Throwable {
+    public WorkflowStateConstant targetReceiveFullVersionedOntologyAsNew(Message msg) throws Throwable {
 		final String vowlxmlStringOntology = getPart(msg, CONTENT);		
 		graph.getTransactionManager().transact(new Callable<Object>() {
 			public Object call() {
@@ -241,10 +232,11 @@ public class PushActivity extends FSMActivity {
 				if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
 					repository.printAllOntologies();
 					try {
-						repository.renderFullVersionedontologyToVOWLXML(voParsed, new File("C:\\temp\\received"));
+						activityUtils.saveVersionedOntologyXML(voParsed, "FULL-RECEIVED-TARGET" + getThisPeer().getIdentity().getId());
 					} catch (OWLRendererException e) {
+						//Ignore DBG exceptions
 						e.printStackTrace();
-					} catch (FileNotFoundException e) {
+					} catch (IOException e) {
 						e.printStackTrace();
 					}
 				}
@@ -268,7 +260,7 @@ public class PushActivity extends FSMActivity {
     @OnMessage(performative="AcceptProposal")
     @PossibleOutcome({"Completed"}) 
     //@AtActivity(CONTENT);
-    public WorkflowStateConstant sourceFullVersionedOntologyReceived(Message msg) throws Throwable {
+    public WorkflowStateConstant sourceReceiveConfirmationForFullVersionedOntology(Message msg) throws Throwable {
         setCompletedMessage("Target reported: accepted full versioned ontology. All changes were applied.");
 		return WorkflowStateConstant.Completed;
 	}
@@ -287,7 +279,7 @@ public class PushActivity extends FSMActivity {
     @OnMessage(performative="Confirm")
     @PossibleOutcome({"SendingDelta"}) 
     //@AtActivity(CONTENT);
-    public WorkflowStateConstant sourceExistsConfirmedNowSendDelta(final Message msg) throws Throwable {
+    public WorkflowStateConstant sourceSendVersionedOntologyDelta(final Message msg) throws Throwable {
 		final List<Revision> targetRevisions = getPart(msg, CONTENT);
 		return graph.getTransactionManager().transact(new Callable<WorkflowStateConstant>() {
 			public WorkflowStateConstant call() {
@@ -305,6 +297,8 @@ public class PushActivity extends FSMActivity {
 				if (lastCommonRevisionIndex >= 0) { 
 					if (allTargetRevisionsAreInSource) {
 						if (!allSourceRevisionsAreInTarget) {
+							// S C0C1C2S3
+							// T C0C1C2
 							// send Revisions and changeset starting sourceIndex, no data, no uncommitted
 							// Send, including the LAST MATCHING REVISION at which index the first necessary 
 							// delta changeset will be.
@@ -321,16 +315,15 @@ public class PushActivity extends FSMActivity {
 					        nextState = SendingDelta;
 					        if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
 					        	try {
-					        		File sent = new File("C:\\temp\\SentDelta-" +  new Date().getTime() + ".xml");
-					        		Writer writer = new OutputStreamWriter(new FileOutputStream(sent), Charset.forName("UTF-8"));
-					        		writer.write(owlxmlStringOntology);
-					        		writer.close();
+					        		activityUtils.saveStringXML(owlxmlStringOntology, "DELTA-SENT-BY-PUSH-SOURCE");
 					        	} catch (Exception e) {
 					        		System.err.println("Push: Exception during debug output ignored:");
 					        		e.printStackTrace();
 								}
 					        }
 						} else {
+							// S C0C1C2
+							// T C0C1C2							
 							// source equals target
 							reply = getReply(msg, Performative.Confirm);
 							combine(reply, struct(CONTENT, "Source and Target are equal."));
@@ -339,6 +332,8 @@ public class PushActivity extends FSMActivity {
 						}
 					} else {
 						if (allSourceRevisionsAreInTarget) {
+							// S C0C1C2
+							// T C0C1C2T3							
 							//Suggest Pull
 							//target has more than source, but some inital match
 							reply = getReply(msg, Performative.Confirm);
@@ -346,6 +341,8 @@ public class PushActivity extends FSMActivity {
 							setCompletedMessage("Target is newer than source. A pull is suggested and possible.");
 							nextState = WorkflowStateConstant.Completed;
 						} else {
+							// S C0C1C2S3
+							// T C0C1C2T3   S3 <> T3							
 							// Both have excusive revisions after a common history,
 							// push or pull only possible with branching, which is not available.
 							// Here in the linear model it is a conflict.
@@ -372,7 +369,7 @@ public class PushActivity extends FSMActivity {
     @OnMessage(performative="Propose")
     //@PossibleOutcome({"Completed", "Failed"}) 
     //@AtActivity(CONTENT);
-    public WorkflowStateConstant targetExistsConfirmedNowReceiveDelta(final Message msg) throws Throwable {
+    public WorkflowStateConstant targetReceiveVersionedOntologyDelta(final Message msg) throws Throwable {
 		//
 		// Test if received last revision matches target head and all other prerequisites are still met.
 		//
@@ -396,7 +393,7 @@ public class PushActivity extends FSMActivity {
 				if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
 					repository.printAllOntologies();
 					try {
-						repository.renderFullVersionedontologyToVOWLXML(targetVersionedOntology, new File("C:\\temp"));
+						activityUtils.saveVersionedOntologyXML(targetVersionedOntology, "FULL-AFTER-DELTA-APPLIED-PUSH-TARGET");
 					} catch (Exception e) {
 						//DBG excpetion ignored.
 						e.printStackTrace();
@@ -414,7 +411,7 @@ public class PushActivity extends FSMActivity {
 	@FromState("SendingDelta") //Source
     @OnMessage(performative="AcceptProposal")
     @PossibleOutcome({"Completed"}) 
-    public WorkflowStateConstant sourceDeltaSentConfirmed(Message msg) throws Throwable {
+    public WorkflowStateConstant sourceReceiveConfirmationForDelta(Message msg) throws Throwable {
 		setCompletedMessage("All changes were applied to target.");
 		return WorkflowStateConstant.Completed;
 	}
