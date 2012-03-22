@@ -48,11 +48,12 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
 /**
  * TestPush.
  * 
- * The passed name containing "1" pushes to the other. 
+ * The passed name containing "1" pulls from the other. 
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Mar 12, 2012
  */
-public class TestVDHGDBPush {
+public class TestVDHGDBPull {
 	/**
 	 * This ontology will be imported.
 	 */
@@ -79,7 +80,7 @@ public class TestVDHGDBPush {
 		VDHGDBOntologyRepository.PEER_USERNAME = argv[0];
 		VDHGDBOntologyRepository.PEER_PASSWORD = argv[1];
 		File dir = new File ("C:\\temp\\hypergraph-" + VDHGDBOntologyRepository.PEER_USERNAME);
-		System.out.println("STARTING TEST: " + dir);
+		System.out.println("STARTING PULL TEST: " + dir);
 		//System.out.println("Dropping Hypergraph at : " + dir);
 		//HGUtils.dropHyperGraphInstance(dir.getAbsolutePath());
 		if (!dir.exists()) dir.mkdir();
@@ -88,7 +89,7 @@ public class TestVDHGDBPush {
 		HGDBOntologyManager manager = HGDBOWLManager.createOWLOntologyManager();
 		VDHGDBOntologyRepository dr = (VDHGDBOntologyRepository)manager.getOntologyRepository();
 		if (argv[0].contains("1")) {
-			initializePushInitiator(manager, dr);
+			initializePullInitiator(dr);			
 			waitForOnePeer(dr);
 			HGPeerIdentity targetPeer = dr.getPeer().getConnectedPeers().iterator().next();
 			PushActivity a = dr.push(versionedOntology, targetPeer);
@@ -97,7 +98,7 @@ public class TestVDHGDBPush {
 				for (int i = 0; i < 10; i ++) {
 					System.out.println("PUSHING NEW COMMIT: " + i);
 					modifyAndCommitSource();
-					a = dr.push(versionedOntology, targetPeer);
+					//a = dr.pull(versionedOntology, targetPeer);
 					//block till done
 					r = a.getFuture().get();
 					System.out.println("RESULT State : " + i + " " + a.getState());
@@ -123,7 +124,7 @@ public class TestVDHGDBPush {
 				e.printStackTrace();
 			}
 		} else {
-			initializePushReceiver(dr);
+			initializePullTarget(manager, dr);
 			waitForOnePeer(dr);
 			//dr.getPeer().getActivityManager().getActivity(null).getState().
 		}
@@ -167,9 +168,9 @@ public class TestVDHGDBPush {
 	/**
 	 * @param dr
 	 */
-	private static void initializePushInitiator(HGDBOntologyManager manager, VDHGDBOntologyRepository dr) {
+	private static void initializePullTarget(HGDBOntologyManager manager, VDHGDBOntologyRepository dr) {
 		//Ensure Test ontology loaded		
-		System.out.println("INIT PUSH");
+		System.out.println("INIT PULL TARGET");
 		dr.printStatistics();
 		if (IMPORT_TEST_ONTOLOGY) {
 			System.out.println("IMPORTING: " + TEST_ONTOLOGY);
@@ -212,7 +213,7 @@ public class TestVDHGDBPush {
 	/**
 	 * @param dr
 	 */
-	private static void initializePushReceiver(VDHGDBOntologyRepository dr) {
+	private static void initializePullInitiator(VDHGDBOntologyRepository dr) {
 		if (dr.getOntologies().size() > 0) {
 			dr.deleteAllOntologies();
 			dr.getGarbageCollector().runGarbageCollection(GarbageCollector.MODE_DELETED_ONTOLOGIES);

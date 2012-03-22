@@ -207,6 +207,16 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 		return null;
 	}
 
+	public PullActivity pull(VersionedOntology vo, HGPeerIdentity remote) {
+		return pull(vo.getBaseRevision().getOntologyUUID(), remote);
+	}
+	
+	/**
+	 * Pull from remote. UUID allow to pull vo's not yet available.
+	 * @param ontologyUUID
+	 * @param remote
+	 * @return
+	 */
 	public PullActivity pull(HGPersistentHandle ontologyUUID, HGPeerIdentity remote) {
 		// 1) Target available
 		// 2) Target has vo? No: no pull
