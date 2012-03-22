@@ -144,7 +144,6 @@ public class PushActivity extends FSMActivity {
     @PossibleOutcome({"ReceivingDelta", "ReceivingInitial"})
     //@AtActivity(CONTENT);
     public WorkflowStateConstant targetExistsVersionedOntology(final Message msg) throws Throwable {
-		final VDHGDBOntologyRepository repo = VDHGDBOntologyRepository.getInstance();
 		// msg parsing
 		final HGPersistentHandle headRevisionOntologyID = getPart(msg, CONTENT);
 		// Look up in repository
@@ -153,7 +152,7 @@ public class PushActivity extends FSMActivity {
 			public WorkflowStateConstant call() {
 				HGDBOntology o = graph.get(headRevisionOntologyID);
 				if (o != null) {
-					VersionedOntology targetVersionedOnto = repo.getVersionControlledOntology(o); 
+					VersionedOntology targetVersionedOnto = repository.getVersionControlledOntology(o); 
 					if (targetVersionedOnto != null) {
 						// send Confirm with existing revisions objects
 						// and tell if we have uncommitted changes.
@@ -168,14 +167,20 @@ public class PushActivity extends FSMActivity {
 				        	//Target has uncommitted - cannot push
 				        	throw new RuntimeException(new VOWLSourceTargetConflictException("Target has uncommitted changes. Cannot push."));
 				        }
+					} else {
+						// Ontology but no versioning information, 
+						// cannot determine
+			        	//Target has uncommitted - cannot push
+			        	throw new RuntimeException(new VOWLSourceTargetConflictException("Target ontology exists without versioning. Cannot match revisions. Cannot push."));
 					}
+				} else {
+					// o null or targetVersionedOnto null
+					// send Confirm
+			        Message reply = getReply(msg, Performative.Disconfirm);
+			        send(getSender(msg), reply);
+					return ReceivingInitial;
+					//TRANSACTION END
 				}
-				// o null or targetVersionedOnto null
-				// send Confirm
-		        Message reply = getReply(msg, Performative.Disconfirm);
-		        send(getSender(msg), reply);
-				return ReceivingInitial;
-				//TRANSACTION END
 			}});
     }
 	
@@ -245,7 +250,7 @@ public class PushActivity extends FSMActivity {
 				}
 				return null;
 				//TRANSACTION END
-		}}, HGTransactionConfig.READONLY);
+		}}, HGTransactionConfig.DEFAULT);
 		//RESPOND
         Message reply = getReply(msg, Performative.AcceptProposal);
         send(getSender(msg), reply);
