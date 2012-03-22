@@ -302,7 +302,7 @@ public class TestVDHGDBPush {
 		// PARSE
 		//
 		//for (File f : renderedFiles) {
-		File f = new File("C:\\_CiRM\\testontos\\CountyVersioned-Rev-"+ 10 + ".vowlxml");
+		File f = new File(RENDER_DIRECTORY + File.pathSeparator + "CountyVersioned-Rev-"+ 10 + ".vowlxml");
 			System.out.println("Parsing: " + f + " length: " + (f.length() / 1024) + " kB");
 			OWLOntologyDocumentSource source = new FileDocumentSource(f);
 			VOWLXMLParser parser = new VOWLXMLParser();
