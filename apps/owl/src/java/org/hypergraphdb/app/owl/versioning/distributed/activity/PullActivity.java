@@ -203,7 +203,7 @@ public class PullActivity extends FSMActivity {
 		reply = getReply(msg, Performative.Propose);
 		// send full head revision data, not versioned yet.
         combine(reply, struct(CONTENT, vowlxmlStringOntology)); 
-        send(targetPeerID, msg);
+        send(getSender(msg), reply);
 		return SendingInitial;
 	}
 	
@@ -212,7 +212,7 @@ public class PullActivity extends FSMActivity {
 	 * @return
 	 * @throws Throwable
 	 */
-	@FromState("ReceivingInitial") //SOURCE
+	@FromState("Started") //SOURCE
     @OnMessage(performative="Propose")
     //@PossibleOutcome({"Completed", "Failed"}) 
     //@AtActivity(CONTENT);
@@ -277,7 +277,7 @@ public class PullActivity extends FSMActivity {
 	 * A) if push is possible -> send Cancel
 	 * B) which changesets to send -> send Rendered Missing Changesets
 	 */
-	@FromState("Started") //SOURCE
+	@FromState("Started") //TARGET
     @OnMessage(performative="Confirm")
     @PossibleOutcome({"SendingDelta"}) 
     //@AtActivity(CONTENT);
@@ -292,7 +292,8 @@ public class PullActivity extends FSMActivity {
 				boolean allTargetRevisionsAreInSource;
 				String owlxmlStringOntology;
 				//TRANSACTION START
-				VersionedOntology targetVersionedOnto = repository.getVersionControlledOntology(ontologyUUID);
+				//VersionedOntology targetVersionedOnto = repository.getVersionControlledOntology(ontologyUUID);
+				VersionedOntology targetVersionedOnto = repository.getVersionControlledOntology(sourceRevisions.get(0).getOntologyUUID());
 				List<Revision> targetRevisions = targetVersionedOnto.getRevisions();
 				lastCommonRevisionIndex = activityUtils.findLastCommonRevisionIndex(sourceRevisions, targetRevisions);
 				allSourceRevisionsAreInTarget = lastCommonRevisionIndex + 1 == sourceRevisions.size();
@@ -305,7 +306,7 @@ public class PullActivity extends FSMActivity {
 							// send target's Revisions and changesets starting at sourceIndex, no data, no uncommitted
 							// Send, including the LAST MATCHING REVISION at which index the first necessary 
 							// delta changeset will be.
-							reply = getReply(msg, Performative.Propose);
+							reply = getReply(msg, Performative.Inform);
 							try {
 								owlxmlStringOntology = activityUtils.renderVersionedOntologyDelta(targetVersionedOnto, lastCommonRevisionIndex);
 							} catch(Exception e) {
@@ -328,7 +329,7 @@ public class PullActivity extends FSMActivity {
 							//S C0C1C2
 							//T C0C1C2
 							// target equals source
-							reply = getReply(msg, Performative.Confirm);
+							reply = getReply(msg, Performative.InformIf);
 							combine(reply, struct(CONTENT, "Target and Source are equal."));
 							setCompletedMessage("Target and Source are equal. Nothing to transmit.");
 							nextState = WorkflowStateConstant.Completed;
@@ -339,7 +340,7 @@ public class PullActivity extends FSMActivity {
 							//T C0C1C2
 							//Suggest Push
 							//target has more than source, but some inital match
-							reply = getReply(msg, Performative.Confirm);
+							reply = getReply(msg, Performative.InformIf);
 							combine(reply, struct(CONTENT, "Source is newer than target."));
 							setCompletedMessage("Source is newer than target. A push is suggested and possible.");
 							nextState = WorkflowStateConstant.Completed;
@@ -358,9 +359,9 @@ public class PullActivity extends FSMActivity {
 					throw new RuntimeException(new VOWLSourceTargetConflictException("No common revision at beginning of source and target histories."));
 				}
 				//TRANSACTION END
-		        send(targetPeerID, reply);
+		        send(getSender(msg), reply);
 				return nextState;
-			}});
+			}}, HGTransactionConfig.READONLY);
 	}
 		
 	/**
@@ -368,8 +369,8 @@ public class PullActivity extends FSMActivity {
 	 * @return
 	 * @throws Throwable
 	 */
-	@FromState("ReceivingDelta") //SOURCE 
-    @OnMessage(performative="Propose")
+	@FromState("Started") //SOURCE 
+    @OnMessage(performative="Inform")
     //@PossibleOutcome({"Completed", "Failed"}) 
     //@AtActivity(CONTENT);
     public WorkflowStateConstant sourceReceiveVersionedOntologyDelta(final Message msg) throws Throwable {
@@ -404,14 +405,22 @@ public class PullActivity extends FSMActivity {
 				}
 				return vowlxmlStringDelta;
 				//TRANSACTION END
-			}});
+			}}, HGTransactionConfig.DEFAULT);
 		Message reply = getReply(msg, Performative.AcceptProposal);
 		send(getSender(msg), reply);
 		setCompletedMessage("Delta received and applied. Size: " + (vowlxmlStringDelta.length()/1024) + " kilo characters");
 		return WorkflowStateConstant.Completed;
 	}
 
-	@FromState("SendingDelta") //Source
+	@FromState("Started") //SOURCE 
+    @OnMessage(performative="InformIf")
+    public WorkflowStateConstant sourceReceiveVersionedOntologyDeltaCancelled(final Message msg) throws Throwable {
+		String message = getPart(msg, CONTENT);
+		setCompletedMessage(message);
+		return WorkflowStateConstant.Completed;
+	}
+	
+		@FromState("SendingDelta") //Source
     @OnMessage(performative="AcceptProposal")
     //@PossibleOutcome({"Completed"}) 
     public WorkflowStateConstant targetReceiveConfirmationForDelta(Message msg) throws Throwable {
