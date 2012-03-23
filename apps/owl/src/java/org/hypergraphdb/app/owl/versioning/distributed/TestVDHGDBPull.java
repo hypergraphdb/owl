@@ -1,10 +1,7 @@
 package org.hypergraphdb.app.owl.versioning.distributed;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -12,38 +9,26 @@ import java.util.concurrent.ExecutionException;
 import org.hypergraphdb.app.owl.HGDBOWLManager;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
-import org.hypergraphdb.app.owl.HGDBOntologyManagerImpl;
 import org.hypergraphdb.app.owl.gc.GarbageCollector;
 import org.hypergraphdb.app.owl.usage.ImportOntologies;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
-import org.hypergraphdb.app.owl.versioning.distributed.activity.PushActivity;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLParser;
+import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowserRepositoryActivity;
+import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowserRepositoryActivity.BrowseEntry;
+import org.hypergraphdb.app.owl.versioning.distributed.activity.PullActivity;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
-import org.hypergraphdb.peer.workflow.Activity;
 import org.hypergraphdb.peer.workflow.ActivityResult;
-import org.hypergraphdb.util.HGUtils;
-import org.semanticweb.owlapi.io.FileDocumentSource;
-import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
-import org.semanticweb.owlapi.io.OWLParserException;
+import org.jivesoftware.smack.XMPPConnection;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyChangeException;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyID;
-import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.RemoveAxiom;
-import org.semanticweb.owlapi.model.UnloadableImportException;
-
-import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
 
 /**
  * TestPush.
@@ -54,6 +39,12 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
  * @created Mar 12, 2012
  */
 public class TestVDHGDBPull {
+
+	static {
+	    XMPPConnection.DEBUG_ENABLED = false;
+	}
+
+	public static int TARGET_MODIFICATION_LIMIT = 50;
 	/**
 	 * This ontology will be imported.
 	 */
@@ -62,7 +53,7 @@ public class TestVDHGDBPull {
 	/**
 	 * if false the first one found will be used.
 	 */
-	public static boolean IMPORT_TEST_ONTOLOGY = false;
+	public static boolean IMPORT_TEST_ONTOLOGY = true;
 	
 	/**
 	 * This directory will contain test output (Rendered ontologies)
@@ -89,71 +80,79 @@ public class TestVDHGDBPull {
 		HGDBOntologyManager manager = HGDBOWLManager.createOWLOntologyManager();
 		VDHGDBOntologyRepository dr = (VDHGDBOntologyRepository)manager.getOntologyRepository();
 		if (argv[0].contains("1")) {
+			System.out.println("INIT LOCAL PULL INITIATOR: " + VDHGDBOntologyRepository.PEER_USERNAME);
 			initializePullInitiator(dr);			
 			waitForOnePeer(dr);
 			HGPeerIdentity targetPeer = dr.getPeer().getConnectedPeers().iterator().next();
-			PushActivity a = dr.push(versionedOntology, targetPeer);
-			try {
-				ActivityResult r = a.getFuture().get();
-				for (int i = 0; i < 10; i ++) {
-					System.out.println("PUSHING NEW COMMIT: " + i);
-					modifyAndCommitSource();
-					//a = dr.pull(versionedOntology, targetPeer);
-					//block till done
-					r = a.getFuture().get();
-					System.out.println("RESULT State : " + i + " " + a.getState());
-					System.out.println("RESULT Message : " + i + " " + a.getCompletedMessage());
-					System.out.println("RESULT: " + i + " Exception:" + r.getException());
-					System.out.println("FINISHED: PUSHING NEW COMMIT: " + i + "");
-				}
-				for (int i = 0; i < 10; i ++) {
-					versionedOntology.revertHeadOneRevision();
-				}
+			//Start Pull Loop.
 				try {
-					a = dr.push(versionedOntology, targetPeer);
-					r = a.getFuture().get();
-					System.out.println("RESULT: " + "X" + " " + a.getCompletedMessage());
-					System.out.println("RESULT: " + "X" + " Exception:" + r.getException());
-					System.out.println(a.getFuture().get().getException());
-				} catch (Exception e) {
+					while  (true) {
+					System.out.print("BROWSING PEER...");
+					BrowserRepositoryActivity browseAct = dr.browseRemote(targetPeer);
+					//block
+					ActivityResult browseResult = browseAct.getFuture().get();
+					if (browseResult.getException() != null) {
+						throw browseResult.getException();
+					}
+					List<BrowseEntry> l = browseAct.getRepositoryBrowseEntries();
+					System.out.println("Done. Got: " + l.size() + " remote ontologies.");
+					for (BrowseEntry entry : l) {
+						dr.printStatistics();
+						PullActivity pullAct = dr.pull(entry.getUuid(), targetPeer);
+						//block
+						System.out.print("PULLING Ontology" + entry.getOwlOntologyIRI() + " UUID: " + entry.getUuid() + " ...");
+						ActivityResult pullResult = pullAct.getFuture().get();
+						System.out.println("Done. Final State: " + pullAct.getState());
+						System.out.println("Completedmessage: " + pullAct.getCompletedMessage());
+						if (pullResult.getException() != null) {
+							throw pullResult.getException();
+						}
+					}
+					//Wait 10 seconds after each pull cycle.
+					System.out.println("Sleeping.");
+					Thread.sleep(20000);
+					}
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				} catch (ExecutionException e) {
+					e.printStackTrace();
+				} catch (Throwable e) {
+					e.printStackTrace();
+				} finally {
+				}
+				dr.stopNetworking();
+		} else {
+			System.out.println("INIT REMOTE PULL TARGET" + VDHGDBOntologyRepository.PEER_USERNAME);
+			initializePullTarget(manager, dr);
+			waitForOnePeer(dr);
+			for (int i = 0; i < TARGET_MODIFICATION_LIMIT; i ++) {
+				System.out.println("TARGET MODIFICATION: " + i);
+				modifyAndCommitTarget();
+				try {
+					Thread.sleep(30000);
+				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-			} catch (ExecutionException e) {
-				e.printStackTrace();
+			}
+			System.out.println("REVERTING TARGET REVISIONS " + VDHGDBOntologyRepository.PEER_USERNAME);
+			for (int i = 0; i < TARGET_MODIFICATION_LIMIT; i ++) {
+				versionedOntology.revertHeadOneRevision();
+			}
+			System.out.println("REVERTING TARGET REVISIONS FINISHED " + VDHGDBOntologyRepository.PEER_USERNAME);
+			try {
+				Thread.sleep(100 * 60 * 1000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-		} else {
-			initializePullTarget(manager, dr);
-			waitForOnePeer(dr);
-			//dr.getPeer().getActivityManager().getActivity(null).getState().
+			dr.stopNetworking();
+			System.out.println("BYE BYE " + VDHGDBOntologyRepository.PEER_USERNAME);
 		}
-		try {
-			Thread.sleep(15 * 60 * 1000);
-		} catch (InterruptedException e) {
-			//ignored
-		}
-		
-		dr.stopNetworking();
-//		dr.printPeerInfo();
-//		try {
-//			while (true) {
-//				Thread.sleep((long) 10000);
-//				dr.printPeerInfo();
-//				dr.push(null, null);
-//			}
-//			
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		} finally {
-//			dr.stopNetworking();
-//		}
 	}
 
 	/**
 	 * Creates five class declaration axioms.
 	 */
-	private static void modifyAndCommitSource() {
+	private static void modifyAndCommitTarget() {
 		OWLOntology onto =  versionedOntology.getWorkingSetData();
 		OWLOntologyManager manager =  onto.getOWLOntologyManager();
 		OWLDataFactory df = manager.getOWLDataFactory();
@@ -163,6 +162,7 @@ public class TestVDHGDBPull {
 			manager.applyChange(new AddAxiom(onto, newAx));
 		}
 		versionedOntology.commit("Automated User", "Time was: " +  new Date().getTime());
+		System.out.println("TARGET REVISION COUNT: " + versionedOntology.getNrOfRevisions());
 	}
 
 	/**
@@ -185,6 +185,7 @@ public class TestVDHGDBPull {
 			} catch (OWLOntologyCreationException e) {
 				throw new RuntimeException("load Failes", e);
 			}
+			System.out.println("LOADED ONTOLOLGY ID: " + o.getOntologyID());
 			System.out.println("addVersionControl: " + o);
 			versionedOntology = dr.addVersionControl(o, "distributedTestUser");
 			// MANIPULATE REMOVE CHANGED
@@ -246,88 +247,4 @@ public class TestVDHGDBPull {
 		} 
 	}
 	
-	/**
-	 * @param dr
-	 */
-	private static void ensureOneVersionedOntology(VDHGDBOntologyRepository dr) {	
-		List <File> renderedFiles = new ArrayList<File>();
-		HGDBOntologyManagerImpl manager = HGDBOWLManager.createOWLOntologyManager();
-		//
-		// IMPORT AND RENDER
-		//
-//		try {
-//			VDHGDBOntologyRepository repo = (VDHGDBOntologyRepository)manager.getOntologyRepository();
-//			//repo.dropHypergraph();
-//			repo.deleteAllOntologies();
-//			//System.out.println("Running GC");
-//			//CANNOT RUN GC nullHANDLE problem !!! repo.runGarbageCollector();
-//			File f = new File("C:\\_CiRM\\testontos\\County.owl");
-//			IRI targetIRI = ImportOntologies.importOntology(f, manager);
-//			//File f2 = new File("C:\\_CiRM\\testontos\\1 csr.owl");
-//			//IRI targetIRI = ImportOntologies.importOntology(f2, manager);
-//			HGDBOntology o = (HGDBOntology)manager.loadOntologyFromOntologyDocument(targetIRI);
-//			VersionedOntology vo = repo.addVersionControl(o, "distributedTestUser");
-//			// MANIPULATE REMOVE CHANGED
-//			Object[] axioms = o.getAxioms().toArray();
-//			//remove all axioms 10.
-//			for (int i = 0; i < axioms.length / 10; i ++) {
-//				int j = i;
-//				for (;j < i + axioms.length / 100; j++) {
-//					if (j < axioms.length) {
-//						manager.applyChange(new RemoveAxiom(o, (OWLAxiom)axioms[j]));
-//					}
-//				}
-//				i = j;
-//				vo.commit("SameUser", " commit no " + i);
-//			}
-//			// RENDER VERSIONED ONTOLOGY, includes data
-//			for (int i = 0; i < vo.getArity(); i ++) {
-//				VOWLXMLRenderConfiguration c = new VOWLXMLRenderConfiguration();
-//				c.setLastRevisionIndex(i);
-//				VOWLXMLVersionedOntologyRenderer r = new VOWLXMLVersionedOntologyRenderer(manager);
-//				File fx = new File("C:\\_CiRM\\testontos\\CountyVersioned-Rev-"+ i + ".vowlxml");
-//				renderedFiles.add(fx);
-//				//File fx = new File("C:\\_CiRM\\testontos\\1 csr-Rev-"+ i + ".vowlxml");
-//				FileWriter fwriter = new FileWriter(fx);
-//				//	Full export
-//				r.render(vo, fwriter, c);
-//			}
-//		} catch (OWLOntologyCreationException e) {
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (OWLRendererException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		//
-		// PARSE
-		//
-		//for (File f : renderedFiles) {
-		File f = new File(RENDER_DIRECTORY + File.pathSeparator + "CountyVersioned-Rev-"+ 10 + ".vowlxml");
-			System.out.println("Parsing: " + f + " length: " + (f.length() / 1024) + " kB");
-			OWLOntologyDocumentSource source = new FileDocumentSource(f);
-			VOWLXMLParser parser = new VOWLXMLParser();
-			OWLOntology onto = new OWLOntologyImpl(manager, new OWLOntologyID());
-			// must have onto for manager in super class
-			VOWLXMLDocument versionedOntologyRoot = new VOWLXMLDocument(onto);
-			try {
-				parser.parse(source, versionedOntologyRoot, new OWLOntologyLoaderConfiguration());
-				System.out.println("PARSING FINISHED.");
-			} catch (OWLOntologyChangeException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (UnloadableImportException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (OWLParserException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		//}
-	}
 }
