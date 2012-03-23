@@ -26,6 +26,7 @@ import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowserRepositoryActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.PullActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.PushActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLRenderConfiguration;
@@ -34,6 +35,7 @@ import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.PeerPresenceListener;
 import org.hypergraphdb.peer.workflow.Activity;
+import org.hypergraphdb.peer.workflow.ActivityResult;
 import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.jivesoftware.smack.XMPPConnection;
 import org.semanticweb.owlapi.io.OWLRendererException;
@@ -50,10 +52,6 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 
 	private HGDBOntologyManager ontologyManager;
 	
-	static {
-	    XMPPConnection.DEBUG_ENABLED = true;
-	}
-
 	HyperGraphPeer peer;
 	
 	public static String PEER_USERNAME = "hg1"; 
@@ -169,6 +167,8 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 		//Important: to cause static initialization.
 		if (PushActivity.ReceivingInitial == null) {};
 		peer.getActivityManager().registerActivityType(PushActivity.TYPENAME, PushActivity.class);
+		peer.getActivityManager().registerActivityType(PullActivity.TYPENAME, PullActivity.class);
+		peer.getActivityManager().registerActivityType(BrowserRepositoryActivity.TYPENAME, BrowserRepositoryActivity.class);
 
 		return success;
 	}
@@ -207,6 +207,19 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 		return null;
 	}
 
+	/**
+	 * 
+	 * @param remote
+	 * @return
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 */
+	public BrowserRepositoryActivity browseRemote(HGPeerIdentity remote) {
+		BrowserRepositoryActivity activity = new BrowserRepositoryActivity(peer, remote);
+		peer.getActivityManager().initiateActivity(activity);
+		return activity;
+	}
+	
 	public PullActivity pull(VersionedOntology vo, HGPeerIdentity remote) {
 		return pull(vo.getBaseRevision().getOntologyUUID(), remote);
 	}
