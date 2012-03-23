@@ -11,6 +11,7 @@ import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.gc.GarbageCollector;
 import org.hypergraphdb.app.owl.usage.ImportOntologies;
+import org.hypergraphdb.app.owl.util.StopWatch;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowserRepositoryActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowserRepositoryActivity.BrowseEntry;
@@ -44,7 +45,7 @@ public class TestVDHGDBPull {
 	    XMPPConnection.DEBUG_ENABLED = false;
 	}
 
-	public static int TARGET_MODIFICATION_LIMIT = 50;
+	public static int TARGET_MODIFICATION_LIMIT = 500;
 	/**
 	 * This ontology will be imported.
 	 */
@@ -85,6 +86,7 @@ public class TestVDHGDBPull {
 			waitForOnePeer(dr);
 			HGPeerIdentity targetPeer = dr.getPeer().getConnectedPeers().iterator().next();
 			//Start Pull Loop.
+			StopWatch stopWatch = new StopWatch(false);
 				try {
 					while  (true) {
 					System.out.print("BROWSING PEER...");
@@ -98,18 +100,20 @@ public class TestVDHGDBPull {
 					System.out.println("Done. Got: " + l.size() + " remote ontologies.");
 					for (BrowseEntry entry : l) {
 						dr.printStatistics();
+						stopWatch.start();
 						PullActivity pullAct = dr.pull(entry.getUuid(), targetPeer);
 						//block
 						System.out.print("PULLING Ontology" + entry.getOwlOntologyIRI() + " UUID: " + entry.getUuid() + " ...");
 						ActivityResult pullResult = pullAct.getFuture().get();
 						System.out.println("Done. Final State: " + pullAct.getState());
 						System.out.println("Completedmessage: " + pullAct.getCompletedMessage());
+						stopWatch.stop("PULL TIME: ");
 						if (pullResult.getException() != null) {
 							throw pullResult.getException();
 						}
 					}
 					//Wait 10 seconds after each pull cycle.
-					System.out.println("Sleeping.");
+					System.out.println("Sleeping 20 secs.");
 					Thread.sleep(20000);
 					}
 				} catch (InterruptedException e) {
