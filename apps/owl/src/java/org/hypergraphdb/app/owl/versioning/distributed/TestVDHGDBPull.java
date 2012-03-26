@@ -61,6 +61,10 @@ public class TestVDHGDBPull {
 	 */
 	public static String RENDER_DIRECTORY = "C:\\_CiRM\\testontos\\TestVDHGDBPush\\";
 		
+	public static String PEER_HOSTNAME = "W203-003.miamidade.gov";
+	public static String PEER_USERNAME;
+	public static String PEER_PASSWORD;
+
 	
 	private static VersionedOntology versionedOntology;
 	
@@ -69,9 +73,9 @@ public class TestVDHGDBPull {
 	 * @param argv call with username.
 	 */
 	public static void main(String[] argv) {
-		VDHGDBOntologyRepository.PEER_USERNAME = argv[0];
-		VDHGDBOntologyRepository.PEER_PASSWORD = argv[1];
-		File dir = new File ("C:\\temp\\hypergraph-" + VDHGDBOntologyRepository.PEER_USERNAME);
+		PEER_USERNAME = argv[0];
+		PEER_PASSWORD = argv[1];
+		File dir = new File ("C:\\temp\\hypergraph-" + PEER_USERNAME);
 		System.out.println("STARTING PULL TEST: " + dir);
 		//System.out.println("Dropping Hypergraph at : " + dir);
 		//HGUtils.dropHyperGraphInstance(dir.getAbsolutePath());
@@ -81,7 +85,7 @@ public class TestVDHGDBPull {
 		HGDBOntologyManager manager = HGDBOWLManager.createOWLOntologyManager();
 		VDHGDBOntologyRepository dr = (VDHGDBOntologyRepository)manager.getOntologyRepository();
 		if (argv[0].contains("1")) {
-			System.out.println("INIT LOCAL PULL INITIATOR: " + VDHGDBOntologyRepository.PEER_USERNAME);
+			System.out.println("INIT LOCAL PULL INITIATOR: " + PEER_USERNAME);
 			initializePullInitiator(dr);			
 			waitForOnePeer(dr);
 			HGPeerIdentity targetPeer = dr.getPeer().getConnectedPeers().iterator().next();
@@ -126,7 +130,7 @@ public class TestVDHGDBPull {
 				}
 				dr.stopNetworking();
 		} else {
-			System.out.println("INIT REMOTE PULL TARGET" + VDHGDBOntologyRepository.PEER_USERNAME);
+			System.out.println("INIT REMOTE PULL TARGET" + PEER_USERNAME);
 			initializePullTarget(manager, dr);
 			waitForOnePeer(dr);
 			for (int i = 0; i < TARGET_MODIFICATION_LIMIT; i ++) {
@@ -138,18 +142,18 @@ public class TestVDHGDBPull {
 					e.printStackTrace();
 				}
 			}
-			System.out.println("REVERTING TARGET REVISIONS " + VDHGDBOntologyRepository.PEER_USERNAME);
+			System.out.println("REVERTING TARGET REVISIONS " + PEER_USERNAME);
 			for (int i = 0; i < TARGET_MODIFICATION_LIMIT; i ++) {
 				versionedOntology.revertHeadOneRevision();
 			}
-			System.out.println("REVERTING TARGET REVISIONS FINISHED " + VDHGDBOntologyRepository.PEER_USERNAME);
+			System.out.println("REVERTING TARGET REVISIONS FINISHED " + PEER_USERNAME);
 			try {
 				Thread.sleep(100 * 60 * 1000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			dr.stopNetworking();
-			System.out.println("BYE BYE " + VDHGDBOntologyRepository.PEER_USERNAME);
+			System.out.println("BYE BYE " + PEER_USERNAME);
 		}
 	}
 
@@ -212,7 +216,7 @@ public class TestVDHGDBPull {
 			versionedOntology.getWorkingSetData().setOWLOntologyManager(manager);
 			if (versionedOntology == null) throw new IllegalStateException("We have NOT found a versioned ontololgy in the repository.");
 		}
-		dr.startNetworking();
+		dr.startNetworking(PEER_USERNAME, PEER_PASSWORD, PEER_HOSTNAME);
 	}
 
 	/**
@@ -223,7 +227,7 @@ public class TestVDHGDBPull {
 			dr.deleteAllOntologies();
 			dr.getGarbageCollector().runGarbageCollection(GarbageCollector.MODE_DELETED_ONTOLOGIES);
 		}
-		dr.startNetworking();
+		dr.startNetworking(PEER_USERNAME, PEER_PASSWORD, PEER_HOSTNAME);
 	}
 
 	/**

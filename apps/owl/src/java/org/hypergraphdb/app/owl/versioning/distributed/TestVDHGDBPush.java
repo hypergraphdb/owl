@@ -68,6 +68,9 @@ public class TestVDHGDBPush {
 	 */
 	public static String RENDER_DIRECTORY = "C:\\_CiRM\\testontos\\TestVDHGDBPush\\";
 		
+	public static String PEER_HOSTNAME = "W203-003.miamidade.gov";
+	public static String PEER_USERNAME;
+	public static String PEER_PASSWORD;
 	
 	private static VersionedOntology versionedOntology;
 	
@@ -76,9 +79,9 @@ public class TestVDHGDBPush {
 	 * @param argv call with username.
 	 */
 	public static void main(String[] argv) {
-		VDHGDBOntologyRepository.PEER_USERNAME = argv[0];
-		VDHGDBOntologyRepository.PEER_PASSWORD = argv[1];
-		File dir = new File ("C:\\temp\\hypergraph-" + VDHGDBOntologyRepository.PEER_USERNAME);
+		PEER_USERNAME = argv[0];
+		PEER_PASSWORD = argv[1];
+		File dir = new File ("C:\\temp\\hypergraph-" + PEER_USERNAME);
 		System.out.println("STARTING TEST: " + dir);
 		//System.out.println("Dropping Hypergraph at : " + dir);
 		//HGUtils.dropHyperGraphInstance(dir.getAbsolutePath());
@@ -206,7 +209,7 @@ public class TestVDHGDBPush {
 			versionedOntology.getWorkingSetData().setOWLOntologyManager(manager);
 			if (versionedOntology == null) throw new IllegalStateException("We have NOT found a versioned ontololgy in the repository.");
 		}
-		dr.startNetworking();
+		dr.startNetworking(PEER_USERNAME, PEER_PASSWORD, PEER_HOSTNAME);
 	}
 
 	/**
@@ -217,7 +220,7 @@ public class TestVDHGDBPush {
 			dr.deleteAllOntologies();
 			dr.getGarbageCollector().runGarbageCollection(GarbageCollector.MODE_DELETED_ONTOLOGIES);
 		}
-		dr.startNetworking();
+		dr.startNetworking(PEER_USERNAME, PEER_PASSWORD, PEER_HOSTNAME);
 	}
 
 	/**
