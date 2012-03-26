@@ -1,13 +1,10 @@
 package org.hypergraphdb.app.owl.versioning.distributed;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.nio.charset.Charset;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,9 +15,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.hypergraphdb.HGHandle;
+import static org.hypergraphdb.peer.Structs.getPart;
+
 import org.hypergraphdb.HGPersistentHandle;
-import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
@@ -29,17 +26,12 @@ import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowserRepositoryActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.PullActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.PushActivity;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLRenderConfiguration;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVersionedOntologyRenderer;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.PeerPresenceListener;
+import org.hypergraphdb.peer.serializer.JSONReader;
 import org.hypergraphdb.peer.workflow.Activity;
-import org.hypergraphdb.peer.workflow.ActivityResult;
 import org.hypergraphdb.transaction.HGTransactionConfig;
-import org.jivesoftware.smack.XMPPConnection;
-import org.semanticweb.owlapi.io.OWLRendererException;
-import org.semanticweb.owlapi.model.OWLOntology;
 
 /**
  * VDHGDBOntologyRepository.
@@ -50,12 +42,18 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 
 	public static final String OBJECTCONTEXT_REPOSITORY = "Repository";
 
+	/**
+	 * Expected to be UTF-8 encoded.
+	 * Located by this.getClass().getResource()
+	 */
+	public static String PEER_CONFIGURATION_FILE = "VDHGDBConfig.p2p";
+
 	private HGDBOntologyManager ontologyManager;
 	
 	HyperGraphPeer peer;
 	
-	public static String PEER_USERNAME = "hg1"; 
-	public static String PEER_PASSWORD = "hg1"; 
+	//public static String PEER_USERNAME = "hg1"; 
+	//public static String PEER_PASSWORD = "hg1"; 
 	
 	public static VDHGDBOntologyRepository getInstance() {
 		if (!hasInstance()) {
@@ -64,7 +62,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 			VDHGDBOntologyRepository instance = new VDHGDBOntologyRepository(hypergraphDBLocation);
 			//instance.setOntologyManager(manager);
 			setInstance(instance);
-			instance.initializeActivities();
+			//instance.initializeActivities();
 			//((VDHGDBOntologyRepository)getInstance()).initializeActivities();
 		}
 		HGDBOntologyRepository instance = HGDBOntologyRepository.getInstance(); 
@@ -85,8 +83,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 		ontologyManager = manager;
 	}
 	
-	private void initializeActivities() {
-		Map<String, Object> peerConfig = getPeerConfig();
+	private void createAndConfigurePeer(Map<String, Object> peerConfig) {
 		peer = new HyperGraphPeer(peerConfig, getHyperGraph());
 		peer.getActivityManager();
 		peer.getObjectContext().put(OBJECTCONTEXT_REPOSITORY, this);
@@ -106,46 +103,93 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 				System.out.println("Peer Joined" + peer);
 			}
 		});
-				
-
 	}
 	
-	private Map<String,Object> getPeerConfig() {
-		Map<String,Object> peerConfig = new HashMap<String, Object>();
-		List<Map<?,?>> bootstrapConfig = new ArrayList<Map<?,?>>();
-		Map<String,Object> bootstrapConfigSub1 = new HashMap<String, Object>();
-		Map<String,Object> bootstrapConfigSub2 = new HashMap<String, Object>();
-		Map<String,Object> interfaceConfig = new HashMap<String, Object>();
-		peerConfig.put("interfaceType", "org.hypergraphdb.peer.xmpp.XMPPPeerInterface");
-		peerConfig.put("peerName", "VDHGDBOntologyRepository");
-		peerConfig.put("interfaceConfig", interfaceConfig);
-		peerConfig.put("bootstrap", bootstrapConfig);
-		bootstrapConfig.add(bootstrapConfigSub1);
-		bootstrapConfig.add(bootstrapConfigSub2);
-		bootstrapConfigSub1.put("class", "org.hypergraphdb.peer.bootstrap.AffirmIdentityBootstrap");
-		bootstrapConfigSub1.put("config", new HashMap<String, Object>());
-		bootstrapConfigSub2.put("class", "org.hypergraphdb.peer.bootstrap.CACTBootstrap");
-		bootstrapConfigSub2.put("config", new HashMap<String, Object>());
-		//
-		interfaceConfig.put("user", PEER_USERNAME);
-		interfaceConfig.put("password", PEER_PASSWORD);
-		interfaceConfig.put("serverUrl", "W203-003.miamidade.gov");
-		//peers from roster! interfaceConfig.put("room", "ontologyCM@conference.127.0.0.1");
-		interfaceConfig.put("autoRegister", true);
-		interfaceConfig.put("ignoreRoster", false);
-		interfaceConfig.put("fileTransferThreashold", 100 * 1024); //default.
+	/** 
+	 * 
+	 * @return a default configuration or the configuration found in the configuration file.
+	 * @throws IOException 
+	 */
+	private Map<String,Object> loadPeerConfig() {
+		URL peerConfigFile = getClass().getResource(PEER_CONFIGURATION_FILE);
+		Map<String,Object> peerConfig;
+		if (peerConfigFile != null) {
+			JSONReader reader = new JSONReader();
+			System.out.println("LOADING PEER CONFIGURATION FROM: " + PEER_CONFIGURATION_FILE);
+			try {
+				String cur, configAsString = "";
+				BufferedReader brr = new BufferedReader(new InputStreamReader(peerConfigFile.openStream(), "UTF-8"));
+				while ((cur = brr.readLine()) != null) {
+					configAsString = configAsString + cur + "\n"; 
+				}
+				peerConfig = (Map<String, Object>)getPart(reader.read(configAsString));
+			} catch (IOException e) {
+				throw new RuntimeException("Loading configuration failed: " + PEER_CONFIGURATION_FILE, e);
+			}
+//			peerConfig = HyperGraphPeer.loadConfiguration(new File (peerConfigFile.getFile()));
+		} else {
+			System.out.println("USING TEST PEER CONFIGURATION (W203-003.miamidade.gov)");
+			peerConfig = new HashMap<String, Object>();
+			List<Map<?,?>> bootstrapConfig = new ArrayList<Map<?,?>>();
+			Map<String,Object> bootstrapConfigSub1 = new HashMap<String, Object>();
+			Map<String,Object> bootstrapConfigSub2 = new HashMap<String, Object>();
+			Map<String,Object> interfaceConfig = new HashMap<String, Object>();
+			peerConfig.put("interfaceType", "org.hypergraphdb.peer.xmpp.XMPPPeerInterface");
+			peerConfig.put("peerName", "VDHGDBOntologyRepository");
+			peerConfig.put("interfaceConfig", interfaceConfig);
+			peerConfig.put("bootstrap", bootstrapConfig);
+			bootstrapConfig.add(bootstrapConfigSub1);
+			bootstrapConfig.add(bootstrapConfigSub2);
+			bootstrapConfigSub1.put("class", "org.hypergraphdb.peer.bootstrap.AffirmIdentityBootstrap");
+			bootstrapConfigSub1.put("config", new HashMap<String, Object>());
+			bootstrapConfigSub2.put("class", "org.hypergraphdb.peer.bootstrap.CACTBootstrap");
+			bootstrapConfigSub2.put("config", new HashMap<String, Object>());
+			//
+			interfaceConfig.put("user", "hg1");
+			interfaceConfig.put("password", "hg1");
+			interfaceConfig.put("serverUrl", "W203-003.miamidade.gov");
+			//peers from roster! interfaceConfig.put("room", "ontologyCM@conference.127.0.0.1");
+			interfaceConfig.put("autoRegister", true);
+			interfaceConfig.put("ignoreRoster", false);
+			interfaceConfig.put("fileTransferThreshold", 100 * 1024); //default.
+		}
 		return peerConfig;
 	}
 	
-	public void DBG_ClearDates() {
-		List<HGHandle> L = getHyperGraph().findAll(hg.type(Date.class));
-		for (HGHandle h : L) {
-			getHyperGraph().remove(h);
-		}
-	}
+//	public void DBG_ClearDates() {
+//		List<HGHandle> L = getHyperGraph().findAll(hg.type(Date.class));
+//		for (HGHandle h : L) {
+//			getHyperGraph().remove(h);
+//		}
+//	}
 	
+	public boolean startNetworking(String userName, String password, String serverUrl) {
+		if (peer != null && peer.getPeerInterface().isConnected()) {
+			throw new IllegalStateException("Peer is currently connected. Disconnect first.");
+		}
+		Map<String, Object> config = loadPeerConfig();
+		Map<String, Object> interFaceConfig = (Map<String, Object>)config.get("interfaceConfig");
+		interFaceConfig.put("user", userName);
+		interFaceConfig.put("password", password);
+		interFaceConfig.put("serverUrl", serverUrl);
+		createAndConfigurePeer(config);
+		return startNetworkingInternal();
+	}
+
+	/**
+	 * Starts networking using the file configured userName and password.
+	 * @return
+	 */
 	public boolean startNetworking() {
-		DBG_ClearDates();
+		if (peer != null && peer.getPeerInterface().isConnected()) {
+			throw new IllegalStateException("Peer is currently connected. Disconnect first.");
+		}
+		//DBG_ClearDates();
+		createAndConfigurePeer(loadPeerConfig());
+		return startNetworkingInternal();
+	}
+
+	private boolean startNetworkingInternal() {
 		//this will block
 		Future<Boolean> f = peer.start();
 		boolean success = false; 
@@ -171,6 +215,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 		peer.getActivityManager().registerActivityType(BrowserRepositoryActivity.TYPENAME, BrowserRepositoryActivity.class);
 
 		return success;
+
 	}
 
 	public void stopNetworking() {
@@ -203,9 +248,9 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 		//peer
 	}
 	
-	public Future<RemoteRepositoryActionResult> fetch(VersionedOntology vo, HGPeerIdentity remote) {
-		return null;
-	}
+//	public Future<RemoteRepositoryActionResult> fetch(VersionedOntology vo, HGPeerIdentity remote) {
+//		return null;
+//	}
 
 	/**
 	 * 
@@ -278,7 +323,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 			}}, HGTransactionConfig.READONLY);
 	}
 
-	public enum RemoteRepositoryActionResult {SUCCESS, DENIED_LOCAL_OUT_OF_DATE, DENIED_WERE_EQUAL, DENIED_REMOTE_OUT_OF_DATE}; 
+	//public enum RemoteRepositoryActionResult {SUCCESS, DENIED_LOCAL_OUT_OF_DATE, DENIED_WERE_EQUAL, DENIED_REMOTE_OUT_OF_DATE}; 
 	
 
 }
