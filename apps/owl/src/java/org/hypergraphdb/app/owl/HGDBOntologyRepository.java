@@ -218,7 +218,7 @@ public class HGDBOntologyRepository {
 	public List<HGDBOntology> getOntologies() {
 		//2011.12.01 HGException: Transaction configured as read-only was used to modify data!
 		//Therefore wrapped in normal transaction.
-		return graph.getTransactionManager().transact(new Callable<List<HGDBOntology>>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<List<HGDBOntology>>() {
 			public List<HGDBOntology>call() {
 				//2011.12.20 added condition OntologyId not null.
 				return hg.getAll(graph, hg.and(hg.type(HGDBOntologyImpl.class), hg.not(hg.eq("ontologyID", null))));
@@ -230,7 +230,7 @@ public class HGDBOntologyRepository {
 
 	public List<HGDBOntology> getDeletedOntologies() {
 		//for cleanup
-		return graph.getTransactionManager().transact(new Callable<List<HGDBOntology>>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<List<HGDBOntology>>() {
 			public List<HGDBOntology>call() {
 				return hg.getAll(graph, hg.and(hg.type(HGDBOntologyImpl.class), hg.eq("ontologyID", null)));
 			}
