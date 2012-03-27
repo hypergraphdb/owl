@@ -17,7 +17,6 @@ import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGIndex;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HGRandomAccessResult;
-import org.hypergraphdb.HGSearchResult;
 import org.hypergraphdb.IncidenceSet;
 import org.hypergraphdb.algorithms.HGBreadthFirstTraversal;
 import org.hypergraphdb.app.owl.core.AbstractInternalsHGDB;
@@ -187,7 +186,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	public boolean isEmpty() {
-		return graph.getTransactionManager().transact(new Callable<Boolean>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Boolean>() {
 			public Boolean call() {
 				boolean noAxioms = ontology.count(hg.typePlus(OWLAxiomHGDB.class)) == 0;
 				return noAxioms && getOntologyAnnotations().isEmpty();
@@ -203,7 +202,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	public Set<OWLDatatypeDefinitionAxiom> getDatatypeDefinitions(final OWLDatatype datatype) {
-		return graph.getTransactionManager().transact(new Callable<Set<OWLDatatypeDefinitionAxiom>>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Set<OWLDatatypeDefinitionAxiom>>() {
 			public Set<OWLDatatypeDefinitionAxiom>call() {
 				Set<OWLDatatypeDefinitionAxiom> result = createSet();
 				Set<OWLDatatypeDefinitionAxiom> axioms = getAxiomsInternal(AxiomType.DATATYPE_DEFINITION);
@@ -217,7 +216,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	public Set<OWLSubAnnotationPropertyOfAxiom> getSubAnnotationPropertyOfAxioms(final OWLAnnotationProperty subProperty) {
-		return graph.getTransactionManager().transact(new Callable<Set<OWLSubAnnotationPropertyOfAxiom>>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Set<OWLSubAnnotationPropertyOfAxiom>>() {
 			public Set<OWLSubAnnotationPropertyOfAxiom>call() {
 				Set<OWLSubAnnotationPropertyOfAxiom> result = createSet();
 				for (OWLSubAnnotationPropertyOfAxiom ax : getAxiomsInternal(AxiomType.SUB_ANNOTATION_PROPERTY_OF)) {
@@ -230,7 +229,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	public Set<OWLAnnotationPropertyDomainAxiom> getAnnotationPropertyDomainAxioms(final OWLAnnotationProperty property) {
-		return graph.getTransactionManager().transact(new Callable<Set<OWLAnnotationPropertyDomainAxiom>>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Set<OWLAnnotationPropertyDomainAxiom>>() {
 			public Set<OWLAnnotationPropertyDomainAxiom>call() {
 				Set<OWLAnnotationPropertyDomainAxiom> result = createSet();
 				for (OWLAnnotationPropertyDomainAxiom ax : getAxiomsInternal(AxiomType.ANNOTATION_PROPERTY_DOMAIN)) {
@@ -243,7 +242,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	public Set<OWLAnnotationPropertyRangeAxiom> getAnnotationPropertyRangeAxioms(final OWLAnnotationProperty property) {
-		return graph.getTransactionManager().transact(new Callable<Set<OWLAnnotationPropertyRangeAxiom>>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Set<OWLAnnotationPropertyRangeAxiom>>() {
 			public Set<OWLAnnotationPropertyRangeAxiom>call() {
 				Set<OWLAnnotationPropertyRangeAxiom> result = createSet();
 				for (OWLAnnotationPropertyRangeAxiom ax : getAxiomsInternal(AxiomType.ANNOTATION_PROPERTY_RANGE)) {
@@ -257,7 +256,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 
 	@Override
 	protected <T extends OWLAxiom> Set<T> getAxiomsInternal(final AxiomType<T> axiomType) {
-		return graph.getTransactionManager().transact(new Callable<Set<T>>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Set<T>>() {
 			public Set<T>call() {
 				List<T> axiomsOneTypeList;
 				Class<? extends OWLAxiomHGDB> hgdbAxiomClass = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiomType);
@@ -278,7 +277,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	public Set<OWLAxiom> getReferencingAxioms(final OWLAnonymousIndividual individual) {
 		// TODO we know here, that this might not be in our onto; still an equal
 		// object might.
-		return graph.getTransactionManager().transact(new Callable<Set<OWLAxiom>>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Set<OWLAxiom>>() {
 			public Set<OWLAxiom>call() {
 				HGHandle h = findAnonymousIndividual(individual);
 				if (h == null || !ontology.isMember(h))
@@ -320,7 +319,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 			// return Collections.emptySet();
 			throw new IllegalStateException("getReferencingAxioms was called with a uk.ac entity.");
 		}
-		return graph.getTransactionManager().transact(new Callable<Set<OWLAxiom>>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Set<OWLAxiom>>() {
 			public Set<OWLAxiom> call() {
 				List<OWLAxiom> l;
 				HGHandle owlEntityHandle = graph.getHandle(owlEntity);
@@ -466,7 +465,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 
 	// hilpold
 	public Set<OWLDeclarationAxiom> getDeclarationAxioms(final OWLEntity entity) {
-		return graph.getTransactionManager().transact(new Callable<Set<OWLDeclarationAxiom>>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Set<OWLDeclarationAxiom>>() {
 			public Set<OWLDeclarationAxiom> call() {
 				// is entity in graph, fail if not?
 				final HGHandle entityHandle = graph.getHandle(entity);
@@ -482,7 +481,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 
 	public Set<OWLImportsDeclaration> getImportsDeclarations() {
 		// get link by name and link(handle)
-		return graph.getTransactionManager().transact(new Callable<Set<OWLImportsDeclaration>>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Set<OWLImportsDeclaration>>() {
 			public Set<OWLImportsDeclaration> call() {
 				//2012.01.25 hilpold New import declaration handling; need GC to collect zero incidence set atoms.
 				List<OWLImportsDeclaration> l = ontology.<OWLImportsDeclaration>getAll(
@@ -494,21 +493,32 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 				return s;
 			};
 		}, HGTransactionConfig.READONLY);
-		// List<IRI> imports = hg.getAll(getHyperGraph(),
-		// hg.apply(hg.targetAt(getHyperGraph(), 1),
-		// hg.and(hg.eq("importsLink"), hg.orderedLink(
-		// this.getHyperGraph().getHandle(this), hg.anyHandle()))));
-		// result.addAll(imports);
+	}
+
+	/**
+	 * CALL INSIDE TRANSACTION.
+	 * @param importDeclaration
+	 * @return
+	 */
+	protected HGHandle findEqualImportsDeclaration(OWLImportsDeclaration importDeclaration) {
+		List<HGHandle> sr = ontology.findAll(hg.and(hg.type(OWLImportsDeclarationImpl.class), hg.eq(importDeclaration)));
+		HGHandle returnValue;
+		if (sr.isEmpty()) {
+			returnValue = null;
+		} else {
+			returnValue = sr.get(0);
+		}
+		return returnValue;
 	}
 
 	boolean containsImportDeclaration(OWLImportsDeclaration importDeclaration) {
-		return getImportsDeclarations().contains(importDeclaration);
+		return findEqualImportsDeclaration(importDeclaration) != null;
 	}
 
 	public boolean addImportsDeclaration(final OWLImportsDeclaration importDeclaration) {
 		boolean success = false;
 		if (DBG) ontology.printGraphStats("Before AddImp");
-		success = graph.getTransactionManager().transact(new Callable<Boolean>() {
+		success = graph.getTransactionManager().ensureTransaction(new Callable<Boolean>() {
 			public Boolean call() {
 				if (containsImportDeclaration(importDeclaration))
 					return false;
@@ -536,30 +546,26 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	 * internals from hypergraph.
 	 */
 	public boolean removeImportsDeclaration(final OWLImportsDeclaration importDeclaration) {
-		//ontology.printGraphStats("Before RemImp");
-		boolean success = graph.getTransactionManager().transact(new Callable<Boolean>() {
+		boolean success = graph.getTransactionManager().ensureTransaction(new Callable<Boolean>() {
 			public Boolean call() {
 				boolean success;
 				HGHandle importDeclarationHandle;
-				//HGHandle link;
-				if (!containsImportDeclaration(importDeclaration)) {
-					return false;
-				}
-				importDeclarationHandle = graph.getHandle(importDeclaration);
-				if (importDeclarationHandle == null) {
-					throw new IllegalStateException("Contains said fine, but can't get handle.");
-				}
-//				link = hg.findOne(graph, hg.and(hg.type(ImportDeclarationLink.class),
-//						hg.orderedLink(ontoHandle, importDeclarationHandle), new SubgraphMemberCondition(ontoHandle)));
-//				if (link == null) {
-//					throw new IllegalStateException(
-//							"Found importDeclaration, but no link. Each Importdeclaration must have exactly one link.");
+				importDeclarationHandle = findEqualImportsDeclaration(importDeclaration); 
+				if (importDeclarationHandle == null) return false;
+//				if (!containsImportDeclaration(importDeclaration)) {
+//					return false;
 //				}
-//				success = ontology.remove(link) && ontology.remove(importDeclarationHandle) && graph.remove(link)
-//				&& graph.remove(importDeclarationHandle);
-				// 2012.01.25 hilpold New import declaration handling; 
-				// need GC to collect zero incidence set atoms.
-				// no more link usage
+//				importDeclarationHandle = graph.getHandle(importDeclaration);
+//				if (importDeclarationHandle == null) {
+//					throw new IllegalStateException("Contains said fine, but can't get handle.");
+//				}
+//				if (!ontology.isMember(importDeclarationHandle)) {
+//					//try find it's equal and remove it
+//					
+//				}
+//				// 2012.01.25 hilpold New import declaration handling; 
+//				// need GC to collect zero incidence set atoms.
+//				// no more link usage
 				success = ontology.remove(importDeclarationHandle);
 				return success;
 			}
@@ -569,7 +575,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	public Set<OWLAnnotation> getOntologyAnnotations() {
-		return graph.getTransactionManager().transact(new Callable<Set<OWLAnnotation>>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Set<OWLAnnotation>>() {
 			public Set<OWLAnnotation> call() {
 				List<OWLAnnotation> l;
 				l = ontology.getAll(hg.type(OWLAnnotationHGDB.class));
@@ -581,18 +587,28 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		}, HGTransactionConfig.READONLY);
 	}
 
+	/**
+	 * CALL INSIDE TRANSACTION.
+	 * @param ann
+	 * @return
+	 */
+	protected HGHandle findEqualOntologyAnnotation(OWLAnnotation ann) {
+		List<HGHandle> sr = ontology.findAll(hg.and(hg.type(OWLAnnotationHGDB.class), hg.eq(ann)));
+		HGHandle returnValue;
+		if (sr.isEmpty()) {
+			returnValue = null;
+		} else {
+			returnValue = sr.get(0);
+		}
+		return returnValue;
+	}
+
 	public boolean containsOntologyAnnotation(OWLAnnotation ann) {
-		HGSearchResult<OWLAnnotationHGDB> sr = ontology.find(hg.and(hg.type(OWLAnnotationHGDB.class), hg.eq(ann)));
-		boolean contains = sr.hasNext();
-		sr.close();
-		return contains;
-		//2012.01.30 simple but fast implementation was not valid to prevent duplicates:
-		// HGHandle annotationHandle = graph.getHandle(ann);
-		// return ontology.isMember(annotationHandle);
+		return findEqualOntologyAnnotation(ann) != null;
 	}
 
 	public boolean addOntologyAnnotation(final OWLAnnotation ann) {
-		return graph.getTransactionManager().transact(new Callable<Boolean>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Boolean>() {
 			public Boolean call() {
 				HGHandle annotationHandle = graph.getHandle(ann);
 				if (annotationHandle == null) throw new IllegalStateException("annotationHandle null");
@@ -605,22 +621,28 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	public boolean removeOntologyAnnotation(final OWLAnnotation ann) {
-		return graph.getTransactionManager().transact(new Callable<Boolean>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Boolean>() {
 			public Boolean call() {
-				HGHandle annotationHandle = graph.getHandle(ann);
-				if (annotationHandle == null) throw new IllegalStateException("annotationHandle null");
-				boolean doRemove = containsOntologyAnnotation(ann);
-				if (doRemove) {
-					ontology.remove(annotationHandle);
+				System.out.println("Annotations before remove: " + getOntologyAnnotations().size());
+				HGHandle annotationHandle = findEqualOntologyAnnotation(ann);
+				if (annotationHandle == null) {
+					return false;
 				}
-				return doRemove;
+//				HGHandle annotationHandle = graph.getHandle(ann);
+//				if (annotationHandle == null) throw new IllegalStateException("annotationHandle null");
+//				boolean doRemove = containsOntologyAnnotation(ann);
+//				if (doRemove) {
+				boolean success = ontology.remove(annotationHandle);
+//				}
+				System.out.println("Annotations after remove: " + getOntologyAnnotations().size());
+				return success;
 			}});
 	}
 
 	public boolean containsAxiom(final OWLAxiom axiom) {
 		PERFCOUNTER_FIND_AXIOM ++;
 		if (axiom == null) throw new NullPointerException("axiom");
-		return graph.getTransactionManager().transact(new Callable<Boolean>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Boolean>() {
 			public Boolean call() {
 				HGHandle h = graph.getHandle(axiom);
 				if (h != null && ontology.isMember(h)) {
@@ -655,7 +677,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	 */
 	protected OWLAxiom findEqualAxiomByHashCode(final OWLAxiom axiom, final boolean ignoreAnnotations) {
 		if (axiom == null) throw new NullPointerException("axiom");
-		return graph.getTransactionManager().transact(new Callable<OWLAxiomHGDB>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<OWLAxiomHGDB>() {
 			public OWLAxiomHGDB call() {
 				int findHashCode = axiom.hashCode();
 				HGIndexer axiomByHashCodeIndexer = HGDBApplication.getInstance().getAxiomByHashCodeIndexer(graph);
@@ -940,7 +962,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	public Set<OWLAxiom> getAxioms() {
-		return graph.getTransactionManager().transact(new Callable<Set<OWLAxiom>>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Set<OWLAxiom>>() {
 			public Set<OWLAxiom> call() {		
 				List<OWLAxiom> allAxiomsList = ontology.getAll(hg.typePlus(OWLAxiom.class));
 				Set<OWLAxiom> s = getReturnSet(allAxiomsList);  
@@ -1002,7 +1024,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	public Set<OWLLogicalAxiom> getLogicalAxioms() {
-		return graph.getTransactionManager().transact(new Callable<Set<OWLLogicalAxiom>>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Set<OWLLogicalAxiom>>() {
 			public Set<OWLLogicalAxiom> call() {
 				List<OWLLogicalAxiom> l = ontology.getAll(getLogicalAxiomQuery());
 				Set<OWLLogicalAxiom> s = getReturnSet(l);
@@ -1101,7 +1123,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 			log.info("REMOVE Axiom: " + axiom.getClass().getSimpleName() + " Type: " + type);
 		}
 		// if (AxiomTypeToHGDBMap.getAxiomClassHGDB(type) != null) {
-		graph.getTransactionManager().transact(new Callable<Boolean>() {
+		graph.getTransactionManager().ensureTransaction(new Callable<Boolean>() {
 			public Boolean call() {
 				boolean removedSuccess = false;
 				if (DBG) ontology.printGraphStats("Before RemoveAxiom");
@@ -1186,7 +1208,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	public boolean containsAxiomIgnoreAnnotations(final OWLAxiom axiom) {
 		if (axiom == null) throw new NullPointerException("axiom");
 		PERFCOUNTER_FIND_AXIOM ++;
-		return graph.getTransactionManager().transact(new Callable<Boolean>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Boolean>() {
 			public Boolean call() {
 				HGHandle h = graph.getHandle(axiom);
 				if (h != null && ontology.isMember(h)) {
@@ -1200,7 +1222,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		//2011.12.29 
 //		// TODO this is expensive !! Maybe implement a complex search condition
 //		// based on equals in each axiom type.
-//		return graph.getTransactionManager().transact(new Callable<Boolean>() {
+//		return graph.getTransactionManager().ensureTransaction(new Callable<Boolean>() {
 //			public Boolean call() {				
 //				boolean foundAxiom = false;
 //				Class<?> hg  dbType = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiom.getAxiomType());
@@ -1226,7 +1248,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		if (axiom == null) throw new NullPointerException("axiom");
 		// TODO this is expensive !! Maybe implement a complex search condition
 		// based on equals in each axiom type.
-		return graph.getTransactionManager().transact(new Callable<Set<OWLAxiom>>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Set<OWLAxiom>>() {
 			public Set<OWLAxiom> call() {
 			Set<OWLAxiom> foundAxioms = new HashSet<OWLAxiom>();
 			Class<?> hgdbType = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiom.getAxiomType());
@@ -1251,7 +1273,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	 * C) OWLEquivalentClassesAxiom, where all axiom.getClassExpressions() are anonymous.
 	 */
 	public Set<OWLClassAxiom> getGeneralClassAxioms() {
-		List<OWLClassAxiom> s = graph.getTransactionManager().transact(new Callable<List<OWLClassAxiom>>() {
+		List<OWLClassAxiom> s = graph.getTransactionManager().ensureTransaction(new Callable<List<OWLClassAxiom>>() {
 			public List<OWLClassAxiom> call() {
 				List<OWLClassAxiom> generalClassAxioms = new LinkedList<OWLClassAxiom>();
 				List<OWLSubClassOfAxiomHGDB> subclassAxioms;
@@ -1412,7 +1434,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	boolean containsOWLEntityOntology(final IRI iri, final Class<?> hgdbType) {
 		if (!OWLObjectHGDB.class.isAssignableFrom(hgdbType))
 			throw new IllegalArgumentException("Only subclasses of OWLObjectHGDB allowed! Was:" + hgdbType);
-		return graph.getTransactionManager().transact(new Callable<Boolean>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Boolean>() {
 			public Boolean call() {
 				return hg.findOne(graph,
 						hg.and(hg.type(hgdbType), hg.eq("IRI", iri), new SubgraphMemberCondition(ontoHandle))) != null;
@@ -1450,7 +1472,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 
 	public Set<OWLAnnotationProperty> getOwlAnnotationProperties() {
 		List<OWLAnnotationProperty> l;
-		l = graph.getTransactionManager().transact(new Callable<List<OWLAnnotationProperty>>() {
+		l = graph.getTransactionManager().ensureTransaction(new Callable<List<OWLAnnotationProperty>>() {
 			public List<OWLAnnotationProperty> call() {
 				return hg.getAll(graph,
 						hg.and(hg.type(OWLAnnotationPropertyHGDB.class), new SubgraphMemberCondition(ontoHandle)));
@@ -1461,7 +1483,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 
 	public Set<OWLClass> getOwlClasses() {
 		List<OWLClass> l;
-		l = graph.getTransactionManager().transact(new Callable<List<OWLClass>>() {
+		l = graph.getTransactionManager().ensureTransaction(new Callable<List<OWLClass>>() {
 			public List<OWLClass> call() {
 				return hg.getAll(graph, hg.and(hg.type(OWLClassHGDB.class), new SubgraphMemberCondition(ontoHandle)));
 			}
@@ -1471,7 +1493,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 
 	public Set<OWLDatatype> getOwlDatatypes() {
 		List<OWLDatatype> l;
-		l = graph.getTransactionManager().transact(new Callable<List<OWLDatatype>>() {
+		l = graph.getTransactionManager().ensureTransaction(new Callable<List<OWLDatatype>>() {
 			public List<OWLDatatype> call() {
 				return hg.getAll(graph, hg.and(hg.type(OWLDatatypeHGDB.class), new SubgraphMemberCondition(ontoHandle)));
 			}
@@ -1487,7 +1509,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	@Override
 	public Set<OWLNamedIndividual> getOwlNamedIndividuals() {
 		List<OWLNamedIndividual> l;
-		l = graph.getTransactionManager().transact(new Callable<List<OWLNamedIndividual>>() {
+		l = graph.getTransactionManager().ensureTransaction(new Callable<List<OWLNamedIndividual>>() {
 			public List<OWLNamedIndividual> call() {
 				return hg.getAll(graph,
 						hg.and(hg.type(OWLNamedIndividualHGDB.class), new SubgraphMemberCondition(ontoHandle)));
@@ -1498,7 +1520,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 
 	public Set<OWLDataProperty> getOwlDataProperties() {
 		List<OWLDataProperty> l;
-		l = graph.getTransactionManager().transact(new Callable<List<OWLDataProperty>>() {
+		l = graph.getTransactionManager().ensureTransaction(new Callable<List<OWLDataProperty>>() {
 			public List<OWLDataProperty> call() {
 				return hg.getAll(graph,
 						hg.and(hg.type(OWLDataPropertyHGDB.class), new SubgraphMemberCondition(ontoHandle)));
@@ -1509,7 +1531,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 
 	public Set<OWLObjectProperty> getOwlObjectProperties() {
 		List<OWLObjectProperty> l;
-		l = graph.getTransactionManager().transact(new Callable<List<OWLObjectProperty>>() {
+		l = graph.getTransactionManager().ensureTransaction(new Callable<List<OWLObjectProperty>>() {
 			public List<OWLObjectProperty> call() {
 				return hg.getAll(graph,
 						hg.and(hg.type(OWLObjectPropertyHGDB.class), new SubgraphMemberCondition(ontoHandle)));
@@ -1553,7 +1575,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	@Override
 	public Set<OWLAnonymousIndividual> getOwlAnonymousIndividuals() {
 		List<OWLAnonymousIndividual> l;
-		l = graph.getTransactionManager().transact(new Callable<List<OWLAnonymousIndividual>>() {
+		l = graph.getTransactionManager().ensureTransaction(new Callable<List<OWLAnonymousIndividual>>() {
 			public List<OWLAnonymousIndividual> call() {
 				return hg.getAll(graph,
 						hg.and(hg.type(OWLAnonymousIndividualHGDB.class), new SubgraphMemberCondition(ontoHandle)));
@@ -1571,7 +1593,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	 */
 	@Override
 	public boolean containsOwlAnonymousIndividual(final OWLAnonymousIndividual c) {
-		return graph.getTransactionManager().transact(new Callable<Boolean>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Boolean>() {
 			public Boolean call() {
 				return hg.findOne(graph, hg.and(hg.type(OWLAnonymousIndividualHGDB.class),
 				// equals is defined as equal id strings.
@@ -1652,7 +1674,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	@Override
 	public boolean hasReferencingAxioms(OWLEntity entity) {
 		final HGHandle h = graph.getHandle(entity);
-		return graph.getTransactionManager().transact(new Callable<Boolean>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Boolean>() {
 			public Boolean call() {		
 				return hasOntologyAxiomsRecursive(h);
 			}}, HGTransactionConfig.READONLY);
@@ -1660,7 +1682,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 
 	@Override
 	public boolean hasReferencingAxioms(final HGHandle entity) {
-		return graph.getTransactionManager().transact(new Callable<Boolean>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Boolean>() {
 			public Boolean call() {		
 				return hasOntologyAxiomsRecursive(entity);
 			}}, HGTransactionConfig.READONLY);
