@@ -1,5 +1,6 @@
 package org.hypergraphdb.app.owl.versioning;
 
+import java.text.DateFormat;
 import java.util.Date;
 
 /**
@@ -11,6 +12,8 @@ public class Revision extends RevisionID implements /* HGHandleHolder , */ Versi
 	
 	public static final long TIMESTAMP_UNDEFINED = Long.MIN_VALUE; 
 	public static final String USER_ANONYMOUS = null; 
+	
+	public static DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
 	
 	private Date timeStamp;
 	private String user; 
@@ -55,6 +58,9 @@ public class Revision extends RevisionID implements /* HGHandleHolder , */ Versi
 		this.revisionComment = comment;
 	}
 
+	public String toString() {
+		return super.toString() + " by " + user + " at " + dateFormat.format(timeStamp);
+	}
 //	
 //	public OWLOntology getRevisionData() {
 //		if (hasRevisionData) {

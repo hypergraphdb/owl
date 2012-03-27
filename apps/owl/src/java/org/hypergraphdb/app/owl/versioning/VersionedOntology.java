@@ -755,4 +755,10 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	public void accept(VOWLObjectVisitor visitor) {
 		visitor.visit(this);
 	}
+	
+	public String toString() {
+		String OID = getWorkingSetData().getOntologyID().toString();
+		String headRevision = "" + getHeadRevision().toString();
+		return OID + " Head: " + headRevision;
+	}
 }

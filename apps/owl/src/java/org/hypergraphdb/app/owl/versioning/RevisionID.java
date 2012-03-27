@@ -70,6 +70,9 @@ public class RevisionID implements Comparable<RevisionID> {
 		}
 	}
 	
+	public String toString() {
+		return "" + ontologyUUID + " Rev: " + revision; 
+	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
