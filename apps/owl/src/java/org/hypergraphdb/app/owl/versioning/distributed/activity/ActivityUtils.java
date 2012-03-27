@@ -23,6 +23,7 @@ import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLParser;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLRenderConfiguration;
@@ -195,9 +196,10 @@ public class ActivityUtils {
 	 * @return a valid versionedontology and never null (will throw exception instead)
 	 * @throws IllegalStateException in all problem cases.
 	 */
-	VersionedOntology getVersionedOntologyForDeltaFrom(Revision lastMatchingRevision, VHGDBOntologyRepository repository) throws IllegalStateException {
+	VersionedOntology getVersionedOntologyForDeltaFrom(Revision lastMatchingRevision, VDHGDBOntologyRepository repository) throws IllegalStateException {
 		HGPersistentHandle ontoUUID = lastMatchingRevision.getOntologyUUID();
 		HGDBOntology onto = (HGDBOntology)repository.getHyperGraph().get(ontoUUID);
+		onto.setOWLOntologyManager(repository.getOntologyManager());
 		//boolean applyDelta = false;
 		VersionedOntology targetVersionedOntology;
 		if (onto != null) {
