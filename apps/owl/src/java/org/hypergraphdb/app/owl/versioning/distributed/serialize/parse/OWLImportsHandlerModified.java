@@ -26,6 +26,7 @@ public class OWLImportsHandlerModified extends AbstractOWLElementHandler<OWLImpo
         //2012.03.06 this is the reason we modified the class, we wanted to disable: 
         // getOWLOntologyManager().applyChange(new AddImport(getOntology(), decl));
         // getOWLOntologyManager().makeLoadImportRequest(decl, getConfiguration());
+        ((AbstractVOWLElementHandler<?>)getParentHandler()).handleChild(this);
     }
 
     public OWLImportsDeclaration getOWLObject() {
