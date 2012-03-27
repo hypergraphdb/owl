@@ -2,37 +2,17 @@ package org.hypergraphdb.app.owl.versioning.distributed;
 
 import java.io.File;
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
 import org.hypergraphdb.app.owl.HGDBOWLManager;
-import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.gc.GarbageCollector;
-import org.hypergraphdb.app.owl.usage.ImportOntologies;
-import org.hypergraphdb.app.owl.util.StopWatch;
-import org.hypergraphdb.app.owl.versioning.VersionedOntology;
-import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowserRepositoryActivity;
-import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowserRepositoryActivity.BrowseEntry;
-import org.hypergraphdb.app.owl.versioning.distributed.activity.PullActivity;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
-import org.hypergraphdb.peer.workflow.ActivityResult;
 import org.jivesoftware.smack.XMPPConnection;
-import org.semanticweb.owlapi.model.AddAxiom;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.RemoveAxiom;
 
 /**
- * TesVDHGDBIdle starts and idle and empty repository at C:\\temp\\hypergraph-" + PEER_USERNAME.
+ * TestVDHGDBIdle starts idle at an repository at C:\\temp\\hypergraph-" + PEER_USERNAME and waits for push or pull.
  * 
  * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
@@ -45,29 +25,29 @@ public class TestVDHGDBIdle {
 	}
 
 	/**
-	 * This ontology will be imported.
+	 * Delete all Ontologies at repository on startup?
 	 */
-	public static String TEST_ONTOLOGY = "C:\\_CiRM\\testontos\\County.owl";
+	public static boolean DELETE_ALL_ONTOLOGIES = false;
 	
-	public static String PEER_HOSTNAME = "W203-003.miamidade.gov";
+	public static String REPOSITORY_LOCATION = "C:\\temp\\hypergraph-"; //+ PEER_USERNAME
+
+	
+	public static String PEER_SERVERNAME = "W203-003.miamidade.gov";
 	public static String PEER_USERNAME;
 	public static String PEER_PASSWORD;
 
-	
-	private static VersionedOntology versionedOntology;
-	
 	/**
 	 * 
-	 * @param argv call with username.
+	 * @param argv call with username [0] password [1].
 	 */
 	public static void main(String[] argv) {
 		PEER_USERNAME = argv[0];
 		PEER_PASSWORD = argv[1];
-		File dir = new File ("C:\\temp\\hypergraph-" + PEER_USERNAME);
+		File dir = new File (REPOSITORY_LOCATION + PEER_USERNAME);
 		System.out.println("STARTING IDLE AT: " + dir);
 		if (!dir.exists()) dir.mkdir();
 		VDHGDBOntologyRepository.setHypergraphDBLocation(dir.getAbsolutePath());
-		System.out.println("Creating Repository : " + dir);
+		System.out.println("Repository at : " + dir);
 		HGDBOntologyManager manager = HGDBOWLManager.createOWLOntologyManager();
 		VDHGDBOntologyRepository dr = (VDHGDBOntologyRepository)manager.getOntologyRepository();
 		System.out.println("INIT LOCAL IDLE PEER REPOSITORY: " + PEER_USERNAME);
@@ -75,8 +55,8 @@ public class TestVDHGDBIdle {
 		waitForOnePeer(dr);
 		try {
 			while  (true) {
-				System.out.println("Sleeping 5 mins. AT: " + new Date());
-				Thread.sleep(5 * 60 * 1000);
+				System.out.println("Sleeping 10 mins. At: " + new Date());
+				Thread.sleep(10 * 60 * 1000);
 			}
 		} catch (InterruptedException e) {
 			e.printStackTrace();		
@@ -92,11 +72,14 @@ public class TestVDHGDBIdle {
 	 * @param dr
 	 */
 	private static void initializeVDRepository(VDHGDBOntologyRepository dr) {
-		if (dr.getOntologies().size() > 0) {
+		if (DELETE_ALL_ONTOLOGIES &&  dr.getOntologies().size() > 0) {
 			dr.deleteAllOntologies();
 			dr.getGarbageCollector().runGarbageCollection(GarbageCollector.MODE_DELETED_ONTOLOGIES);
+		} else {
+			dr.printAllOntologies();
 		}
-		dr.startNetworking(PEER_USERNAME, PEER_PASSWORD, PEER_HOSTNAME);
+		dr.printStatistics();
+		dr.startNetworking(PEER_USERNAME, PEER_PASSWORD, PEER_SERVERNAME);
 	}
 
 	/**
