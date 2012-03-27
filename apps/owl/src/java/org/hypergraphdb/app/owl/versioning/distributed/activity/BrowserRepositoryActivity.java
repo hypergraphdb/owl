@@ -97,7 +97,7 @@ public class BrowserRepositoryActivity extends FSMActivity {
     @OnMessage(performative="QueryIf")
     public WorkflowStateConstant targetQueryOntologyIds(final Message msg) throws Throwable {
 		Message reply = getReply(msg, Performative.Inform);
-		List<BrowseEntry> ontologyIDsAndUUIDs = graph.getTransactionManager().transact(new Callable<List<BrowseEntry>>() {
+		List<BrowseEntry> ontologyIDsAndUUIDs = graph.getTransactionManager().ensureTransaction(new Callable<List<BrowseEntry>>() {
 			public List<BrowseEntry> call() {
 				// TRANSACTION START
 				List<BrowseEntry> ontologyIDsAndUUIDs = new ArrayList<BrowseEntry>();
@@ -214,6 +214,10 @@ public class BrowserRepositoryActivity extends FSMActivity {
 		 */
 		public void setUuid(HGPersistentHandle uuid) {
 			this.uuid = uuid;
+		}
+		
+		public String toString() {
+			return "" + getOwlOntologyIRI() + "[" + getUuid() + "]";
 		}
 	}
 }

@@ -142,7 +142,7 @@ public class PushActivity extends FSMActivity {
 		final HGPersistentHandle headRevisionOntologyID = getPart(msg, CONTENT);
 		// Look up in repository
 		//TRANSACTION START
-		return graph.getTransactionManager().transact(new Callable<WorkflowStateConstant>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<WorkflowStateConstant>() {
 			public WorkflowStateConstant call() {
 				HGDBOntology o = graph.get(headRevisionOntologyID);
 				if (o != null) {
@@ -188,7 +188,7 @@ public class PushActivity extends FSMActivity {
     //@AtActivity(CONTENT);
     public WorkflowStateConstant sourceSendFullVersionedOntology(Message msg) throws Throwable {
 		// PROPOSE
-		String vowlxmlStringOntology = graph.getTransactionManager().transact(new Callable<String>() {
+		String vowlxmlStringOntology = graph.getTransactionManager().ensureTransaction(new Callable<String>() {
 			public String call() {
 				//TRANSACTION START		
 				try {
@@ -216,7 +216,7 @@ public class PushActivity extends FSMActivity {
     //@AtActivity(CONTENT);
     public WorkflowStateConstant targetReceiveFullVersionedOntologyAsNew(Message msg) throws Throwable {
 		final String vowlxmlStringOntology = getPart(msg, CONTENT);		
-		graph.getTransactionManager().transact(new Callable<Object>() {
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
 			public Object call() {
 				//TRANSACTION START
 				VersionedOntology voParsed;
@@ -281,7 +281,7 @@ public class PushActivity extends FSMActivity {
     //@AtActivity(CONTENT);
     public WorkflowStateConstant sourceSendVersionedOntologyDelta(final Message msg) throws Throwable {
 		final List<Revision> targetRevisions = getPart(msg, CONTENT);
-		return graph.getTransactionManager().transact(new Callable<WorkflowStateConstant>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<WorkflowStateConstant>() {
 			public WorkflowStateConstant call() {
 				Message reply; 
 				WorkflowStateConstant nextState;
@@ -384,7 +384,7 @@ public class PushActivity extends FSMActivity {
 		final Revision lastMatchingRevision = getPart(msg, KEY_LAST_MATCHING_REVISION);
 		// Validate if lastMatchingRevision still is target HEAD, keep UUID
 		//Throws exceptions if not.
-		String vowlxmlStringDelta = graph.getTransactionManager().transact(new Callable<String>() {
+		String vowlxmlStringDelta = graph.getTransactionManager().ensureTransaction(new Callable<String>() {
 			public String call() {
 				//TRANSACTION START
 				VersionedOntology targetVersionedOntology = activityUtils.getVersionedOntologyForDeltaFrom(lastMatchingRevision, repository);
