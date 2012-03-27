@@ -156,7 +156,7 @@ public class ActivityUtils {
 	 * @throws OWLParserException
 	 * @throws IOException
 	 */
-	void appendDeltaTo(OWLOntologyDocumentSource vowlxmlDeltaSource, VersionedOntology targetVersionedOntology) throws OWLOntologyChangeException, UnloadableImportException, OWLParserException, IOException {
+	VOWLXMLDocument appendDeltaTo(OWLOntologyDocumentSource vowlxmlDeltaSource, VersionedOntology targetVersionedOntology) throws OWLOntologyChangeException, UnloadableImportException, OWLParserException, IOException {
 		VOWLXMLParser vowlxmlParser = new VOWLXMLParser();
 		HGDBOntologyManager manager = (HGDBOntologyManager)targetVersionedOntology.getWorkingSetData().getOWLOntologyManager();
 		//Create an dummy in mem onto with a hgdb manager and hgdb data factory to use.
@@ -182,6 +182,7 @@ public class ActivityUtils {
 //		}
 		// This might cause 
 		targetVersionedOntology.addApplyDelta(deltaRevisions, deltaChangeSets);
+		return vowlxmlDoc;
 	}
 	
 	/**
