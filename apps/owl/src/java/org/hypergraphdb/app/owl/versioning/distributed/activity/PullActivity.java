@@ -291,9 +291,19 @@ public class PullActivity extends FSMActivity {
 				boolean allSourceRevisionsAreInTarget;
 				boolean allTargetRevisionsAreInSource;
 				String owlxmlStringOntology;
+				VersionedOntology targetVersionedOnto; 				
 				//TRANSACTION START
 				//VersionedOntology targetVersionedOnto = repository.getVersionControlledOntology(ontologyUUID);
-				VersionedOntology targetVersionedOnto = repository.getVersionControlledOntology(sourceRevisions.get(0).getOntologyUUID());
+				HGPersistentHandle sourceUUID = sourceRevisions.get(0).getOntologyUUID();
+				HGDBOntology ontology = graph.get(sourceUUID);
+				if (ontology == null) {
+					throw new IllegalStateException("Ontology " + sourceUUID + " does not exist at target. Cannot send delta.");
+				} else {
+					targetVersionedOnto = repository.getVersionControlledOntology(sourceUUID);
+					if (targetVersionedOnto == null) {
+						throw new IllegalStateException("Ontology " + sourceUUID + " is not versioned at target. Cannot send delta.");
+					}
+				}
 				List<Revision> targetRevisions = targetVersionedOnto.getRevisions();
 				lastCommonRevisionIndex = activityUtils.findLastCommonRevisionIndex(sourceRevisions, targetRevisions);
 				allSourceRevisionsAreInTarget = lastCommonRevisionIndex + 1 == sourceRevisions.size();
@@ -420,7 +430,7 @@ public class PullActivity extends FSMActivity {
 		return WorkflowStateConstant.Completed;
 	}
 	
-		@FromState("SendingDelta") //Source
+	@FromState("SendingDelta") //Target
     @OnMessage(performative="AcceptProposal")
     //@PossibleOutcome({"Completed"}) 
     public WorkflowStateConstant targetReceiveConfirmationForDelta(Message msg) throws Throwable {
