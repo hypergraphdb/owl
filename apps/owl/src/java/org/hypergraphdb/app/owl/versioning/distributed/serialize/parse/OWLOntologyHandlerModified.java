@@ -9,6 +9,7 @@ import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserHandler;
 import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.AddAxiom;
+import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -79,7 +80,13 @@ public class OWLOntologyHandlerModified extends AbstractVOWLElementHandler<OWLOn
 
     @Override
 	public void handleChild(OWLAnnotationElementHandler handler) throws OWLXMLParserException {
-        getOWLOntologyManager().applyChange(new AddOntologyAnnotation(getOntology(), handler.getOWLObject()));
+    	((OWLMutableOntology)getOntology()).applyChange(new AddOntologyAnnotation(getOntology(), handler.getOWLObject()));
+    }
+
+    //2012.03.27 BUGFIX: added full method; no imports inside ontologydata were parsed before!  
+    @Override
+	public void handleChild(OWLImportsHandlerModified handler) throws OWLXMLParserException {
+    	((OWLMutableOntology)getOntology()).applyChange(new AddImport(getOntology(), handler.getOWLObject()));
     }
 
     public void endElement() throws OWLParserException, UnloadableImportException {
