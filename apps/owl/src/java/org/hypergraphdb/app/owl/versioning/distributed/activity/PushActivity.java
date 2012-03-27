@@ -310,7 +310,7 @@ public class PushActivity extends FSMActivity {
 							}
 					        combine(reply, struct(CONTENT, owlxmlStringOntology));
 					        combine(reply, struct(KEY_LAST_MATCHING_REVISION, sourceRevisions.get(lastCommonRevisionIndex)));
-					        setCompletedMessage("Source sent " + (sourceRevisions.size() - lastCommonRevisionIndex + 1) + " changesets to target." 
+					        setCompletedMessage("Source sent " + (sourceRevisions.size() - lastCommonRevisionIndex - 1) + " changesets to target." 
 					        		+ " size was : " + (owlxmlStringOntology.length()/1024) + " kilo characters ");
 					        nextState = SendingDelta;
 					        if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
@@ -355,9 +355,17 @@ public class PushActivity extends FSMActivity {
 					throw new RuntimeException(new VOWLSourceTargetConflictException("No common revision at beginning of source and target histories."));
 				}
 				//TRANSACTION END
-		        send(targetPeerID, reply);
+		        send(getSender(msg), reply);
 				return nextState;
 			}});
+	}
+
+	@FromState("ReceivingDelta") //TARGET
+    @OnMessage(performative="Confirm")
+    public WorkflowStateConstant targetReceiveVersionedOntologyDeltaNotNecessary(final Message msg) throws Throwable {
+		String message = getPart(msg, CONTENT);
+		setCompletedMessage("Source reported that no delta is necessary. Reason: " + message);
+		return WorkflowStateConstant.Completed;
 	}
 		
 	/**
