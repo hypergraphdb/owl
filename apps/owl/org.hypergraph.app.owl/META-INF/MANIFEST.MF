@@ -72,5 +72,7 @@ Bundle-ActivationPolicy: lazy
 Require-Bundle: org.semanticweb.owl.owlapi;bundle-version="3.2.3"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: javax.management,
+ javax.net,
+ javax.net.ssl,
  org.hypergraphdb.app.management,
  org.hypergraphdb.app.owl
