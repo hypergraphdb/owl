@@ -19,7 +19,7 @@ public abstract class VOWLChange implements HGLink, VersioningObject, HGGraphHol
 	}
 
 	public static boolean isRemoveChange(VOWLChange c) {
-		return c instanceof VRemoveAxiomChange || c instanceof VRemoveAxiomChange || c instanceof VRemoveOntologyAnnotationChange;
+		return c instanceof VRemoveAxiomChange || c instanceof VRemoveImportChange || c instanceof VRemoveOntologyAnnotationChange;
 	}
 
 	public static boolean isModifyChange(VOWLChange c) {
