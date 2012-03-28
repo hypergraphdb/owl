@@ -73,21 +73,11 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor {
 			//Data
 			if (configuration.isLastRevisionData()) {
 				OWLOntology ontologyData; 
-				System.out.println("Workingset HAS ANNOS: " + vo.getWorkingSetData().getAnnotations().size());
-				System.out.println("Workingset HAS IMPORTS: " + vo.getWorkingSetData().getImportsDeclarations().size());
 				ontologyData = vo.getRevisionData(lastRevision, configuration.isUncommittedChanges());
-				System.out.println("REVISION DATA HAS ANNOS: " + ontologyData.getAnnotations().size());
-				System.out.println("REVISION DATA HAS IMPORTS: " + ontologyData.getImportsDeclarations().size());
-				System.out.println("Workingset HAS ANNOS: " + vo.getWorkingSetData().getAnnotations().size());
-				System.out.println("Workingset HAS IMPORTS: " + vo.getWorkingSetData().getImportsDeclarations().size());
 				//Render Ontology Data
 				writer.startOntologyData(ontologyData);
 				ontologyData.accept(owlObjectRenderer);
 				writer.endOntologyData();
-				System.out.println("REVISION DATA HAS ANNOS: " + ontologyData.getAnnotations().size());
-				System.out.println("REVISION DATA HAS IMPORTS: " + ontologyData.getImportsDeclarations().size());
-				System.out.println("Workingset HAS ANNOS: " + vo.getWorkingSetData().getAnnotations().size());
-				System.out.println("Workingset HAS IMPORTS: " + vo.getWorkingSetData().getImportsDeclarations().size());
 			}
 			//VersionedOntology
             writer.writeEndElement();
