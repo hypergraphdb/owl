@@ -14,7 +14,7 @@ import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HGPersistentHandle;
-import org.hypergraphdb.IncidenceSet;
+import org.hypergraphdb.HGRandomAccessResult;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.management.HGManagement;
@@ -450,9 +450,10 @@ public class HGDBOntologyRepository {
 				System.out.println("\r\nFound axiom match: " + atom);
 				return true;
 		}		
-		IncidenceSet iSet = graph.getIncidenceSet(atomHandle);
+		HGRandomAccessResult<HGHandle> iSetRAR = graph.getIncidenceSet(atomHandle).getSearchResult();
 		// Terminal condition 2: empty incident set.
-		for (HGHandle incidentAtomHandle : iSet) {
+		while (iSetRAR.hasNext()) {
+			HGHandle incidentAtomHandle = iSetRAR.next();
 			Object o = graph.get(incidentAtomHandle);
 			if (o != null) {
 				// we have no cycles up incidence sets starting
@@ -473,7 +474,8 @@ public class HGDBOntologyRepository {
 				}
 				recLevel--;
 			} // else o == null do nothing
-		} // for
+		} // while
+		iSetRAR.close();
 		path.removeLast();
 		return false;
 	}
