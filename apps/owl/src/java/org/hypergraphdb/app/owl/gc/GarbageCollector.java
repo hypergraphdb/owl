@@ -548,8 +548,10 @@ public class GarbageCollector implements HGDBTask {
 		if (canRemove && atom instanceof OWLEntity) {
 			OWLEntity atomEntity = (OWLEntity)atom;
 			canRemove = !atomEntity.isBuiltIn();
-			if (DBG && atomEntity.isBuiltIn()) { 
-				System.out.println("GC: Encountered builtin entity during DFS: " + atomEntity + " Class: " + atomEntity.getClass());
+			if (DBG) {
+				if (atomEntity.isBuiltIn()) { 
+					System.out.println("GC: Encountered builtin entity during DFS: " + atomEntity + " Class: " + atomEntity.getClass());
+				}
 			}
 		}
 		//
