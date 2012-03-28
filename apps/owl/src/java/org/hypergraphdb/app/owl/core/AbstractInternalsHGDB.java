@@ -10,7 +10,7 @@ import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.IncidenceSet;
+import org.hypergraphdb.HGRandomAccessResult;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyImpl;
@@ -1744,7 +1744,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	 * @return
 	 */
 	private <T extends OWLAxiomHGDB, S extends OWLAxiom> Set<S> findAxiomsInIncidenceSetImpl(final OWLObject entity, final Class<T> axiomTypeHGDB, final int targetIndex) {
-		return graph.getTransactionManager().transact(new Callable<Set<S>>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Set<S>>() {
 			@SuppressWarnings("unchecked")
 			public Set<S> call() {
 				HGHandle entityHandle = graph.getHandle(entity);
@@ -1754,8 +1754,9 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 					String msg = ("entityHandle null. Graph.getHandle(" + entity + " Class: " + entity.getClass() + ") in findAxiomsInIncidenceSet(OWLEntity) returned null");
 					throw new IllegalStateException(msg);
 				}
-				IncidenceSet iSet = graph.getIncidenceSet(entityHandle);
-				for (HGHandle incidentAtomHandle : iSet) {
+				HGRandomAccessResult<HGHandle> iSetRAR = graph.getIncidenceSet(entityHandle).getSearchResult();
+				while (iSetRAR.hasNext()) {
+					HGHandle incidentAtomHandle = iSetRAR.next();
 					Object o = graph.get(incidentAtomHandle);
 					if (o != null) {
 						if (axiomTypeHGDB.isAssignableFrom(o.getClass()) && ontology.isMember(incidentAtomHandle)) {
@@ -1783,6 +1784,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 						} // else other Link or other axiom.
 					} // else incidentAtomHandle not in cache! 
 				} 
+				iSetRAR.close();
 				return s;	
 			}});
 	}
@@ -1797,7 +1799,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	 * @return
 	 */
 	private <S extends OWLAxiom> Set<S> findAxiomsInIncidenceSetImplTwo(final OWLObject entity, final DefiningAxiomMatcher axiomMatcher) {
-		return graph.getTransactionManager().transact(new Callable<Set<S>>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Set<S>>() {
 			@SuppressWarnings("unchecked")
 			public Set<S> call() {
 				HGHandle entityHandle = graph.getHandle(entity);
@@ -1807,8 +1809,9 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 					String msg = ("entityHandle null. Graph.getHandle(" + entity + " Class: " + entity.getClass() + ") in findAxiomsInIncidenceSet(OWLEntity) returned null");
 					throw new IllegalStateException(msg);
 				}
-				IncidenceSet iSet = graph.getIncidenceSet(entityHandle);
-				for (HGHandle incidentAtomHandle : iSet) {
+				HGRandomAccessResult<HGHandle> iSetRAR = graph.getIncidenceSet(entityHandle).getSearchResult();
+				while (iSetRAR.hasNext()) {
+					HGHandle incidentAtomHandle = iSetRAR.next();
 					Object o = graph.get(incidentAtomHandle);
 					if (o instanceof OWLAxiomHGDB) {
 						OWLAxiomHGDB axHGDB = (OWLAxiomHGDB)o;
@@ -1819,6 +1822,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 						} // else no match
 					}  // else not axiom.
 				} 
+				iSetRAR.close();
 				return s;	
 			}});
 	}
