@@ -158,4 +158,7 @@ Import-Package: javax.accessibility,
  org.hypergraphdb.peer.replication,
  org.hypergraphdb.peer.serializer,
  org.hypergraphdb.peer.workflow,
- org.hypergraphdb.peer.xmpp
+ org.hypergraphdb.peer.xmpp,
+ org.xml.sax,
+ org.xml.sax.ext,
+ org.xml.sax.helpers
