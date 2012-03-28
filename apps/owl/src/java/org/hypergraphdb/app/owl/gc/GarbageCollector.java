@@ -276,23 +276,23 @@ public class GarbageCollector implements HGDBTask {
 			progressTask();
 			HGHandle importsDeclarationHandle = graph.getHandle(importsDeclaration);
 			IncidenceSet is = graph.getIncidenceSet(importsDeclarationHandle);
-			if (is.size() != 1) throw new IllegalStateException();
-			//remove ImportDeclarationLink
-			HGHandle importDeclLinkHandle = is.first();
+			if (!is.isEmpty()) {
+				System.err.println("GC: Cannot remove Importsdeclaration with non empty incidence set:" + importsDeclaration);
+				continue;
+			} 
 			//ImportDeclarationLink importDeclLink = graph.get(importDeclLinkHandle);
 			if (!analyzeMode) {
-				onto.remove(importDeclLinkHandle);
+				//onto.remove(importDeclLinkHandle);
 				onto.remove(importsDeclarationHandle);
-				graphRemove(importDeclLinkHandle);
+				//graphRemove(importDeclLinkHandle);
 				graphRemove(importsDeclarationHandle);
-			}
-			if (analyzeMode) {
-				analyzeRemovedSet.add(importDeclLinkHandle);
+			} else {
+				//analyzeRemovedSet.add(importDeclLinkHandle);
 				analyzeRemovedSet.add(importsDeclarationHandle);
 			}
+			//stats.increaseOtherObjects();
 			stats.increaseOtherObjects();
-			stats.increaseOtherObjects();
-			stats.increaseTotalAtoms();		
+			//stats.increaseTotalAtoms();		
 			stats.increaseTotalAtoms();					
 		}
 		// Retain Axioms and Entities relevant data:
