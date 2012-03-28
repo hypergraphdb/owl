@@ -399,8 +399,9 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		if (atomHandle == null) {
 			return;
 		} else {
-			IncidenceSet iSet = graph.getIncidenceSet(atomHandle);
-			for (HGHandle incidentAtomHandle : iSet) {
+			HGRandomAccessResult<HGHandle> iSetRAR = graph.getIncidenceSet(atomHandle).getSearchResult();
+			while (iSetRAR.hasNext()) {
+				HGHandle incidentAtomHandle = iSetRAR.next();
 				Object o = graph.get(incidentAtomHandle);
 				if (o != null) {
 					if (o instanceof OWLAxiom) {
@@ -421,6 +422,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 					}
 				} // else o == null do nothing
 			} // for
+			iSetRAR.close();
 		}
 	}
 
@@ -435,8 +437,9 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	 */
 	private boolean hasOntologyAxiomsRecursive(HGHandle atomHandle) {
 		if (DBG) System.out.print("*" + recLevel);
-		IncidenceSet iSet = graph.getIncidenceSet(atomHandle);
-		for (HGHandle incidentAtomHandle : iSet) {
+		HGRandomAccessResult<HGHandle> iSetRAR = graph.getIncidenceSet(atomHandle).getSearchResult();
+		while (iSetRAR.hasNext()) {
+			HGHandle incidentAtomHandle = iSetRAR.next();
 			Object o = graph.get(incidentAtomHandle);
 			if (o != null) {
 				if (o instanceof OWLAxiom) {
@@ -460,6 +463,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 				}
 			} // else o == null do nothing
 		} // for
+		iSetRAR.close();
 		return false;
 	}
 
@@ -782,6 +786,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		for (OWLEntity e : signature) {
 			HGHandle eHandle = graph.getHandle(e);
 			curIS = graph.getIncidenceSet(eHandle);
+			//TODO is.SIZE IS A SLOW OPERATION. CHECK IF ITERATE PERF_SIZE ITERATIONS IS MUCH FASTER.
 			if (curIS.size() < PERFORMANCE_INCIDENCE_SET_SIZE) {
 				lookupEntityIS = curIS; 
 				lookupEntity = eHandle;
@@ -791,6 +796,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 				if (lookupEntityIS == null) {
 					lookupEntityIS = curIS;
 					lookupEntity = eHandle;
+				//TODO is.SIZE IS A SLOW OPERATION. CHECK IF ITERATE PERF_SIZE ITERATIONS IS MUCH FASTER.
 				} else if (lookupEntityIS.size() > curIS.size()) {
 					lookupEntityIS = curIS;
 					lookupEntity = eHandle;
@@ -920,8 +926,9 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 			owlEntityHandle = hg.findOne(graph, hg.and(hg.type(owlEntity.getClass()), hg.eq("IRI", owlEntity.getIRI())));
 		}
 		if (owlEntityHandle != null) {
-			IncidenceSet iSet = graph.getIncidenceSet(owlEntityHandle);
-			for (HGHandle incidentAtomHandle : iSet) {
+			HGRandomAccessResult<HGHandle> iSetRAR = graph.getIncidenceSet(owlEntityHandle).getSearchResult();
+			while  (iSetRAR.hasNext()) {
+				HGHandle incidentAtomHandle = iSetRAR.next();
 				if (ontology.isMember(incidentAtomHandle)) {
 					Object o = graph.get(incidentAtomHandle);
 					if (o != null) {
@@ -941,6 +948,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 					} // else incidentAtomHandle not in cache!
 				}// else not this ontology. 
 			} 
+			iSetRAR.close();
 		}// else no entity found
 		return null;
 	}
