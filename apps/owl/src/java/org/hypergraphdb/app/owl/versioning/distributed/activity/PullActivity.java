@@ -49,7 +49,7 @@ public class PullActivity extends FSMActivity {
 
     public static boolean DBG = true;
 
-    public static boolean DBG_RENDER_ONTOLOGIES_TO_FILE = true;
+    public static boolean DBG_RENDER_ONTOLOGIES_TO_FILE = false;
     
     public static final WorkflowStateConstant SendingInitial = WorkflowStateConstant.makeStateConstant("SendingInitial");
     public static final WorkflowStateConstant ReceivingInitial = WorkflowStateConstant.makeStateConstant("ReceivingInitial");
