@@ -75,6 +75,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 	}
 	
 	public HGDBOntologyManager getOntologyManager() {
+		//if (ontologyManager == null) throw new IllegalArgumentException();
 		return ontologyManager;
 	}
 
