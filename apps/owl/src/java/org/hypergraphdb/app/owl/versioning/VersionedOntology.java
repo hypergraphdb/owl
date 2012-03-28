@@ -17,6 +17,7 @@ import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.hypergraphdb.util.Pair;
+import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
@@ -25,6 +26,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLMutableOntology;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
 
@@ -147,6 +149,10 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 			}}, HGTransactionConfig.READONLY);
 	}
 
+	/**
+	 * Gets the workingsetData. Do not expect the ontology to have an OWLManager set.
+	 * @return
+	 */
 	public HGDBOntology getWorkingSetData(){
 		return graph.getTransactionManager().ensureTransaction(new Callable<HGDBOntology>() {
 			public HGDBOntology call() {
@@ -233,7 +239,12 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	 * @return
 	 */
 	public OWLOntologyImpl copyIntoPartialInMemOnto(HGDBOntology original) {
-		OWLOntologyImpl memOnto = new OWLOntologyImpl(original.getOWLOntologyManager(), original.getOntologyID());
+		OWLOntologyManager manager = original.getOWLOntologyManager();
+		if (manager == null) {
+			System.out.println("copyIntoPartialInMemOnto: creating custom in memory manager for new onto. Fix this.");
+			manager = OWLManager.createOWLOntologyManager();
+		}
+		OWLOntologyImpl memOnto = new OWLOntologyImpl(manager, original.getOntologyID());
 		// Copy A) ImportDeclarations 
 		for(OWLImportsDeclaration id : original.getImportsDeclarations()) {
 			memOnto.applyChange(new AddImport(memOnto, id));
