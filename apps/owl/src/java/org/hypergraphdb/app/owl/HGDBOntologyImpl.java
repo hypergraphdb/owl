@@ -12,6 +12,7 @@ import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HGLink;
+import org.hypergraphdb.HGRandomAccessResult;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.IncidenceSet;
@@ -1498,8 +1499,9 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 						//ensure that all links pointing to the individual already in ontology.
 						HGHandle existingAnonHandle = internals.findAnonymousIndividual(anon);
 						assert (existingAnonHandle != null);
-						IncidenceSet is = graph.getIncidenceSet(anonHandle);
-						for (HGHandle incident : is) {
+						HGRandomAccessResult<HGHandle> isRAR = graph.getIncidenceSet(anonHandle).getSearchResult();
+						while (isRAR.hasNext()) {
+							HGHandle incident = isRAR.next();
 							Object incidentObject = graph.get(incident);
 							if (incidentObject instanceof HGLink) {
 								//TODO for now we want the following cast, to find the objects who should implement HGChangeableLink
@@ -1512,6 +1514,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 								}
 							}
 						}
+						isRAR.close();
 						if (DBG) log.info("Anonymous Individual already in ontology " + anon
 									+ "\r\n All links now pointing to existing anon handle: " + existingAnonHandle + " replaced handle: " + anonHandle);
 					} // if 
@@ -1649,10 +1652,13 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 
 	private void printIncidenceSet(String header, IncidenceSet iSet) {
 		System.out.println("" + header + " size: " + iSet.size());
-		for(HGHandle h : iSet) {
+		HGRandomAccessResult<HGHandle> isRAR = iSet.getSearchResult();
+		while(isRAR.hasNext()) {
+			HGHandle h = isRAR.next();
 			Object o = graph.get(h);
 			System.out.println("    " + o);			
-		}			
+		}	
+		isRAR.close();
 	}
 
 	protected OWLAxiomVisitor getAxiomVisitor(boolean add) {
