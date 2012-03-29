@@ -1,7 +1,6 @@
 package org.hypergraphdb.app.owl.core;
 
 import java.util.HashMap;
-import java.util.Set;
 import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HGException;
@@ -20,7 +19,6 @@ import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.hypergraphdb.util.Pair;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLAnnotationPropertyDomainAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDataProperty;
