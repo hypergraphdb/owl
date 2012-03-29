@@ -1750,7 +1750,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 			public Set<S> call() {
 				HGHandle entityHandle = graph.getHandle(entity);
 				//Initial Size of Hashset performance critical
-				Set<S> s = new HashSet<S>();
+				Set<S> s = Collections.EMPTY_SET; //lazy instantiation
 				if (entityHandle == null) {
 					String msg = ("entityHandle null. Graph.getHandle(" + entity + " Class: " + entity.getClass() + ") in findAxiomsInIncidenceSet(OWLEntity) returned null");
 					throw new IllegalStateException(msg);
@@ -1769,6 +1769,9 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 								while (!foundEntityInTargetSet && i < axHGDB.getArity()) {
 									foundEntityInTargetSet = entityHandle.equals(axHGDB.getTargetAt(i));
 									if (foundEntityInTargetSet) {
+										if (s == Collections.EMPTY_SET) {
+											s = new HashSet<S>();
+										}
 										if (!s.add((S) axHGDB)) {
 											throw new IllegalStateException("Duplicate Axiom found");
 										}
@@ -1777,6 +1780,9 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 								}
 							} else { // check only targetIndex
 								if (entityHandle.equals(axHGDB.getTargetAt(targetIndex))) {
+									if (s == Collections.EMPTY_SET) {
+										s = new HashSet<S>();
+									}
 									if (!s.add((S) axHGDB)) {
 										throw new IllegalStateException("Duplicate Axiom found");
 									}
@@ -1805,7 +1811,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 			public Set<S> call() {
 				HGHandle entityHandle = graph.getHandle(entity);
 				//Initial Size of Hashset performance critical
-				Set<S> s = new HashSet<S>();
+				Set<S> s = Collections.EMPTY_SET; //lazy  new HashSet<S>();
 				if (entityHandle == null) {
 					String msg = ("entityHandle null. Graph.getHandle(" + entity + " Class: " + entity.getClass() + ") in findAxiomsInIncidenceSet(OWLEntity) returned null");
 					throw new IllegalStateException(msg);
@@ -1818,6 +1824,9 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 						OWLAxiomHGDB axHGDB = (OWLAxiomHGDB)o;
 						if (axiomMatcher.isDefiningAxiom(axHGDB, entityHandle)) {
 							if (ontology.isMember(incidentAtomHandle)) {
+								if (s == Collections.EMPTY_SET) {
+									s = new HashSet<S>();
+								}
 								s.add((S)axHGDB);
 							} // else not member
 						} // else no match
