@@ -290,9 +290,11 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 
 	public Set<OWLAnnotationAssertionAxiom> getAnnotationAssertionAxioms(
 			OWLAnnotationSubject subject) {
-		Set<OWLAnnotationAssertionAxiom> axioms = createSet();
-		axioms.addAll(internals.getAnnotationAssertionAxiomsBySubject(subject));
-		return axioms;
+		//Set<OWLAnnotationAssertionAxiom> axioms = createSet();
+		//axioms.addAll(internals.getAnnotationAssertionAxiomsBySubject(subject));
+		//return axioms;
+		//TODO cache this
+		return internals.getAnnotationAssertionAxiomsBySubject(subject);
 	}
 
 	public Set<OWLAnnotationAssertionAxiom> getAnnotationAssertionAxioms(IRI subject) {
