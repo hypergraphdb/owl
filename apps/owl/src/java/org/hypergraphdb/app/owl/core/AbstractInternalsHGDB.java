@@ -51,6 +51,7 @@ import org.hypergraphdb.app.owl.model.axioms.OWLSubDataPropertyOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubObjectPropertyOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSymmetricObjectPropertyAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLTransitiveObjectPropertyAxiomHGDB;
+import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -1786,7 +1787,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 				} 
 				iSetRAR.close();
 				return s;	
-			}});
+			}}, HGTransactionConfig.READONLY);
 	}
 
 	/**
@@ -1824,7 +1825,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 				} 
 				iSetRAR.close();
 				return s;	
-			}});
+			}}, HGTransactionConfig.READONLY);
 	}
 
 	/* (non-Javadoc)
