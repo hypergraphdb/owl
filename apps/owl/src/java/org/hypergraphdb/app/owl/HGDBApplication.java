@@ -271,15 +271,13 @@ public class HGDBApplication extends HGApplication
 	private void ensureBuiltInObjects(HyperGraph graph) {
 		OWLDataFactoryHGDB df = new OWLDataFactoryHGDB();
 		df.setHyperGraph(graph);
-		OWLClass thing = df.getOWLThing(); //this returns no longer a constant 
-		OWLClass nothing = df.getOWLNothing(); //this returns no longer a constant
-		//WARNING OWLDataProperty topData = df.getOWLTopDataProperty(); //this returns a different object each call		
-		//if (graph.getHandle(thing) == null) {
-		//	graph.add(thing);
-		//	graph.add(nothing);
-		//}
-		assert(graph.getHandle(nothing) != null);
-		assert(graph.getHandle(thing) != null);
+		// Ensuring that the following objects are created in the graph.
+		df.getOWLThing(); //this returns no longer a constant 
+		df.getOWLNothing(); //this returns no longer a constant
+		df.getOWLTopDataProperty();
+		df.getOWLTopObjectProperty();
+		df.getOWLBottomDataProperty();
+		df.getOWLBottomObjectProperty();
 	}
 
 //	/**
