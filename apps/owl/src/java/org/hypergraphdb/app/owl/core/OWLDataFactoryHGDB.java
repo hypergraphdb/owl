@@ -1058,10 +1058,12 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		if (owlEntityHandle == null) {
 			// TODO HGDBApplication.ensureBuiltInObjects should add all BUILTING
 			// Types
-			System.out.println("WARNING: Had to create NONHGDB DeclarationAxiom for :" + owlEntity);
+			System.out.println("WARNING: Had to create NONHGDB DeclarationAxiom for :" + owlEntity + " class " + owlEntity.getClass());
 			// 2010.10.06 not acceptable anymore: return new
 			// OWLDeclarationAxiomImpl(this, owlEntity, annotations);
-			throw new IllegalStateException("Could not find owlEntity in Cache or store." + owlEntity);
+			throw new IllegalStateException("Could not find owlEntity in Cache or store. "
+					+ " This occured on builtin entities before after gc was run. "
+					+ owlEntity + " Class: " + owlEntity.getClass());
 		}
 		// hilpold 2011.10.13
 		// An equal (see equals()) one might exist, so we must not add a
