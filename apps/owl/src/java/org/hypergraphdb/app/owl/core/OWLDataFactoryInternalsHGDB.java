@@ -1,6 +1,8 @@
 package org.hypergraphdb.app.owl.core;
 
 import java.util.HashMap;
+import java.util.Set;
+import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HGException;
 import org.hypergraphdb.HGGraphHolder;
@@ -14,9 +16,11 @@ import org.hypergraphdb.app.owl.model.OWLDataPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLDatatypeHGDB;
 import org.hypergraphdb.app.owl.model.OWLNamedIndividualHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectPropertyHGDB;
+import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.hypergraphdb.util.Pair;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
+import org.semanticweb.owlapi.model.OWLAnnotationPropertyDomainAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDataProperty;
@@ -199,8 +203,8 @@ public class OWLDataFactoryInternalsHGDB {
      * @return a loaded or created OwlEntityObject of type type.
      */
     @SuppressWarnings("unchecked")
-	private <V extends OWLEntity> OWLEntity ensureCreateEntityInDatabase(Class<V> entityType, IRI iri, BuildableObjects buildable) {
-    	HyperGraph graph = factory.getHyperGraph();
+	private <V extends OWLEntity> OWLEntity ensureCreateEntityInDatabase(final Class<V> entityType, final IRI iri, final BuildableObjects buildable) {
+    	final HyperGraph graph = factory.getHyperGraph();
     	boolean isBuiltin = OWLRDFVocabulary.BUILT_IN_VOCABULARY_IRIS.contains(iri);
     	//check builtin cache
     	V e;
@@ -213,14 +217,30 @@ public class OWLDataFactoryInternalsHGDB {
     		}
     	}
     	CACHE_MISS ++;
-    	e = (V)hg.getOne(graph, hg.and(hg.type(entityType), hg.eq("IRI", iri)));
+    	//TRANSACTION START READONLY
+    	e =  graph.getTransactionManager().ensureTransaction(new Callable<V>() {
+			public V call() {
+				return (V)hg.getOne(graph, hg.and(hg.type(entityType), hg.eq("IRI", iri)));
+			}}, HGTransactionConfig.READONLY);
+    	//TRANSACTION END READONLY
     	if (e == null) {
-    		e = (V)buildable.build(factory, iri);
-    		if (!entityType.isAssignableFrom(e.getClass())) throw new HGException("Built object type must be same or subclass of type " + entityType);
-    		if (!(e instanceof HGGraphHolder && e instanceof HGHandleHolder)) throw new HGException("Built entity must be Graphholder and Handleholder");
-    		if (DBG) System.out.println("FACTINTERN CREATED/ADDED ENTITY: " + e + " type: " + e.getClass().getSimpleName() );
-    		graph.add(e);
+        	//TRANSACTION START WRITE
+        	e = graph.getTransactionManager().ensureTransaction(new Callable<V>() {
+    			public V call() {
+		    		//DOUBLE CHECK
+		        	V eInt = (V)hg.getOne(graph, hg.and(hg.type(entityType), hg.eq("IRI", iri)));
+		        	if (eInt == null) {
+		        		eInt = (V)buildable.build(factory, iri);
+			    		if (!entityType.isAssignableFrom(eInt.getClass())) throw new HGException("Built object type must be same or subclass of type " + entityType);
+			    		if (!(eInt instanceof HGGraphHolder && eInt instanceof HGHandleHolder)) throw new HGException("Built entity must be Graphholder and Handleholder");
+			    		if (DBG) System.out.println("FACTINTERN CREATED/ADDED ENTITY: " + eInt + " type: " + eInt.getClass().getSimpleName() );
+			    		graph.add(eInt);
+		        	}
+		        	return eInt;
+    			}}, HGTransactionConfig.DEFAULT);
+        	//TRANSACTION END WRITE
     	}
+    	//TRANSACTION END
 		//Cache put if BUILTIN and cache miss.
 		if (isBuiltin) {
 			//assert (!builtinByIRIClassPairCache.containsKey(iri);
@@ -231,15 +251,28 @@ public class OWLDataFactoryInternalsHGDB {
 		return e;
 	}
     
-	HGHandle findOrAddIRIHandle(IRI iri) {
-		//replace by assertAtom
-    	HyperGraph graph = factory.getHyperGraph();
-		HGHandle iriHandle = hg.findOne(graph, hg.and(hg.type(IRI.class), hg.eq(iri)));
+	HGHandle findOrAddIRIHandle(final IRI iri) {
+		//TODO replace by assertAtom?
+    	final HyperGraph graph = factory.getHyperGraph();
+    	HGHandle iriHandle  =  graph.getTransactionManager().ensureTransaction(new Callable<HGHandle>() {
+			public HGHandle call() {
+				return hg.findOne(graph, hg.and(hg.type(IRI.class), hg.eq(iri)));
+			}}, HGTransactionConfig.READONLY);
 		if (DBG) {
 			System.out.println("findOrAddIRIHandle IRI: " + iri + " found?: " + iriHandle);
 		}
 		if (iriHandle == null) {
-			iriHandle = graph.add(iri);
+			//TRANSACTION START WRITE
+			//DOUBLE CHECK 
+	    	iriHandle  =  graph.getTransactionManager().ensureTransaction(new Callable<HGHandle>() {
+				public HGHandle call() {
+					HGHandle iriHandleInt = hg.findOne(graph, hg.and(hg.type(IRI.class), hg.eq(iri)));
+					if (iriHandleInt == null) {
+						iriHandleInt = graph.add(iri);
+					}
+					return iriHandleInt;
+				}}, HGTransactionConfig.DEFAULT);
+			//TRANSACTION END
 		}
 		return iriHandle;
 	}
