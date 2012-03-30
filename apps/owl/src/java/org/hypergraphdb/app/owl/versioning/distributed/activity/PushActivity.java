@@ -387,13 +387,13 @@ public class PushActivity extends FSMActivity {
 		String vowlxmlStringDelta = graph.getTransactionManager().ensureTransaction(new Callable<String>() {
 			public String call() {
 				//TRANSACTION START
-				VersionedOntology targetVersionedOntology = activityUtils.getVersionedOntologyForDeltaFrom(lastMatchingRevision, repository);
+				VersionedOntology targetVersionedOntology = activityUtils.getVersionedOntologyForDeltaFrom(lastMatchingRevision, repository, false);
 				System.out.println("RECEIVING delta");
 				String vowlxmlStringDelta = getPart(msg, CONTENT);
 				OWLOntologyDocumentSource ds = new StringDocumentSource(vowlxmlStringDelta);
 				// Parse, apply and append the delta
 				try {
-					activityUtils.appendDeltaTo(ds, targetVersionedOntology);
+					activityUtils.appendDeltaTo(ds, targetVersionedOntology, false);
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}
@@ -403,7 +403,7 @@ public class PushActivity extends FSMActivity {
 					try {
 						activityUtils.saveVersionedOntologyXML(targetVersionedOntology, "FULL-AFTER-DELTA-APPLIED-PUSH-TARGET");
 					} catch (Exception e) {
-						//DBG excpetion ignored.
+						//DBG exception ignored.
 						e.printStackTrace();
 					}
 				}
