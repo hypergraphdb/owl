@@ -644,16 +644,17 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	 * 1) this must be stored in the graph
 	 * 2) revisions must not, changesets and dependents must be in the graph.
 	 * 3) the first revision in the list must match the current head revision
-	 * 4) the existing current workingset must be empty.
+	 * 4) the existing current workingset must be empty, unless mergeWithUncommitted is set.
 	 * 
 	 * Postconditions:
 	 * 1) the versionedontology will have all given revisions, except the matching first
 	 * and all changesets without exceptions added. The first changeset will replace the current
-	 * 2) the workingset will be a new empty changeset.
+	 * 2) the workingset will be a new empty changeset, unless mergeWithUncommitted is set where it will be the original workingset changeset.
 	 * 3) all revisions/changesets will be stored in the graph as pairs and the versionedontology will be updated.
 	 * 
 	 * @param revisions a list of revisions, where the first matches the existing head revision.
 	 * @param changeSets a list of changesets, where the last empty workingset is not provided.
+	 * @param mergeWithUncommitted if true, the method allows the workingset changeset to have changes and merges them with the applied delta.
 	 */
 	public void addApplyDelta(List<Revision> revisions, List<ChangeSet> changeSets, boolean mergeWithUncommitted) {
 		if (revisions.size() != changeSets.size() + 1) throw new IllegalArgumentException("There must be one more revision than changesets.");
@@ -672,7 +673,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 		// 2) Add revision and changeset pair, except first.
 		HGDBOntology headData = getWorkingSetData();
 		ChangeSet workingsetChanges = getWorkingSetChanges();
-		// ROLLBACK FOR LATER MERGE
+		// ROLLBACK FOR MERGE
 		if (mergeWithUncommitted) {
 			workingsetChanges.reverseApplyTo(headData);
 		}
@@ -690,6 +691,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 					curCS.setCreatedDate(new Date());
 					curCSHandle = graph.add(curCS);
 				} else {
+					// REAPPLY after earlier rollback
 					curCS = workingsetChanges;
 					curCSHandle = graph.getHandle(workingsetChanges);
 					if (curCSHandle == null) throw new IllegalArgumentException("We are reusing, it has to be there.");
