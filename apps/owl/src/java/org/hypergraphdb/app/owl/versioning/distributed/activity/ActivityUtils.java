@@ -21,7 +21,6 @@ import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDE
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyUUIDException;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
-import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
@@ -157,7 +156,10 @@ public class ActivityUtils {
 	 * @throws OWLParserException
 	 * @throws IOException
 	 */
-	VOWLXMLDocument appendDeltaTo(OWLOntologyDocumentSource vowlxmlDeltaSource, VersionedOntology targetVersionedOntology) throws OWLOntologyChangeException, UnloadableImportException, OWLParserException, IOException {
+	VOWLXMLDocument appendDeltaTo(OWLOntologyDocumentSource vowlxmlDeltaSource, VersionedOntology targetVersionedOntology, boolean mergeWithUncommitted) throws OWLOntologyChangeException, UnloadableImportException, OWLParserException, IOException {
+		if (!mergeWithUncommitted && !targetVersionedOntology.getWorkingSetChanges().isEmpty()) {
+			throw new IllegalStateException("There must not be uncommitted changes on appending delta without merge.");
+		}
 		VOWLXMLParser vowlxmlParser = new VOWLXMLParser();
 		HGDBOntologyManager manager = (HGDBOntologyManager)targetVersionedOntology.getWorkingSetData().getOWLOntologyManager();
 		//Create an dummy in mem onto with a hgdb manager and hgdb data factory to use.
@@ -176,13 +178,11 @@ public class ActivityUtils {
 			throw new IllegalStateException("Expecting exactly one more Revision than changesets." 
 					+ "The workingset changeset after head must not be included in the transmission");
 		}
-		
-		// Apply and store changesets.
-//		if (!deltaRevisions.get(0).equals(lastMatchingRevision)) {
-//			throw new IllegalStateException("Internal error. The transmissions lastMatchingRevision data did not match the first owlxml revision.");
-//		}
-		// This might cause 
-		targetVersionedOntology.addApplyDelta(deltaRevisions, deltaChangeSets);
+		if (mergeWithUncommitted) {
+			System.out.println("MERGING: " + targetVersionedOntology.getWorkingSetChanges().size()
+					+ " uncommitted changes by reapplying them after applying "+ deltaChangeSets.size() + " delta changesets ");
+		}
+		targetVersionedOntology.addApplyDelta(deltaRevisions, deltaChangeSets, mergeWithUncommitted);
 		return vowlxmlDoc;
 	}
 	
@@ -196,37 +196,30 @@ public class ActivityUtils {
 	 * @return a valid versionedontology and never null (will throw exception instead)
 	 * @throws IllegalStateException in all problem cases.
 	 */
-	VersionedOntology getVersionedOntologyForDeltaFrom(Revision lastMatchingRevision, VDHGDBOntologyRepository repository) throws IllegalStateException {
+	VersionedOntology getVersionedOntologyForDeltaFrom(Revision lastMatchingRevision, VDHGDBOntologyRepository repository, boolean mergeWithUncommittedMode) throws IllegalStateException {
 		HGPersistentHandle ontoUUID = lastMatchingRevision.getOntologyUUID();
 		HGDBOntology onto = (HGDBOntology)repository.getHyperGraph().get(ontoUUID);
-		onto.setOWLOntologyManager(repository.getOntologyManager());
-		//boolean applyDelta = false;
-		VersionedOntology targetVersionedOntology;
-		if (onto != null) {
-			targetVersionedOntology = repository.getVersionControlledOntology(onto);
-			if (targetVersionedOntology != null) {
-				if (targetVersionedOntology.getHeadRevision().equals(lastMatchingRevision)) {
-					//	we're good.
-					if (targetVersionedOntology.getWorkingSetChanges().isEmpty()) {
-						//do it.
-						//applyDelta = true;
-						return targetVersionedOntology;
-					} else {
-						throw new IllegalStateException("Delta not applicable, because uncommitted changes exist in target.");
-					}
-				} else {
-					throw new IllegalStateException("Delta not applicable to head revision. Might have changed.");
-				}
-			} else {
-				// somebody removed version control in the meantime
-				throw new IllegalStateException("Delta refers to an ontology that is currently not version controlled.");
-			}
-		} else {
+		if (onto == null) {
 			// somebody removed the onto in the meantime or the source sent wrong revision.
-			// 
 			throw new IllegalStateException("Delta refers to an ontology that does currently not exist.");
 		}
-		//return applyDelta;
+		onto.setOWLOntologyManager(repository.getOntologyManager());
+		VersionedOntology targetVersionedOntology;
+		targetVersionedOntology = repository.getVersionControlledOntology(onto);
+		if (targetVersionedOntology != null) {
+			if (targetVersionedOntology.getHeadRevision().equals(lastMatchingRevision)) {
+				if (targetVersionedOntology.getWorkingSetChanges().isEmpty() || mergeWithUncommittedMode) {
+					return targetVersionedOntology;
+				} else {
+					throw new IllegalStateException("Delta not applicable, because uncommitted changes exist in target and no merge was allowed.");
+				}
+			} else {
+				throw new IllegalStateException("Delta not applicable to head revision. Might have changed.");
+			}
+		} else {
+			// somebody removed version control in the meantime
+			throw new IllegalStateException("Delta refers to an ontology that is currently not version controlled.");
+		}
 	}
 
 	/**
