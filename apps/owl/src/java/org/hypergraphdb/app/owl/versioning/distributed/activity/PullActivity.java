@@ -37,6 +37,11 @@ import org.semanticweb.owlapi.io.StringDocumentSource;
 /**
  * PullActivity. Pulls all changes from a target repository, which has the same VersionedOntology and 
  * a change history that is longer (newer) than the source (initiator).
+ * 
+ * If the source has pending uncommitted workingset changes, they are merged with the incoming delta in the following way:
+ * 1. pending are rolled back
+ * 2. delta is applied
+ * 3. rolled back pending are reapplied (and can be committed afterwards).
  *  
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Mar 19, 2012
@@ -67,6 +72,8 @@ public class PullActivity extends FSMActivity {
     private HyperGraph graph;
     
     private ActivityUtils activityUtils =  new ActivityUtils();
+    
+    private boolean mergeWithUncommited;
     
 	public PullActivity(HyperGraphPeer thisPeer, UUID id)
     {
@@ -128,16 +135,16 @@ public class PullActivity extends FSMActivity {
 						// send Confirm with existing revisions objects
 						// and tell if we have uncommitted changes.
 						// TODO send content hash
-				        if (sourceVersionedOnto.getWorkingSetChanges().isEmpty()) {
+				        //if (sourceVersionedOnto.getWorkingSetChanges().isEmpty()) {
 				        	msg = createMessage(Performative.Confirm, null);
 				        	List<Revision> revList = sourceVersionedOnto.getRevisions();
 					        combine(msg, struct(CONTENT, revList));
 					        return msg;
 					        // Started return ReceivingDelta;
-				        } else {
+				        //} else {
 				        	// Source has uncommitted - cannot pull
-				        	throw new RuntimeException(new VOWLSourceTargetConflictException("Source has uncommitted changes. Cannot pull."));
-						}
+				        //	throw new RuntimeException(new VOWLSourceTargetConflictException("Source has uncommitted changes. Cannot pull."));
+						//}
 					} else {
 							// Ontology but no versioning information, 
 							// cannot determine
@@ -324,14 +331,14 @@ public class PullActivity extends FSMActivity {
 							}
 					        combine(reply, struct(CONTENT, owlxmlStringOntology));
 					        combine(reply, struct(KEY_LAST_MATCHING_REVISION, targetRevisions.get(lastCommonRevisionIndex)));
-					        setCompletedMessage("Target sent " + (targetRevisions.size() - lastCommonRevisionIndex + 1) + " changesets to source." 
+					        setCompletedMessage("Target sent " + (targetRevisions.size() - lastCommonRevisionIndex - 1) + " changesets to source." 
 					        		+ " size was : " + (owlxmlStringOntology.length()/1024) + " kilo characters ");
 					        nextState = SendingDelta;
 					        if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
 					        	try {
 					        		activityUtils.saveStringXML(owlxmlStringOntology, "DELTA-SENT-BY-PULL-TARGET");
 					        	} catch (Exception e) {
-					        		System.err.println("Push: Exception during debug output ignored:");
+					        		System.err.println("Pull: Exception during debug output ignored:");
 					        		e.printStackTrace();
 								}
 					        }
@@ -393,13 +400,14 @@ public class PullActivity extends FSMActivity {
 		String vowlxmlStringDelta = graph.getTransactionManager().ensureTransaction(new Callable<String>() {
 			public String call() {
 				//TRANSACTION START
-				VersionedOntology sourceVersionedOnto = activityUtils.getVersionedOntologyForDeltaFrom(lastMatchingRevision, repository);
+				VersionedOntology sourceVersionedOnto = activityUtils.getVersionedOntologyForDeltaFrom(lastMatchingRevision, repository, true);
+				mergeWithUncommited = !sourceVersionedOnto.getWorkingSetChanges().isEmpty();
 				System.out.println("RECEIVING PULLED delta");
 				String vowlxmlStringDelta = getPart(msg, CONTENT);
 				OWLOntologyDocumentSource ds = new StringDocumentSource(vowlxmlStringDelta);
 				// Parse, apply and append the delta
 				try {
-					activityUtils.appendDeltaTo(ds, sourceVersionedOnto);
+					activityUtils.appendDeltaTo(ds, sourceVersionedOnto, mergeWithUncommited);
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}
@@ -418,7 +426,11 @@ public class PullActivity extends FSMActivity {
 			}}, HGTransactionConfig.DEFAULT);
 		Message reply = getReply(msg, Performative.AcceptProposal);
 		send(getSender(msg), reply);
-		setCompletedMessage("Delta received and applied. Size: " + (vowlxmlStringDelta.length()/1024) + " kilo characters");
+		if (mergeWithUncommited) {
+			setCompletedMessage("Delta received, applied and merged with uncommitted changes. Size: " + (vowlxmlStringDelta.length()/1024) + " kilo characters");
+		} else {
+			setCompletedMessage("Delta received and applied. Size: " + (vowlxmlStringDelta.length()/1024) + " kilo characters");
+		}
 		return WorkflowStateConstant.Completed;
 	}
 
