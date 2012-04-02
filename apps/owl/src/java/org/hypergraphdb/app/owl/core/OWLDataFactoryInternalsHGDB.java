@@ -211,7 +211,12 @@ public class OWLDataFactoryInternalsHGDB {
     		if (e != null) {
     			CACHE_HIT ++;
     			assert (e.getClass().equals(entityType));
-    			return e;
+    			if (graph.getHandle(e) != null) {
+    				return e;
+    			} else {
+    				//make sure it gets added below.
+    				System.out.println(" Unusual but recoverable: no handle for cached: " + e + " Class: " + e.getClass());
+    			}
     		}
     	}
     	CACHE_MISS ++;
