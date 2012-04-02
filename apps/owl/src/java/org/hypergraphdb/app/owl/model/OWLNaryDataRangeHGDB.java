@@ -29,7 +29,7 @@ public abstract class OWLNaryDataRangeHGDB extends OWLObjectHGDB implements HGLi
     public OWLNaryDataRangeHGDB(HGHandle...args) {
     	// no duplicates allowed
     	assert(new TreeSet<HGHandle>(Arrays.asList(args)).size() == args.length);
-    	operandHandles = Arrays.asList(args);
+    	operandHandles = new ArrayList<HGHandle>(Arrays.asList(args));
     }
 
     public OWLNaryDataRangeHGDB(Set<? extends HGHandle> operands) {   
