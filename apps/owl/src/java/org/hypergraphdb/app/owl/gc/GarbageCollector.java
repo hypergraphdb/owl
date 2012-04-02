@@ -23,6 +23,7 @@ import org.hypergraphdb.app.owl.core.HGDBTask;
 import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
 import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
 import org.hypergraphdb.app.owl.model.OWLAnnotationHGDB;
+import org.hypergraphdb.app.owl.model.swrl.SWRLConjuction;
 import org.hypergraphdb.app.owl.query.AnySubgraphMemberCondition;
 import org.hypergraphdb.app.owl.query.OWLEntityIsBuiltIn;
 import org.hypergraphdb.app.owl.type.link.AxiomAnnotatedBy;
@@ -61,6 +62,8 @@ import org.semanticweb.owlapi.model.OWLOntology;
  * @created Dec 20, 2011
  * <p>
  * history: 
+ * <br> 2012.04.02 hilpold
+ * <br> Bugfix: added SWRLConjunction to known collectable types.
  * <br> 2012.01.05 hilpold
  * <br>Entity IRIs cannot currently be deleted because of the implementation of OWLNamedObjectType.
  * <br> 2012.01.08 hilpold
@@ -622,6 +625,10 @@ public class GarbageCollector implements HGDBTask {
 				stats.increaseTotalAtoms();
 				stats.increaseAnnotations();
 			} else if (atom instanceof OWLObjectHGDB) {
+				stats.increaseTotalAtoms();
+				stats.increaseOtherObjects();
+			} else if (atom instanceof SWRLConjuction) {
+				//SWRLBody or Head
 				stats.increaseTotalAtoms();
 				stats.increaseOtherObjects();
 			} else {
