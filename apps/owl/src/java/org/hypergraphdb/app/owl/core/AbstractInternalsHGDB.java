@@ -2074,7 +2074,9 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 				//// subclass 0, superClass 1
 				returnValue = entityHandle.equals(axS.getTargetAt(0));
 			} else {
-				throw new IllegalStateException("OWLObjectPropertyAxiom : " + axiom + " unknown.");
+				returnValue = false;
+				//TODO Sure those are all?
+				//System.out.println("Found OWLObjectPropertyAxiom : " + axiom + " unknown. Class:" + axiom.getClass());
 			}
 			return returnValue;
 		}
