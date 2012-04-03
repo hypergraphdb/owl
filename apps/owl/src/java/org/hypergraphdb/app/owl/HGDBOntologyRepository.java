@@ -104,7 +104,7 @@ public class HGDBOntologyRepository {
 		return instance;
 	}
 	
-	protected static boolean hasInstance() {
+	public static boolean hasInstance() {
 		return instance != null;
 	}
 	
