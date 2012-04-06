@@ -221,7 +221,8 @@ public class HGDBOntologyRepository {
 		return graph.getTransactionManager().ensureTransaction(new Callable<List<HGDBOntology>>() {
 			public List<HGDBOntology>call() {
 				//2011.12.20 added condition OntologyId not null.
-				return hg.getAll(graph, hg.and(hg.type(HGDBOntologyImpl.class), hg.not(hg.eq("ontologyID", null))));
+				//2012.04.03 return hg.getAll(graph, hg.and(hg.type(HGDBOntologyImpl.class), hg.not(hg.eq("ontologyID", null))));
+				return hg.getAll(graph, hg.and(hg.type(HGDBOntologyImpl.class), hg.not(hg.eq("documentIRI", null))));
 			}
 		}, HGTransactionConfig.DEFAULT);
 		// USE: HGTransactionConfig.READONLY); and ensure >0 ontos in graph to see HGException
@@ -232,7 +233,9 @@ public class HGDBOntologyRepository {
 		//for cleanup
 		return graph.getTransactionManager().ensureTransaction(new Callable<List<HGDBOntology>>() {
 			public List<HGDBOntology>call() {
-				return hg.getAll(graph, hg.and(hg.type(HGDBOntologyImpl.class), hg.eq("ontologyID", null)));
+				//2012.04.03 Allow equal OIDs if docIRIS are null to emulate in memory behaviour before GC. 
+				//return hg.getAll(graph, hg.and(hg.type(HGDBOntologyImpl.class), hg.eq("ontologyID", null)));
+				return hg.getAll(graph, hg.and(hg.type(HGDBOntologyImpl.class), hg.eq("documentIRI", null)));
 			}
 		}, HGTransactionConfig.DEFAULT);
 	}
@@ -244,7 +247,10 @@ public class HGDBOntologyRepository {
 	 * @throws IllegalStateException, if more than one Ontology found.
 	 */
 	public HGDBOntology getOntologyByID(OWLOntologyID ontologyId) {
-		HGQueryCondition queryCondition = hg.and(hg.type(HGDBOntologyImpl.class), hg.eq("ontologyID", ontologyId));
+		//2012.04.03 HGQueryCondition queryCondition = hg.and(hg.type(HGDBOntologyImpl.class), hg.eq("ontologyID", ontologyId));
+		HGQueryCondition queryCondition = hg.and(hg.type(HGDBOntologyImpl.class), 
+											hg.eq("ontologyID", ontologyId), 
+											hg.not(hg.eq("documentIRI", null)));
 		List<HGDBOntologyImpl> l = hg.getAll(graph, queryCondition);
 		if (l.size() > 1) throw new IllegalStateException("Found more than one ontology by Id");
 		return (l.size() == 1? l.get(0): null);
@@ -257,6 +263,8 @@ public class HGDBOntologyRepository {
 	 * @throws IllegalStateException, if more than one Ontology found.
 	 */
 	public HGDBOntology getOntologyByDocumentIRI(IRI documentIRI) {
+		//2012.04.03 need to throw on null docIRI
+		if (documentIRI == null) throw new IllegalArgumentException("DocumentIRI must not be null. Null docIRI is a marker for deleted ontolgies. ");
 		HGQueryCondition queryCondition = hg.and(hg.type(HGDBOntologyImpl.class), hg.eq("documentIRI", documentIRI));
 		List<HGDBOntologyImpl> l = hg.getAll(graph, queryCondition);
 		if (l.size() > 1) throw new IllegalStateException("Found more than one ontology by Id");
@@ -274,7 +282,10 @@ public class HGDBOntologyRepository {
 	 * @throws IllegalStateException, if more than one Ontology found.
 	 */
 	public HGHandle getOntologyHandleByID(OWLOntologyID ontologyId) {
-		HGQueryCondition queryCondition = hg.and(hg.type(HGDBOntologyImpl.class), hg.eq("ontologyID", ontologyId));
+		//2012.04.03 docIRI is null on marked for deletion ontos HGQueryCondition queryCondition = hg.and(hg.type(HGDBOntologyImpl.class), hg.eq("ontologyID", ontologyId));
+		HGQueryCondition queryCondition = hg.and(hg.type(HGDBOntologyImpl.class), 
+											hg.eq("ontologyID", ontologyId),
+											hg.not(hg.eq("documentIRI", null)));
 		List<HGHandle> l = hg.findAll(graph, queryCondition);
 		if (l.size() > 1) throw new IllegalStateException("Found more than one ontology by Id");
 		return (l.size() == 1? l.get(0): null);
@@ -298,18 +309,24 @@ public class HGDBOntologyRepository {
 	public boolean deleteOntology(OWLOntologyID ontologyId) {
 		// 2011.12.20 hilpold we just set the ontology ID and DocumentIRI to null 
 		// so cleanup can remove it later and we remain responsive. 
+		//2012.04.03 We only set documentIRI null, OID must remain.  
+		// OWL-API TestClass OWLImportsClosureTestCase fails with ERROR if set OID null on onto
+		// marked for deletion. This is to emulate in memory behaviour.
+		//2012.04.04 we also need to change the PersistentStorage handle for the ontology, so a 
+		// test for UUID fails.
 		boolean ontologyFound;
 		HGHandle ontologyHandle = getOntologyHandleByID(ontologyId);
 		ontologyFound = ontologyHandle != null;
 		if (ontologyFound) {
 			HGDBOntology o = graph.get(ontologyHandle);
-			o.setOntologyID(null);
+			//o.setOntologyID(null);
 			o.setDocumentIRI(null);
 			graph.replace(ontologyHandle, o);
+			//graph.
 		}
 		return ontologyFound;
 	}
-		
+
 	public HGHandle addOntology(HGDBOntology ontology) {
 		printAllOntologies();
 		return graph.add(ontology);
