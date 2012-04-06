@@ -7,8 +7,8 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.app.owl.core.HGChangeableLink;
 import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationObjectVisitor;
@@ -26,7 +26,7 @@ import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 14, 2011
  */
-public class OWLAnnotationHGDB extends OWLObjectHGDB implements HGLink, OWLAnnotation {
+public class OWLAnnotationHGDB extends OWLObjectHGDB implements HGChangeableLink, OWLAnnotation {
 
     private HGHandle propertyHandle;           // index   0
     private HGHandle valueHandle;              // index   1 
@@ -198,6 +198,21 @@ public class OWLAnnotationHGDB extends OWLObjectHGDB implements HGLink, OWLAnnot
 			valueHandle = getHyperGraph().getHandleFactory().nullHandle();
 		} else { //> 1 and < arity
 			annotationsHandles.remove(i - 2);
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.core.HGChangeableLink#setTargetAt(int, org.hypergraphdb.HGHandle)
+	 */
+	@Override
+	public void setTargetAt(int i, HGHandle handle) {
+		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
+		if (i == 0) {
+			propertyHandle = handle;
+		} else if (i == 1) {
+			valueHandle = handle;
+		} else { //> 1 and < arity
+			annotationsHandles.set(i - 2, handle);
 		}
 	}    
 }
