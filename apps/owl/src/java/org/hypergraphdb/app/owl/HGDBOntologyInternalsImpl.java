@@ -83,6 +83,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 
 	/**
 	 * Switches LOG string creation on or off.
+	 * This will slow down performance tremendously, as graph stats are calculated often.
 	 */
 	public static boolean DBG = false;
 
@@ -666,7 +667,10 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	protected OWLAxiom findEqualAxiom(final OWLAxiom axiom, boolean ignoreAnnotations) {
-		if (USE_CONTAINS_AXIOM_BY_HASHCODE) {
+		//2012.04.04 only use hashcode, if ignoreAnnotations is not set.
+		// we'll need to implement index and store 2 hashcodes per axiom if we want to 
+		// be able to ignore annotations and use a hashcode indexer.
+		if (USE_CONTAINS_AXIOM_BY_HASHCODE && !ignoreAnnotations) {
 			return findEqualAxiomByHashCode(axiom, ignoreAnnotations);
 		} else {
 			return findEqualAxiomOptimized(axiom, ignoreAnnotations);
@@ -675,12 +679,14 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	
 	/**
 	 * Exploits index on hashCode for axioms. See OWLObjectHGDB OWLAxiomHGDB.
+	 * Will not work if ignoreannotations is set.
 	 * @param axiom
 	 * @param ignoreAnnotations
 	 * @return
 	 */
 	protected OWLAxiom findEqualAxiomByHashCode(final OWLAxiom axiom, final boolean ignoreAnnotations) {
 		if (axiom == null) throw new NullPointerException("axiom");
+		if (ignoreAnnotations) throw new IllegalStateException("Current Hash lookup Implementation fails, ignoreAnnotations is set.");
 		return graph.getTransactionManager().ensureTransaction(new Callable<OWLAxiomHGDB>() {
 			public OWLAxiomHGDB call() {
 				int findHashCode = axiom.hashCode();
@@ -1078,7 +1084,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 
 	public void addAxiomsByType(final AxiomType<?> type, final OWLAxiom axiom) {
 		if (DBG) {
-			log.info("ADD Axiom: " + axiom.getClass().getSimpleName() + "Type: " + type);
+			log.info("ADD Axiom: " + axiom.getClass().getSimpleName() + "Type: " + type + " Hash: " + axiom.hashCode() + " Ax: " + axiom);
 		}
 		if (AxiomTypeToHGDBMap.getAxiomClassHGDB(type) != null) {
 			graph.getTransactionManager().ensureTransaction(new Callable<Boolean>() {
