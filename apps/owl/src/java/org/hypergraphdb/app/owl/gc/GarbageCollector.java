@@ -248,93 +248,121 @@ public class GarbageCollector implements HGDBTask {
 		}
 	}
 
-	private void collectRemovedOntology(HGDBOntology onto, GarbageCollectorStatistics stats, boolean analyzeMode, Set<HGHandle> analyzeRemovedSet) {
+//	private void collectRemovedOntologyTransact(final HGDBOntology onto, final GarbageCollectorStatistics stats, final boolean analyzeMode, final Set<HGHandle> analyzeRemovedSet) {
+//		HGTransactionConfig transactionConfig = analyzeMode? HGTransactionConfig.READONLY : HGTransactionConfig.DEFAULT;
+//		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+//			public Object call() {
+//				collectRemovedOntology(onto, stats, analyzeMode, analyzeRemovedSet);
+//				return null;
+//			}}, transactionConfig);
+//	}
+
+	private void collectRemovedOntology(final HGDBOntology onto, final GarbageCollectorStatistics stats, final boolean analyzeMode, final Set<HGHandle> analyzeRemovedSet) {
 		//OntologyAnnotations
 		//internals.remove does remove anno from onto, NOT graph
 		// Ontology Annotations are just added to the ontology, no link.
+		HGTransactionConfig transactionConfig = analyzeMode? HGTransactionConfig.READONLY : HGTransactionConfig.DEFAULT;
 		Set<OWLAnnotation> annos = onto.getAnnotations();
 		Set<OWLImportsDeclaration> importsDeclarations = onto.getImportsDeclarations();
 		Set<OWLAxiom> axioms = onto.getAxioms();
 		Set<OWLEntity> entities = onto.getSignature();
-
 		taskProgess = 0;
 		taskSize = annos.size() 
 				+ importsDeclarations.size() 
 				+ axioms.size() * 2 // remove from onto + remove axiom.
 				+ entities.size();
-		for (OWLAnnotation anno : annos) {
-			if (isCancelTask()) return;
-			progressTask();
-			HGHandle annoHandle = graph.getHandle(anno);
-			if (!analyzeMode) {
-				onto.remove(annoHandle);
-				collectOWLObjectsByDFSTransact(annoHandle, stats, analyzeMode, analyzeRemovedSet);
-			}
-		}
-		//TODO wrap import declaration removal inside a transaction.
-		//Import declarations
-		//internals.remove does remove from onto&graph: ImportDeclarationLink, ImportDeclaration
-		for (OWLImportsDeclaration importsDeclaration : importsDeclarations) {
-			if (isCancelTask()) return;
-			progressTask();
-			HGHandle importsDeclarationHandle = graph.getHandle(importsDeclaration);
-			IncidenceSet is = graph.getIncidenceSet(importsDeclarationHandle);
-			if (!is.isEmpty()) {
-				System.err.println("GC: Cannot remove Importsdeclaration with non empty incidence set:" + importsDeclaration);
-				continue;
-			} 
-			//ImportDeclarationLink importDeclLink = graph.get(importDeclLinkHandle);
-			if (!analyzeMode) {
-				//onto.remove(importDeclLinkHandle);
-				onto.remove(importsDeclarationHandle);
-				//graphRemove(importDeclLinkHandle);
-				graphRemove(importsDeclarationHandle);
-			} else {
-				//analyzeRemovedSet.add(importDeclLinkHandle);
-				analyzeRemovedSet.add(importsDeclarationHandle);
-			}
-			//stats.increaseOtherObjects();
-			stats.increaseOtherObjects();
-			//stats.increaseTotalAtoms();		
-			stats.increaseTotalAtoms();					
-		}
-		// Retain Axioms and Entities relevant data:
-
-		// Cancel Membership of entities from ontology as they are onto members, 
-		// but don't delete or count as this will be done later during axiom removal.
-		if (!analyzeMode) {
-			for (OWLEntity entity : entities) {
-				if (isCancelTask()) return;
-				progressTask();
-				HGHandle entityHandle = graph.getHandle(entity);
-				onto.remove(entityHandle);
-			}
-		}
-
-		// Now that tasks can be canceled we need to make sure removing axioms is cancelable.
-		// A) So we remove each axiom from the onto before removing the ontology. 
-		for (OWLAxiom axiom : axioms) {
-			if (isCancelTask()) return;
-			progressTask();
-			HGHandle axiomHandle = graph.getHandle(axiom);
-			//1. remove axiom from Subgraph, index must be zero now for removal, 
-			//unless axiom is also member in other subgraphs/ontologies, which is possible dependent on how our API is used.
-			if (!analyzeMode) {
-				onto.remove(axiomHandle);
-			}
-		}
 		
-		// B) Collect Ontology
-		HGHandle ontoHandle = graph.getHandle(onto);
-		if (analyzeMode) {
-			//Mark for removal before analysing axioms or entities
-			analyzeRemovedSet.add(ontoHandle);
-		} else {
-			//TODO how do we make sure subgraph is empty.			
-			graphRemove(ontoHandle);
-		}
-		stats.increaseOntologies();
-		stats.increaseTotalAtoms();				
+		// we do essential things in the first transaction, but for performance reasons, 
+		// we do not include the complex removal of axioms in the long term transaction.
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+			public Object call() {
+				Set<OWLAnnotation> annos = onto.getAnnotations();
+				Set<OWLImportsDeclaration> importsDeclarations = onto.getImportsDeclarations();
+				Set<OWLAxiom> axioms = onto.getAxioms();
+				Set<OWLEntity> entities = onto.getSignature();
+				for (OWLAnnotation anno : annos) {
+					if (isCancelTask()) return null;
+					progressTask();
+					HGHandle annoHandle = graph.getHandle(anno);
+					if (!analyzeMode) {
+						onto.remove(annoHandle);
+						collectOWLObjectsByDFSTransact(annoHandle, stats, analyzeMode, analyzeRemovedSet);
+					}
+				}
+				//TODO wrap import declaration removal inside a transaction.
+				//Import declarations
+				//internals.remove does remove from onto&graph: ImportDeclarationLink, ImportDeclaration
+				for (OWLImportsDeclaration importsDeclaration : importsDeclarations) {
+					if (isCancelTask()) return null;
+					progressTask();
+					HGHandle importsDeclarationHandle = graph.getHandle(importsDeclaration);
+					IncidenceSet is = graph.getIncidenceSet(importsDeclarationHandle);
+					if (!is.isEmpty()) {
+						System.err.println("GC: Cannot remove Importsdeclaration with non empty incidence set:" + importsDeclaration);
+						continue;
+					} 
+					//ImportDeclarationLink importDeclLink = graph.get(importDeclLinkHandle);
+					if (!analyzeMode) {
+						//onto.remove(importDeclLinkHandle);
+						onto.remove(importsDeclarationHandle);
+						//graphRemove(importDeclLinkHandle);
+						graphRemove(importsDeclarationHandle);
+					} else {
+						//analyzeRemovedSet.add(importDeclLinkHandle);
+						analyzeRemovedSet.add(importsDeclarationHandle);
+					}
+					//stats.increaseOtherObjects();
+					stats.increaseOtherObjects();
+					//stats.increaseTotalAtoms();		
+					stats.increaseTotalAtoms();					
+				}
+				// Retain Axioms and Entities relevant data:
+
+				// Cancel Membership of entities from ontology as they are onto members, 
+				// but don't delete or count as this will be done later during axiom removal.
+				Set<OWLEntity> entitiesAgain = onto.getSignature();
+				if (!analyzeMode) {
+					for (OWLEntity entity : entitiesAgain) {
+						if (isCancelTask()) return null;
+						progressTask();
+						HGHandle entityHandle = graph.getHandle(entity);
+						if (entityHandle != null) {
+							onto.remove(entityHandle);
+						} else {
+							// we might have an entity that was removed when we removed ontologyAnnotations
+							if (DBG) System.err.println("GC: collectOnto: GRAPH returned null handle for Entity: " + entity + " Class: " + entity.getClass());
+						}
+					}
+				}
+
+				// Now that tasks can be canceled we need to make sure removing axioms is cancelable.
+				// A) So we remove each axiom from the onto before removing the ontology. 
+				for (OWLAxiom axiom : axioms) {
+					if (isCancelTask()) return null;
+					progressTask();
+					HGHandle axiomHandle = graph.getHandle(axiom);
+					//1. remove axiom from Subgraph, index must be zero now for removal, 
+					//unless axiom is also member in other subgraphs/ontologies, which is possible dependent on how our API is used.
+					if (!analyzeMode) {
+						onto.remove(axiomHandle);
+					}
+				}
+				
+				// B) Collect Ontology
+				HGHandle ontoHandle = graph.getHandle(onto);
+				if (analyzeMode) {
+					//Mark for removal before analysing axioms or entities
+					analyzeRemovedSet.add(ontoHandle);
+				} else {
+					//TODO how do we make sure subgraph is empty.			
+					graphRemove(ontoHandle);
+				}
+				stats.increaseOntologies();
+				stats.increaseTotalAtoms();				
+	
+				return null;
+			}}, transactionConfig);
+		// TRANSACTION END
 		
 		// If the task is canceled after removing the onto and during axiom removal, 
 		// axioms will be found in a collectAxioms run, because they are not members of an ontology anymore.
@@ -344,9 +372,13 @@ public class GarbageCollector implements HGDBTask {
 			if (isCancelTask()) break;
 			progressTask();
 			HGHandle axiomHandle = graph.getHandle(axiom);
-			//NO, following would remove axiom from graph as of 2011.12.23: onto.applyChange(new RemoveAxiom(onto, axiom));
-			//2. collect enfore zero ontology membership set 
-			collectAxiomTransact(axiomHandle, stats, analyzeMode, analyzeRemovedSet);
+			if (axiomHandle != null) {
+				//NO, following would remove axiom from graph as of 2011.12.23: onto.applyChange(new RemoveAxiom(onto, axiom));
+				//	2. collect enfore zero ontology membership set 
+				collectAxiomTransact(axiomHandle, stats, analyzeMode, analyzeRemovedSet);
+			} else {
+				if (DBG) System.out.println(" Axiom was removed already. Class " + axiom.getClass());
+			}
 		}
 	}
 	
