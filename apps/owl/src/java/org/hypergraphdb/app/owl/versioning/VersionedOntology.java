@@ -13,6 +13,7 @@ import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.annotation.HGIgnore;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.transaction.HGTransactionConfig;
@@ -741,8 +742,14 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	 * @see org.hypergraphdb.HGGraphHolder#setHyperGraph(org.hypergraphdb.HyperGraph)
 	 */
 	@Override
+	@HGIgnore
 	public void setHyperGraph(HyperGraph graph) {
 		this.graph = graph;
+	}
+
+	@HGIgnore
+	public HyperGraph getHyperGraph() {
+		return graph;
 	}
 
 	/* (non-Javadoc)
