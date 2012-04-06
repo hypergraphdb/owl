@@ -3,7 +3,6 @@ package org.hypergraphdb.app.owl.model.axioms;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -14,7 +13,6 @@ import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiomVisitor;
 import org.semanticweb.owlapi.model.OWLAxiomVisitorEx;
-import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectVisitor;
@@ -39,12 +37,13 @@ public class OWLSubPropertyChainAxiomHGDB extends OWLPropertyAxiomHGDB implement
         //TODO assert arg[0...length-1] type OWLObjectPropertyExpression
     	super(Collections.<OWLAnnotation>emptySet());    	
     	assert (args.length >= 2);
-    	Set<HGHandle> propertyHandlesChainFromArgs = new HashSet<HGHandle>();
+    	//2012.04.06 hilpold BUGFIX propertyHandlesChainFromArgs was HashSet, but must be ordered.
+    	List<HGHandle> propertyHandlesChainFromArgs = new ArrayList<HGHandle>();
     	for(int i = 1; i < args.length; i++) {
     		propertyHandlesChainFromArgs.add(args[i]);
     	}
         this.superPropertyHandle = args[0];
-        this.propertyHandlesChain = new ArrayList<HGHandle>(propertyHandlesChainFromArgs);    	
+        this.propertyHandlesChain = propertyHandlesChainFromArgs;    	
     }
 
     public OWLSubPropertyChainAxiomHGDB(List<HGHandle> propertyChain, HGHandle superProperty, Collection<? extends OWLAnnotation> annotations) {
