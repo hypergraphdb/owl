@@ -1,4 +1,7 @@
 Version history:
+0.9.9 (Release Date: 2012.04.xx)
+	+ Berkeley DB 5.3 used, performance seems low.
+	
 0.9.8 (Release Date: 2012.02.07)
 ++ Core
 	+ Local Versioning of Ontologies
