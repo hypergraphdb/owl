@@ -44,6 +44,7 @@ import java.util.Collections;
 import junit.framework.TestCase;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.apibinding.OWLManagerHG;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -62,7 +63,7 @@ public class MapperlessOntologyManagerTestCase extends TestCase {
     private static final IRI ONTOLOGY_IRI = IRI.create("http://test.com/ont");
 
     private OWLOntologyManager createManager() {
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager manager = OWLManagerHG.createHGDBOWLOntologyManager(); //OWLManager.createOWLOntologyManager();
         manager.clearIRIMappers();
         return manager;
     }

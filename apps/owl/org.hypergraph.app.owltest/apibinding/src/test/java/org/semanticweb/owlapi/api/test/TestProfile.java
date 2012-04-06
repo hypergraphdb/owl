@@ -42,6 +42,7 @@ package org.semanticweb.owlapi.api.test;
 import junit.framework.TestCase;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.apibinding.OWLManagerHG;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -69,7 +70,7 @@ public class TestProfile extends TestCase {
 				+ "<rdf:type rdf:resource=\"http://www.w3.org/2002/07/owl#DatatypeProperty\"/>\n"
 				+ "<rdfs:subPropertyOf rdf:resource=\"http://ex.com#p1\"/>\n"
 				+ "</rdf:Property>\n" + "</rdf:RDF>";
-		OWLOntologyManager m=OWLManager.createOWLOntologyManager();
+		OWLOntologyManager m= OWLManagerHG.createHGDBOWLOntologyManager(); //OWLManager.createOWLOntologyManager();
 		OWLOntology o=m.loadOntologyFromOntologyDocument(new StringDocumentSource(onto));
 		OWL2RLProfile p=new OWL2RLProfile();
 		OWLProfileReport report=p.checkOntology(o);

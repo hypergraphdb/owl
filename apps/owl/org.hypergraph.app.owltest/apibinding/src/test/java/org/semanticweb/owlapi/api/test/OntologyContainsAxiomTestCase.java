@@ -187,7 +187,7 @@ public class OntologyContainsAxiomTestCase extends AbstractOWLAPITestCase {
         getManager().saveOntology(ont2, format, writer2);
 
 
-        OWLOntologyManager man = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager man = getManagerOther();//OWLManager.createOWLOntologyManager();
 
         OWLOntology ont1L = man.loadOntologyFromOntologyDocument(savedLocation1);
         OWLOntology ont2L = man.loadOntologyFromOntologyDocument(savedLocation2);
@@ -295,7 +295,7 @@ public class OntologyContainsAxiomTestCase extends AbstractOWLAPITestCase {
         getManager().saveOntology(ont2, format, writer2);
         
         
-        OWLOntologyManager man = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager man = getManagerOther();//OWLManager.createOWLOntologyManager();
         
         @SuppressWarnings("unused")
 		OWLOntology ont1L = man.loadOntologyFromOntologyDocument(savedLocation1);

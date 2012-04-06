@@ -42,6 +42,7 @@ package org.semanticweb.owlapi.api.test;
 import junit.framework.TestCase;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.apibinding.OWLManagerHG;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -53,7 +54,7 @@ public class TestOWLClassExpressionsAndObjectOneOf extends TestCase{
 		System.out
 				.println(text);
 		StringDocumentSource input=new StringDocumentSource(text);
-		OWLOntologyManager m=OWLManager.createOWLOntologyManager();
+		OWLOntologyManager m=OWLManagerHG.createHGDBOWLOntologyManager(); //OWLManager.createOWLOntologyManager();
 		OWLOntology o=m.loadOntologyFromOntologyDocument(input);
 		for(OWLAxiom ax:o.getAxioms()) {
 			System.out

@@ -39,7 +39,7 @@
 
 package org.semanticweb.owlapi.api.test;
 
-import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactory.*;
+import static org.semanticweb.owlapi.apibinding.OWLFunctionalSyntaxFactoryHG.*;
 
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAsymmetricObjectPropertyAxiom;

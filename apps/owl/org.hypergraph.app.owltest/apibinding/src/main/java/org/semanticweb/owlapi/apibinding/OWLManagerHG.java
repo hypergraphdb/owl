@@ -40,8 +40,6 @@
 package org.semanticweb.owlapi.apibinding;
 
 
-import javax.swing.JOptionPane;
-
 import org.coode.owlapi.functionalparser.OWLFunctionalSyntaxParserFactory;
 import org.coode.owlapi.functionalrenderer.OWLFunctionalSyntaxOntologyStorer;
 import org.coode.owlapi.latex.LatexOntologyStorer;
@@ -54,6 +52,7 @@ import org.coode.owlapi.rdf.rdfxml.RDFXMLOntologyStorer;
 import org.coode.owlapi.rdfxml.parser.RDFXMLParserFactory;
 import org.coode.owlapi.turtle.TurtleOntologyStorer;
 import org.hypergraphdb.app.owl.HGDBOntologyFactory;
+import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGDBOntologyManagerImpl;
 import org.hypergraphdb.app.owl.HGDBStorer;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
@@ -63,6 +62,8 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.util.NonMappingOntologyIRIMapper;
 
 import uk.ac.manchester.cs.owl.owlapi.EmptyInMemOWLOntologyFactory;
+import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
+import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 import uk.ac.manchester.cs.owl.owlapi.ParsableOWLOntologyFactory;
 import uk.ac.manchester.cs.owl.owlapi.mansyntaxrenderer.ManchesterOWLSyntaxOntologyStorer;
 import uk.ac.manchester.cs.owl.owlapi.turtle.parser.TurtleOntologyParserFactory;
@@ -101,13 +102,17 @@ public class OWLManagerHG {
      *
      * @return The new manager.
      */
-    public static OWLOntologyManager createOWLOntologyManager() {
-        return createOWLOntologyManager(getOWLDataFactory());
+    public static OWLOntologyManagerImpl createManchesterOWLOntologyManager() {
+        return (OWLOntologyManagerImpl)createOWLOntologyManager(getOWLDataFactory(true), true);
     }
 
-    private static void ontologyManagerCreated() {
+    public static HGDBOntologyManager createHGDBOWLOntologyManager() {
+        return (HGDBOntologyManager)createOWLOntologyManager(getOWLDataFactory(false), false);
+    }
+
+    private static void ontologyManagerCreated(OWLOntologyManager man) {
     	ontologyManagerCounter ++;
-    	String message =" Created OWLOntologyManger Number: " + ontologyManagerCounter;
+    	String message =" Created OWLOntologyManger Number: " + ontologyManagerCounter + " Class: " + man.getClass();
     	System.out.println(message);
     	//JOptionPane.showConfirmDialog(null, message);
     }
@@ -119,9 +124,16 @@ public class OWLManagerHG {
      * @param dataFactory The data factory that the manager should have a reference to.
      * @return The manager.
      */
-    public static OWLOntologyManager createOWLOntologyManager(OWLDataFactory dataFactory) {
+    private static OWLOntologyManager createOWLOntologyManager(OWLDataFactory dataFactory, boolean manchester) {
         // Create the ontology manager and add ontology factories, mappers and storers
-        OWLOntologyManager ontologyManager = (OWLOntologyManager) new HGDBOntologyManagerImpl((OWLDataFactoryHGDB)dataFactory);
+    	OWLOntologyManager ontologyManager;
+    	if (manchester) {
+    		ontologyManager = new OWLOntologyManagerImpl(dataFactory);
+    	} else {
+        	ontologyManager = new HGDBOntologyManagerImpl((OWLDataFactoryHGDB)dataFactory);
+        	HGDBOntologyManagerImpl.setDeleteOntologiesOnRemove(true);
+    	}
+        
         ontologyManager.addOntologyStorer(new RDFXMLOntologyStorer());
         ontologyManager.addOntologyStorer(new OWLXMLOntologyStorer());
         ontologyManager.addOntologyStorer(new OWLFunctionalSyntaxOntologyStorer());
@@ -130,13 +142,18 @@ public class OWLManagerHG {
         ontologyManager.addOntologyStorer(new KRSS2OWLSyntaxOntologyStorer());
         ontologyManager.addOntologyStorer(new TurtleOntologyStorer());
         ontologyManager.addOntologyStorer(new LatexOntologyStorer());
-        ontologyManager.addOntologyStorer(new HGDBStorer());
-        ontologyManager.addIRIMapper(new NonMappingOntologyIRIMapper());
+        if (manchester) {
+            //TODO For anonymous ontologies we still need: we should fix this.
+        	ontologyManager.addIRIMapper(new NonMappingOntologyIRIMapper());
+        } else {
+            ontologyManager.addOntologyStorer(new HGDBStorer());
+            ontologyManager.addIRIMapper(new HTTPHGDBIRIMapper());
+            ontologyManager.addOntologyFactory(new HGDBOntologyFactory());
+        }
         ontologyManager.addOntologyFactory(new EmptyInMemOWLOntologyFactory());
         ontologyManager.addOntologyFactory(new ParsableOWLOntologyFactory());
-        ontologyManager.addOntologyFactory(new HGDBOntologyFactory());
         
-    	ontologyManagerCreated();
+    	ontologyManagerCreated(ontologyManager);
 
         return ontologyManager;
     }
@@ -145,8 +162,11 @@ public class OWLManagerHG {
      * Gets a global data factory that can be used to create OWL API objects.
      * @return An OWLDataFactory  that can be used for creating OWL API objects.
      */
-    public static OWLDataFactory getOWLDataFactory() {
-    	return OWLDataFactoryHGDB.getInstance();
-    	//return OWLDataFactoryImpl.getInstance();
+    public static OWLDataFactory getOWLDataFactory(boolean manchester) {
+    	if (manchester) {
+    		return OWLDataFactoryImpl.getInstance();
+    	} else {
+    		return OWLDataFactoryHGDB.getInstance();
+    	}
     }
 }

@@ -56,7 +56,7 @@ import org.semanticweb.owlapi.util.AutoIRIMapper;
 public class MultiImportsTestCase extends AbstractOWLAPITestCase {
 	public void testImports() throws Exception {
 		try {
-			OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+			OWLOntologyManager manager = getManagerOther();//OWLManager.createOWLOntologyManager();
 			manager.addIRIMapper(new AutoIRIMapper(new File(
 					"apibinding/src/test/resources/imports"), true));
 			//OWLOntology o = 
@@ -71,7 +71,7 @@ public class MultiImportsTestCase extends AbstractOWLAPITestCase {
 
 	public void testCyclicImports() throws Exception {
 		try {
-			OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+			OWLOntologyManager manager = getManagerOther();//OWLManager.createOWLOntologyManager();
 			manager.addIRIMapper(new AutoIRIMapper(new File(
 					"apibinding/src/test/resources/importscyclic"), true));
 			//OWLOntology o = 
@@ -86,7 +86,7 @@ public class MultiImportsTestCase extends AbstractOWLAPITestCase {
 
 	public void testCyclicImports2() throws Exception {
 		try {
-			OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+			OWLOntologyManager manager = getManagerOther();//OWLManager.createOWLOntologyManager();
 			manager.addIRIMapper(new AutoIRIMapper(new File(
 					"apibinding/src/test/resources/importscyclic"), true));
 			//OWLOntology o = 

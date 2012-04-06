@@ -46,6 +46,7 @@ import junit.framework.TestCase;
 
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.apibinding.OWLManagerHG;
 import org.semanticweb.owlapi.io.StreamDocumentTarget;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -103,7 +104,7 @@ class AnonymousRoundTrip {
     }
     
     public void buildOntology() throws OWLOntologyCreationException {
-        manager = OWLManager.createOWLOntologyManager();
+        manager = OWLManagerHG.createHGDBOWLOntologyManager(); //OWLManager.createOWLOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
         ontology = manager.createOntology(IRI.create(NS));
         
@@ -117,7 +118,7 @@ class AnonymousRoundTrip {
     
     public void loadOntology() throws OWLOntologyCreationException {
         System.out.println("Reading from location " + savedLocation);
-        manager = OWLManager.createOWLOntologyManager();
+        manager = OWLManagerHG.createHGDBOWLOntologyManager(); //OWLManager.createOWLOntologyManager();
         ontology = manager.loadOntologyFromOntologyDocument(savedLocation);
     } 
     

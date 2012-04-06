@@ -42,6 +42,7 @@ package org.semanticweb.owlapi.api.test;
 import junit.framework.TestCase;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.apibinding.OWLManagerHG;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -68,7 +69,7 @@ public class AllDifferentTestCase extends TestCase {
 			+ "</owl:members></owl:AllDifferent></rdf:RDF>";
 
 	public void testDistinctMembers() throws Exception {
-		OWLOntologyManager m = OWLManager.createOWLOntologyManager();
+		OWLOntologyManager m = OWLManagerHG.createHGDBOWLOntologyManager();
 		OWLOntology o1 = m
 				.loadOntologyFromOntologyDocument(new StringDocumentSource(
 						onto1));

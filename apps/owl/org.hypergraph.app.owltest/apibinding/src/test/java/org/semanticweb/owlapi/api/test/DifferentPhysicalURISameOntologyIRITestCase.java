@@ -60,7 +60,7 @@ public class DifferentPhysicalURISameOntologyIRITestCase extends AbstractOWLAPIT
 
     public void testDifferentPhysicalURISameOntologyIRI() throws Exception {
         try {
-            OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+            OWLOntologyManager manager = getManagerOther();//OWLManager.createOWLOntologyManager();
             IRI ontologyADocumentIRI = IRI.create(DifferentPhysicalURISameOntologyIRITestCase.class.getResource("/" + ONTOLOGY_A).toURI());
             IRI ontologyADocumentIRIB = IRI.create(DifferentPhysicalURISameOntologyIRITestCase.class.getResource("/" + ONTOLOGY_A_EMPTY).toURI());
             OWLOntology ontologyA = manager.loadOntologyFromOntologyDocument(ontologyADocumentIRI);

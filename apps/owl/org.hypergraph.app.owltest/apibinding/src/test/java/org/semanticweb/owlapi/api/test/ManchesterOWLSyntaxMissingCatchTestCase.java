@@ -45,6 +45,7 @@ import junit.framework.TestCase;
 
 import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxEditorParser;
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.apibinding.OWLManagerHG;
 import org.semanticweb.owlapi.expression.ParserException;
 import org.semanticweb.owlapi.expression.ShortFormEntityChecker;
 import org.semanticweb.owlapi.io.StringDocumentSource;
@@ -83,8 +84,7 @@ public class ManchesterOWLSyntaxMissingCatchTestCase extends TestCase {
 				+ "</owl:DatatypeProperty></rdf:RDF>";
 		try {
 			String expression = "yearValue some ";
-			final OWLOntologyManager mngr = OWLManager
-					.createOWLOntologyManager();
+			final OWLOntologyManager mngr = OWLManagerHG.createHGDBOWLOntologyManager(); //OWLManager.createOWLOntologyManager();
 			final OWLOntology wine = mngr
 					.loadOntologyFromOntologyDocument(new StringDocumentSource(
 							onto));

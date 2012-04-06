@@ -46,6 +46,7 @@ import java.io.File;
 import junit.framework.TestCase;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.apibinding.OWLManagerHG;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -57,7 +58,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 public class Utf8RoundTrip001 extends TestCase {
 	public void testUTF8roundTrip() {
 		try {
-			OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+			OWLOntologyManager manager = OWLManagerHG.createHGDBOWLOntologyManager(); //OWLManager.createOWLOntologyManager();
 			String onto = "Ontology(<http://protege.org/UTF8.owl>"
 					+ "Declaration(Class(<http://protege.org/UTF8.owl#A>))"
 					+ "AnnotationAssertion(<http://www.w3.org/2000/01/rdf-schema#label> <http://protege.org/UTF8.owl#A> "
@@ -78,7 +79,7 @@ public class Utf8RoundTrip001 extends TestCase {
 			String NS = "http://protege.org/UTF8.owl";
 			OWLOntologyManager manager;
 			OWLOntology ontology;
-			manager = OWLManager.createOWLOntologyManager();
+			manager = OWLManagerHG.createHGDBOWLOntologyManager(); //OWLManager.createOWLOntologyManager();
 			ontology = manager.createOntology(IRI.create(NS));
 			OWLDataFactory factory = manager.getOWLDataFactory();
 			OWLClass a = factory.getOWLClass(IRI.create(NS + "#A"));
@@ -93,7 +94,7 @@ public class Utf8RoundTrip001 extends TestCase {
 					new OWLFunctionalSyntaxOntologyFormat(),
 					IRI.create(ontFile));
 			System.out.println("Saved as " + ontFile);
-			manager = OWLManager.createOWLOntologyManager();
+			manager = OWLManagerHG.createHGDBOWLOntologyManager(); //OWLManager.createOWLOntologyManager();
 			ontology = manager.loadOntologyFromOntologyDocument(ontFile);
 		} catch (Throwable t) {
 			t.printStackTrace();

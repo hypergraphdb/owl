@@ -41,6 +41,7 @@ package org.semanticweb.owlapi.api.test;
 import junit.framework.TestCase;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.apibinding.OWLManagerHG;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
@@ -61,8 +62,7 @@ public class BuiltInDatatypesTestCase extends TestCase {
 			dt = OWL2Datatype.getDatatype(OWLRDFVocabulary.RDFS_LITERAL
 					.getIRI());
 			assertNotNull(dt);
-			OWLDatatype datatype = OWLManager.getOWLDataFactory()
-					.getOWLDatatype(OWLRDFVocabulary.RDFS_LITERAL.getIRI());
+			OWLDatatype datatype = OWLManagerHG.getOWLDataFactory(false).getOWLDatatype(OWLRDFVocabulary.RDFS_LITERAL.getIRI()); //OWLManager.getOWLDataFactory()					
 			assertNotNull(datatype);
 			OWL2Datatype test = datatype.getBuiltInDatatype();
 			assertEquals(test, dt);
@@ -77,7 +77,7 @@ public class BuiltInDatatypesTestCase extends TestCase {
 
 	public void testFailure() {
 		for (IRI type : OWL2Datatype.getDatatypeIRIs()) {
-			OWLDatatype datatype = OWLManager.getOWLDataFactory()
+			OWLDatatype datatype = OWLManagerHG.getOWLDataFactory(false) //OWLManager.getOWLDataFactory()
 					.getOWLDatatype(type);
 			
 			if (datatype.isBuiltIn()) {

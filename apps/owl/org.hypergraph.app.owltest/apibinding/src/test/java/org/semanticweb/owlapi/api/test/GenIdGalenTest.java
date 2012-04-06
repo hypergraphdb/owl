@@ -42,6 +42,7 @@ package org.semanticweb.owlapi.api.test;
 import junit.framework.TestCase;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.apibinding.OWLManagerHG;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -149,7 +150,7 @@ public class GenIdGalenTest extends TestCase {
 				+ "	            </owl:Restriction>\n"
 				+ "	        </owl:intersectionOf>\n" + "	    </owl:Class>\n"
 				+ "	</rdf:RDF>";
-		OWLOntologyManager m = OWLManager.createOWLOntologyManager();
+		OWLOntologyManager m = OWLManagerHG.createHGDBOWLOntologyManager(); //OWLManager.createOWLOntologyManager();
 		OWLOntology o = m
 				.loadOntologyFromOntologyDocument(new StringDocumentSource(test));
 		for(OWLAxiom ax:o.getAxioms()) {

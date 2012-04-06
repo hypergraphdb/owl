@@ -78,22 +78,30 @@ public abstract class AbstractAxiomsRoundTrippingTestCase extends AbstractRoundT
 
     @Override
     public void testRDFXML() throws Exception {
+    	super.DBG = true;
         super.testRDFXML();
+        super.DBG = false;
     }
 
     @Override
     public void testOWLXML() throws Exception {
+    	super.DBG = true;
         super.testOWLXML();
+        super.DBG = false;
     }
 
     @Override
     public void testFunctionalSyntax() throws Exception {
+    	super.DBG = true;
         super.testFunctionalSyntax();
+        super.DBG = false;
     }
 
     @Override
     public void testTurtle() throws Exception {
+    	super.DBG = true;
         super.testTurtle();
+        super.DBG = false;
     }
 
     @Override
@@ -101,9 +109,9 @@ public abstract class AbstractAxiomsRoundTrippingTestCase extends AbstractRoundT
         super.testManchesterOWLSyntax();
     }
 
-    public void testHyperGraphRoundTrip() throws Exception {
-        super.testHyperGraphRoundTrip();
-    }
+//    public void testHyperGraphRoundTrip() throws Exception {
+//        super.testHyperGraphRoundTrip();
+//    }
 
     protected abstract Set<? extends OWLAxiom> createAxioms();
 

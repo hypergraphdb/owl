@@ -69,7 +69,7 @@ public class OWLXMLNullPointerTestCase extends AbstractOWLAPITestCase {
 
     public void testRoundTrip() {
         try {
-            OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+            OWLOntologyManager manager = getManagerOther();//OWLManager.createOWLOntologyManager();
             OWLOntology ontology = manager.createOntology(IRI.create(NS));
             OWLDataFactory factory = manager.getOWLDataFactory();
 
@@ -82,8 +82,12 @@ public class OWLXMLNullPointerTestCase extends AbstractOWLAPITestCase {
 
             File tmpFile = File.createTempFile("Test", ".owl");
             manager.saveOntology(ontology, new OWLXMLOntologyFormat(), new StreamDocumentTarget(new FileOutputStream(tmpFile)));
-
-            OWLOntologyManager manager2 = OWLManager.createOWLOntologyManager();
+            //2012.04.06 hilpold
+            // Removing old ontology so we can load it again; as we are using the same static repository.
+            // 
+            manager.removeOntology(ontology);
+            //
+            OWLOntologyManager manager2 = getManagerOther();//OWLManager.createOWLOntologyManager();
             manager2.loadOntologyFromOntologyDocument(tmpFile);
         }
         catch (OWLOntologyCreationException e) {

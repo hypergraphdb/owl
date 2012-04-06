@@ -45,6 +45,7 @@ import java.io.IOException;
 import junit.framework.TestCase;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.apibinding.OWLManagerHG;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -61,7 +62,7 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 public class UTF8RoundTrip extends TestCase {
 	public void testRoundTrip() {
 		String NS = "http://protege.org/ontologies/UTF8RoundTrip.owl";
-		OWLDataFactory factory = OWLManager.getOWLDataFactory();
+		OWLDataFactory factory = OWLManagerHG.getOWLDataFactory(false); //OWLManager.getOWLDataFactory();
 		OWLClass C = factory.getOWLClass(IRI.create(NS + "#C"));
 		/*
 		 * The two unicode characters entered here are valid and can be found in the code
@@ -98,7 +99,7 @@ public class UTF8RoundTrip extends TestCase {
 	private static OWLOntology createOriginalOntology(OWLDataFactory factory,
 			String NS, OWLClass C, String CHINESE)
 			throws OWLOntologyCreationException {
-		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+		OWLOntologyManager manager = OWLManagerHG.createHGDBOWLOntologyManager(); //OWLManager.createOWLOntologyManager();
 		OWLOntology ontology = manager.createOntology(IRI.create(NS));
 		OWLAnnotationProperty label = factory.getRDFSLabel();
 		OWLAxiom annotationAxiom = factory
@@ -136,7 +137,7 @@ public class UTF8RoundTrip extends TestCase {
 		System.out.println("OWL Ontology being saved as " + f);
 		oldManager.saveOntology(ontology, new RDFXMLOntologyFormat(),
 				IRI.create(f));
-		OWLOntologyManager newManager = OWLManager.createOWLOntologyManager();
+		OWLOntologyManager newManager = OWLManagerHG.createHGDBOWLOntologyManager(); //OWLManager.createOWLOntologyManager();
 		OWLOntology newOntology;
 		if (useIRI) {
 			newOntology = newManager.loadOntologyFromOntologyDocument(IRI

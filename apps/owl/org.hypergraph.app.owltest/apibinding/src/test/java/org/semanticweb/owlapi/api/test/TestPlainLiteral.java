@@ -44,6 +44,7 @@ import java.io.ByteArrayOutputStream;
 import junit.framework.TestCase;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.apibinding.OWLManagerHG;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -62,20 +63,19 @@ public class TestPlainLiteral extends TestCase {
 		IRI iri = IRI
 				.create("http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral");
 		assertTrue(iri.isPlainLiteral());
-		assertNotNull(OWLManager.getOWLDataFactory().getRDFPlainLiteral());
+		assertNotNull(OWLManagerHG.getOWLDataFactory(false).getRDFPlainLiteral()); // OWLManager.getOWLDataFactory().getRDFPlainLiteral());
 		assertNotNull(OWL2Datatype.getDatatype(iri));
 	}
 
 	public void testPlainLiteralFromEvren() {
-		OWLDataFactory factory = OWLManager.createOWLOntologyManager()
-				.getOWLDataFactory();
+		OWLDataFactory factory = OWLManagerHG.createHGDBOWLOntologyManager().getOWLDataFactory(); //OWLManager.createOWLOntologyManager().getOWLDataFactory();
 		OWLDatatype node = factory.getRDFPlainLiteral();
 		assertTrue(node.isBuiltIn());
 		assertNotNull(node.getBuiltInDatatype());
 	}
 
 	public void testPlainLiteralSerialization() throws Exception {
-		OWLOntologyManager m = OWLManager.createOWLOntologyManager();
+		OWLOntologyManager m = OWLManagerHG.createHGDBOWLOntologyManager(); //OWLManager.createOWLOntologyManager();
 		OWLOntology o = m.createOntology();
 		OWLDataProperty p = m.getOWLDataFactory().getOWLDataProperty(
 				IRI.create("urn:test#p"));
@@ -92,7 +92,7 @@ public class TestPlainLiteral extends TestCase {
 	}
 
 	public void testPlainLiteralSerializationComments() throws Exception {
-		OWLOntologyManager m = OWLManager.createOWLOntologyManager();
+		OWLOntologyManager m = OWLManagerHG.createHGDBOWLOntologyManager(); //OWLManager.createOWLOntologyManager();
 		OWLOntology o = m.createOntology();
 		OWLIndividual i = m.getOWLDataFactory().getOWLNamedIndividual(
 				IRI.create("urn:test#ind"));
@@ -111,7 +111,7 @@ public class TestPlainLiteral extends TestCase {
 	}
 
 	public void testPlainLiteralSerializationComments2() throws Exception {
-		OWLOntologyManager m = OWLManager.createOWLOntologyManager();
+		OWLOntologyManager m = OWLManagerHG.createHGDBOWLOntologyManager(); //OWLManager.createOWLOntologyManager();
 		OWLOntology o = m.createOntology();
 		OWLLiteral l = m.getOWLDataFactory().getOWLLiteral("test",
 				OWL2Datatype.RDF_PLAIN_LITERAL);

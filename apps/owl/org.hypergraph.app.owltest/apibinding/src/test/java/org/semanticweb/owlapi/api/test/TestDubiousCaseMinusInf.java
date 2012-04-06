@@ -42,6 +42,7 @@ package org.semanticweb.owlapi.api.test;
 import junit.framework.TestCase;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.apibinding.OWLManagerHG;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.io.StringDocumentTarget;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -63,7 +64,7 @@ public void testMinusInf() throws Exception{
 "ClassAssertion(:A :a)" +
 "\n)";
 	StringDocumentSource in=new StringDocumentSource(input);
-	OWLOntologyManager m=OWLManager.createOWLOntologyManager();
+	OWLOntologyManager m=OWLManagerHG.createHGDBOWLOntologyManager(); //OWLManager.createOWLOntologyManager();
 	OWLOntology o=m.loadOntologyFromOntologyDocument(in);
 	StringDocumentTarget t=new StringDocumentTarget();
 	m.saveOntology(o, t);

@@ -39,6 +39,9 @@
 
 package org.semanticweb.owlapi.api.test;
 
+import org.hypergraphdb.app.owl.HGDBOntologyManager;
+import org.semanticweb.owlapi.apibinding.HTTPHGDBIRIMapper;
+import org.semanticweb.owlapi.apibinding.OWLManagerHG;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -74,7 +77,13 @@ public class ChangeOntologyURITestCase extends AbstractOWLAPITestCase {
         assertTrue(man.getImportsClosure(importingOnt).contains(ont));
         assertNotNull(man.getOntologyDocumentIRI(ont));
         // Document IRI will still be the same (in this case the old ont URI)
-        assertEquals(man.getOntologyDocumentIRI(ont), oldIRI);
+        if (!(man instanceof HGDBOntologyManager)) {
+        	assertEquals(man.getOntologyDocumentIRI(ont), oldIRI);
+        } else {
+        	//HGDB
+        	IRI mappedOLDIRI = new HTTPHGDBIRIMapper().getDocumentIRI(oldIRI);
+        	assertEquals(man.getOntologyDocumentIRI(ont), mappedOLDIRI);
+        }
         assertNotNull(man.getOntologyFormat(ont));
 
     }

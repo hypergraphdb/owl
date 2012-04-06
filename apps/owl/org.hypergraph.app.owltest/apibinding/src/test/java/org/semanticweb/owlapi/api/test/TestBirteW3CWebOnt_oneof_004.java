@@ -46,6 +46,7 @@ import java.util.TreeSet;
 import junit.framework.TestCase;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.apibinding.OWLManagerHG;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -130,7 +131,7 @@ public class TestBirteW3CWebOnt_oneof_004 extends TestCase {
 
 		expectedResult
 				.add("ClassAssertion(DataMinCardinality(1 <http://www.w3.org/2002/03owlt/oneOf/premises004#p> rdfs:Literal) <http://www.w3.org/2002/03owlt/oneOf/premises004#i>)");
-		OWLOntologyManager m = OWLManager.createOWLOntologyManager();
+		OWLOntologyManager m = OWLManagerHG.createHGDBOWLOntologyManager(); //OWLManager.createOWLOntologyManager();
 		OWLOntology o = m
 				.loadOntologyFromOntologyDocument(new StringDocumentSource(s));
 //		StringDocumentTarget t=new StringDocumentTarget();

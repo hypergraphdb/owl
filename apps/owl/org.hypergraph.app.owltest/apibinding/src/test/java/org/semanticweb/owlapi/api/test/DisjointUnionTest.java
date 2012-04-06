@@ -44,6 +44,7 @@ import java.util.Set;
 import junit.framework.TestCase;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.apibinding.OWLManagerHG;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -55,7 +56,7 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 public class DisjointUnionTest extends TestCase{
 	public static final String NS = "http://protege.org/protege/DisjointUnion.owl";
-	private static OWLDataFactory factory = OWLManager.getOWLDataFactory();
+	private static OWLDataFactory factory = OWLManagerHG.getOWLDataFactory(false);//OWLManager.getOWLDataFactory();
 	public static final OWLClass A = factory.getOWLClass(IRI.create(NS + "#A"));
 	public static final OWLClass B = factory.getOWLClass(IRI.create(NS + "#B"));
 	public static final OWLClass C = factory.getOWLClass(IRI.create(NS + "#C"));
@@ -66,7 +67,7 @@ public class DisjointUnionTest extends TestCase{
 	 * @throws OWLOntologyStorageException 
 	 */
 	public void testDisjointUnion() throws Exception {
-		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+		OWLOntologyManager manager = OWLManagerHG.createHGDBOWLOntologyManager(); // OWLManager.createOWLOntologyManager();
 		OWLOntology ontology = manager.createOntology(IRI.create(NS));
 		Set<OWLClassExpression> disjoints = new HashSet<OWLClassExpression>();
 		disjoints.add(B);
