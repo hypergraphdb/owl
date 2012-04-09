@@ -1,6 +1,20 @@
 Version history:
-0.9.9 (Release Date: 2012.04.xx)
+1.0.0 (Release Date: 2012.04.06)
+++ Core
+	+ Extensive Testing and >40 bugfixes in the model
+		+ First time all 1442 OWL API tests pass, after testclasses were modified to ensure proper testing.
+	+ P2P Functionality based on Smack XMPP
+		+ Push 
+		+ Pull
+		+ Pull allows merge with uncommitted local changes after old head.
+	+ Serialization
+		+ VOWLXML Format: Parser, Renderer extend OWLXML by VersionedOntology, Revision, Changeset, Changes.		
 	+ Berkeley DB 5.3 used, performance seems low.
+
+++ Integration Plugin
+	+ History view showing individual changes per revision
+	+ P2P Settings
+	+ P2P Menu with: Push active
 	
 0.9.8 (Release Date: 2012.02.07)
 ++ Core
