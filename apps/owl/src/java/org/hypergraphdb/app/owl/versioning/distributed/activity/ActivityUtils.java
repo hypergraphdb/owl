@@ -259,11 +259,13 @@ public class ActivityUtils {
 		int commonIndex = -1; 
 		boolean commonAreEqual = true;
 		while (commonAreEqual && aIt.hasNext() && bIt.hasNext()){
-			commonIndex ++;
 			Revision revisionA = aIt.next();			
 			Revision revisionB = bIt.next();
 			//TODO we'll need content dependent comparison here in the future (SHA1?)
 			commonAreEqual = revisionA.equals(revisionB);
+			if (commonAreEqual) {
+				commonIndex ++;
+			}
 		}
 		return commonIndex;
 	}
