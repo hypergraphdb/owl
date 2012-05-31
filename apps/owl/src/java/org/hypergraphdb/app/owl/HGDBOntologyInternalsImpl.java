@@ -413,7 +413,8 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 						// we have no cycles up incidence sets starting
 						// on an entity.
 						if (!(o instanceof OWLClassExpression || o instanceof OWLObjectPropertyExpression
-								|| o instanceof OWLDataRange || o instanceof OWLLiteral || o instanceof OWLFacetRestriction)) {
+								|| o instanceof OWLDataRange || o instanceof OWLLiteral || o instanceof OWLFacetRestriction
+								|| o instanceof OWLAnnotation)) {
 							throw new IllegalStateException("We encountered an unexpected object in an incidenceset:"
 									+ o);
 						}
@@ -452,7 +453,8 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 					// we have no cycles up incidence sets starting
 					// on an entity.
 					if (!(o instanceof OWLClassExpression || o instanceof OWLObjectPropertyExpression
-							|| o instanceof OWLDataRange || o instanceof OWLLiteral || o instanceof OWLFacetRestriction)) {
+							|| o instanceof OWLDataRange || o instanceof OWLLiteral || o instanceof OWLFacetRestriction
+							|| o instanceof OWLAnnotation)) {
 						throw new IllegalStateException("We encountered an unexpected object in an incidenceset:" + o);
 					}
 					recLevel++;
