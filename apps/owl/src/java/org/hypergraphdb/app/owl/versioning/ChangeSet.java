@@ -11,8 +11,10 @@ import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.app.owl.versioning.change.VAxiomChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChangeFactory;
+import org.semanticweb.owlapi.model.OWLAxiomChange;
 import org.semanticweb.owlapi.model.OWLMutableOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 
@@ -26,6 +28,11 @@ import org.semanticweb.owlapi.model.OWLOntologyChange;
  * @created Jan 13, 2012
  */
 public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject {
+	
+	/**
+	 * 2012.06.01 Issue with broken database. One change had no axiom in targetset.
+	 */
+	private static boolean REMOVE_CHANGES_THAT_FAIL_TO_LOAD = false; 
 	
 	private Date createdDate;
 	private List <HGHandle> changes;
@@ -73,7 +80,25 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject {
 	public List<VOWLChange> getChanges() {
 		List<VOWLChange> changesLoaded = new ArrayList<VOWLChange>(size());
 		for (HGHandle h : changes) {
-			changesLoaded.add((VOWLChange)graph.get(h));
+			try {
+				//System.out.print("Change at: " + h); 
+				VOWLChange cur = graph.get(h);
+				changesLoaded.add(cur);
+				//System.out.println(" Loaded: " + cur + 
+				//		((cur instanceof VAxiomChange)? " Axiom: " + ((VAxiomChange)cur).getAxiom() : ""));
+			} catch (RuntimeException e) {
+				if (REMOVE_CHANGES_THAT_FAIL_TO_LOAD) {
+					e.printStackTrace();
+					System.out.println("REMOVING FAILED CHANGE");
+					changes.remove(h);
+					graph.update(this);
+					graph.remove(h, true);
+					changesLoaded =  new ArrayList<VOWLChange>();
+					break;
+				} else {
+					throw e;
+				}
+			}
 		}
 		return changesLoaded;
 	}
