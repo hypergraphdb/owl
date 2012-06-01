@@ -43,7 +43,8 @@ public class VOWLChangeFactory {
 			return new VAddAxiomChange(graph.getHandle(aac.getAxiom()));
 		} else if (ooc instanceof RemoveAxiom) {
 			RemoveAxiom rac = (RemoveAxiom)ooc;
-			return new VRemoveAxiomChange(graph.getHandle(rac.getAxiom()));
+			HGHandle axiomHandle = graph.getHandle(rac.getAxiom());
+			return new VRemoveAxiomChange(axiomHandle);
 		} else if (ooc instanceof AddOntologyAnnotation) {
 			AddOntologyAnnotation aoac = (AddOntologyAnnotation)ooc;
 			return new VAddOntologyAnnotationChange(graph.getHandle(aoac.getAnnotation()));
