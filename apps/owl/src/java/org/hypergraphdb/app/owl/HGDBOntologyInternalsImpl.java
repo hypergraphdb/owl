@@ -455,7 +455,8 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 					if (!(o instanceof OWLClassExpression || o instanceof OWLObjectPropertyExpression
 							|| o instanceof OWLDataRange || o instanceof OWLLiteral || o instanceof OWLFacetRestriction
 							|| o instanceof OWLAnnotation)) {
-						throw new IllegalStateException("We encountered an unexpected object in an incidenceset:" + o);
+						throw new IllegalStateException("We encountered an unexpected object: "+ o 
+								+ "  in incidenceset of " + graph.get(atomHandle));
 					}
 					recLevel++;
 					if (hasOntologyAxiomsRecursive(incidentAtomHandle)) {
