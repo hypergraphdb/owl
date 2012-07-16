@@ -12,6 +12,7 @@ import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGRandomAccessResult;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyImpl;
 import org.hypergraphdb.app.owl.HGDBOntologyInternals;
@@ -1365,15 +1366,32 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 ////		Maps.DifferentIndividualsAxiomsByIndividual.initMap(this);
 ////		return getReturnSet(getAxioms(individual, getDifferentIndividualsAxiomsByIndividual()));
 	}
+	
+	private HGHandle getStoredIRI(final IRI iri) {
+    	HGHandle iriHandle  =  graph.getTransactionManager().ensureTransaction(new Callable<HGHandle>() {
+			public HGHandle call() {
+				return hg.findOne(graph, hg.and(hg.type(IRI.class), hg.eq(iri)));
+			}}, HGTransactionConfig.READONLY);
+    	return iriHandle;
+	}
 
 	public Set<OWLAnnotationAssertionAxiom> getAnnotationAssertionAxiomsBySubject(OWLAnnotationSubject subject) {
 		//index subjectHandle 0, propertyHandle 1, valueHandle 2.
 		if (subject instanceof IRI && graph.getHandle(subject) == null) {
-			return Collections.emptySet();
+			//We might find the IRI in the store:
+			HGHandle storedIRIHandle = getStoredIRI((IRI)subject);
+			if (storedIRIHandle != null) {
+				//TODO we replace the subject with a freshly loaded java object
+				//this is a short term solution
+				//findAxiomsInIncidenceSet should accept a handle in the future
+				IRI storedIRI = graph.get(storedIRIHandle);
+				return findAxiomsInIncidenceSet(storedIRI, OWLAnnotationAssertionAxiomHGDB.class, 0);
+			} else {
+				return Collections.emptySet();
+			}
 		}
-		else {
-			return findAxiomsInIncidenceSet(subject, OWLAnnotationAssertionAxiomHGDB.class, 0);
-		}
+		return findAxiomsInIncidenceSet(subject, OWLAnnotationAssertionAxiomHGDB.class, 0);
+	}
 		
 //		HGHandle subjectHandle = graph.getHandle(subject);
 //		List<OWLAnnotationAssertionAxiom> l = new ArrayList<OWLAnnotationAssertionAxiom>();
@@ -1396,7 +1414,6 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 //			throw new IllegalStateException(msg);
 //		}
 //		return getReturnSet(l);
-	}
 
 //	public Set<OWLAnnotationAssertionAxiom> getAnnotationAssertionAxiomsBySubjectOLD(OWLAnnotationSubject subject) {
 //		HGHandle subjectHandle = graph.getHandle(subject);
