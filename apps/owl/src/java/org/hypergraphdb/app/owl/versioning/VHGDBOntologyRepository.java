@@ -63,7 +63,7 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 				//TODO maybe not loaded here? -> NPE; Check out callers
 				HGHandle ontoHandle = getHyperGraph().getHandle(onto);
 				if (ontoHandle == null) {
-					System.out.println("NULL for onto " + onto);
+					if (DBG) System.out.println("NULL for onto " + onto);
 					return null;
 				} else {
 					HGPersistentHandle ontoPHandle = ontoHandle.getPersistent();
