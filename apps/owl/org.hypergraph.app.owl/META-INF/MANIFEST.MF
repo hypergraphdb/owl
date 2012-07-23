@@ -161,4 +161,5 @@ Import-Package: javax.accessibility,
  org.hypergraphdb.peer.xmpp,
  org.xml.sax,
  org.xml.sax.ext,
- org.xml.sax.helpers
+ org.xml.sax.helpers,
+ javax.transaction
