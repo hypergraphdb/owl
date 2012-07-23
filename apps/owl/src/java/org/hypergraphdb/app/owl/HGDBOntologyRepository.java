@@ -28,6 +28,7 @@ import org.hypergraphdb.app.owl.gc.GarbageCollectorStatistics;
 import org.hypergraphdb.app.owl.util.Path;
 import org.hypergraphdb.handle.SequentialUUIDHandleFactory;
 import org.hypergraphdb.query.HGQueryCondition;
+import org.hypergraphdb.storage.HGStoreImplementation;
 import org.hypergraphdb.storage.bdb.BDBConfig;
 import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.hypergraphdb.util.HGUtils;
@@ -145,11 +146,13 @@ public class HGDBOntologyRepository {
 	 */
 	private void ensureHypergraph(String location) {
 		HGConfiguration config = new HGConfiguration();
+		//config.setStoreImplementation((HGStoreImplementation)HGUtils.getImplementationOf(HGStoreImplementation.class.getName(), 
+        //           "org.hypergraphdb.storage.bdb.BDBStorageImplementation"));
 		config.setClassLoader(HGDBOntologyRepository.class.getClassLoader());
 		config.setUseSystemAtomAttributes(false);
-		BDBConfig bdbConfig = (BDBConfig)config.getStoreImplementation().getConfiguration();
+		//BDBConfig bdbConfig = (BDBConfig)config.getStoreImplementation().getConfiguration();
 		// Change the storage cache from the 20MB default to 150MB
-		bdbConfig.getEnvironmentConfig().setCacheSize(150*1024*1024);
+		//bdbConfig.getEnvironmentConfig().setCacheSize(150*1024*1024);
 		SequentialUUIDHandleFactory handleFactory =
             new SequentialUUIDHandleFactory(System.currentTimeMillis(), 0);
 		config.setHandleFactory(handleFactory);	
