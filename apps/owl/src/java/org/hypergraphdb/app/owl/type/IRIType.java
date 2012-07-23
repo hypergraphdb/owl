@@ -1,5 +1,6 @@
 package org.hypergraphdb.app.owl.type;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 import org.hypergraphdb.HGHandle;
@@ -14,6 +15,7 @@ import org.hypergraphdb.storage.BAtoBA;
 import org.hypergraphdb.storage.BAtoHandle;
 import org.hypergraphdb.storage.ByteArrayConverter;
 import org.hypergraphdb.type.HGAtomTypeBase;
+import org.hypergraphdb.type.HGPrimitiveType;
 import org.hypergraphdb.type.javaprimitive.StringType;
 import org.semanticweb.owlapi.model.IRI;
 
@@ -26,7 +28,9 @@ import org.semanticweb.owlapi.model.IRI;
  * @created Nov 30, 2011
  */
 public class IRIType extends HGAtomTypeBase implements HGOrderedSearchable<IRI, HGPersistentHandle>,
-		ByteArrayConverter<IRI>, Comparator<byte[]> {
+		ByteArrayConverter<IRI>, HGPrimitiveType<IRI> {
+	
+	//old Comparator<byte[]>, Serializable
 	/**
 	 * This has to match the offset as defined in Stringtype, as we are using
 	 * the Stringtypes index.
@@ -37,6 +41,8 @@ public class IRIType extends HGAtomTypeBase implements HGOrderedSearchable<IRI, 
 
 	protected HGSortIndex<byte[], HGPersistentHandle> valueIndex = null;
 
+	private static IRIComparator comparatorInstance;
+	
 	public Object make(HGPersistentHandle handle, LazyRef<HGHandle[]> targetSet, IncidenceSetRef incidenceSet) {
 		return IRI.create((String) graph.getTypeSystem().getAtomType(String.class)
 				.make(handle, targetSet, incidenceSet));
@@ -69,19 +75,6 @@ public class IRIType extends HGAtomTypeBase implements HGOrderedSearchable<IRI, 
 	@Override
 	public IRI fromByteArray(byte[] byteArray) {
 		return IRI.create(new String(byteArray));
-	}
-
-	public int compare(byte[] left, byte[] right) {
-		int c = BAUtils.compare(left, 0, right, 0, Math.min(left.length, right.length));
-		if (c == 0) {
-			if (left.length == right.length)
-				return 0;
-			else if (left.length > right.length)
-				return -1;
-			else
-				return 1;
-		} else
-			return c;
 	}
 
 	/*
@@ -181,4 +174,44 @@ public class IRIType extends HGAtomTypeBase implements HGOrderedSearchable<IRI, 
 		}
 		return data;
 	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.type.HGPrimitiveType#getComparator()
+	 */
+	@Override
+	public Comparator<byte[]> getComparator() {
+		if (comparatorInstance == null) {
+			synchronized (this) {
+				if (comparatorInstance == null) {
+					comparatorInstance = new IRIComparator();
+				}
+			}
+		}
+		return comparatorInstance;
+	}
+	
+	public static class IRIComparator implements Comparator<byte[]>, Serializable {
+
+		private static final long serialVersionUID = 1L;
+
+		/* (non-Javadoc)
+		 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+		 */
+		@Override
+		public int compare(byte[] left, byte[] right) {
+			int c = BAUtils.compare(left, 0, right, 0, Math.min(left.length, right.length));
+			if (c == 0) {
+				if (left.length == right.length)
+					return 0;
+				else if (left.length > right.length)
+					return -1;
+				else
+					return 1;
+			} else
+				return c;
+		}
+	}
+	
+	
+	
 }
