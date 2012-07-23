@@ -162,4 +162,5 @@ Import-Package: javax.accessibility,
  org.xml.sax,
  org.xml.sax.ext,
  org.xml.sax.helpers,
- javax.transaction
+ javax.transaction,
+ javax.transaction.xa
