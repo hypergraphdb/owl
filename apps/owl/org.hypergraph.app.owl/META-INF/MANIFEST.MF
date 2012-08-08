@@ -63,7 +63,6 @@ Export-Package:
  org.hypergraphdb.query.cond2qry,
  org.hypergraphdb.query.impl,
  org.hypergraphdb.storage,
- org.hypergraphdb.storage.bdb,
  org.hypergraphdb.transaction,
  org.hypergraphdb.type,
  org.hypergraphdb.type.javaprimitive,
