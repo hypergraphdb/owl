@@ -29,7 +29,7 @@ import org.hypergraphdb.app.owl.util.Path;
 import org.hypergraphdb.handle.SequentialUUIDHandleFactory;
 import org.hypergraphdb.query.HGQueryCondition;
 import org.hypergraphdb.storage.HGStoreImplementation;
-import org.hypergraphdb.storage.bdb.BDBConfig;
+//import org.hypergraphdb.storage.bdb.BDBConfig;
 import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.hypergraphdb.util.HGUtils;
 import org.semanticweb.owlapi.model.IRI;
