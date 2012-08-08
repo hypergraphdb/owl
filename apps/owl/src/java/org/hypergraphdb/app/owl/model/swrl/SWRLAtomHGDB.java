@@ -26,10 +26,10 @@ public abstract class SWRLAtomHGDB extends OWLObjectHGDB implements SWRLAtom
 		return predicate;
 	}
 
-//	public void setPredicate(SWRLPredicate predicate)
-//	{
-//		this.predicate = predicate;
-//	}
+	public void setPredicate(SWRLPredicate predicate)
+	{
+		this.predicate = predicate;
+	}
 	
 	public SWRLPredicate getPredicate()
 	{
