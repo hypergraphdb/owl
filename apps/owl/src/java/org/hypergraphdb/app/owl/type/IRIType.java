@@ -64,7 +64,7 @@ public class IRIType extends HGAtomTypeBase implements HGOrderedSearchable<IRI, 
 	 */
 	@Override
 	public byte[] toByteArray(IRI object) {
-		return object.toString().getBytes();
+		return object.toString().getBytes();//Charset.forName("US-ASCII"));
 	}
 
 	/*

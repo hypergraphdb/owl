@@ -67,7 +67,7 @@ public class OWLAnnotationAssertionAxiomHGDB extends OWLAxiomHGDB implements HGC
     }
 
     public OWLAnnotationValue getValue() {
-        return getHyperGraph().get(valueHandle);
+    	return getHyperGraph().get(valueHandle);
     }
 
     public OWLAnnotationSubject getSubject() {

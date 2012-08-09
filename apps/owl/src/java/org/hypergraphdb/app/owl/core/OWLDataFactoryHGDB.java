@@ -1762,7 +1762,9 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		HGHandle individualHandle = graph.getHandle(individual);
 		HGHandle objectHandle = graph.getHandle(object);
 		if (propertyHandle == null || individualHandle == null || objectHandle == null) {
-			throw new IllegalStateException("No Handle for property, individual AND/OR object.");
+			throw new IllegalStateException("No Handle for property, individual AND/OR object "+
+					propertyHandle + "," + individualHandle + "," + objectHandle + 
+					" -- " + property + "," + individual + "," + object);
 		}
 		axiom = new OWLObjectPropertyAssertionAxiomHGDB(individualHandle, propertyHandle, objectHandle, annotations);
 		axiom.setHyperGraph(graph);

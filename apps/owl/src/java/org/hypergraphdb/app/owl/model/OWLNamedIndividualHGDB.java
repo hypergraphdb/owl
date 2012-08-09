@@ -3,6 +3,7 @@ package org.hypergraphdb.app.owl.model;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import org.hypergraphdb.app.owl.util.ImplUtils;
 import org.semanticweb.owlapi.model.EntityType;
@@ -119,7 +120,7 @@ public class OWLNamedIndividualHGDB extends OWLIndividualHGDB implements
     }
 
 
-    public Set<OWLAnnotation> getAnnotations(OWLOntology ontology) {
+    public Set<OWLAnnotation> getAnnotations(final OWLOntology ontology) {
         return ImplUtils.getAnnotations(this, Collections.singleton(ontology));
     }
 

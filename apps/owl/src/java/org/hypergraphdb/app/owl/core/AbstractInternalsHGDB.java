@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import org.hypergraphdb.HGAtomCache;
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGRandomAccessResult;
@@ -1377,7 +1378,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 
 	public Set<OWLAnnotationAssertionAxiom> getAnnotationAssertionAxiomsBySubject(OWLAnnotationSubject subject) {
 		//index subjectHandle 0, propertyHandle 1, valueHandle 2.
-		if (subject instanceof IRI && graph.getHandle(subject) == null) {
+		if (subject instanceof IRI /*&& graph.getHandle(subject) == null*/) {
 			//We might find the IRI in the store:
 			HGHandle storedIRIHandle = getStoredIRI((IRI)subject);
 			if (storedIRIHandle != null) {
@@ -1769,6 +1770,8 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 				//Initial Size of Hashset performance critical
 				Set<S> s = Collections.EMPTY_SET; //lazy instantiation
 				if (entityHandle == null) {
+					HGAtomCache cache = graph.getCache();
+					System.out.println(cache.get(entity));
 					String msg = ("entityHandle null. Graph.getHandle(" + entity + " Class: " + entity.getClass() + ") in findAxiomsInIncidenceSet(OWLEntity) returned null");
 					throw new IllegalStateException(msg);
 				}
