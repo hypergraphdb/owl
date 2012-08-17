@@ -5,14 +5,9 @@
 	<classpathentry exported="true" kind="lib" path="Pellet-2.3.0/lib/"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
-	<classpathentry kind="lib" path="lib/db.jar"/>
-	<classpathentry kind="lib" path="lib/hgbdbnative.jar"/>
-	<classpathentry kind="lib" path="lib/hgdb.jar" sourcepath="/hypergraphdb/core/src/java"/>
 	<classpathentry kind="lib" path="lib/hgdbmanagement.jar" sourcepath="/hypergraphdb/apps/management/src/java"/>
 	<classpathentry kind="lib" path="lib/smack.jar"/>
 	<classpathentry kind="lib" path="lib/smackx.jar"/>
-	<classpathentry kind="lib" path="/hypergraphdb/p2p/target/classes" sourcepath="/hypergraphdb/p2p/src/java"/>
-	<classpathentry kind="lib" path="/hypergraphdb/core/target/classes" sourcepath="/hypergraphdb/apps/owl/src/java"/>
 	<classpathentry kind="lib" path="Pellet-2.3.0/lib/aterm-java-1.6.jar"/>
 	<classpathentry kind="lib" path="Pellet-2.3.0/lib/pellet-cli.jar" sourcepath="Pellet-2.3.0/lib/pellet-cli.jar"/>
 	<classpathentry kind="lib" path="Pellet-2.3.0/lib/pellet-core.jar" sourcepath="Pellet-2.3.0/lib/pellet-core.jar"/>
@@ -29,6 +24,9 @@
 	<classpathentry kind="lib" path="Pellet-2.3.0/lib/pellet-test.jar" sourcepath="Pellet-2.3.0/lib/pellet-test.jar"/>
 	<classpathentry kind="lib" path="Pellet-2.3.0/lib/servlet.jar"/>
 	<classpathentry kind="lib" path="Pellet-2.3.0/lib/jgrapht/jgrapht-jdk1.5.jar"/>
+	<classpathentry kind="lib" path="lib/hgbdbje.jar" sourcepath="/hypergraphdb/storage/bdb-je/src/java"/>
+	<classpathentry kind="lib" path="lib/je.jar" sourcepath="/hypergraphdb/storage/bdb-je/src/java"/>
+	<classpathentry kind="lib" path="/hypergraphdb/core/build" sourcepath="/hypergraphdb/core/src/java"/>
 	<classpathentry kind="output" path="build/classes"/>
 	<referencedentry kind="lib" path="Pellet-2.3.0/lib/pellet-owlapi.jar" sourcepath="Pellet-2.3.0/src/pellet-owlapi-src.jar"/>
 </classpath>
