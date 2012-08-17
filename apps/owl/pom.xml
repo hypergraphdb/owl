@@ -34,7 +34,7 @@
 	</dependency>	
 	<dependency>
 	  <groupId>org.hypergraphdb</groupId>
-	  <artifactId>hgbdbnative</artifactId>
+	  <artifactId>hgbdbje</artifactId>
 	  <version>${version}</version>
 	</dependency>	
 	<dependency>
