@@ -88,7 +88,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 		peer = new HyperGraphPeer(peerConfig, getHyperGraph());
 		peer.getActivityManager();
 		peer.getObjectContext().put(OBJECTCONTEXT_REPOSITORY, this);
-		
+		//System.out.println("PEER IDENTITY: " + peer.getIdentity());
 		//peer.addPeerPresenceListener(this);
 		//Activity a;
 		//peer.getNetworkTarget(id)
@@ -195,7 +195,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 		Future<Boolean> f = peer.start();
 		boolean success = false; 
 		try {
-			success = f.get(1000, TimeUnit.SECONDS);
+			success = f.get(35, TimeUnit.SECONDS);
 			if (!success) {
 				Exception  e = peer.getStartupFailedException();
 				System.out.println("FAILED TO START PEER: ");
