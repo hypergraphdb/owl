@@ -1,4 +1,15 @@
 Version history:
+1.0.0 JE P2P Patch (Release Date: 2012.08.17)
+++ BUGIFX: Nested transactions were used in JE Storage Implementation. They are not supported 
+           currently supported by BerkelyDB 11g2 Java Edition 5.0.34. 
+1.0.0 JE SWRL Patch (Release Date: 2012.08.08)
+++BUGFIX: SWRLAtomHGDB's predicate was not properly detected as bean property in subclass instances.
+++Added: R20120807RepairSWRLNull will find old SWRLAtomHGDB instances in existing repositoryies and upgrade their type.
+1.0.0 JE (Release Date: 2012.07.23)
+++ Core
+	+ Database is now 11gR2 Berkeley DB Java Edition 5.0.34
+	+ Improved performance
+	- OS native Berkeley DB removed
 1.0.0 (Release Date: 2012.04.06)
 ++ Core
 	+ Extensive Testing and >40 bugfixes in the model
