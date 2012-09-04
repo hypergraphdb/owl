@@ -14,6 +14,7 @@ public abstract class VOntologyAnnotationChange extends VOWLChange {
 	private HGHandle ontologyAnnotationHandle;
 	
 	public VOntologyAnnotationChange(HGHandle...args) {
+		if (args[0] == null) throw new IllegalArgumentException("Tried to create a VOntologyAnnotationChange with a null annotation declaration handle.");
 		ontologyAnnotationHandle = args[0];
     }
 

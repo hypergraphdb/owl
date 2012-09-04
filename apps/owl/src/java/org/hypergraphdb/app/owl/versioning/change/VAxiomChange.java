@@ -16,6 +16,7 @@ public abstract class VAxiomChange extends VOWLChange {
 	//Set<HGHandle> getEntities();
 
 	public VAxiomChange(HGHandle...args) {
+		if (args[0] == null) throw new IllegalArgumentException("Tried to create a VAxiomChange with a null axiom handle.");
     	axiom = args[0];
     }
 

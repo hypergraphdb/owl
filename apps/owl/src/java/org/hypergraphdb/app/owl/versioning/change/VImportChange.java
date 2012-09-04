@@ -14,6 +14,7 @@ public abstract class VImportChange extends VOWLChange {
 	private HGHandle importDeclarationHandle;
 	
 	public VImportChange(HGHandle...args) {
+		if (args[0] == null) throw new IllegalArgumentException("Tried to create a VImportChange with a null import declaration handle.");
 		importDeclarationHandle = args[0];
     }
 	
