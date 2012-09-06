@@ -1,5 +1,7 @@
 package org.hypergraphdb.app.owl;
 
+import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HyperNode;
 import org.hypergraphdb.annotation.HGIgnore;
 import org.semanticweb.owlapi.model.IRI;
@@ -27,7 +29,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
  * 
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  */
-public interface HGDBOntology extends OWLMutableOntology, HyperNode
+public interface HGDBOntology extends OWLMutableOntology, HyperNode, HGHandleHolder
 {	
 		
 	void setOntologyID(OWLOntologyID id);
@@ -60,5 +62,5 @@ public interface HGDBOntology extends OWLMutableOntology, HyperNode
 	 * @return
 	 */	
 	long getNrOfNonLinkAtoms();
-	
+
 }

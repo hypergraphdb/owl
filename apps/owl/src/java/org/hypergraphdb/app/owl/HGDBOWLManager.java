@@ -53,7 +53,7 @@ public class HGDBOWLManager {
 		ontologyManager.addOntologyStorer (new HGDBStorer ());
 
 		ontologyManager.addIRIMapper (new NonMappingOntologyIRIMapper());
-
+		// a HDBGIRI mapper cannot be added here because the repo is not known.
 		ontologyManager.addOntologyFactory (new EmptyInMemOWLOntologyFactory());
 		ontologyManager.addOntologyFactory (new ParsableOWLOntologyFactory());
 		ontologyManager.addOntologyFactory (new HGDBOntologyFactory ());

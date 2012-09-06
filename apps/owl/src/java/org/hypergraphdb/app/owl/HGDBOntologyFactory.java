@@ -22,8 +22,6 @@ public class HGDBOntologyFactory implements OWLOntologyFactory {
 
     private static final Logger logger = Logger.getLogger(HGDBOntologyFactory.class.getName());
 
-    private final static String	HGDB_SCHEME	= "hgdb";	
-
     private HGDBOntologyManager			manager;
     private HGDBOntologyRepository		repository;
 	
@@ -36,12 +34,12 @@ public class HGDBOntologyFactory implements OWLOntologyFactory {
 
 	@Override
 	public boolean canCreateFromDocumentIRI(IRI documentIRI) {
-		return HGDB_SCHEME.equals(documentIRI.getScheme());
+		return HGDBOntologyFormat.HGDB_SCHEME.equals(documentIRI.getScheme());
 	}
 
 	@Override
 	public boolean canLoad(OWLOntologyDocumentSource documentSource) {
-		return HGDB_SCHEME.equals(documentSource.getDocumentIRI().getScheme());
+		return HGDBOntologyFormat.HGDB_SCHEME.equals(documentSource.getDocumentIRI().getScheme());
 	}
 
 	@Override
@@ -100,7 +98,7 @@ public class HGDBOntologyFactory implements OWLOntologyFactory {
 			throws OWLOntologyCreationException {
 		logger.info("HGDB loadOWLOntology from " + documentSource.getDocumentIRI());
 		if (!canCreateFromDocumentIRI(documentSource.getDocumentIRI())) {
-			throw new OWLOntologyCreationException("Wrong scheme. Need:" + HGDB_SCHEME);
+			throw new OWLOntologyCreationException("Wrong scheme. Need:" + HGDBOntologyFormat.HGDB_SCHEME);
 		}
 		//try load it
 		HGDBOntology o = repository.getOntologyByDocumentIRI(documentSource.getDocumentIRI());

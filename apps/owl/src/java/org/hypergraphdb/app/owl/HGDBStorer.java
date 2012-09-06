@@ -30,6 +30,7 @@ import org.semanticweb.owlapi.model.OWLOntologyStorer;
  */
 public class HGDBStorer implements OWLOntologyStorer, HGDBTask {
 
+	public static boolean DBG = false;
 	private volatile int taskSize;
 	private volatile int taskProgess;
 	
@@ -58,7 +59,7 @@ public class HGDBStorer implements OWLOntologyStorer, HGDBTask {
 	public void storeOntology(OWLOntologyManager manager, OWLOntology ontology, IRI documentIRI,
 			OWLOntologyFormat ontologyFormat) throws OWLOntologyStorageException, IOException {
 		//Store ontology using low level API but do not make known to OntologyManager.
-		System.out.println("HGDBStorer.storeOntology ");
+		if (DBG) System.out.println("HGDBStorer.storeOntology ");
 		HGDBOntologyManager man = (HGDBOntologyManager) manager;
 		HGDBOntologyRepository repo =  man.getOntologyRepository();
 		StopWatch stopWatch = new StopWatch(true);
@@ -68,6 +69,12 @@ public class HGDBStorer implements OWLOntologyStorer, HGDBTask {
 					+ ontologyFormat.getClass());
 		}
 		try {
+			if (!HGDBOntologyFormat.isHGDBDocumentIRI(documentIRI)) {
+				if (DBG) System.out.println("HGDBStorer: storing onto and ignoring passed documentIRI: " + documentIRI + " using default instead.");
+				IRI defaultDocumentIRI = ontology.getOntologyID().getDefaultDocumentIRI();
+				//TODO deal with anonymous, causes NPE now.
+				documentIRI = HGDBOntologyFormat.convertToHGDBDocumentIRI(defaultDocumentIRI);
+			}
 			// documentIRI shall start with hgdb://
 			//2011.12.08 Do not use the manager to create the ontology.
 			// as we do not load it here and don't want it to know about the new onto yet.

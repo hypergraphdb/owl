@@ -52,6 +52,7 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 		} else {
 			ontologyRepository = HGDBOntologyRepository.getInstance();
 		}
+		addIRIMapper(new HGDBIRIMapper(ontologyRepository));
 		dataFactory.setHyperGraph(ontologyRepository.getHyperGraph());
 	}
 	
@@ -75,8 +76,6 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 		}
 		return false;
 	}
-
-	
 	
 	/* (non-Javadoc)
 	 * @see uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#removeOntology(org.semanticweb.owlapi.model.OWLOntology)
@@ -118,5 +117,4 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 		// TODO Auto-generated method stub
 		return 0;
 	}
-
 }
