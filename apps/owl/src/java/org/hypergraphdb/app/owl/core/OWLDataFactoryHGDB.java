@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
@@ -89,6 +90,7 @@ import org.hypergraphdb.app.owl.model.swrl.SWRLObjectPropertyAtomHGDB;
 import org.hypergraphdb.app.owl.model.swrl.SWRLRuleHGDB;
 import org.hypergraphdb.app.owl.model.swrl.SWRLSameIndividualAtomHGDB;
 import org.hypergraphdb.app.owl.model.swrl.SWRLVariableHGDB;
+import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.CollectionFactory;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
@@ -324,22 +326,36 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		return data.getOWLDatatype(iri);
 	}
 
-	public OWLLiteral getOWLLiteral(String lexicalValue, OWLDatatype datatype) {
-		OWLLiteral literal;
+	public OWLLiteralHGDB getOWLLiteral(final String lexicalValue, final String lang, final HGHandle datatype) {
+		return graph.getTransactionManager().ensureTransaction(new Callable<OWLLiteralHGDB> () {
+			public OWLLiteralHGDB call() {
+			HGHandle hliteral = data.lookupLiteral
+					.var("literal", lexicalValue)
+					.var("lang", lang)
+					.var("datatype", datatype).findOne();
+			if (hliteral == null) {			
+				OWLLiteralHGDB l = new OWLLiteralHGDB(lexicalValue, lang, datatype); 
+				graph.add(l);
+				return l;
+			}
+			else
+				return graph.get(hliteral);
+		}}, HGTransactionConfig.WRITE_UPGRADABLE);
+	}
+	
+	public OWLLiteralHGDB getOWLLiteral(String lexicalValue, OWLDatatype datatype) {
 		if (datatype.isRDFPlainLiteral()) {
 			int sep = lexicalValue.lastIndexOf('@');
 			if (sep != -1) {
 				String lex = lexicalValue.substring(0, sep);
 				String lang = lexicalValue.substring(sep + 1);
-				literal = new OWLLiteralHGDB(lex, lang, graph.getHandle(getRDFPlainLiteral()));
+				return getOWLLiteral(lex, lang, graph.getHandle(getRDFPlainLiteral()));
 			} else {
-				literal = new OWLLiteralHGDB(lexicalValue, graph.getHandle(datatype));
+				return getOWLLiteral(lexicalValue, "", graph.getHandle(datatype));
 			}
 		} else {
-			literal = new OWLLiteralHGDB(lexicalValue, graph.getHandle(datatype));
+			return getOWLLiteral(lexicalValue, "", graph.getHandle(datatype));
 		}
-		graph.add(literal);
-		return literal;
 	}
 
 	public OWLLiteral getOWLLiteral(String lexicalValue, OWL2Datatype datatype) {
@@ -347,33 +363,23 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	}
 
 	public OWLLiteral getOWLLiteral(int value) {
-		OWLLiteral literal = new OWLLiteralHGDB(Integer.toString(value), graph.getHandle(getOWLDatatype(XSDVocabulary.INTEGER.getIRI())));
-		graph.add(literal);
-		return literal;
+		return getOWLLiteral(Integer.toString(value), "", graph.getHandle(getOWLDatatype(XSDVocabulary.INTEGER.getIRI())));
 	}
 
 	public OWLLiteral getOWLLiteral(double value) {
-		OWLLiteral literal = new OWLLiteralHGDB(Double.toString(value), graph.getHandle(getOWLDatatype(XSDVocabulary.DOUBLE.getIRI())));
-		graph.add(literal);
-		return literal;
+		return getOWLLiteral(Double.toString(value), "", graph.getHandle(getOWLDatatype(XSDVocabulary.DOUBLE.getIRI())));
 	}
 
 	public OWLLiteral getOWLLiteral(boolean value) {
-		OWLLiteral literal = new OWLLiteralHGDB(Boolean.toString(value), graph.getHandle(getOWLDatatype(XSDVocabulary.BOOLEAN.getIRI())));
-		graph.add(literal);
-		return literal;
+		return getOWLLiteral(Boolean.toString(value), "", graph.getHandle(getOWLDatatype(XSDVocabulary.BOOLEAN.getIRI())));
 	}
 
 	public OWLLiteral getOWLLiteral(float value) {
-		OWLLiteral literal = new OWLLiteralHGDB(Float.toString(value), graph.getHandle(getOWLDatatype(XSDVocabulary.FLOAT.getIRI())));
-		graph.add(literal);
-		return literal;
+		return getOWLLiteral(Float.toString(value), "", graph.getHandle(getOWLDatatype(XSDVocabulary.FLOAT.getIRI())));
 	}
 
 	public OWLLiteral getOWLLiteral(String value) {
-		OWLLiteral literal = new OWLLiteralHGDB(value, graph.getHandle(getOWLDatatype(XSDVocabulary.STRING.getIRI())));
-		graph.add(literal);
-		return literal;
+		return getOWLLiteral(value, "", graph.getHandle(getOWLDatatype(XSDVocabulary.STRING.getIRI())));
 	}
 
 	public OWLLiteral getOWLLiteral(String literal, String lang) {
@@ -386,9 +392,7 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		} else {
 			normalisedLang = lang.trim().toLowerCase();
 		}
-		OWLLiteral l = new OWLLiteralHGDB(literal, normalisedLang, graph.getHandle(getRDFPlainLiteral()));
-		graph.add(l);
-		return l;
+		return getOWLLiteral(literal, normalisedLang, graph.getHandle(getRDFPlainLiteral()));
 	}
 
 	/**
@@ -2260,6 +2264,7 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		if (graph == null)
 			throw new IllegalArgumentException("Attempt to set graph null");
 		this.graph = graph;
+		data.initialize();
 	}
 
 	public HyperGraph getHyperGraph() {

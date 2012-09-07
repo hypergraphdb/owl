@@ -211,7 +211,4 @@ public class IRIType extends HGAtomTypeBase implements HGOrderedSearchable<IRI, 
 				return c;
 		}
 	}
-	
-	
-	
 }

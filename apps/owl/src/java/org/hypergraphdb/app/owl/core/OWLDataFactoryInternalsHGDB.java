@@ -1,18 +1,22 @@
 package org.hypergraphdb.app.owl.core;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HGException;
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGHandleHolder;
+import org.hypergraphdb.HGQuery;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.model.OWLAnnotationPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLClassHGDB;
 import org.hypergraphdb.app.owl.model.OWLDataPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLDatatypeHGDB;
+import org.hypergraphdb.app.owl.model.OWLLiteralHGDB;
 import org.hypergraphdb.app.owl.model.OWLNamedIndividualHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectPropertyHGDB;
 import org.hypergraphdb.transaction.HGTransactionConfig;
@@ -27,6 +31,7 @@ import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
+import org.semanticweb.owlapi.vocab.XSDVocabulary;
 
 /**
  * OWLDataFactoryInternalsHGDB.
@@ -67,9 +72,52 @@ public class OWLDataFactoryInternalsHGDB {
     //private final WeakHashMap<IRI, WeakReference<? extends OWLEntity>> annotationPropertiesByURI;
 	
 	private final HashMap<Pair<IRI, Class<? extends OWLEntity>>, OWLEntity> builtinByIRIClassPairCache;
-	
+    private final Set<IRI> XSD_VOCABULARY_IRIS = new HashSet<IRI>();
+    
     private final OWLDataFactoryHGDB factory;
 
+    HGQuery<HGHandle> lookupLiteral = null;
+    HGQuery<HGHandle> lookupIRIByValue = null;
+    HashMap<Class<?>, HGQuery<OWLEntity>> lookupEntityByIRI = 
+    		new HashMap<Class<?>, HGQuery<OWLEntity>>();
+
+    private void fillBuiltinTypes()
+    {
+    	for (XSDVocabulary xsd : XSDVocabulary.values())
+    		XSD_VOCABULARY_IRIS.add(xsd.getIRI());
+    }
+    
+    private void preCompileQueries()
+    {
+        lookupIRIByValue = HGQuery.make(HGHandle.class, factory.getHyperGraph()).compile(
+        		hg.and(hg.type(IRI.class), hg.eq(hg.var("iri"))));
+        lookupLiteral = HGQuery.make(HGHandle.class, factory.getHyperGraph()).compile(
+        		hg.and(hg.type(OWLLiteralHGDB.class), 
+        			   hg.eq("literal", hg.var("literal")),
+        			   hg.incident(hg.var("datatype"))/*,
+        			   hg.eq("lang", hg.var("lang"))*/));
+    }
+
+    HGQuery<OWLEntity> entityByIRIQuery(Class<?> entityType)
+    {
+    	HGQuery<OWLEntity> q = lookupEntityByIRI.get(entityType);
+    	if (q == null)
+    	{
+    		q = HGQuery.make(OWLEntity.class, factory.getHyperGraph()).compile(
+    				hg.deref(factory.getHyperGraph(), 
+    						hg.and(hg.type(entityType), hg.eq("IRI", hg.var("iri")))));
+    		lookupEntityByIRI.put(entityType, q);
+    	}
+    	return q;
+    }
+    
+    // call after HyperGraph instance is available in 'factory'.
+    void initialize()
+    {
+    	preCompileQueries();
+    	fillBuiltinTypes();
+    }
+    
     public OWLDataFactoryInternalsHGDB(OWLDataFactoryHGDB f) {
         factory = f;
         builtinByIRIClassPairCache = new HashMap<Pair<IRI, Class<? extends OWLEntity>>, OWLEntity>(OWLRDFVocabulary.BUILT_IN_VOCABULARY_IRIS.size() * 6 + 1);
@@ -203,7 +251,9 @@ public class OWLDataFactoryInternalsHGDB {
     @SuppressWarnings("unchecked")
 	private <V extends OWLEntity> OWLEntity ensureCreateEntityInDatabase(final Class<V> entityType, final IRI iri, final BuildableObjects buildable) {
     	final HyperGraph graph = factory.getHyperGraph();
-    	boolean isBuiltin = OWLRDFVocabulary.BUILT_IN_VOCABULARY_IRIS.contains(iri);
+    	boolean isBuiltin = OWLRDFVocabulary.BUILT_IN_VOCABULARY_IRIS.contains(iri) ||
+    			  		    XSD_VOCABULARY_IRIS.contains(iri);
+    	
     	//check builtin cache
     	V e;
     	if (isBuiltin) {
@@ -220,18 +270,16 @@ public class OWLDataFactoryInternalsHGDB {
     		}
     	}
     	CACHE_MISS ++;
+    	final HGQuery<OWLEntity> query = entityByIRIQuery(entityType);
     	//TRANSACTION START READONLY
-    	e =  graph.getTransactionManager().ensureTransaction(new Callable<V>() {
-			public V call() {
-				return (V)hg.getOne(graph, hg.and(hg.type(entityType), hg.eq("IRI", iri)));
-			}}, HGTransactionConfig.READONLY);
+    	e = (V)query.var("iri", iri).findOne();
     	//TRANSACTION END READONLY
     	if (e == null) {
         	//TRANSACTION START WRITE
         	e = graph.getTransactionManager().ensureTransaction(new Callable<V>() {
     			public V call() {
 		    		//DOUBLE CHECK
-		        	V eInt = (V)hg.getOne(graph, hg.and(hg.type(entityType), hg.eq("IRI", iri)));
+		        	V eInt = (V)query.findOne();
 		        	if (eInt == null) {
 		        		eInt = (V)buildable.build(factory, iri);
 			    		if (!entityType.isAssignableFrom(eInt.getClass())) throw new HGException("Built object type must be same or subclass of type " + entityType);
@@ -257,10 +305,12 @@ public class OWLDataFactoryInternalsHGDB {
 	HGHandle findOrAddIRIHandle(final IRI iri) {
 		//TODO replace by assertAtom?
     	final HyperGraph graph = factory.getHyperGraph();
-    	HGHandle iriHandle  =  graph.getTransactionManager().ensureTransaction(new Callable<HGHandle>() {
-			public HGHandle call() {
-				return hg.findOne(graph, hg.and(hg.type(IRI.class), hg.eq(iri)));
-			}}, HGTransactionConfig.READONLY);
+    	HGHandle iriHandle  = lookupIRIByValue.var("iri", iri).findOne();
+//    			
+//    			graph.getTransactionManager().ensureTransaction(new Callable<HGHandle>() {
+//			public HGHandle call() {
+//				return hg.findOne(graph, hg.and(hg.type(IRI.class), hg.eq(iri)));
+//			}}, HGTransactionConfig.READONLY);
 		if (DBG) {
 			System.out.println("findOrAddIRIHandle IRI: " + iri + " found?: " + iriHandle);
 		}
@@ -269,7 +319,7 @@ public class OWLDataFactoryInternalsHGDB {
 			//DOUBLE CHECK 
 	    	iriHandle  =  graph.getTransactionManager().ensureTransaction(new Callable<HGHandle>() {
 				public HGHandle call() {
-					HGHandle iriHandleInt = hg.findOne(graph, hg.and(hg.type(IRI.class), hg.eq(iri)));
+					HGHandle iriHandleInt = lookupIRIByValue.var("iri", iri).findOne();
 					if (iriHandleInt == null) {
 						iriHandleInt = graph.add(iri);
 					}

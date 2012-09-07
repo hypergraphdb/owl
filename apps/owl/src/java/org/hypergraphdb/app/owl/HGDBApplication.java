@@ -1,5 +1,6 @@
 package org.hypergraphdb.app.owl;
 
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.logging.Logger;
@@ -16,6 +17,7 @@ import org.hypergraphdb.app.owl.model.OWLAnnotationPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLClassHGDB;
 import org.hypergraphdb.app.owl.model.OWLDataPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLDatatypeHGDB;
+import org.hypergraphdb.app.owl.model.OWLLiteralHGDB;
 import org.hypergraphdb.app.owl.model.OWLNamedIndividualHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectPropertyHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
@@ -26,6 +28,7 @@ import org.hypergraphdb.app.owl.type.OntologyIDType;
 import org.hypergraphdb.app.owl.type.TypeUtils;
 import org.hypergraphdb.indexing.ByPartIndexer;
 import org.hypergraphdb.indexing.ByTargetIndexer;
+import org.hypergraphdb.indexing.DirectValueIndexer;
 import org.hypergraphdb.indexing.HGIndexer;
 import org.hypergraphdb.type.HGAtomType;
 import org.semanticweb.owlapi.model.IRI;
@@ -51,7 +54,6 @@ public class HGDBApplication extends HGApplication
 	public static boolean DISTRIBUTED = true;
 	
 	private Logger log = Logger.getLogger(HGDBApplication.class.getName());
-	
 	
 	private static HGDBApplication instance;
 	
@@ -241,10 +243,17 @@ public class HGDBApplication extends HGApplication
 		graph.getIndexManager().register(subClass0);
 		graph.getIndexManager().register(subClass1);
 		
+		// Literals:
+		ByPartIndexer<String> byLiteral = new ByPartIndexer<String>(graph.getTypeSystem().getTypeHandle(OWLLiteralHGDB.class), "literal");
+		graph.getIndexManager().register(byLiteral);
+		
 		//
 		// Axiom HashCode indexer
 		//
 		graph.getIndexManager().register(getAxiomByHashCodeIndexer(graph));
+		
+		// IRI indexer
+		graph.getIndexManager().register(new DirectValueIndexer<IRI>(graph.getTypeSystem().getTypeHandle(IRI.class)));
 	}
 
 	/**
