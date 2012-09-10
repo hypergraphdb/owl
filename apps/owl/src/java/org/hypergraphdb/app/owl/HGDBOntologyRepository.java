@@ -148,6 +148,9 @@ public class HGDBOntologyRepository {
         //           "org.hypergraphdb.storage.bdb.BDBStorageImplementation"));
 		config.setClassLoader(HGDBOntologyRepository.class.getClassLoader());
 		config.setUseSystemAtomAttributes(false);
+		// Avoid counting incidence sets and cache all of them, since there's no representation that
+		// risks having very large incidence sets, we're using sub-graphs for those cases.
+		config.setMaxCachedIncidenceSetSize(Integer.MAX_VALUE);
 		//BDBConfig bdbConfig = (BDBConfig)config.getStoreImplementation().getConfiguration();
 		// Change the storage cache from the 20MB default to 150MB
 		//bdbConfig.getEnvironmentConfig().setCacheSize(150*1024*1024);

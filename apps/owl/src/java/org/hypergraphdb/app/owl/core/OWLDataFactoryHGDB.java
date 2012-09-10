@@ -128,16 +128,26 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 
 	//private static OWLClass OWL_NOTHING = new OWLClassHGDB(OWLRDFVocabulary.OWL_NOTHING.getIRI());
 
-	protected OWLDataFactoryInternalsHGDB data;
+	OWLDataFactoryInternalsHGDB data;
 
 	private HyperGraph graph;
-
+	private boolean ignoreOntologyScope = false;
+	
 	public OWLDataFactoryHGDB() {
 		data = new OWLDataFactoryInternalsHGDB(this);
 	}
 
 	public static OWLDataFactoryHGDB getInstance() {
 		return instance;
+	}
+
+	public boolean ignoreOntologyScope() {
+		return ignoreOntologyScope;
+	}
+	
+	public OWLDataFactoryHGDB ignoreOntologyScope(boolean ignore) {
+		ignoreOntologyScope = true;
+		return this;
 	}
 
 	public void purge() {
@@ -1857,7 +1867,8 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 			throw new NullPointerException("Annotation valueHandle is null for value " + value);
 		}		
 		OWLAnnotationHGDB a = new OWLAnnotationHGDB(propertyHandle, valueHandle, annotationsHandles);
-		graph.add(a);
+		a.setHyperGraph(graph);
+		//graph.add(a);
 		return a;
 		// return new OWLAnnotationImpl(this, property, value, annotations);
 	}

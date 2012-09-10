@@ -19,9 +19,11 @@ import org.hypergraphdb.app.owl.model.OWLDatatypeHGDB;
 import org.hypergraphdb.app.owl.model.OWLLiteralHGDB;
 import org.hypergraphdb.app.owl.model.OWLNamedIndividualHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectPropertyHGDB;
+import org.hypergraphdb.app.owl.type.link.AxiomAnnotatedBy;
 import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.hypergraphdb.util.Pair;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -78,6 +80,8 @@ public class OWLDataFactoryInternalsHGDB {
 
     HGQuery<HGHandle> lookupLiteral = null;
     HGQuery<HGHandle> lookupIRIByValue = null;
+    HGQuery<OWLAnnotation> getAxiomAnnotationsQuery = null;
+    
     HashMap<Class<?>, HGQuery<OWLEntity>> lookupEntityByIRI = 
     		new HashMap<Class<?>, HGQuery<OWLEntity>>();
 
@@ -96,6 +100,12 @@ public class OWLDataFactoryInternalsHGDB {
         			   hg.eq("literal", hg.var("literal")),
         			   hg.incident(hg.var("datatype"))/*,
         			   hg.eq("lang", hg.var("lang"))*/));
+        getAxiomAnnotationsQuery = HGQuery.make(OWLAnnotation.class, factory.getHyperGraph()).compile(
+        	hg.deref(factory.getHyperGraph(),
+			hg.apply(hg.targetAt(factory.getHyperGraph(), 1), //1 .. Annotation, 0 .. Axiom for AxiomAnnotatedBy
+			hg.and(hg.type(AxiomAnnotatedBy.class),
+			hg.incident(hg.var("axiom"))))
+			));        
     }
 
     HGQuery<OWLEntity> entityByIRIQuery(Class<?> entityType)

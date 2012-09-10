@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGIndex;
+import org.hypergraphdb.HGQuery;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HGRandomAccessResult;
 import org.hypergraphdb.IncidenceSet;
@@ -22,6 +23,7 @@ import org.hypergraphdb.algorithms.HGBreadthFirstTraversal;
 import org.hypergraphdb.app.owl.core.AbstractInternalsHGDB;
 import org.hypergraphdb.app.owl.core.AxiomTypeToHGDBMap;
 import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
+import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
 import org.hypergraphdb.app.owl.model.OWLAnnotationHGDB;
 import org.hypergraphdb.app.owl.model.OWLAnnotationPropertyHGDB;
@@ -583,16 +585,17 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	public Set<OWLAnnotation> getOntologyAnnotations() {
-		return graph.getTransactionManager().ensureTransaction(new Callable<Set<OWLAnnotation>>() {
-			public Set<OWLAnnotation> call() {
-				List<OWLAnnotation> l;
-				l = ontology.getAll(hg.type(OWLAnnotationHGDB.class));
-				Set<OWLAnnotation> s;
-				s = getReturnSet(l);
-				if (s.size() != l.size()) throw new IllegalStateException("Set contract broken.");
-				return s;
-			}
-		}, HGTransactionConfig.READONLY);
+		return ontologyAnnotationsQuery.findInSet();
+//		return graph.getTransactionManager().ensureTransaction(new Callable<Set<OWLAnnotation>>() {
+//			public Set<OWLAnnotation> call() {
+//				List<OWLAnnotation> l;
+//				l = ontology.getAll(hg.type(OWLAnnotationHGDB.class));
+//				Set<OWLAnnotation> s;
+//				s = getReturnSet(l);
+//				if (s.size() != l.size()) throw new IllegalStateException("Set contract broken.");
+//				return s;
+//			}
+//		}, HGTransactionConfig.READONLY);
 	}
 
 	/**
@@ -1523,16 +1526,20 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	 * 
 	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#getOwlIndividuals()
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public Set<OWLNamedIndividual> getOwlNamedIndividuals() {
-		List<OWLNamedIndividual> l;
-		l = graph.getTransactionManager().ensureTransaction(new Callable<List<OWLNamedIndividual>>() {
-			public List<OWLNamedIndividual> call() {
-				return hg.getAll(graph,
-						hg.and(hg.type(OWLNamedIndividualHGDB.class), new SubgraphMemberCondition(ontoHandle)));
-			}
-		}, HGTransactionConfig.READONLY);
-		return getReturnSet(l);
+//		List<OWLNamedIndividual> l;
+//		l = graph.getTransactionManager().ensureTransaction(new Callable<List<OWLNamedIndividual>>() {
+//			public List<OWLNamedIndividual> call() {
+//				return hg.getAll(graph,
+//						hg.and(hg.type(OWLNamedIndividualHGDB.class), new SubgraphMemberCondition(ontoHandle)));
+//			}
+//		}, HGTransactionConfig.READONLY);
+		HGQueryCondition cond = OWLDataFactoryHGDB.getInstance().ignoreOntologyScope() ?
+				hg.type(OWLNamedIndividualHGDB.class) :
+				hg.and(hg.type(OWLNamedIndividualHGDB.class), hg.memberOf(ontoHandle));
+		return getReturnSet((List<OWLNamedIndividual>)(List<?>)hg.getAll(graph, cond));
 	}
 
 	public Set<OWLDataProperty> getOwlDataProperties() {
@@ -1540,7 +1547,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		l = graph.getTransactionManager().ensureTransaction(new Callable<List<OWLDataProperty>>() {
 			public List<OWLDataProperty> call() {
 				return hg.getAll(graph,
-						hg.and(hg.type(OWLDataPropertyHGDB.class), new SubgraphMemberCondition(ontoHandle)));
+						hg.and(hg.type(OWLDataPropertyHGDB.class), hg.memberOf(ontoHandle)));
 			}
 		}, HGTransactionConfig.READONLY);
 		return getReturnSet(l);
@@ -1551,7 +1558,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		l = graph.getTransactionManager().ensureTransaction(new Callable<List<OWLObjectProperty>>() {
 			public List<OWLObjectProperty> call() {
 				return hg.getAll(graph,
-						hg.and(hg.type(OWLObjectPropertyHGDB.class), new SubgraphMemberCondition(ontoHandle)));
+						hg.and(hg.type(OWLObjectPropertyHGDB.class), hg.memberOf(ontoHandle)));
 			}
 		}, HGTransactionConfig.READONLY);
 		return getReturnSet(l);
@@ -1595,7 +1602,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		l = graph.getTransactionManager().ensureTransaction(new Callable<List<OWLAnonymousIndividual>>() {
 			public List<OWLAnonymousIndividual> call() {
 				return hg.getAll(graph,
-						hg.and(hg.type(OWLAnonymousIndividualHGDB.class), new SubgraphMemberCondition(ontoHandle)));
+						hg.and(hg.type(OWLAnonymousIndividualHGDB.class), hg.memberOf(ontoHandle)));
 			}
 		}, HGTransactionConfig.READONLY);
 		return getReturnSet(l);

@@ -101,11 +101,13 @@ public abstract class OWLAxiomHGDB extends OWLObjectHGDB implements OWLAxiom, HG
     	if (getHyperGraph() == null) throw new IllegalStateException("Hypergraph null.");
     	HGHandle atomHandle = getAtomHandle(); 
 		annotations = new TreeSet<OWLAnnotation>();
-		annotations.addAll((Collection<? extends OWLAnnotation>) hg.<OWLAnnotation>getAll(getHyperGraph(), 
-				hg.apply(hg.targetAt(getHyperGraph(), 1), //1 .. Annotation, 0 .. Axiom for AxiomAnnotatedBy
-				hg.and(hg.type(AxiomAnnotatedBy.class),
-				hg.incident(atomHandle)))
-				)); //apply / getAll   			
+		annotations.addAll(OWLDataFactoryHGDB.getInstance().data
+					.getAxiomAnnotationsQuery.var("axiom", atomHandle).findAll());		
+//		annotations.addAll((Collection<? extends OWLAnnotation>) hg.<OWLAnnotation>getAll(getHyperGraph(), 
+//				hg.apply(hg.targetAt(getHyperGraph(), 1), //1 .. Annotation, 0 .. Axiom for AxiomAnnotatedBy
+//				hg.and(hg.type(AxiomAnnotatedBy.class),
+//				hg.incident(atomHandle)))
+//				)); //apply / getAll   			
 		annotations = CollectionFactory.getCopyOnRequestSet(annotations);
     }
 

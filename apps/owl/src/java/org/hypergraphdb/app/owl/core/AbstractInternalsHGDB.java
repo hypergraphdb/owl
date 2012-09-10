@@ -11,12 +11,15 @@ import java.util.concurrent.Callable;
 import org.hypergraphdb.HGAtomCache;
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGQuery;
 import org.hypergraphdb.HGRandomAccessResult;
+import org.hypergraphdb.HGSearchResult;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyImpl;
 import org.hypergraphdb.app.owl.HGDBOntologyInternals;
+import org.hypergraphdb.app.owl.model.OWLAnnotationHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLAnnotationAssertionAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLAnnotationPropertyDomainAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLAnnotationPropertyRangeAxiomHGDB;
@@ -56,6 +59,7 @@ import org.hypergraphdb.app.owl.model.axioms.OWLTransitiveObjectPropertyAxiomHGD
 import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
@@ -117,6 +121,9 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	protected HGDBOntologyImpl ontology;
 	protected HGHandle ontoHandle;
 
+	protected HGQuery<HGHandle> findAxiomQuery = null;
+	protected HGQuery<OWLAnnotation> ontologyAnnotationsQuery = null;
+	
 	// 2011.10.06 removed protected volatile Map<OWLClass, Set<OWLClassAxiom>>
 	// classAxiomsByClass;
 	// 2011.10.06 protected volatile Map<OWLClass, Set<OWLSubClassOfAxiom>>
@@ -1369,11 +1376,12 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	}
 	
 	private HGHandle getStoredIRI(final IRI iri) {
-    	HGHandle iriHandle  =  graph.getTransactionManager().ensureTransaction(new Callable<HGHandle>() {
-			public HGHandle call() {
-				return hg.findOne(graph, hg.and(hg.type(IRI.class), hg.eq(iri)));
-			}}, HGTransactionConfig.READONLY);
-    	return iriHandle;
+		return OWLDataFactoryHGDB.getInstance().data.lookupIRIByValue.var("iri", iri).findOne();
+//    	HGHandle iriHandle  = graph.getTransactionManager().ensureTransaction(new Callable<HGHandle>() {
+//			public HGHandle call() {
+//				return hg.findOne(graph, hg.and(hg.type(IRI.class), hg.eq(iri)));
+//			}}, HGTransactionConfig.READONLY);
+//    	return iriHandle;
 	}
 
 	public Set<OWLAnnotationAssertionAxiom> getAnnotationAssertionAxiomsBySubject(OWLAnnotationSubject subject) {
@@ -1723,6 +1731,20 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 		// define convenient add)
 		this.ontology = (HGDBOntologyImpl) ontology;
 		this.ontoHandle = graph.getHandle(ontology);
+
+		// The type is not included in the query because it's actually much faster
+		// to load the atom and check the type as a separate filtering step.
+		if (OWLDataFactoryHGDB.getInstance().ignoreOntologyScope()) {			
+			this.findAxiomQuery = HGQuery.make(HGHandle.class, graph).compile( 
+					hg.and(/* hg.memberOf(ontoHandle), */ hg.incident(hg.var("entity"))));
+		}
+		else {
+			this.findAxiomQuery = HGQuery.make(HGHandle.class, graph).compile( 
+					hg.and(hg.memberOf(ontoHandle), hg.incident(hg.var("entity"))));
+		}
+		this.ontologyAnnotationsQuery = HGQuery.make(OWLAnnotation.class, graph).compile(
+				hg.deref(graph, hg.and(hg.memberOf(ontoHandle), hg.type(OWLAnnotationHGDB.class)))
+				);
 	}
 
 	//
@@ -1761,7 +1783,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	 * @param targetIndex the index to check or -1. -1 looks for the first matching target in the incidence set. 
 	 * @param anyTarget 
 	 * @return
-	 */
+	 */	
 	private <T extends OWLAxiomHGDB, S extends OWLAxiom> Set<S> findAxiomsInIncidenceSetImpl(final OWLObject entity, final Class<T> axiomTypeHGDB, final int targetIndex) {
 		return graph.getTransactionManager().ensureTransaction(new Callable<Set<S>>() {
 			@SuppressWarnings("unchecked")
@@ -1775,43 +1797,57 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 					String msg = ("entityHandle null. Graph.getHandle(" + entity + " Class: " + entity.getClass() + ") in findAxiomsInIncidenceSet(OWLEntity) returned null");
 					throw new IllegalStateException(msg);
 				}
-				HGRandomAccessResult<HGHandle> iSetRAR = graph.getIncidenceSet(entityHandle).getSearchResult();
+				HGSearchResult<HGHandle> iSetRAR = findAxiomQuery
+						//.var("type", axiomTypeHGDB)
+						.var("entity", entityHandle).execute(); 
+						//graph.getIncidenceSet(entityHandle).getSearchResult();
+				if (iSetRAR.hasNext())
+					s = new HashSet<S>();
+//				HGRandomAccessResult members = ontology.getIndex(graph).find(ontoHandle.getPersistent());
 				while (iSetRAR.hasNext()) {
 					HGHandle incidentAtomHandle = iSetRAR.next();
-					Object o = graph.get(incidentAtomHandle);
-					if (o != null) {
-						if (axiomTypeHGDB.isAssignableFrom(o.getClass()) && ontology.isMember(incidentAtomHandle)) {
-							OWLAxiomHGDB axHGDB = (OWLAxiomHGDB)o;
+//					if (members.goTo(incidentAtomHandle, true) != HGRandomAccessResult.GotoResult.found)
+//						continue;
+					Object o = graph.get(incidentAtomHandle); 
+					if (!o.getClass().equals(axiomTypeHGDB))
+						continue;
+					OWLAxiomHGDB axHGDB  = (OWLAxiomHGDB)o;					
+//					if (o != null) {
+//						if (axiomTypeHGDB.isAssignableFrom(o.getClass()) && ontology.isMember(incidentAtomHandle)) {
+//						
 							if (targetIndex == -1) {
+								s.add((S)axHGDB);
 								// find first target
-								boolean foundEntityInTargetSet = false;
-								int i = 0;
-								while (!foundEntityInTargetSet && i < axHGDB.getArity()) {
-									foundEntityInTargetSet = entityHandle.equals(axHGDB.getTargetAt(i));
-									if (foundEntityInTargetSet) {
-										if (s == Collections.EMPTY_SET) {
-											s = new HashSet<S>();
-										}
-										if (!s.add((S) axHGDB)) {
-											throw new IllegalStateException("Duplicate Axiom found");
-										}
-									} 							
-									i++;
-								}
+//								boolean foundEntityInTargetSet = false;
+//								int i = 0;
+//								while (!foundEntityInTargetSet && i < axHGDB.getArity()) {
+//									foundEntityInTargetSet = entityHandle.equals(axHGDB.getTargetAt(i));
+//									if (foundEntityInTargetSet) {
+//										if (s == Collections.EMPTY_SET) {
+//											s = new HashSet<S>();
+//										}
+//										if (!s.add((S) axHGDB)) {
+//											throw new IllegalStateException("Duplicate Axiom found");
+//										}
+//									} 							
+//									i++;
+//								}
 							} else { // check only targetIndex
 								if (entityHandle.equals(axHGDB.getTargetAt(targetIndex))) {
-									if (s == Collections.EMPTY_SET) {
-										s = new HashSet<S>();
-									}
-									if (!s.add((S) axHGDB)) {
-										throw new IllegalStateException("Duplicate Axiom found");
-									}
+//									if (s == Collections.EMPTY_SET) {
+//										s = new HashSet<S>();
+//									}
+//									if (!s.add((S) axHGDB)) {
+//										throw new IllegalStateException("Duplicate Axiom found");
+//									}
+									s.add((S)axHGDB);
 								} // else entity not the target at the specified targetIndex.
 							} 
-						} // else other Link or other axiom.
-					} // else incidentAtomHandle not in cache! 
+//						} // else other Link or other axiom.
+//					} // else incidentAtomHandle not in cache! 
 				} 
 				iSetRAR.close();
+//				members.close();
 				return s;	
 			}}, HGTransactionConfig.READONLY);
 	}
@@ -1836,19 +1872,26 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 					String msg = ("entityHandle null. Graph.getHandle(" + entity + " Class: " + entity.getClass() + ") in findAxiomsInIncidenceSet(OWLEntity) returned null");
 					throw new IllegalStateException(msg);
 				}
-				HGRandomAccessResult<HGHandle> iSetRAR = graph.getIncidenceSet(entityHandle).getSearchResult();
+				//HGRandomAccessResult<HGHandle> iSetRAR = graph.getIncidenceSet(entityHandle).getSearchResult();
+				HGSearchResult<HGHandle> iSetRAR = graph.find(hg.and( 
+						   hg.memberOf(ontoHandle),
+						   hg.incident(entityHandle))); 
+				if (iSetRAR.hasNext())
+					s = new HashSet<S>();
+				
 				while (iSetRAR.hasNext()) {
 					HGHandle incidentAtomHandle = iSetRAR.next();
 					Object o = graph.get(incidentAtomHandle);
 					if (o instanceof OWLAxiomHGDB) {
 						OWLAxiomHGDB axHGDB = (OWLAxiomHGDB)o;
 						if (axiomMatcher.isDefiningAxiom(axHGDB, entityHandle)) {
-							if (ontology.isMember(incidentAtomHandle)) {
-								if (s == Collections.EMPTY_SET) {
-									s = new HashSet<S>();
-								}
-								s.add((S)axHGDB);
-							} // else not member
+//							if (ontology.isMember(incidentAtomHandle)) {
+//								if (s == Collections.EMPTY_SET) {
+//									s = new HashSet<S>();
+//								}
+//								s.add((S)axHGDB);
+//							} // else not member
+							s.add((S)axHGDB);
 						} // else no match
 					}  // else not axiom.
 				} 
