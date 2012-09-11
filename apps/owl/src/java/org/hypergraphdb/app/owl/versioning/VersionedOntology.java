@@ -482,7 +482,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 			throw new IllegalStateException("Cannot roll back Head, because Head is Base.");
 		}
 		int indexPrevious = revisionAndChangeSetPairs.size() - 2;
-		ChangeSet cs = getChangeSet(indexPrevious);
+		ChangeSet cs = getChangeSet(indexPrevious);	
 		cs.reverseApplyTo((OWLMutableOntology)getWorkingSetData());
 		cs.clear();
 		// delete cur head, making prev cur.

@@ -223,7 +223,7 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 					// applies the change directly, no manager involved, no
 					// events issued.
 					// manager needs to reload.
-					o.applyChange(c);
+					o.applyChange(c);					
 				}
 				return null;
 			}
