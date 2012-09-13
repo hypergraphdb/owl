@@ -21,6 +21,7 @@ import org.hypergraphdb.app.owl.versioning.distributed.ClientCentralizedOntology
 import org.hypergraphdb.app.owl.versioning.distributed.DistributedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.ServerCentralizedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
+import org.hypergraphdb.app.owl.versioning.distributed.VDRenderer;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.Message;
@@ -138,20 +139,20 @@ public class BrowseRepositoryActivity extends FSMActivity {
 	}
 	
 	public static class BrowseEntry implements Serializable {
+
+		private static final long serialVersionUID = 240951418825364623L;
+		
 		public static final String DIST_CLIENT = "Client";
 		public static final String DIST_PEER = "Peer";
 		public static final String DIST_SERVER = "Server";
 		
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = -3966287304565119413L;
 		
 		private String owlOntologyIRI;
 		private String owlOntologyVersionIRI;
 		private String owlOntologyDocumentIRI;
 		private HGPersistentHandle uuid;
 		private String distributionMode;
+		private String lastRevision;
 		
 		public BrowseEntry() {
 		}
@@ -169,15 +170,9 @@ public class BrowseRepositoryActivity extends FSMActivity {
 			this.owlOntologyVersionIRI = oId.getVersionIRI() == null ? null : oId.getVersionIRI().toString();
 			this.owlOntologyDocumentIRI = dOnto.getWorkingSetData().getDocumentIRI().toString();
 			this.uuid = dOnto.getWorkingSetData().getAtomHandle().getPersistent();
+			this.lastRevision = VDRenderer.render(dOnto.getVersionedOntology().getHeadRevision());
 		}
-		
-//		public BrowseEntry(IRI owlOntologyIRI, IRI owlOntologyVersionIRI, IRI owlOntologyDocumentIRI, HGPersistentHandle uuid, String distributionMode) {
-//			this.owlOntologyIRI = owlOntologyIRI.toString();
-//			this.owlOntologyVersionIRI = owlOntologyVersionIRI == null ? null : this.owlOntologyVersionIRI.toString();
-//			this.owlOntologyDocumentIRI = owlOntologyDocumentIRI.toString();
-//			this.uuid = uuid;
-//		}
-		
+
 		/**
 		 * @return the owlOntologyIRI
 		 */
@@ -226,14 +221,14 @@ public class BrowseRepositoryActivity extends FSMActivity {
 		public HGPersistentHandle getUuid() {
 			return uuid;
 		}
+
 		/**
 		 * @param uuid the uuid to set
 		 */
 		public void setUuid(HGPersistentHandle uuid) {
 			this.uuid = uuid;
 		}
-		
-		
+
 		/**
 		 * @return the distributionMode
 		 */
@@ -244,8 +239,22 @@ public class BrowseRepositoryActivity extends FSMActivity {
 		/**
 		 * @param distributionMode the distributionMode to set
 		 */
-		public void setDistributionMode(String shareMode) {
-			this.distributionMode = shareMode;
+		public void setDistributionMode(String distributionMode) {
+			this.distributionMode = distributionMode;
+		}
+
+		/**
+		 * @return the lastRevision
+		 */
+		public String getLastRevision() {
+			return lastRevision;
+		}
+
+		/**
+		 * @param lastRevision the lastRevision to set
+		 */
+		public void setLastRevision(String lastRevision) {
+			this.lastRevision = lastRevision;
 		}
 
 		public String toString() {
