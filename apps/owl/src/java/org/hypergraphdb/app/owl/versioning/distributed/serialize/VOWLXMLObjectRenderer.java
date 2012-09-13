@@ -64,7 +64,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor {
 			int headChangeSetIndex = Math.max(0, revisions.size() - 1);
 			for (int i = firstRevision; i <= lastRevision; i++) {
 				revisions.get(i).accept(this);
-				if (i < headChangeSetIndex || configuration.isUncommittedChanges()) {
+				if (i < lastRevision &&  (i < headChangeSetIndex || configuration.isUncommittedChanges())) {
 					changeSets.get(i).accept(this);
 				} else {
 					//do not include last uncommitted changes changeset.
