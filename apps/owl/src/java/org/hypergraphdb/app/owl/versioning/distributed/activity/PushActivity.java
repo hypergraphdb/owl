@@ -13,17 +13,20 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
+import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.distributed.DistributedOntology;
+import org.hypergraphdb.app.owl.versioning.distributed.PeerDistributedOntology;
+import org.hypergraphdb.app.owl.versioning.distributed.ServerCentralizedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.Message;
 import org.hypergraphdb.peer.Performative;
-import org.hypergraphdb.peer.workflow.FSMActivity;
 import org.hypergraphdb.peer.workflow.FromState;
 import org.hypergraphdb.peer.workflow.OnMessage;
 import org.hypergraphdb.peer.workflow.PossibleOutcome;
@@ -47,13 +50,11 @@ import org.semanticweb.owlapi.io.StringDocumentSource;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Feb 17, 2012
  */
-public class PushActivity extends FSMActivity {
+public class PushActivity extends OntologyTransmitActivity {
 
     public static final String TYPENAME = "push-VersionedOntology";
-
+    
     //public static final String ERROR_OBJECT_KEY = "ErrorObject";
-
-    public static final String KEY_LAST_MATCHING_REVISION = "LastMatchingRevision";
 
     public static boolean DBG = true;
 
@@ -65,13 +66,26 @@ public class PushActivity extends FSMActivity {
     public static final WorkflowStateConstant ReceivingDelta= WorkflowStateConstant.makeStateConstant("ReceivingDelta");
     
     private VDHGDBOntologyRepository repository;
-    private VersionedOntology sourceVersionedOnto;
-    //private VersionedOntology targetVersionedOnto;
+    private DistributedOntology sourceDistributedOnto;
+    private boolean sourceDistributedExistsOnTarget;
+    
+    /**
+	 * @return the sourceDistributedExistsOnTarget
+	 */
+	public boolean isSourceDistributedExistsOnTarget() {
+		return sourceDistributedExistsOnTarget;
+	}
+
+	/**
+     * Might be created as new, if the pushed ontology does not exist on target.
+     */
+    private DistributedOntology targetDistributedOnto;
+    
     private HGPeerIdentity targetPeerID;
     private String completedMessage;
     private HyperGraph graph;
     
-    private ActivityUtils activityUtils =  new ActivityUtils();
+	private ActivityUtils activityUtils =  new ActivityUtils();
     
 	public PushActivity(HyperGraphPeer thisPeer, UUID id)
     {
@@ -87,9 +101,9 @@ public class PushActivity extends FSMActivity {
 	/**
 	 * @param thisPeer
 	 */
-	public PushActivity(HyperGraphPeer sourcePeer, VersionedOntology sourceVersionedOnto, HGPeerIdentity targetPeerID) {
+	public PushActivity(HyperGraphPeer sourcePeer, DistributedOntology sourceDistributedOnto, HGPeerIdentity targetPeerID) {
 		super(sourcePeer);
-		this.sourceVersionedOnto = sourceVersionedOnto;
+		this.sourceDistributedOnto = sourceDistributedOnto;
 		this.targetPeerID = targetPeerID;
         if(!sourcePeer.getObjectContext().containsKey(OBJECTCONTEXT_REPOSITORY)) {
         	System.err.println("PROBLEM DETECTED: NO OBJECTCONTEXT REPO");
@@ -99,6 +113,13 @@ public class PushActivity extends FSMActivity {
         graph = repository.getHyperGraph();
 	}	
 	
+    /**
+	 * @return the targetDistributedOnto
+	 */
+	public DistributedOntology getTargetDistributedOnto() {
+		return targetDistributedOnto;
+	}
+
 	/**
 	 * @param completedMessage the completedMessage to set
 	 */
@@ -114,18 +135,28 @@ public class PushActivity extends FSMActivity {
 		return completedMessage;
 	}
 	
+	/**
+	 * Only call on source, where sourceDistributedOntology is available.
+	 * @return
+	 */
+	private String sourceGetPushMode() {
+		return getDistributionModeFor(sourceDistributedOnto);
+	}
+	
     /* (non-Javadoc) // SOURCE
 	 * @see org.hypergraphdb.peer.workflow.FSMActivity#initiate()
 	 */
 	@Override
 	public void initiate() {
         Message msg = createMessage(Performative.QueryIf, this);
-        combine(msg, struct(CONTENT, sourceVersionedOnto.getHeadRevision().getOntologyUUID())); 
+        combine(msg, struct(CONTENT, sourceDistributedOnto.getVersionedOntology().getHeadRevision().getOntologyUUID())); 
+        combine(msg, struct(KEY_DISTRIBUTION_MODE, sourceGetPushMode())); 
         send(targetPeerID, msg);
         if (DBG) {
-        	getThisPeer().getGraph().getLogger().trace("Query if target push : " + sourceVersionedOnto.getHeadRevision());
+        	getThisPeer().getGraph().getLogger().trace("Query if target push : " + sourceDistributedOnto.getVersionedOntology().getHeadRevision());
         }
 	}
+
 
 	/**
 	 * 
@@ -140,20 +171,22 @@ public class PushActivity extends FSMActivity {
     public WorkflowStateConstant targetQueryIfVersionedOntologyExists(final Message msg) throws Throwable {
 		// msg parsing
 		final HGPersistentHandle headRevisionOntologyID = getPart(msg, CONTENT);
+		final String pushMode = getPart(msg, KEY_DISTRIBUTION_MODE);
 		// Look up in repository
 		//TRANSACTION START
 		return graph.getTransactionManager().ensureTransaction(new Callable<WorkflowStateConstant>() {
 			public WorkflowStateConstant call() {
 				HGDBOntology o = graph.get(headRevisionOntologyID);
 				if (o != null) {
-					VersionedOntology targetVersionedOnto = repository.getVersionControlledOntology(o); 
-					if (targetVersionedOnto != null) {
+					DistributedOntology targetDistributedOnto = repository.getDistributedOntology(o); 
+					if (targetDistributedOnto != null) {
+						targetAssertDistributionModeMatches(targetDistributedOnto, pushMode);
 						// send Confirm with existing revisions objects
 						// and tell if we have uncommitted changes.
 						// TODO send content hash
-				        if (targetVersionedOnto.getWorkingSetChanges().isEmpty()) {
+				        if (targetDistributedOnto.getVersionedOntology().getWorkingSetChanges().isEmpty()) {
 				        	Message reply = getReply(msg, Performative.Confirm);
-				        	List<Revision> revList = targetVersionedOnto.getRevisions();
+				        	List<Revision> revList = targetDistributedOnto.getVersionedOntology().getRevisions();
 					        combine(reply, struct(CONTENT, revList));
 					        send(getSender(msg), reply);
 							return ReceivingDelta;
@@ -165,10 +198,10 @@ public class PushActivity extends FSMActivity {
 						// Ontology but no versioning information, 
 						// cannot determine
 			        	//Target has uncommitted - cannot push
-			        	throw new RuntimeException(new VOWLSourceTargetConflictException("Target ontology exists without versioning. Cannot match revisions. Cannot push."));
+			        	throw new RuntimeException(new VOWLSourceTargetConflictException("Target ontology not shared. Cannot push."));
 					}
 				} else {
-					// o null or targetVersionedOnto null
+					// o null or targetDistributedOnto null
 					// send Confirm
 			        Message reply = getReply(msg, Performative.Disconfirm);
 			        send(getSender(msg), reply);
@@ -192,7 +225,7 @@ public class PushActivity extends FSMActivity {
 			public String call() {
 				//TRANSACTION START		
 				try {
-					return activityUtils.renderVersionedOntology(sourceVersionedOnto);
+					return activityUtils.renderVersionedOntology(sourceDistributedOnto.getVersionedOntology());
 				} catch (OWLRendererException e) {
 					throw new RuntimeException(e);
 				}
@@ -201,6 +234,7 @@ public class PushActivity extends FSMActivity {
 		msg = createMessage(Performative.Propose, this);
 		// send full head revision data, not versioned yet.
         combine(msg, struct(CONTENT, vowlxmlStringOntology)); 
+        combine(msg, struct(KEY_DISTRIBUTION_MODE, sourceGetPushMode())); 
         send(targetPeerID, msg);
 		return SendingInitial;
 	}
@@ -216,6 +250,7 @@ public class PushActivity extends FSMActivity {
     //@AtActivity(CONTENT);
     public WorkflowStateConstant targetReceiveFullVersionedOntologyAsNew(Message msg) throws Throwable {
 		final String vowlxmlStringOntology = getPart(msg, CONTENT);		
+		final String pushMode = getPart(msg, KEY_DISTRIBUTION_MODE);
 		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
 			public Object call() {
 				//TRANSACTION START
@@ -225,10 +260,17 @@ public class PushActivity extends FSMActivity {
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}
-				//TODO HANDLE EXCEPTION, GC created objects			
-				// Neither Ontology, nor VersionedOntology was stored, 
-				// but ontology axioms & entities, revisions and changeset, changes, axioms were.
-				// Run a GC, which also collects dangling changesets, changes and revisions?
+				DistributedOntology newDO;
+				HGHandle voParsedHandle = graph.getHandle(voParsed);
+				if (pushMode.equals(VALUE_DISTRIBUTION_MODE_CLIENT_SERVER)) {
+					newDO = new ServerCentralizedOntology(voParsedHandle);
+				} else if (pushMode.equals(VALUE_DISTRIBUTION_MODE_PEER)) {
+					newDO = new PeerDistributedOntology(voParsedHandle);
+				} else {
+					throw new IllegalArgumentException("Push mode not recognized. Abort transaction. Was:" + pushMode);
+				}
+				graph.add(newDO);
+				targetDistributedOnto = newDO;
 				if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
 					repository.printAllOntologies();
 					try {
@@ -262,6 +304,7 @@ public class PushActivity extends FSMActivity {
     //@AtActivity(CONTENT);
     public WorkflowStateConstant sourceReceiveConfirmationForFullVersionedOntology(Message msg) throws Throwable {
         setCompletedMessage("Target reported: accepted full versioned ontology. All changes were applied.");
+        sourceDistributedExistsOnTarget = true;
 		return WorkflowStateConstant.Completed;
 	}
 	
@@ -272,7 +315,7 @@ public class PushActivity extends FSMActivity {
 	
 	/**
 	 * Receive a list of revisions from target and determine,
-	 * A) if push is possible -> send Cancel
+	 * A) if push is possible -> send Propose
 	 * B) which changesets to send -> send Rendered Missing Changesets
 	 */
 	@FromState("Started") //SOURCE
@@ -280,6 +323,7 @@ public class PushActivity extends FSMActivity {
     @PossibleOutcome({"SendingDelta"}) 
     //@AtActivity(CONTENT);
     public WorkflowStateConstant sourceSendVersionedOntologyDelta(final Message msg) throws Throwable {
+        sourceDistributedExistsOnTarget = true;
 		final List<Revision> targetRevisions = getPart(msg, CONTENT);
 		return graph.getTransactionManager().ensureTransaction(new Callable<WorkflowStateConstant>() {
 			public WorkflowStateConstant call() {
@@ -290,7 +334,7 @@ public class PushActivity extends FSMActivity {
 				boolean allTargetRevisionsAreInSource;
 				String owlxmlStringOntology;
 				//TRANSACTION START
-				List<Revision> sourceRevisions = sourceVersionedOnto.getRevisions();
+				List<Revision> sourceRevisions = sourceDistributedOnto.getVersionedOntology().getRevisions();
 				lastCommonRevisionIndex = activityUtils.findLastCommonRevisionIndex(sourceRevisions, targetRevisions);
 				allSourceRevisionsAreInTarget = lastCommonRevisionIndex + 1 == sourceRevisions.size();
 				allTargetRevisionsAreInSource = lastCommonRevisionIndex + 1 == targetRevisions.size();
@@ -298,13 +342,14 @@ public class PushActivity extends FSMActivity {
 					if (allTargetRevisionsAreInSource) {
 						if (!allSourceRevisionsAreInTarget) {
 							// S C0C1C2S3
-							// T C0C1C2
+							// T C0C1C2  
+							// Source newer than target and all shared match
 							// send Revisions and changeset starting sourceIndex, no data, no uncommitted
 							// Send, including the LAST MATCHING REVISION at which index the first necessary 
 							// delta changeset will be.
 							reply = getReply(msg, Performative.Propose);
 							try {
-								owlxmlStringOntology = activityUtils.renderVersionedOntologyDelta(sourceVersionedOnto, lastCommonRevisionIndex);
+								owlxmlStringOntology = activityUtils.renderVersionedOntologyDelta(sourceDistributedOnto.getVersionedOntology(), lastCommonRevisionIndex);
 							} catch(Exception e) {
 								throw new RuntimeException(e);
 							}
@@ -335,7 +380,7 @@ public class PushActivity extends FSMActivity {
 							// S C0C1C2
 							// T C0C1C2T3							
 							//Suggest Pull
-							//target has more than source, but some inital match
+							//target has more than source, but all shared match
 							reply = getReply(msg, Performative.Confirm);
 							combine(reply, struct(CONTENT, "Target is newer than source."));
 							setCompletedMessage("Target is newer than source. A pull is suggested and possible.");
@@ -355,6 +400,7 @@ public class PushActivity extends FSMActivity {
 					throw new RuntimeException(new VOWLSourceTargetConflictException("No common revision at beginning of source and target histories."));
 				}
 				//TRANSACTION END
+		        combine(reply, struct(KEY_DISTRIBUTION_MODE, sourceGetPushMode())); 
 		        send(getSender(msg), reply);
 				return nextState;
 			}});
@@ -382,13 +428,16 @@ public class PushActivity extends FSMActivity {
 		// Test if received last revision matches target head and all other prerequisites are still met.
 		//
 		final Revision lastMatchingRevision = getPart(msg, KEY_LAST_MATCHING_REVISION);
+		final String pushMode = getPart(msg, KEY_DISTRIBUTION_MODE);
 		// Validate if lastMatchingRevision still is target HEAD, keep UUID
 		//Throws exceptions if not.
 		String vowlxmlStringDelta = graph.getTransactionManager().ensureTransaction(new Callable<String>() {
 			public String call() {
 				//TRANSACTION START
-				VersionedOntology targetVersionedOntology = activityUtils.getVersionedOntologyForDeltaFrom(lastMatchingRevision, repository, false);
-				System.out.println("RECEIVING delta");
+				DistributedOntology targetDistributedOntology = activityUtils.getDistributedOntologyForDeltaFrom(lastMatchingRevision, repository, false);
+				targetAssertDistributionModeMatches(targetDistributedOntology, pushMode);
+				VersionedOntology targetVersionedOntology = targetDistributedOntology.getVersionedOntology();
+				if (DBG) System.out.println("RECEIVING delta");
 				String vowlxmlStringDelta = getPart(msg, CONTENT);
 				OWLOntologyDocumentSource ds = new StringDocumentSource(vowlxmlStringDelta);
 				// Parse, apply and append the delta
@@ -397,7 +446,7 @@ public class PushActivity extends FSMActivity {
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}
-				//assert targetVersionedOntology contains delta
+				//assert targetDistributedOntology contains delta
 				if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
 					repository.printAllOntologies();
 					try {
