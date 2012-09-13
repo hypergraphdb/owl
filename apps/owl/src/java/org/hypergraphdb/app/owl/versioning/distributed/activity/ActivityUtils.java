@@ -22,6 +22,7 @@ import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyUUI
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.distributed.DistributedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLParser;
@@ -79,9 +80,14 @@ public class ActivityUtils {
 	 * @throws OWLRendererException
 	 */
 	String renderVersionedOntology(VersionedOntology versionedOnto) throws OWLRendererException {
+		return renderVersionedOntology(versionedOnto, Integer.MAX_VALUE);
+	}
+	
+	String renderVersionedOntology(VersionedOntology versionedOnto, int lastRevisionToRenderIndex) throws OWLRendererException {
 		VOWLXMLRenderConfiguration conf = new VOWLXMLRenderConfiguration();
 		conf.setLastRevisionData(true);
 		conf.setUncommittedChanges(false);
+		conf.setLastRevisionIndex(lastRevisionToRenderIndex); 
 		StringWriter stringWriter = new StringWriter(RENDER_BUFFER_FULL_INITIAL_SIZE);
 		//Would need OWLOntologyManager for Format, but null ok here.
 		VOWLXMLVersionedOntologyRenderer owlxmlRenderer = new VOWLXMLVersionedOntologyRenderer(versionedOnto.getWorkingSetData().getOWLOntologyManager());
@@ -196,7 +202,7 @@ public class ActivityUtils {
 	 * @return a valid versionedontology and never null (will throw exception instead)
 	 * @throws IllegalStateException in all problem cases.
 	 */
-	VersionedOntology getVersionedOntologyForDeltaFrom(Revision lastMatchingRevision, VDHGDBOntologyRepository repository, boolean mergeWithUncommittedMode) throws IllegalStateException {
+	DistributedOntology getDistributedOntologyForDeltaFrom(Revision lastMatchingRevision, VDHGDBOntologyRepository repository, boolean mergeWithUncommittedMode) throws IllegalStateException {
 		HGPersistentHandle ontoUUID = lastMatchingRevision.getOntologyUUID();
 		HGDBOntology onto = (HGDBOntology)repository.getHyperGraph().get(ontoUUID);
 		if (onto == null) {
@@ -204,12 +210,12 @@ public class ActivityUtils {
 			throw new IllegalStateException("Delta refers to an ontology that does currently not exist.");
 		}
 		onto.setOWLOntologyManager(repository.getOntologyManager());
-		VersionedOntology targetVersionedOntology;
-		targetVersionedOntology = repository.getVersionControlledOntology(onto);
+		DistributedOntology targetDistributedOntology = repository.getDistributedOntology(onto);
+		VersionedOntology targetVersionedOntology = targetDistributedOntology.getVersionedOntology();
 		if (targetVersionedOntology != null) {
 			if (targetVersionedOntology.getHeadRevision().equals(lastMatchingRevision)) {
 				if (targetVersionedOntology.getWorkingSetChanges().isEmpty() || mergeWithUncommittedMode) {
-					return targetVersionedOntology;
+					return targetDistributedOntology;
 				} else {
 					throw new IllegalStateException("Delta not applicable, because uncommitted changes exist in target and no merge was allowed.");
 				}
@@ -233,7 +239,12 @@ public class ActivityUtils {
 	 * @throws OWLRendererException
 	 */
 	String renderVersionedOntologyDelta(VersionedOntology versionedOntology, int startRevisionIndex) throws OWLRendererException {
+		return renderVersionedOntologyDelta(versionedOntology, startRevisionIndex, Integer.MAX_VALUE);
+	}
+
+	String renderVersionedOntologyDelta(VersionedOntology versionedOntology, int startRevisionIndex, int lastRevisionIndex) throws OWLRendererException {
 		VOWLXMLRenderConfiguration conf = new VOWLXMLRenderConfiguration(startRevisionIndex);
+		conf.setLastRevisionIndex(lastRevisionIndex);
 		HGDBOntologyManager manager = (HGDBOntologyManager)versionedOntology.getWorkingSetData().getOWLOntologyManager();
 		StringWriter stringWriter = new StringWriter(RENDER_BUFFER_DELTA_INITIAL_SIZE);
 		VOWLXMLVersionedOntologyRenderer owlxmlRenderer = new VOWLXMLVersionedOntologyRenderer(manager);
@@ -241,7 +252,6 @@ public class ActivityUtils {
 		owlxmlRenderer.render(versionedOntology, stringWriter, conf);
 		return stringWriter.toString();
 	}
-	
 	/**
 	 * Finds the index of the last 2 revisions that are common (equal) to both histories.
 	 * <pre>
