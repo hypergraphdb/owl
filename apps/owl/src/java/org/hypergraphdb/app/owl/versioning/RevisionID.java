@@ -81,8 +81,9 @@ public class RevisionID implements Comparable<RevisionID> {
 		return ontologyUUID.hashCode() + 13 * revision; 
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
+	/**
+	 *  A revision Id will equal a Revision, if all RevisionID variables match.
+	 *  NOT rId.equals(revision) => revision.equals(rId) 
 	 */
 	@Override
 	public boolean equals(Object anObject) {
