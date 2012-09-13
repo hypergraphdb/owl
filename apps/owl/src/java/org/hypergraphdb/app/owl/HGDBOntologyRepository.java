@@ -41,6 +41,9 @@ import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
+import com.sleepycat.je.Transaction;
+import com.sleepycat.je.TransactionConfig;
+
 /**
  * HGDBOntologyRepository.
  * 
@@ -116,7 +119,6 @@ public class HGDBOntologyRepository {
 	 * @param graph
 	 */
 	protected HGDBOntologyRepository(String hypergraphDBLocation) {
-		//checkExitOn64bitJVM();
 		initialize(hypergraphDBLocation);
 		if (graph.isOpen()) {
 			printAllOntologies();
@@ -161,9 +163,10 @@ public class HGDBOntologyRepository {
 		//We ensure that all incidence sets get cached here.
 		config.setMaxCachedIncidenceSetSize(10000000);
 		graph = HGEnvironment.get(location, config);
-		long nrOfAtoms = hg.count(graph, hg.all());
-		log.info("Hypergraph contains " + nrOfAtoms + " Atoms");
-		//log.info("Berkeley DB Version:" + graph)
+		if (DBG) {
+			long nrOfAtoms = hg.count(graph, hg.all());
+			log.info("Hypergraph contains " + nrOfAtoms + " Atoms");
+		}
 	}
 
 	private void dropHypergraph(String location) {
@@ -309,8 +312,12 @@ public class HGDBOntologyRepository {
 			deleteOntology(onto.getOntologyID());
 		}
 	}
-	
-	public boolean deleteOntology(OWLOntologyID ontologyId) {
+	/**
+	 * Marks an Ontology for deletion.
+	 * @param ontologyId
+	 * @return
+	 */
+	public boolean deleteOntology(final OWLOntologyID ontologyId) {
 		// 2011.12.20 hilpold we just set the ontology ID and DocumentIRI to null 
 		// so cleanup can remove it later and we remain responsive. 
 		//2012.04.03 We only set documentIRI null, OID must remain.  
@@ -318,21 +325,24 @@ public class HGDBOntologyRepository {
 		// marked for deletion. This is to emulate in memory behaviour.
 		//2012.04.04 we also need to change the PersistentStorage handle for the ontology, so a 
 		// test for UUID fails.
-		boolean ontologyFound;
-		HGHandle ontologyHandle = getOntologyHandleByID(ontologyId);
-		ontologyFound = ontologyHandle != null;
-		if (ontologyFound) {
-			HGDBOntology o = graph.get(ontologyHandle);
-			//o.setOntologyID(null);
-			o.setDocumentIRI(null);
-			graph.replace(ontologyHandle, o);
-			//graph.
-		}
-		return ontologyFound;
+		return graph.getTransactionManager().ensureTransaction(new Callable<Boolean>() {
+			public Boolean call() {
+				boolean ontologyFound;
+				HGHandle ontologyHandle = getOntologyHandleByID(ontologyId);
+				ontologyFound = ontologyHandle != null;
+				if (ontologyFound) {
+					HGDBOntology o = graph.get(ontologyHandle);
+					//o.setOntologyID(null);
+					o.setDocumentIRI(null);
+					graph.replace(ontologyHandle, o);
+					//graph.
+				}
+				return ontologyFound;
+			}});
 	}
 
 	public HGHandle addOntology(HGDBOntology ontology) {
-		printAllOntologies();
+		if (DBG) printAllOntologies();
 		return graph.add(ontology);
 	}
 	
@@ -455,6 +465,8 @@ public class HGDBOntologyRepository {
 	 * 
 	 * !! Does not return if cycle in graph starting atomHandle. !!
 	 * 
+	 * Call within Transaction!
+	 * 
 	 * @param atomHandle non null.
 	 * @param path a path that will be filled with all objects on the path including the axiom or unchanged if not found.
 	 * @param axiom an axiom that is equal to the axiom to be found. May be outside of any ontology and outside the hypergraph. 
@@ -510,10 +522,13 @@ public class HGDBOntologyRepository {
 	 * @param axiom an axiom (May not be in the graph, compares by equals.)
 	 * @return the path including owlObject and axiom, null if axiom not found.
 	 */
-	public Path getPathFromOWLObjectToAxiom(OWLObject owlObject, OWLAxiom axiom) {
-		Path p = new Path();
-		pathToAxiomRecursive(graph.getHandle(owlObject), p, axiom);
-		return p;
+	public Path getPathFromOWLObjectToAxiom(final OWLObject owlObject, final OWLAxiom axiom) {
+		return graph.getTransactionManager().ensureTransaction(new Callable<Path>() {
+			public Path call() {
+				Path p = new Path();
+				pathToAxiomRecursive(graph.getHandle(owlObject), p, axiom);
+				return p;
+			}}, HGTransactionConfig.READONLY);
 	}
 	
 }
