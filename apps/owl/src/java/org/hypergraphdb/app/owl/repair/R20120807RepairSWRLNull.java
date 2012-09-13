@@ -1,6 +1,5 @@
 package org.hypergraphdb.app.owl.repair;
 
-import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 
@@ -9,23 +8,13 @@ import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
-import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
 import org.hypergraphdb.app.owl.model.swrl.SWRLClassAtomHGDB;
 import org.hypergraphdb.app.owl.model.swrl.SWRLDataRangeAtomHGDB;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.hypergraphdb.type.DefaultJavaTypeMapper;
 import org.hypergraphdb.type.HGAtomType;
 import org.hypergraphdb.type.HGCompositeType;
-import org.hypergraphdb.type.JavaBeanBinding;
-import org.hypergraphdb.type.JavaObjectBinding;
-import org.hypergraphdb.type.RecordType;
-import org.hypergraphdb.type.Slot;
-import org.hypergraphdb.type.SlotType;
-import org.hypergraphdb.type.Top;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.SWRLIArgument;
-import org.semanticweb.owlapi.model.SWRLPredicate;
 
 /**
  * R20120807RepairSWRLNull.

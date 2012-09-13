@@ -242,6 +242,7 @@ public class OntologyComparator {
 			}
 		}
 		
+		@SuppressWarnings("deprecation")
 		public static void main(String[] argv) {
 			if (argv == null || argv.length != 2) {
 				printHelp();

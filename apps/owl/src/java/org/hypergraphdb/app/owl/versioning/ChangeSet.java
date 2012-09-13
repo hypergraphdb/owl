@@ -11,10 +11,8 @@ import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.versioning.change.VAxiomChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChangeFactory;
-import org.semanticweb.owlapi.model.OWLAxiomChange;
 import org.semanticweb.owlapi.model.OWLMutableOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 
@@ -223,7 +221,7 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 					// applies the change directly, no manager involved, no
 					// events issued.
 					// manager needs to reload.
-					o.applyChange(c);					
+					o.applyChange(c);
 				}
 				return null;
 			}

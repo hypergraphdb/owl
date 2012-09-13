@@ -16,7 +16,6 @@ import org.hypergraphdb.type.HGAtomType;
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  * @created Sep 29, 2011
  */
-@SuppressWarnings("deprecation")
 public class TypeUtils {
 	
     /**

@@ -203,6 +203,7 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 				return null;
 			}});
 	}
+	
 
 	// ---------------------------------------------------------------------------------------
 }
