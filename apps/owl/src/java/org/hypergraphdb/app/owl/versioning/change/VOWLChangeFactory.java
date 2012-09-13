@@ -27,6 +27,9 @@ public class VOWLChangeFactory {
 
 	/**
 	 * Creates a storable VOWLChange that represents the given OWLOntologyChange.
+	 * Must be called within a Hypergraph transaction.
+	 * It is expected to be called after the change has been applied to the ontology.
+	 * 
 	 * @param ooc
 	 * @param graph
 	 * @return
@@ -40,7 +43,10 @@ public class VOWLChangeFactory {
 		} else if (ooc instanceof RemoveImport) {
 			ImportChange ic = (ImportChange)ooc;
 			HGHandle handle = graph.getHandle(ic.getImportDeclaration());
-			if (handle == null) throw new IllegalStateException("Could not get handle for ImportDeclaration of change : " + ooc + ". Cannot create VOWLChange." );
+			if (handle == null) {
+				handle = graph.add(ic.getImportDeclaration());
+				//old: throw new IllegalStateException("Could not get handle for ImportDeclaration of change : " + ooc + ". Cannot create VOWLChange." );
+			}
 			return new VRemoveImportChange(handle);
 		} else if (ooc instanceof AddAxiom) {
 			AddAxiom aac = (AddAxiom)ooc;
@@ -50,7 +56,10 @@ public class VOWLChangeFactory {
 		} else if (ooc instanceof RemoveAxiom) {
 			RemoveAxiom rac = (RemoveAxiom)ooc;
 			HGHandle handle = graph.getHandle(rac.getAxiom());
-			if (handle == null) throw new IllegalStateException("Could not get handle for Axiom of change : " + ooc + ". Cannot create VOWLChange." );
+			if (handle == null) {
+				handle = graph.add(rac.getAxiom());
+				//old: throw new IllegalStateException("Could not get handle for Axiom of change : " + ooc + ". Cannot create VOWLChange." );
+			}
 			return new VRemoveAxiomChange(handle);
 		} else if (ooc instanceof AddOntologyAnnotation) {
 			AddOntologyAnnotation aoac = (AddOntologyAnnotation)ooc;
@@ -60,14 +69,23 @@ public class VOWLChangeFactory {
 		} else if (ooc instanceof RemoveOntologyAnnotation) {
 			RemoveOntologyAnnotation roac = (RemoveOntologyAnnotation)ooc;
 			HGHandle handle = graph.getHandle(roac.getAnnotation());
-			if (handle == null) throw new IllegalStateException("Could not get handle for Annotation of change : " + ooc + ". Cannot create VOWLChange." );
+			if (handle == null) {
+				handle = graph.add(roac.getAnnotation());
+				//old: throw new IllegalStateException("Could not get handle for Annotation of change : " + ooc + ". Cannot create VOWLChange." );
+			}
 			return new VRemoveOntologyAnnotationChange(handle);
 		} else if (ooc instanceof SetOntologyID) {
 			SetOntologyID soic = (SetOntologyID)ooc;
 			HGHandle oldId = graph.getHandle(soic.getOriginalOntologyID());
 			HGHandle newId = graph.getHandle(soic.getNewOntologyID());
-			if (oldId == null) throw new IllegalStateException("Could not get handle for oldID of change : " + ooc + ". Cannot create VOWLChange." );
-			if (newId == null) throw new IllegalStateException("Could not get handle for newID of change : " + ooc + ". Cannot create VOWLChange." );
+			if (oldId == null) {
+				oldId = graph.add(soic.getOriginalOntologyID());
+				//old: throw new IllegalStateException("Could not get handle for oldID of change : " + ooc + ". Cannot create VOWLChange." );
+			}
+			if (newId == null) {
+				newId = graph.add(soic.getNewOntologyID());
+				//old: throw new IllegalStateException("Could not get handle for newID of change : " + ooc + ". Cannot create VOWLChange." );
+			}
 			// old is first param
 			return new VModifyOntologyIDChange(oldId, newId);
 		} else {
