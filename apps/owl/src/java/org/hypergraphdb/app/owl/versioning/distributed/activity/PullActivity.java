@@ -14,17 +14,22 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
+import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.versioning.Revision;
+import org.hypergraphdb.app.owl.versioning.RevisionID;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.distributed.ClientCentralizedOntology;
+import org.hypergraphdb.app.owl.versioning.distributed.DistributedOntology;
+import org.hypergraphdb.app.owl.versioning.distributed.PeerDistributedOntology;
+import org.hypergraphdb.app.owl.versioning.distributed.ServerCentralizedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.Message;
 import org.hypergraphdb.peer.Performative;
-import org.hypergraphdb.peer.workflow.FSMActivity;
 import org.hypergraphdb.peer.workflow.FromState;
 import org.hypergraphdb.peer.workflow.OnMessage;
 import org.hypergraphdb.peer.workflow.PossibleOutcome;
@@ -38,6 +43,8 @@ import org.semanticweb.owlapi.io.StringDocumentSource;
  * PullActivity. Pulls all changes from a target repository, which has the same VersionedOntology and 
  * a change history that is longer (newer) than the source (initiator).
  * 
+ * target ->changes-> source
+ * 
  * If the source has pending uncommitted workingset changes, they are merged with the incoming delta in the following way:
  * 1. pending are rolled back
  * 2. delta is applied
@@ -46,16 +53,14 @@ import org.semanticweb.owlapi.io.StringDocumentSource;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Mar 19, 2012
  */
-public class PullActivity extends FSMActivity {
+public class PullActivity extends OntologyTransmitActivity {
 
     public static final String TYPENAME = "pull-VersionedOntology";
-
-    public static final String KEY_LAST_MATCHING_REVISION = "LastMatchingRevision";
 
     public static boolean DBG = true;
 
     public static boolean DBG_RENDER_ONTOLOGIES_TO_FILE = false;
-    
+
     public static final WorkflowStateConstant SendingInitial = WorkflowStateConstant.makeStateConstant("SendingInitial");
     public static final WorkflowStateConstant ReceivingInitial = WorkflowStateConstant.makeStateConstant("ReceivingInitial");
     public static final WorkflowStateConstant SendingDelta = WorkflowStateConstant.makeStateConstant("SendingDelta");
@@ -67,6 +72,8 @@ public class PullActivity extends FSMActivity {
      * The versioned ontology at the initiator that shall be modified by the pull.
      */
     private HGPersistentHandle ontologyUUID; //on source and target
+    private RevisionID lastRequestedRevision; //on source and target
+    //private DistributedOntology sourceDistributedOntology; //pull onto existing
     private HGPeerIdentity targetPeerID;
     private String completedMessage;
     private HyperGraph graph;
@@ -86,21 +93,72 @@ public class PullActivity extends FSMActivity {
         graph = repository.getHyperGraph();
     }
 
+	public PullActivity(HyperGraphPeer sourcePeer, DistributedOntology localDistributedOntology, HGPeerIdentity targetPeerID) {
+		this(sourcePeer, localDistributedOntology, targetPeerID, null);
+	}
+
 	/**
-	 * @param thisPeer
+	 * Use this constructor, if you have a localDistributedOntology. Early checks will be performed.
+	 * @param sourcePeer
+	 * @param localDistributedOntology
+	 * @param targetPeerID
 	 */
-	public PullActivity(HyperGraphPeer sourcePeer, HGPersistentHandle ontologyUUID, HGPeerIdentity targetPeerID) {
+	public PullActivity(HyperGraphPeer sourcePeer, DistributedOntology localDistributedOntology, HGPeerIdentity targetPeerID, RevisionID lastRevisionToPull) {
 		super(sourcePeer);
-		//this.sourceVersionedOnto = sourceVersionedOnto;
-		this.ontologyUUID = ontologyUUID;
-		this.targetPeerID = targetPeerID;
         if(!sourcePeer.getObjectContext().containsKey(OBJECTCONTEXT_REPOSITORY)) {
         	System.err.println("PROBLEM DETECTED: NO OBJECTCONTEXT REPO");
         	throw new IllegalArgumentException("Peer's object context must contain OBJECTCONTEXT_REPOSITORY.");
         }
         repository = (VDHGDBOntologyRepository) sourcePeer.getObjectContext().get(OBJECTCONTEXT_REPOSITORY);
         graph = repository.getHyperGraph();
-	}	
+        if (localDistributedOntology instanceof ServerCentralizedOntology) {
+			throw new IllegalArgumentException("Cannot pull onto server ontology");
+		}
+		if (localDistributedOntology instanceof ClientCentralizedOntology) {
+			ClientCentralizedOntology cco = (ClientCentralizedOntology) localDistributedOntology;
+			if (!cco.getServerPeer().equals(targetPeerID)) {
+				throw new IllegalArgumentException("Cannot Pull from server " + targetPeerID + "for ontology, because ClientCentralizedOntology is bound to server: " + cco.getServerPeer());
+			}
+		}
+		//NPE if not stored:
+		HGPersistentHandle ontologyUUID = repository.getOntologyUUID(localDistributedOntology.getWorkingSetData());
+		if (lastRevisionToPull != null) {
+			if (!ontologyUUID.equals(ontologyUUID)) {
+				throw new IllegalArgumentException("The OntologyUUID" + ontologyUUID + " does not match the last pull revision's " + lastRevisionToPull.getOntologyUUID());
+			}
+		}
+		initialize(sourcePeer, ontologyUUID, targetPeerID, lastRevisionToPull);
+	}
+
+	/**
+	 * Use this constructor only, if you are pulling a new ontology and you do NOT yet have a shared localOntology to apply incoming delta to.
+	 * @param thisPeer
+	 */
+	public PullActivity(HyperGraphPeer sourcePeer, HGPersistentHandle ontologyUUID, HGPeerIdentity targetPeerID) {
+		super(sourcePeer);
+		initialize(sourcePeer, ontologyUUID, targetPeerID, null);
+	}
+
+	/**
+	 * Use this constructor only, if you are pulling a new ontology and you do NOT yet have a shared localOntology to apply incoming delta to.
+	 * @param thisPeer
+	 */
+	public PullActivity(HyperGraphPeer sourcePeer, RevisionID lastRevisionToPull, HGPeerIdentity targetPeerID) {
+		super(sourcePeer);
+		initialize(sourcePeer, lastRevisionToPull.getOntologyUUID(), targetPeerID, lastRevisionToPull);
+	}
+
+	protected void initialize(HyperGraphPeer sourcePeer, HGPersistentHandle ontologyUUID, HGPeerIdentity targetPeerID, RevisionID lastRevisionToPull) {
+		this.ontologyUUID = ontologyUUID;
+		this.targetPeerID = targetPeerID;
+		this.lastRequestedRevision = lastRevisionToPull;
+	        if(!sourcePeer.getObjectContext().containsKey(OBJECTCONTEXT_REPOSITORY)) {
+        	System.err.println("PROBLEM DETECTED: NO OBJECTCONTEXT REPO");
+        	throw new IllegalArgumentException("Peer's object context must contain OBJECTCONTEXT_REPOSITORY.");
+        }
+        repository = (VDHGDBOntologyRepository) sourcePeer.getObjectContext().get(OBJECTCONTEXT_REPOSITORY);
+        graph = repository.getHyperGraph();
+	}
 	
 	/**
 	 * @param completedMessage the completedMessage to set
@@ -130,30 +188,27 @@ public class PullActivity extends FSMActivity {
 				HGDBOntology o = graph.get(ontologyUUID);
 				Message msg;
 				if (o != null) {
-					VersionedOntology sourceVersionedOnto = repository.getVersionControlledOntology(o); 
-					if (sourceVersionedOnto != null) {
-						// send Confirm with existing revisions objects
-						// and tell if we have uncommitted changes.
+					DistributedOntology sourceDistributedOnto = repository.getDistributedOntology(o);
+					//VersionedOntology sourceVersionedOnto = repository.getVersionControlledOntology(o); 
+					if (sourceDistributedOnto != null) {
 						// TODO send content hash
-				        //if (sourceVersionedOnto.getWorkingSetChanges().isEmpty()) {
-				        	msg = createMessage(Performative.Confirm, null);
-				        	List<Revision> revList = sourceVersionedOnto.getRevisions();
-					        combine(msg, struct(CONTENT, revList));
-					        return msg;
-					        // Started return ReceivingDelta;
-				        //} else {
-				        	// Source has uncommitted - cannot pull
-				        //	throw new RuntimeException(new VOWLSourceTargetConflictException("Source has uncommitted changes. Cannot pull."));
-						//}
+						//Get Delta
+			        	msg = createMessage(Performative.Confirm, null);
+			        	List<Revision> revList = sourceDistributedOnto.getVersionedOntology().getRevisions();
+				        combine(msg, struct(CONTENT, revList));
+				        combine(msg, struct(KEY_DISTRIBUTION_MODE, getDistributionModeFor(sourceDistributedOnto)));
+				        combine(msg, struct(KEY_LAST_REQUESTED_REVISION, lastRequestedRevision));
+				        return msg;
 					} else {
 							// Ontology but no versioning information, 
 							// cannot determine
 				        	// Source has uncommitted - cannot pull
-				        	throw new RuntimeException(new VOWLSourceTargetConflictException("Source ontology exists without versioning. Cannot match revisions. Cannot pull."));
+				        	throw new RuntimeException(new VOWLSourceTargetConflictException("Source ontology exists but is not shared. Cannot pull."));
 					}
 				} else {
-					// ontology unknown here.
+					// ontology unknown at source. Pull full or until lastRequestedRevision.
 					msg = createMessage(Performative.Disconfirm, ontologyUUID);
+			        combine(msg, struct(KEY_LAST_REQUESTED_REVISION, lastRequestedRevision));
 					return msg;
 					//TRANSACTION END
 				}
@@ -185,31 +240,48 @@ public class PullActivity extends FSMActivity {
     public WorkflowStateConstant targetSendFullVersionedOntology(final Message msg) throws Throwable {
 		// PROPOSE
 		Message reply;
-		String vowlxmlStringOntology  = graph.getTransactionManager().ensureTransaction(new Callable<String>() {
-			public String call() {
-				VersionedOntology targetVersionedOnto;
-				//TRANSACTION START	
+		String[] vowlxmlRenderedAndMode  = graph.getTransactionManager().ensureTransaction(new Callable<String[]>() {
+			public String[] call() {
+				//TRANSACTION START
+				String [] results;
 				ontologyUUID = getPart(msg, CONTENT);
+				lastRequestedRevision = getPart(msg, KEY_LAST_REQUESTED_REVISION);
 				HGDBOntology onto = graph.get(ontologyUUID);
 				if (onto != null) {
-					targetVersionedOnto = repository.getVersionControlledOntology(onto);
-					if (targetVersionedOnto != null) {
+					DistributedOntology targetDistributedOnto;
+					targetDistributedOnto = repository.getDistributedOntology(onto);
+					if (targetDistributedOnto != null) {
 						try {
-							return activityUtils.renderVersionedOntology(targetVersionedOnto);
+							results = new String[2];
+							//render FULL or render until last requested. 
+							VersionedOntology vo = targetDistributedOnto.getVersionedOntology();
+							if (lastRequestedRevision != null) {
+								int lastRevisionToPullIndex = vo.getRevisions().indexOf(lastRequestedRevision);
+								if (lastRevisionToPullIndex < 0) {
+									throw new RuntimeException(new VOWLException("The requested last revision does not exist on target: " + lastRequestedRevision));
+								} else {
+									results[0] = activityUtils.renderVersionedOntology(targetDistributedOnto.getVersionedOntology(), lastRevisionToPullIndex);
+								}
+							} else {
+								results[0] = activityUtils.renderVersionedOntology(targetDistributedOnto.getVersionedOntology());
+							}
+							results[1] = getDistributionModeFor(targetDistributedOnto);
 						} catch (OWLRendererException e) {
 							throw new RuntimeException(e);
 						}
 					} else {
-						throw new IllegalStateException("Ontology found at target, but not version controlled. Cannot Send.");
+						throw new RuntimeException(new VOWLException("Ontology found at target, but not shared. Cannot Send."));
 					}
 				} else {
-					throw new IllegalStateException("No Ontology found for : " + ontologyUUID + " Cannot Send.");
+					throw new RuntimeException(new VOWLException("Ontology does not exist at target. Cannot Send. Query UUID was: " + ontologyUUID));
 				}
+				return results;
 				//TRANSACTION END
 			}}, HGTransactionConfig.READONLY);
 		reply = getReply(msg, Performative.Propose);
 		// send full head revision data, not versioned yet.
-        combine(reply, struct(CONTENT, vowlxmlStringOntology)); 
+        combine(reply, struct(CONTENT, vowlxmlRenderedAndMode[0])); 
+        combine(reply, struct(KEY_DISTRIBUTION_MODE, vowlxmlRenderedAndMode[1])); 
         send(getSender(msg), reply);
 		return SendingInitial;
 	}
@@ -225,12 +297,25 @@ public class PullActivity extends FSMActivity {
     //@AtActivity(CONTENT);
     public WorkflowStateConstant sourceReceiveFullVersionedOntologyAsNew(Message msg) throws Throwable {
 		final String vowlxmlStringOntology = getPart(msg, CONTENT);		
+		final String pullMode = getPart(msg, KEY_DISTRIBUTION_MODE);
+		
 		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
 			public Object call() {
 				//TRANSACTION START
 				VersionedOntology voParsed;
 				try {
 					voParsed = activityUtils.storeVersionedOntology(new StringDocumentSource(vowlxmlStringOntology), repository.getOntologyManager());
+					DistributedOntology newDO;
+					HGHandle voParsedHandle = graph.getHandle(voParsed);
+					if (pullMode.equals(VALUE_DISTRIBUTION_MODE_CLIENT_SERVER)) {
+						newDO = new ClientCentralizedOntology(voParsedHandle, targetPeerID);
+					} else if (pullMode.equals(VALUE_DISTRIBUTION_MODE_PEER)) {
+						newDO = new PeerDistributedOntology(voParsedHandle);
+					} else {
+						throw new IllegalArgumentException("Pull mode not recognized. Abort transaction. Was:" + pullMode);
+					}
+					graph.add(newDO);
+					//targetDistributedOnto = newDO;
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}
@@ -270,7 +355,7 @@ public class PullActivity extends FSMActivity {
     //@PossibleOutcome({"Completed"}) 
     //@AtActivity(CONTENT);
     public WorkflowStateConstant targetReceiveConfirmationForFullVersionedOntology(Message msg) throws Throwable {
-        setCompletedMessage("Source reported: accepted full versioned ontology. All changes were applied.");
+        setCompletedMessage("Source reported: accepted full distibuted ontology. All changes were applied.");
 		return WorkflowStateConstant.Completed;
 	}
 	
@@ -290,6 +375,8 @@ public class PullActivity extends FSMActivity {
     //@AtActivity(CONTENT);
     public WorkflowStateConstant targetSendVersionedOntologyDelta(final Message msg) throws Throwable {
 		final List<Revision> sourceRevisions = getPart(msg, CONTENT);
+		final String pullMode = getPart(msg, KEY_DISTRIBUTION_MODE);
+		lastRequestedRevision = getPart(msg, KEY_LAST_REQUESTED_REVISION);
 		return graph.getTransactionManager().ensureTransaction(new Callable<WorkflowStateConstant>() {
 			public WorkflowStateConstant call() {
 				Message reply; 
@@ -298,7 +385,7 @@ public class PullActivity extends FSMActivity {
 				boolean allSourceRevisionsAreInTarget;
 				boolean allTargetRevisionsAreInSource;
 				String owlxmlStringOntology;
-				VersionedOntology targetVersionedOnto; 				
+				DistributedOntology targetDistributedOnto; 				
 				//TRANSACTION START
 				//VersionedOntology targetVersionedOnto = repository.getVersionControlledOntology(ontologyUUID);
 				HGPersistentHandle sourceUUID = sourceRevisions.get(0).getOntologyUUID();
@@ -306,12 +393,13 @@ public class PullActivity extends FSMActivity {
 				if (ontology == null) {
 					throw new IllegalStateException("Ontology " + sourceUUID + " does not exist at target. Cannot send delta.");
 				} else {
-					targetVersionedOnto = repository.getVersionControlledOntology(sourceUUID);
-					if (targetVersionedOnto == null) {
-						throw new IllegalStateException("Ontology " + sourceUUID + " is not versioned at target. Cannot send delta.");
+					targetDistributedOnto = repository.getDistributedOntology(ontology);
+					if (targetDistributedOnto == null) {
+						throw new IllegalStateException("Ontology " + ontology + " is not shared at target. Cannot send delta.");
 					}
 				}
-				List<Revision> targetRevisions = targetVersionedOnto.getRevisions();
+				targetAssertDistributionModeMatches(targetDistributedOnto, pullMode);
+				List<Revision> targetRevisions = targetDistributedOnto.getVersionedOntology().getRevisions();
 				lastCommonRevisionIndex = activityUtils.findLastCommonRevisionIndex(sourceRevisions, targetRevisions);
 				allSourceRevisionsAreInTarget = lastCommonRevisionIndex + 1 == sourceRevisions.size();
 				allTargetRevisionsAreInSource = lastCommonRevisionIndex + 1 == targetRevisions.size();
@@ -325,7 +413,17 @@ public class PullActivity extends FSMActivity {
 							// delta changeset will be.
 							reply = getReply(msg, Performative.Inform);
 							try {
-								owlxmlStringOntology = activityUtils.renderVersionedOntologyDelta(targetVersionedOnto, lastCommonRevisionIndex);
+								if (lastRequestedRevision != null) {
+									int lastRevisionToPullIndex = targetRevisions.indexOf(lastRequestedRevision);
+									if (lastRevisionToPullIndex >= 0) {
+										owlxmlStringOntology = activityUtils.renderVersionedOntologyDelta(targetDistributedOnto.getVersionedOntology(), lastCommonRevisionIndex, lastRevisionToPullIndex);
+									} else {
+										throw new RuntimeException(new VOWLException("The requested last revision does not exist on target: " + lastRequestedRevision));
+									}
+								} else {
+									//Send ALL REVISIONS
+									owlxmlStringOntology = activityUtils.renderVersionedOntologyDelta(targetDistributedOnto.getVersionedOntology(), lastCommonRevisionIndex);
+								}
 							} catch(Exception e) {
 								throw new RuntimeException(e);
 							}
@@ -400,9 +498,10 @@ public class PullActivity extends FSMActivity {
 		String vowlxmlStringDelta = graph.getTransactionManager().ensureTransaction(new Callable<String>() {
 			public String call() {
 				//TRANSACTION START
-				VersionedOntology sourceVersionedOnto = activityUtils.getVersionedOntologyForDeltaFrom(lastMatchingRevision, repository, true);
+				DistributedOntology sourceDistributedOnto = activityUtils.getDistributedOntologyForDeltaFrom(lastMatchingRevision, repository, true);
+				VersionedOntology sourceVersionedOnto = sourceDistributedOnto.getVersionedOntology();
 				mergeWithUncommited = !sourceVersionedOnto.getWorkingSetChanges().isEmpty();
-				System.out.println("RECEIVING PULLED delta");
+				if (DBG) System.out.println("RECEIVING PULLED delta");
 				String vowlxmlStringDelta = getPart(msg, CONTENT);
 				OWLOntologyDocumentSource ds = new StringDocumentSource(vowlxmlStringDelta);
 				// Parse, apply and append the delta
