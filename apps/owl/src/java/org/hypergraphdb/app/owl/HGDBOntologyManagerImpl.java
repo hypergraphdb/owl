@@ -1,10 +1,25 @@
 package org.hypergraphdb.app.owl;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.Callable;
+
+import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
+import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
+import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
+import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyUUIDException;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
+import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
+import org.hypergraphdb.app.owl.versioning.distributed.activity.ActivityUtils;
+import org.semanticweb.owlapi.io.FileDocumentSource;
+import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyChangeException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
+import org.semanticweb.owlapi.model.UnloadableImportException;
 
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 
@@ -98,6 +113,27 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 				System.out.println("OID of to remove onto not found in repo: " + ontology.getOntologyID());
 			}
 		}
+	}
+
+	/**
+	 * Imports a full versionedOntology from a VOWLXMLFormat file.
+	 * Throws one of: 
+	 * OWLOntologyChangeException, UnloadableImportException, HGDBOntologyAlreadyExistsByDocumentIRIException, HGDBOntologyAlreadyExistsByOntologyIDException, HGDBOntologyAlreadyExistsByOntologyUUIDException, OWLParserException, IOException 
+	 * wrapped as cause of a RuntimeException.
+	 */
+	public VersionedOntology importVersionedOntology(File vowlxmlFile) throws RuntimeException {
+		if (!vowlxmlFile.exists()) throw new IllegalArgumentException("File does not exist: " + vowlxmlFile);
+		final FileDocumentSource fds = new FileDocumentSource(vowlxmlFile);
+		HyperGraph graph = ontologyRepository.getHyperGraph();
+		return graph.getTransactionManager().ensureTransaction(new Callable<VersionedOntology>() {
+			public VersionedOntology call() {
+				ActivityUtils utils = new ActivityUtils();
+				try {
+					return utils.storeVersionedOntology(fds, HGDBOntologyManagerImpl.this);
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			}});
 	}
 
 	/* (non-Javadoc)
