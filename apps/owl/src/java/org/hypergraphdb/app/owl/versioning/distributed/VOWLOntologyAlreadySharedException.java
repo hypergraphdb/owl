@@ -7,4 +7,6 @@ package org.hypergraphdb.app.owl.versioning.distributed;
  */
 public class VOWLOntologyAlreadySharedException extends RuntimeException {
 
+	private static final long serialVersionUID = -6556552840073846802L;
+
 }

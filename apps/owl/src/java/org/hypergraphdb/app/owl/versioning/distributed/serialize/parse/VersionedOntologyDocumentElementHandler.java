@@ -27,7 +27,7 @@ public class VersionedOntologyDocumentElementHandler extends AbstractVOWLElement
 	private OWLOntology revisionData;
 	private int headRevisionIndex = -2; //means not parsed yet
 	private HGPersistentHandle versionedOntologyID;
-	private String xmlBase;
+	//private String xmlBase;
 	
 	private VOWLXMLDocument versionedOntologyDocument;
 	
@@ -47,14 +47,14 @@ public class VersionedOntologyDocumentElementHandler extends AbstractVOWLElement
 		revisionData = null;
 		headRevisionIndex = -2;
 		versionedOntologyID = null;
-		xmlBase = null;
+		//xmlBase = null;
 		versionedOntologyDocument = null;
 	}
 
 	@Override
 	public void attribute(String localName, String value) throws OWLParserException {
         if (localName.equals("xml:base")) {
-        	xmlBase = value;
+        	//xmlBase = value;
         }
     }
 

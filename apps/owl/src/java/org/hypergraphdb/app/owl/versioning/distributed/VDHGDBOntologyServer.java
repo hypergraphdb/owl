@@ -1,13 +1,10 @@
 package org.hypergraphdb.app.owl.versioning.distributed;
 
 import java.io.File;
-import java.util.Date;
 import java.util.Map;
-import java.util.Set;
 
 import org.hypergraphdb.app.owl.HGDBOWLManager;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
-import org.hypergraphdb.app.owl.gc.GarbageCollector;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.Structs;

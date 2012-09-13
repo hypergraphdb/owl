@@ -193,7 +193,6 @@ import org.coode.owlapi.owlxmlparser.OWLTransitiveObjectPropertyAxiomElementHand
 import org.coode.owlapi.owlxmlparser.OWLUnionOfElementHandler;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserHandler;
-import org.coode.owlapi.owlxmlparser.SWRLAtomListElementHandler;
 import org.coode.owlapi.owlxmlparser.SWRLBuiltInAtomElementHandler;
 import org.coode.owlapi.owlxmlparser.SWRLClassAtomElementHandler;
 import org.coode.owlapi.owlxmlparser.SWRLDataPropertyAtomElementHandler;
@@ -201,7 +200,6 @@ import org.coode.owlapi.owlxmlparser.SWRLDifferentIndividualsAtomElementHandler;
 import org.coode.owlapi.owlxmlparser.SWRLObjectPropertyAtomElementHandler;
 import org.coode.owlapi.owlxmlparser.SWRLRuleElementHandler;
 import org.coode.owlapi.owlxmlparser.SWRLSameIndividualAtomElementHandler;
-import org.coode.owlapi.owlxmlparser.SWRLVariableElementHandler;
 import org.coode.owlapi.owlxmlparser.TranslatedOWLParserException;
 import org.coode.owlapi.owlxmlparser.TranslatedUnloadableImportException;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.ChangeSetElementHandler;
