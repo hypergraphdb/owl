@@ -1,6 +1,5 @@
 package org.hypergraphdb.app.owl;
 
-import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HyperNode;
 import org.hypergraphdb.annotation.HGIgnore;

@@ -1107,6 +1107,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 					// Therefore we need to check, if it's already in graph?
 					HGHandle axiomHandle = graph.getHandle(axiom);
 					if (axiomHandle == null) {
+						//TODO here we could look up an existing axiom in the whole graph (e.g. by hashcode), if we want shared axioms between ontologies.
 						axiomHandle = graph.add(axiom);
 					}
 					ontology.add(axiomHandle);
