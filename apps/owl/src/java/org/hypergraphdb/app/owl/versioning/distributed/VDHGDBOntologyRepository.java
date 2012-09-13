@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -42,9 +41,11 @@ import org.hypergraphdb.peer.workflow.ActivityResult;
 import org.hypergraphdb.peer.xmpp.XMPPPeerInterface;
 import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyID;
 
 /**
- * VDHGDBOntologyRepository.
+ * VDHGDBOntologyRepository extends versioning by Peer2Peer and Client/Server sharing of VersionedOntologies.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Feb 16, 2012
  */
@@ -181,6 +182,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 	 * @return a default configuration or the configuration found in the configuration file.
 	 * @throws IOException 
 	 */
+	@SuppressWarnings("unchecked")
 	private Map<String,Object> loadPeerConfig() {
 		URL peerConfigFile = getClass().getResource(PEER_CONFIGURATION_FILE);
 		Map<String,Object> peerConfig;
@@ -240,6 +242,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 			throw new IllegalStateException("Peer is currently connected. Disconnect first.");
 		}
 		Map<String, Object> config = loadPeerConfig();
+		@SuppressWarnings("unchecked")
 		Map<String, Object> interFaceConfig = (Map<String, Object>)config.get("interfaceConfig");
 		interFaceConfig.put("user", userName);
 		interFaceConfig.put("password", password);
@@ -487,9 +490,10 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 				//Block till conversation over.
 				try {
 					ActivityResult result = pushActivity.getFuture().get();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				} catch (ExecutionException e) {
+					if (result.getException() != null) {
+						throw result.getException();
+					}
+				} catch (Throwable e) {
 					throw new RuntimeException(e);
 				}
 				if (pushActivity.getState().isCompleted() &&
@@ -577,6 +581,22 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 		return c.compare(local, remote);
 	}
 	
+	/**
+	 * Deletes sharing information, if distributed and delegatest to superclass.
+	 */
+	public boolean deleteOntology(final OWLOntologyID ontologyId) {
+		return getHyperGraph().getTransactionManager().ensureTransaction(new Callable<Boolean>() {
+			public Boolean call() {
+				HGHandle ontologyHandle = getOntologyHandleByID(ontologyId);
+				HGDBOntology ontology = getHyperGraph().get(ontologyHandle);
+				if (isDistributed(ontology)) {
+					DistributedOntology dOntology = getDistributedOntology(ontology);
+					cancelSharing(dOntology);
+				}
+				return VDHGDBOntologyRepository.super.deleteOntology(ontologyId);
+			}});
+	}
+
 	public void printDistributedOntologies() {
 		Set<DistributedOntology> dontos = getDistributedOntologies();
 		for (DistributedOntology donto : dontos) {
