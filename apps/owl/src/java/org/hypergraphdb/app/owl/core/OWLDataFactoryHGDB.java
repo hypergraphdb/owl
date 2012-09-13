@@ -1867,10 +1867,13 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 			throw new NullPointerException("Annotation valueHandle is null for value " + value);
 		}		
 		OWLAnnotationHGDB a = new OWLAnnotationHGDB(propertyHandle, valueHandle, annotationsHandles);
-		a.setHyperGraph(graph);
+//<<<<<<< .mine
+		graph.add(a); //TODO 2012.07.10 DO NOT ADD HERE or reuse!!! as a simple ax.getOWLAnnotation will cause this.
+//=======
+//		a.setHyperGraph(graph);
 		//graph.add(a);
+//>>>>>>> .r2579
 		return a;
-		// return new OWLAnnotationImpl(this, property, value, annotations);
 	}
 
 	public OWLAnnotationAssertionAxiom getOWLAnnotationAssertionAxiom(OWLAnnotationSubject subject,
