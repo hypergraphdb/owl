@@ -6,7 +6,7 @@ package org.hypergraphdb.app.owl.versioning.distributed.activity;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Mar 15, 2012
  */
-public class VOWLSourceTargetConflictException extends AbstractVOWLException {
+public class VOWLSourceTargetConflictException extends VOWLException {
 
 	/**
 	 * 

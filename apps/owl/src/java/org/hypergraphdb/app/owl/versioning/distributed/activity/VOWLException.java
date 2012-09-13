@@ -1,22 +1,21 @@
 package org.hypergraphdb.app.owl.versioning.distributed.activity;
 
-
 /**
- * VOWLTargetNewerException.
+ * VOWLException.
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Mar 15, 2012
  */
-public class VOWLTargetNewerException extends VOWLException {
+public class VOWLException extends Exception {
 
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -1137425108655942001L;
+	private static final long serialVersionUID = -6193401551261740906L;
 
 	/**
 	 * 
 	 */
-	public VOWLTargetNewerException() {
+	public VOWLException() {
 		super();
 	}
 
@@ -24,22 +23,21 @@ public class VOWLTargetNewerException extends VOWLException {
 	 * @param message
 	 * @param cause
 	 */
-	public VOWLTargetNewerException(String message, Throwable cause) {
+	public VOWLException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
 	/**
 	 * @param message
 	 */
-	public VOWLTargetNewerException(String message) {
+	public VOWLException(String message) {
 		super(message);
 	}
 
 	/**
 	 * @param cause
 	 */
-	public VOWLTargetNewerException(Throwable cause) {
+	public VOWLException(Throwable cause) {
 		super(cause);
 	}
-
 }
