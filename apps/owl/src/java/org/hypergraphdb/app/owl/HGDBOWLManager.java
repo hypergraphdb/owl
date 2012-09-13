@@ -12,6 +12,7 @@ import org.coode.owlapi.rdf.rdfxml.RDFXMLOntologyStorer;
 import org.coode.owlapi.rdfxml.parser.RDFXMLParserFactory;
 import org.coode.owlapi.turtle.TurtleOntologyStorer;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLOntologyStorer;
 import org.semanticweb.owlapi.io.OWLParserFactoryRegistry;
 import org.semanticweb.owlapi.util.NonMappingOntologyIRIMapper;
 
@@ -51,6 +52,7 @@ public class HGDBOWLManager {
 		ontologyManager.addOntologyStorer (new TurtleOntologyStorer());
 		ontologyManager.addOntologyStorer (new LatexOntologyStorer());
 		ontologyManager.addOntologyStorer (new HGDBStorer ());
+		ontologyManager.addOntologyStorer (new VOWLXMLOntologyStorer());
 
 		ontologyManager.addIRIMapper (new NonMappingOntologyIRIMapper());
 		// a HDBGIRI mapper cannot be added here because the repo is not known.
