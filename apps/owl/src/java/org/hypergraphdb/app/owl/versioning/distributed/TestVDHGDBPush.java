@@ -92,7 +92,7 @@ public class TestVDHGDBPush {
 		if (argv[0].contains("1")) {
 			initializePushInitiator(manager, dr);
 			waitForOnePeer(dr);
-			HGPeerIdentity targetPeer = dr.getPeer().getConnectedPeers().iterator().next();
+			//HGPeerIdentity targetPeer = dr.getPeer().getConnectedPeers().iterator().next();
 			PushActivity a =null; //// = dr.s(versionedOntology, targetPeer);
 			try {
 				ActivityResult r = a.getFuture().get();
