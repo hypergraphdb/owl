@@ -3,7 +3,7 @@ package org.hypergraphdb.app.owl.versioning.distributed.serialize;
 import java.io.IOException;
 import java.io.Writer;
 
-import org.hypergraphdb.app.owl.HGDBOntologyManagerImpl;
+import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.util.StopWatch;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
@@ -35,8 +35,8 @@ public class VOWLXMLVersionedOntologyRenderer extends AbstractOWLRenderer {
 	@Override
 	public void render(OWLOntology ontology, Writer writer) throws OWLRendererException {
 		OWLOntologyManager m = getOWLOntologyManager();
-		if (m instanceof HGDBOntologyManagerImpl) {
-			HGDBOntologyRepository ho = ((HGDBOntologyManagerImpl) m).getOntologyRepository();
+		if (m instanceof HGDBOntologyManager) {
+			HGDBOntologyRepository ho = ((HGDBOntologyManager) m).getOntologyRepository();
 			if (ho instanceof VHGDBOntologyRepository) {
 				VHGDBOntologyRepository vrep = (VHGDBOntologyRepository)ho;
 				VersionedOntology vo = vrep.getVersionControlledOntology(ontology);
@@ -49,7 +49,7 @@ public class VOWLXMLVersionedOntologyRenderer extends AbstractOWLRenderer {
 				throw new OWLRendererException("Need a versioned VHGDBOntologyRepository in the manager.");
 			}
 		} else {
-			throw new OWLRendererException("Need a HGDBOntologyManagerImpl as manager.");
+			throw new OWLRendererException("Need a HGDBOntologyManagerImpl as manager. Was: " + m);
 		}
 	}
 
