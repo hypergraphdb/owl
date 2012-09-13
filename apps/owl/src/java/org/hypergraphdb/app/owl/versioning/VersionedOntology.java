@@ -382,13 +382,15 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	 * 
  	 * Should be called within HGTransaction.
 	 */
-	private void removePair(HGHandle pairHandle) {	
+	private void removePair(HGHandle pairHandle, boolean clearChangeSet) {	
 		Pair<Revision, HGHandle> pair = graph.get(pairHandle);
 		//Revision will be removed with pair removal
 		HGHandle changeSetHandle = pair.getSecond();
 		ChangeSet changeSet = graph.get(changeSetHandle);
 		//Clear changeset
-		changeSet.clear();
+		if (clearChangeSet) {
+			changeSet.clear();
+		}
 		//graph.remove(changeSetHandle, true);
 		graph.remove(pairHandle, true);
 		graph.update(this);
@@ -452,43 +454,57 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 		for (int i = revisionAndChangeSetPairs.size() - 1; i >= 0; i--) {
 			HGHandle pairHandle = revisionAndChangeSetPairs.get(i);		
 			Pair<Revision, HGHandle> pair = graph.get(pairHandle);
-			if (pair.getFirst().equals(rId)) {
+			if (rId.equals(pair.getFirst())) {
 				return i;
 			}
 		}
 		return -1;
 	}
 	
-	/**
-	 * Deletes the last pair after applying an undo of all changes.
-	 * This is only allowed if the head changeset is empty.
-	 * <code>
-	 * 1. reverse Apply previous change set cs'
-	 * 2. clear cs'
-	 * 3. Delete current head pair
-	 * 
-	 * Head is now previous revision, data is before cs', cs' is head changeset and  empty.
-	 * </code>
-	 * 
-	 * Should be called within HGTransaction.
-	 * 
-	 * @throws IllegalStateException, if current head changeset is not empty.
-	 */
-	private void rollbackHeadToPreviousRevision() {
-		if (!getWorkingSetChanges().isEmpty()) {
-			throw new IllegalStateException("Need to rollback head before rolling back one revision");
-		}
-		if (!(getNrOfRevisions() > 1)) {
-			throw new IllegalStateException("Cannot roll back Head, because Head is Base.");
-		}
-		int indexPrevious = revisionAndChangeSetPairs.size() - 2;
-		ChangeSet cs = getChangeSet(indexPrevious);	
-		cs.reverseApplyTo((OWLMutableOntology)getWorkingSetData());
-		cs.clear();
-		// delete cur head, making prev cur.
-		HGHandle pairHandle = revisionAndChangeSetPairs.remove(revisionAndChangeSetPairs.size() - 1);
-		removePair(pairHandle); //will graph.update this
-	}
+//	/**
+//	 * Deletes the last pair after applying an undo of all changes.
+//	 * This is only allowed if the workingset is empty or keepWorkingset is true.
+//	 * <code>
+//	 * 
+//	 * 1. reverse Apply previous change set cs'
+//	 * 2. clear cs'
+//	 * 3. Delete current head pair
+//	 * 
+//	 * Head is now previous revision, data is before cs', cs' is head changeset and  empty.
+//	 * </code>
+//	 * 
+//	 * Should be called within HGTransaction.
+//	 * 
+//	 * @throws IllegalStateException, if current head changeset is not empty.
+//	 */
+//	private void revertHeadToPreviousRevision(boolean keepWorkingSet) {
+//		if (!getWorkingSetChanges().isEmpty() || keepWorkingSet) {
+//			throw new IllegalStateException("Need to rollback head before rolling back one revision or set keepWorkingset");
+//		}
+//		if (!(getNrOfRevisions() > 1)) {
+//			throw new IllegalStateException("Cannot roll back Head, because Head is Base.");
+//		}
+//		int indexPrevious = revisionAndChangeSetPairs.size() - 2;
+//		ChangeSet workingSetChanges = getWorkingSetChanges();
+//		HGDBOntology workingSetData = getWorkingSetData();
+//		if (keepWorkingSet) {
+//			workingSetChanges.reverseApplyTo(workingSetData);
+//		}
+//		ChangeSet preHeadCs = getChangeSet(indexPrevious);
+//		preHeadCs.reverseApplyTo((OWLMutableOntology)getWorkingSetData());
+//		preHeadCs.clear();
+//		if (keepWorkingSet) {
+//			workingSetChanges.applyTo(getWorkingSetData());
+//			// Replace Changeset
+//			HGHandle preHeadCsHandle = graph.getHandle(preHeadCs);
+//			if (!graph.replace(preHeadCsHandle, workingSetChanges)) {
+//				throw new IllegalStateException("Could not replace old pre head changeset with previous workingSet");
+//			}
+//		}
+//		// delete cur head, making prev cur.
+//		HGHandle pairHandle = revisionAndChangeSetPairs.remove(revisionAndChangeSetPairs.size() - 1);
+//		removePair(pairHandle); //will graph.update this
+//	}
 	
 	/**
 	 * Rolls back changes in the current head changeset and clears it.
@@ -568,6 +584,25 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	}
 	
 	/**
+	 * Removes the last commit and makes all changes contained in the commit pending again.
+	 * After calling this method the Versionedontology will have workingsetChanges.
+	 * This should only be called right after a commit and must not be called if pending changes exist.
+	 * 
+	 * @throws IllegalStateException if workingset changes exist.
+	 * @throws IllegalStateException if there is only the inital revision.
+	 */
+	public void undoCommit() {
+		if(!getWorkingSetChanges().isEmpty()) throw new IllegalStateException("Cannot undo because pending changes exist.");
+		if(!(revisionAndChangeSetPairs.size() > 1)) throw new IllegalStateException("Cannot undo because only the initial commit exist.");
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+			public Object call() {
+				HGHandle headAndPendingHandle = revisionAndChangeSetPairs.get(revisionAndChangeSetPairs.size() - 1);
+				removePair(headAndPendingHandle, true);
+				return null;
+			}});
+	}
+	
+	/**
 	 * Undoes all changes in the current uncommitted working changeset, if any and re-intializes the changeset.
 	 * Currently the current changeset must be the working changeset after head.
 	 * 
@@ -577,6 +612,53 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
 			public Object call() {
 				rollbackWorkingChangeSet();
+				return null;
+			}});
+	}
+
+	public void revertHeadTo(final RevisionID rId, final boolean keepWorkingSet) {
+		final int revertToIndex = indexOf(rId);
+		if (revertToIndex == -1) throw new IllegalStateException("Revert: No such revision: " + rId);
+		if (!getWorkingSetChanges().isEmpty() && !keepWorkingSet) throw new IllegalStateException("Revert Error: Head changeset not empty, needs rollback or set keepWorkingSet.");
+		if (revertToIndex == getNrOfRevisions() -1) {
+			System.err.println("RevertHeadTo called with last revision. Nothing to do. " + rId);
+			return;
+		}
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+			public Object call() {
+				//Roll back workingsetChanges, but keep them for reapplication after removing Revisions.
+				int workingSetChangesIndex = revisionAndChangeSetPairs.size() - 1;
+				ChangeSet workingSetChanges = getWorkingSetChanges();
+				HGDBOntology workingSetData = getWorkingSetData();
+				if (keepWorkingSet) {
+					workingSetChanges.reverseApplyTo(workingSetData);
+				}
+				//2nd check, repeatable! could be -1 on repeat, but that's ok below.
+				// 1,C; 2,C; H,WSC  WSC...WorkingSetChanges
+				//  0    1     2 size: 3  => 2 calls
+				ChangeSet preHeadCs = null;
+				for (int curHeadIndex = workingSetChangesIndex; curHeadIndex > revertToIndex; curHeadIndex--) {
+					int preHeadIndex = curHeadIndex - 1;
+					preHeadCs = getChangeSet(preHeadIndex);
+					preHeadCs.reverseApplyTo((OWLMutableOntology)getWorkingSetData());
+					preHeadCs.clear();
+					// delete cur head, making prev cur.
+					HGHandle pairHandle = revisionAndChangeSetPairs.remove(curHeadIndex);
+					boolean clearChangeSet = curHeadIndex < workingSetChangesIndex; 
+					removePair(pairHandle, clearChangeSet); //will graph.update this
+				}
+				if (keepWorkingSet) {
+					//Here might be a problem on remove changes in the WorkinsetChanges.
+					//Something that existed might not be in the changesetData anymore 
+					//after the reverseApplication. 
+					//Shall a removal or nonexistant axiom, anno, import, entity be a NOOP?
+					workingSetChanges.applyTo(getWorkingSetData());
+					// Replace Changeset
+					HGHandle preHeadCsHandle = graph.getHandle(preHeadCs);
+					if (!graph.replace(preHeadCsHandle, workingSetChanges)) {
+						throw new IllegalStateException("Could not replace old pre head changeset with previous workingSet");
+					}
+				}
 				return null;
 			}});
 	}
@@ -592,36 +674,23 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	 * @throws IllegalStateException if working changeset has changes or rId not found.
 	 */
 	public void revertHeadTo(final RevisionID rId) {
-		int revertIndex = indexOf(rId);
-		if (revertIndex == -1) throw new IllegalStateException("Revert: No such revision: " + rId);
-		if (!getWorkingSetChanges().isEmpty()) throw new IllegalStateException("Revert Error: Head changeset not empty, needs rollback.");
-		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
-			public Object call() {
-				//2nd check, repeatable! could be -1 on repeat, but that's ok below.
-				int revertIndex = indexOf(rId);			
-				// 1,C; 2,C; H,HC
-				//  0    1     2 size: 3  => 2 calls
-				for (int curHeadIndex = revisionAndChangeSetPairs.size() - 1; curHeadIndex > revertIndex; curHeadIndex--) {
-					rollbackHeadToPreviousRevision();
-				}
-				return null;
-			}});
+		revertHeadTo(rId, false); 
 	}
 	
-	/**
-	 * Reverts head to the previous revision. 
-	 * Changes from previous to head will be applied inversely.
-	 * WorkingChangeSet must be empty.
-	 * 
- 	 * This method ensures a HGTransaction.
-	 */
-	public void revertHeadOneRevision() {
-		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
-			public Object call() {
-				rollbackHeadToPreviousRevision();
-				return null;
-			}});
-	}
+//	/**
+//	 * Reverts head to the previous revision. 
+//	 * Changes from previous to head will be applied inversely.
+//	 * WorkingChangeSet must be empty.
+//	 * 
+// 	 * This method ensures a HGTransaction.
+//	 */
+//	public void revertHeadOneRevision() {
+//		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+//			public Object call() {
+//				rollbackHeadToPreviousRevision();
+//				return null;
+//			}});
+//	}
 
 	/**
 	 * Adds one change to the current head changeset.
@@ -726,7 +795,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 		List<HGHandle> revisionAndChangeSetPairsCopy = new ArrayList<HGHandle>(revisionAndChangeSetPairs);
 		for (int i = 0; i < revisionAndChangeSetPairsCopy.size(); i++) {
 			HGHandle pairHandle = revisionAndChangeSetPairsCopy.get(i);	
-			removePair(pairHandle);
+			removePair(pairHandle, true);
 		}
 		// assert revisionAndChangeSetPairs.isEmpty()
 		if(!revisionAndChangeSetPairs.isEmpty()) throw new IllegalStateException("List expected to be empty.");
@@ -795,6 +864,6 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	public String toString() {
 		String OID = getWorkingSetData().getOntologyID().toString();
 		String headRevision = "" + getHeadRevision().toString();
-		return OID + " Head: " + headRevision;
+		return OID + " Head: " + headRevision + "(Versioned Revs: "+ getNrOfRevisions() + ")";
 	}
 }
