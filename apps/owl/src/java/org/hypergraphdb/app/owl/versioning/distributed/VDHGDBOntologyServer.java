@@ -20,11 +20,6 @@ public class VDHGDBOntologyServer
 		XMPPConnection.DEBUG_ENABLED = false;
 	}
 
-	/**
-	 * 
-	 * @param argv
-	 *            call with username [0] password [1].
-	 */
 	public static void main(String[] args)
 	{
 		if (args.length < 1)
@@ -71,12 +66,19 @@ public class VDHGDBOntologyServer
 
 			HGDBOntologyManager manager = HGDBOWLManager.createOWLOntologyManager();
 			dr = (VDHGDBOntologyRepository) manager.getOntologyRepository();
-			dr.printAllOntologies();
+			//dr.printAllOntologies();
 			dr.printStatistics();
-			Map<String, Object> xmppConfig = (Map<String,Object>)configuration.get("interfaceConfig");
-			dr.startNetworking(xmppConfig.get("user").toString(), 
-							   xmppConfig.get("password").toString(), 
-							   xmppConfig.get("serverUrl").toString());
+			boolean success = dr.startNetworking(configuration);
+			if (success) {
+				System.out.println("Networking started as: "); 
+				dr.printIdentity();
+			} else {
+				System.out.println("Networking failed.: " + dr.getPeer());
+			}
+//			Map<String, Object> xmppConfig = (Map<String,Object>)configuration.get("interfaceConfig");
+//			dr.startNetworking(xmppConfig.get("user").toString(), 
+//							   xmppConfig.get("password").toString(), 
+//							   xmppConfig.get("serverUrl").toString());
 			
 			while (true)
 			{

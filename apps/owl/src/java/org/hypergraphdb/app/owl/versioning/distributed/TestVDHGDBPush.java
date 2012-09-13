@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -16,14 +15,13 @@ import org.hypergraphdb.app.owl.HGDBOntologyManagerImpl;
 import org.hypergraphdb.app.owl.gc.GarbageCollector;
 import org.hypergraphdb.app.owl.usage.ImportOntologies;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.distributed.activity.OntologyTransmitActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.PushActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLParser;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
-import org.hypergraphdb.peer.workflow.Activity;
 import org.hypergraphdb.peer.workflow.ActivityResult;
-import org.hypergraphdb.util.HGUtils;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.OWLParserException;
@@ -31,7 +29,6 @@ import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -46,17 +43,19 @@ import org.semanticweb.owlapi.model.UnloadableImportException;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
 
 /**
- * TestPush.
+ * TestPush. Won't work but compile. Look for //// to apply fixes for new distributed model.
  * 
  * The passed name containing "1" pushes to the other. 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Mar 12, 2012
+ * Look for ////
  */
 public class TestVDHGDBPush {
 	/**
 	 * This ontology will be imported.
 	 */
 	public static String TEST_ONTOLOGY = "C:\\_CiRM\\testontos\\County.owl";
+	public static String TEST_DISTRIBUTION_MODE = OntologyTransmitActivity.VALUE_DISTRIBUTION_MODE_CLIENT_SERVER;
 	
 	/**
 	 * if false the first one found will be used.
@@ -94,13 +93,13 @@ public class TestVDHGDBPush {
 			initializePushInitiator(manager, dr);
 			waitForOnePeer(dr);
 			HGPeerIdentity targetPeer = dr.getPeer().getConnectedPeers().iterator().next();
-			PushActivity a = dr.push(versionedOntology, targetPeer);
+			PushActivity a =null; //// = dr.s(versionedOntology, targetPeer);
 			try {
 				ActivityResult r = a.getFuture().get();
 				for (int i = 0; i < 10; i ++) {
 					System.out.println("PUSHING NEW COMMIT: " + i);
 					modifyAndCommitSource();
-					a = dr.push(versionedOntology, targetPeer);
+					////a = dr.push(versionedOntology, targetPeer);
 					//block till done
 					r = a.getFuture().get();
 					System.out.println("RESULT State : " + i + " " + a.getState());
@@ -109,10 +108,12 @@ public class TestVDHGDBPush {
 					System.out.println("FINISHED: PUSHING NEW COMMIT: " + i + "");
 				}
 				for (int i = 0; i < 10; i ++) {
-					versionedOntology.revertHeadOneRevision();
+					//versionedOntology.revertHeadOneRevision();
+					System.err.println("CURRENTLY DISABLED TEST");
+					
 				}
 				try {
-					a = dr.push(versionedOntology, targetPeer);
+					////a = dr.push(versionedOntology, targetPeer);
 					r = a.getFuture().get();
 					System.out.println("RESULT: " + "X" + " " + a.getCompletedMessage());
 					System.out.println("RESULT: " + "X" + " Exception:" + r.getException());

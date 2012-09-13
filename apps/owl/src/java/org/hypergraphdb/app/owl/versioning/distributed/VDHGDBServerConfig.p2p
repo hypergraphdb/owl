@@ -1,0 +1,16 @@
+{
+"interfaceType"	: "org.hypergraphdb.peer.xmpp.XMPPPeerInterface",
+"peerName"	: "HGDBPeer",
+"bootstrap" : [ {"class" : "org.hypergraphdb.peer.bootstrap.AffirmIdentityBootstrap", "config" : {}},
+                {"class" : "org.hypergraphdb.peer.bootstrap.CACTBootstrap", "config" : {}}
+              ],
+"interfaceConfig" :
+{
+    "user" : "tom2",
+    "password" : "tom2",
+    "serverUrl"	: "s0141667",
+    "autoRegister" : true,
+    "ignoreRoster" : false
+},
+"OntologyServer" : "true"
+}

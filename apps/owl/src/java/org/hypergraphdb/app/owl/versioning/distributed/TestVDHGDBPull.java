@@ -13,8 +13,8 @@ import org.hypergraphdb.app.owl.gc.GarbageCollector;
 import org.hypergraphdb.app.owl.usage.ImportOntologies;
 import org.hypergraphdb.app.owl.util.StopWatch;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
-import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowserRepositoryActivity;
-import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowserRepositoryActivity.BrowseEntry;
+import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowseRepositoryActivity;
+import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowseRepositoryActivity.BrowseEntry;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.PullActivity;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
@@ -94,7 +94,7 @@ public class TestVDHGDBPull {
 				try {
 					while  (true) {
 					System.out.print("BROWSING PEER...");
-					BrowserRepositoryActivity browseAct = dr.browseRemote(targetPeer);
+					BrowseRepositoryActivity browseAct = dr.browseRemote(targetPeer);
 					//block
 					ActivityResult browseResult = browseAct.getFuture().get();
 					if (browseResult.getException() != null) {
@@ -105,7 +105,7 @@ public class TestVDHGDBPull {
 					for (BrowseEntry entry : l) {
 						dr.printStatistics();
 						stopWatch.start();
-						PullActivity pullAct = dr.pull(entry.getUuid(), targetPeer);
+						PullActivity pullAct = dr.pullNew(entry.getUuid(), targetPeer);
 						//block
 						System.out.print("PULLING Ontology" + entry.getOwlOntologyIRI() + " UUID: " + entry.getUuid() + " ...");
 						ActivityResult pullResult = pullAct.getFuture().get();
@@ -144,7 +144,8 @@ public class TestVDHGDBPull {
 			}
 			System.out.println("REVERTING TARGET REVISIONS " + PEER_USERNAME);
 			for (int i = 0; i < TARGET_MODIFICATION_LIMIT; i ++) {
-				versionedOntology.revertHeadOneRevision();
+				//versionedOntology.revertHeadOneRevision();
+				System.err.println("CURRENTLY DISABLED TEST");
 			}
 			System.out.println("REVERTING TARGET REVISIONS FINISHED " + PEER_USERNAME);
 			try {
