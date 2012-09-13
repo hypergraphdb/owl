@@ -15,6 +15,7 @@ import java.util.Set;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
+import org.hypergraphdb.app.owl.HGDBOntologyFormat;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
@@ -114,7 +115,7 @@ public class ActivityUtils {
 	 * @throws HGDBOntologyAlreadyExistsByOntologyIDException
 	 * @throws HGDBOntologyAlreadyExistsByOntologyUUIDException
 	 */
-	VersionedOntology storeVersionedOntology(OWLOntologyDocumentSource vowlDocumentSource, HGDBOntologyManager manager) throws OWLOntologyChangeException, 
+	public VersionedOntology storeVersionedOntology(OWLOntologyDocumentSource vowlDocumentSource, HGDBOntologyManager manager) throws OWLOntologyChangeException, 
 																													UnloadableImportException, 
 																													OWLParserException, 
 																													IOException, 
@@ -133,7 +134,7 @@ public class ActivityUtils {
 			throw new OWLParserException("The transmitted ontology was not complete.");
 		}
 		OWLOntologyID ontologyID = vowlxmlDoc.getRevisionData().getOntologyID();
-		IRI documentIRI = IRI.create("hgdb://" + ontologyID.getDefaultDocumentIRI().toString().substring(7));
+		IRI documentIRI = HGDBOntologyFormat.convertToHGDBDocumentIRI(ontologyID.getDefaultDocumentIRI()); //IRI.create("hgdb://" + ontologyID.getDefaultDocumentIRI().toString().substring(7));
 		HGPersistentHandle ontologyUUID = vowlxmlDoc.getVersionedOntologyID();
 		System.out.println("Storing ontology data for : " + ontologyUUID + " using docIRI: " + documentIRI);
 		HGDBOntology o = manager.getOntologyRepository().createOWLOntology(ontologyID, documentIRI, ontologyUUID);
