@@ -27,6 +27,16 @@
 	</natures>
 	<linkedResources>
 		<link>
+			<name>lib-build</name>
+			<type>2</type>
+			<location>C:/_CiRM/workspaceMD/hypergraphdb/core/build</location>
+		</link>
+		<link>
+			<name>src-1</name>
+			<type>2</type>
+			<location>C:/_CiRM/workspaceMD/hypergraphdb/apps/owl/src/java</location>
+		</link>
+		<link>
 			<name>src/main/hgdb-app-owl-src-java</name>
 			<type>2</type>
 			<locationURI>WORKSPACE_LOC/hypergraphdb/apps/owl/src/java</locationURI>
