@@ -1,4 +1,11 @@
 Version history:
+1.5.0 Team (Release Date: 2012.09.13)
+++ Core: 
+	+ Client Server Versioning
+	+ Import VOWLXML
+	+ Changeset: Reapply pending changes after revert (Noops: double additions, double deletions)
+	+ OntologyServer configurable on P2P.
+	+ New VersionedOntologyComparator 
 1.0.0 JE P2P Patch (Release Date: 2012.08.17)
 ++ BUGIFX: Nested transactions were used in JE Storage Implementation. They are not supported 
            currently supported by BerkelyDB 11g2 Java Edition 5.0.34. 
