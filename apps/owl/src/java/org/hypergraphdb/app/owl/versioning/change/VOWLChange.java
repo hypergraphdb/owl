@@ -4,6 +4,7 @@ import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.versioning.VersioningObject;
+import org.semanticweb.owlapi.model.OWLOntology;
 
 /**
  * Change.
@@ -12,6 +13,7 @@ import org.hypergraphdb.app.owl.versioning.VersioningObject;
  * @created Jan 13, 2012
  */
 public abstract class VOWLChange implements HGLink, VersioningObject, HGGraphHolder {	
+	
 	HyperGraph graph;
 	
 	public static boolean isAddChange(VOWLChange c) {
@@ -37,10 +39,13 @@ public abstract class VOWLChange implements HGLink, VersioningObject, HGGraphHol
 	public HyperGraph getHyperGraph() {
 		return graph;
 	}
-
-	//public abstract OWLOntologyChange convertToOWLOntologyChange();
 	
-	//public abstract OWLOntologyChange convertToInverseOWLOntologyChange();
-	
+	/**
+	 * Checks, if this change would cause a modification to the given Ontology.
+	 * 
+	 * @param o
+	 * @return true, if 
+	 */
+	public abstract boolean isConflict(OWLOntology o);
 	
 }
