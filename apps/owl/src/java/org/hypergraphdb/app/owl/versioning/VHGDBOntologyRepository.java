@@ -168,8 +168,13 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 	
 	/* (non-Javadoc)
 	 * @see org.semanticweb.owlapi.model.OWLOntologyChangeListener#ontologiesChanged(java.util.List)
-	 */
+	 */ 
+	private ThreadLocal<Boolean> ignoreChanges = new ThreadLocal<Boolean>();
+	public void ignoreChangeEvent(boolean b) { ignoreChanges.set(b); }
+	public boolean shouldIgnoreChangeEvent() { return ignoreChanges.get() != null && ignoreChanges.get(); }
 	public void ontologiesChanged(final List<? extends OWLOntologyChange> changes) throws OWLException {
+		if (shouldIgnoreChangeEvent())
+			return;
 		getHyperGraph().getTransactionManager().ensureTransaction(new Callable<Object>() {
 			public Object call() {
 				VersionedOntology lastVo = null;

@@ -13,6 +13,7 @@ import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChangeFactory;
+import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.semanticweb.owlapi.model.OWLMutableOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 
@@ -179,17 +180,25 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 		{
 			public Object call()
 			{
-				for (HGHandle vchangeHandle : changes)
+				VDHGDBOntologyRepository.getInstance().ignoreChangeEvent(true);
+				try
 				{
-					VOWLChange vc = graph.get(vchangeHandle);
-					OWLOntologyChange c = VOWLChangeFactory
-							.create(vc, o, graph);
-					// applies the change directy, no manager involved, no
-					// events issued.
-					// manager needs to reload.
-					o.applyChange(c);
+					for (HGHandle vchangeHandle : changes)
+					{
+						VOWLChange vc = graph.get(vchangeHandle);
+						OWLOntologyChange c = VOWLChangeFactory.create(vc, o, graph);
+						// applies the change directy, no manager involved, no
+						// events issued.
+						// manager needs to reload.
+						o.getOWLOntologyManager().applyChange(c);
+						//o.applyChange(c);
+					}
+					return null;
 				}
-				return null;
+				finally
+				{
+					VDHGDBOntologyRepository.getInstance().ignoreChangeEvent(false);
+				}
 			}
 		});
 	}
@@ -212,18 +221,26 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 		{
 			public Object call()
 			{
-				ListIterator<HGHandle> li = changes.listIterator(changes.size());
-				while (li.hasPrevious())
-				{
-					VOWLChange vc = graph.get(li.previous());
-					OWLOntologyChange c = VOWLChangeFactory.createInverse(vc,
-							o, graph);
-					// applies the change directly, no manager involved, no
-					// events issued.
-					// manager needs to reload.
-					o.applyChange(c);
+				VDHGDBOntologyRepository.getInstance().ignoreChangeEvent(true);
+				try
+				{								
+					ListIterator<HGHandle> li = changes.listIterator(changes.size());
+					while (li.hasPrevious())
+					{
+						VOWLChange vc = graph.get(li.previous());
+						OWLOntologyChange c = VOWLChangeFactory.createInverse(vc,
+								o, graph);
+						// applies the change directly, no manager involved, no
+						// events issued.
+						// manager needs to reload.
+						o.getOWLOntologyManager().applyChange(c);
+					}
+					return null;
 				}
-				return null;
+				finally
+				{
+					VDHGDBOntologyRepository.getInstance().ignoreChangeEvent(false);
+				}				
 			}
 		});
 	}
