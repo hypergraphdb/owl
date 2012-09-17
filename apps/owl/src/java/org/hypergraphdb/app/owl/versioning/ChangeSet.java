@@ -2,7 +2,9 @@ package org.hypergraphdb.app.owl.versioning;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.Callable;
@@ -14,8 +16,11 @@ import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChangeFactory;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
+import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.semanticweb.owlapi.model.OWLMutableOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
+
+import com.sleepycat.je.TransactionConfig;
 
 /**
  * A ChangeSet contains changes affecting one ontology only.
@@ -77,55 +82,82 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 	 * 
 	 * @param change
 	 */
-	public void addChange(VOWLChange change)
+	public void addChange(final VOWLChange change)
 	{
-		HGHandle changeHandle = graph.add(change);
-		changes.add(changeHandle);
-		graph.update(this);
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+			public Object call() {
+				HGHandle changeHandle = graph.add(change);
+				changes.add(changeHandle);
+				graph.update(this);
+				return null;
+			}});
 	}
 
-	public void removeChange(VOWLChange change)
+	public void removeChange(final VOWLChange change)
 	{
-		HGHandle changeHandle = graph.getHandle(change);
-		if (changeHandle == null)
-			throw new IllegalArgumentException("Can't remove change that's not in the database - " + change);
-		if (changes.remove(changeHandle))
-			graph.update(this);
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+			public Object call() {
+				HGHandle changeHandle = graph.getHandle(change);
+				if (changeHandle == null)
+					throw new IllegalArgumentException("Can't remove change that's not in the database - " + change);
+				if (changes.remove(changeHandle))
+					graph.update(this);
+				return null;
+			}});
 	}
-	
+
+	/**
+	 * removes 
+	 * @param indices a sorted list of index positions that need to be removed.
+	 */
+	public void removeChangesAt(final List<Integer> indices)
+	{
+		Collections.sort(indices);
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+			public Object call() {
+				int removedChanges = 0;
+				for (int i : indices) {
+					i = i - removedChanges;
+					changes.remove(i);
+					removedChanges ++;
+				}
+				graph.update(this);
+				return null;
+			}});
+	}
+
 	public List<VOWLChange> getChanges()
 	{
-		List<VOWLChange> changesLoaded = new ArrayList<VOWLChange>(size());
-		for (HGHandle h : changes)
-		{
-			try
-			{
-				// System.out.print("Change at: " + h);
-				VOWLChange cur = graph.get(h);
-				changesLoaded.add(cur);
-				// System.out.println(" Loaded: " + cur +
-				// ((cur instanceof VAxiomChange)? " Axiom: " +
-				// ((VAxiomChange)cur).getAxiom() : ""));
-			}
-			catch (RuntimeException e)
-			{
-				if (REMOVE_CHANGES_THAT_FAIL_TO_LOAD)
+		return graph.getTransactionManager().ensureTransaction(new Callable<List<VOWLChange>>() {
+			public List<VOWLChange> call() {
+				List<VOWLChange> changesLoaded = new ArrayList<VOWLChange>(size());
+				for (HGHandle h : changes)
 				{
-					e.printStackTrace();
-					System.out.println("REMOVING FAILED CHANGE");
-					changes.remove(h);
-					graph.update(this);
-					graph.remove(h, true);
-					changesLoaded = new ArrayList<VOWLChange>();
-					break;
+					try
+					{
+						VOWLChange cur = graph.get(h);
+						changesLoaded.add(cur);
+					}
+					catch (RuntimeException e)
+					{
+						if (REMOVE_CHANGES_THAT_FAIL_TO_LOAD)
+						{
+							e.printStackTrace();
+							System.out.println("REMOVING FAILED CHANGE");
+							changes.remove(h);
+							graph.update(this);
+							graph.remove(h, true);
+							changesLoaded = new ArrayList<VOWLChange>();
+							break;
+						}
+						else
+						{
+							throw e;
+						}
+					}
 				}
-				else
-				{
-					throw e;
-				}
-			}
-		}
-		return changesLoaded;
+				return changesLoaded;
+			}}, HGTransactionConfig.READONLY);
 	}
 
 	/**
@@ -135,14 +167,18 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 	 */
 	void clear()
 	{
-		List<HGHandle> changesCopy = new ArrayList<HGHandle>(changes);
-		for (HGHandle ch : changesCopy)
-		{
-			// we could check for incidence set size 1 here.
-			graph.remove(ch, true);
-		}
-		// changes.clear();
-		graph.update(this);
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+			public Object call() {
+				List<HGHandle> changesCopy = new ArrayList<HGHandle>(changes);
+					for (HGHandle ch : changesCopy)
+					{
+						// we could check for incidence set size 1 here.
+						graph.remove(ch, true);
+					}
+					// changes.clear();
+					graph.update(this);
+					return null;
+			}});
 	}
 
 	public boolean isEmpty()
@@ -169,31 +205,38 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 	}
 
 	/**
-	 * Applies the changes of this changeset. This method ensures a
+	 * Applies the changes of this changeset, leaving out conflicting changes. This method ensures a
 	 * HGTransaction.
 	 * 
 	 * @param o
+	 * @return a sorted list of ascending indices of changes in this changeset that conflict with the given ontology o.
 	 */
-	public void applyTo(final OWLMutableOntology o)
+	public List<Integer> applyTo(final OWLMutableOntology o)
 	{
-		graph.getTransactionManager().ensureTransaction(new Callable<Object>()
+		return graph.getTransactionManager().ensureTransaction(new Callable<List<Integer>>()
 		{
-			public Object call()
+			public List<Integer> call()
 			{
 				VDHGDBOntologyRepository.getInstance().ignoreChangeEvent(true);
+				List<Integer> conflicts = new LinkedList<Integer>();
 				try
 				{
+					int i = 0;
 					for (HGHandle vchangeHandle : changes)
-					{
+					{					
 						VOWLChange vc = graph.get(vchangeHandle);
 						OWLOntologyChange c = VOWLChangeFactory.create(vc, o, graph);
-						// applies the change directy, no manager involved, no
-						// events issued.
-						// manager needs to reload.
-						o.getOWLOntologyManager().applyChange(c);
-						//o.applyChange(c);
+						if (!vc.isConflict(o)) 
+						{
+							o.getOWLOntologyManager().applyChange(c);
+						} 
+						else 
+						{
+							conflicts.add(i);
+						}
 					}
-					return null;
+					i++;
+					return conflicts;
 				}
 				finally
 				{
@@ -205,13 +248,11 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 
 	/**
 	 * Applies inverted changes of this changeset in inverse order (undo). The
-	 * changes are applied to the ontology directly. Caller needs to tell the
-	 * manager.
+	 * changes are applied through the ontology's OwlOntologyManager. 
 	 * 
 	 * eg. ORIG: 1 add A, 2 modify A to A', 3 remove A' --> UNDO: 3 add A', 2
 	 * modify A' to A, 1 remove A
 	 * 
-	 * This method ensures a HGTransaction.
 	 * 
 	 * @param o
 	 */
@@ -230,9 +271,6 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 						VOWLChange vc = graph.get(li.previous());
 						OWLOntologyChange c = VOWLChangeFactory.createInverse(vc,
 								o, graph);
-						// applies the change directly, no manager involved, no
-						// events issued.
-						// manager needs to reload.
 						o.getOWLOntologyManager().applyChange(c);
 					}
 					return null;
@@ -240,7 +278,7 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 				finally
 				{
 					VDHGDBOntologyRepository.getInstance().ignoreChangeEvent(false);
-				}				
+				}
 			}
 		});
 	}

@@ -41,11 +41,31 @@ public abstract class VOWLChange implements HGLink, VersioningObject, HGGraphHol
 	}
 	
 	/**
-	 * Checks, if this change would cause a modification to the given Ontology.
+	 * Checks, if this change would not cause a modification to the given Ontology.
+	 * If not, we consider the change a conflicting change, which might be a
+	 * double addition, double removal, set from the same old to the same newvalue.
+	 * Even such changes would be noops if applied forwards, they must not be reverted as this 
+	 * breaks the logical relationship of the workingset with the history. 
+	 * (E.g. [c1(Add A), c2(Add A), revert(c2(Add A)] would remove A from workingset, 
+	 * despite c1 implying that A exists) 
 	 * 
 	 * @param o
-	 * @return true, if 
+	 * @return true
 	 */
 	public abstract boolean isConflict(OWLOntology o);
+
+//	/**
+//	 * Checks, if the effect of this change on an ontology is equal to the given change.
+//	 * @param c
+//	 * @return
+//	 */
+//	public abstract boolean isEqualTo(VOWLChange c);
+//
+//	/**
+//	 * Checks, if the effect of this change on an ontology is the inverse of the given change.
+//	 * @param c
+//	 * @return
+//	 */
+//	public abstract boolean isInverseOf(VOWLChange c);
 	
 }

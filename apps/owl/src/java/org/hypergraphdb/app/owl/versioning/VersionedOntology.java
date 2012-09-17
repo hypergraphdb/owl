@@ -694,7 +694,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 
 	/**
 	 * Adds one change to the current head changeset.
-	 * The change will be instantly persisted.
+	 * The change will be persisted instantly.
 	 * 
 	 * Should be called within HGTransaction.
 	 * 
