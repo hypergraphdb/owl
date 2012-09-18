@@ -1,5 +1,8 @@
 package org.hypergraphdb.app.owl.versioning.change;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HyperGraph;
 import org.semanticweb.owlapi.model.AddAxiom;
@@ -92,6 +95,23 @@ public class VOWLChangeFactory {
 			throw new IllegalArgumentException("OWLOntologyChangeType unknown: " + ooc.getClass());
 		}
 	}
+	
+	public static List<OWLOntologyChange> create(List<VOWLChange> vocs, OWLOntology onto, HyperGraph graph) {
+		List<OWLOntologyChange> oocs = new ArrayList<OWLOntologyChange>(vocs.size());
+		for (VOWLChange voc : vocs) {
+			oocs.add(create(voc, onto, graph));
+		}
+		return oocs;
+	}
+
+	public static List<OWLOntologyChange> createInverse(List<VOWLChange> vocs, OWLOntology onto, HyperGraph graph) {
+		List<OWLOntologyChange> oocs = new ArrayList<OWLOntologyChange>(vocs.size());
+		for (VOWLChange voc : vocs) {
+			oocs.add(createInverse(voc, onto, graph));
+		}
+		return oocs;
+	}
+
 	
 	/**
 	 * Creates an OWL-API change that represents the given VOWLChange.
