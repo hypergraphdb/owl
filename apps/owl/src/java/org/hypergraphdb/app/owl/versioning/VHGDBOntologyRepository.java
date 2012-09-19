@@ -11,13 +11,11 @@ import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
-import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
-import org.hypergraphdb.app.owl.versioning.change.VOWLChangeFactory;
 import org.hypergraphdb.transaction.HGTransactionConfig;
-import org.semanticweb.owlapi.model.OWLException;
+import org.semanticweb.owlapi.model.ImpendingOWLOntologyChangeListener;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
-import org.semanticweb.owlapi.model.OWLOntologyChangeListener;
+import org.semanticweb.owlapi.model.OWLOntologyChangeVetoException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
 /**
@@ -26,11 +24,11 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 18, 2012
  */
-public class VHGDBOntologyRepository extends HGDBOntologyRepository implements OWLOntologyChangeListener {
+public class VHGDBOntologyRepository extends HGDBOntologyRepository implements ImpendingOWLOntologyChangeListener {
 	/**
 	 * Will print time every 100 changes.
 	 */
-	public static boolean DBG = false;
+	public static boolean DBG = true;
 	
 	public static VHGDBOntologyRepository getInstance() {
 		if (!hasInstance()) {
@@ -92,7 +90,6 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 			public VersionedOntology call() {
 				VersionedOntology newVO = new VersionedOntology(o, user, graph);
 				graph.add(newVO);
-				graph.update(newVO);
 				return newVO;
 			}});
 	}
@@ -171,45 +168,42 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 	 * @see org.semanticweb.owlapi.model.OWLOntologyChangeListener#ontologiesChanged(java.util.List)
 	 */ 
 	private ThreadLocal<Boolean> ignoreChanges = new ThreadLocal<Boolean>();
-	public void ignoreChangeEvent(boolean b) { ignoreChanges.set(b); }
-	public boolean shouldIgnoreChangeEvent() { return ignoreChanges.get() != null && ignoreChanges.get(); }
-	public void ontologiesChanged(final List<? extends OWLOntologyChange> changes) throws OWLException {
-		if (shouldIgnoreChangeEvent())
+	public void ignoreChangeEvents(boolean b) { ignoreChanges.set(b); }
+	public boolean shouldIgnoreChangeEvents() { return ignoreChanges.get() != null && ignoreChanges.get(); }
+	//public void ontologiesChanged(final List<? extends OWLOntologyChange> changes) throws OWLException {
+//	}
+	// ---------------------------------------------------------------------------------------
+
+	/* (non-Javadoc)
+	 * @see org.semanticweb.owlapi.model.ImpendingOWLOntologyChangeListener#handleImpendingOntologyChanges(java.util.List)
+	 */
+	@Override
+	public void handleImpendingOntologyChanges(final List<? extends OWLOntologyChange> impendingChanges)
+			throws OWLOntologyChangeVetoException {
+		if (shouldIgnoreChangeEvents())
 			return;
 		getHyperGraph().getTransactionManager().ensureTransaction(new Callable<Object>() {
 			public Object call() {
-				VersionedOntology lastVo = null;
-				OWLOntology lastOnto = null;
-				if (DBG) System.out.println("" + new Date() + " VHGDB processes changes: " + changes.size());
+				if (DBG) System.out.println("" + new Date() + " VHGDB processes impending changes: " + impendingChanges.size());
 				int i = 0;
-				for (OWLOntologyChange c : changes) {
+				for (OWLOntologyChange c : impendingChanges) {
 					if (DBG)  { 
 						i++;
 						if (i % 100 == 0) {
 							System.out.println("" + new Date() + " VHGDB changes done: " + i);
 						}
 					}
-					//Caching last
-					if (c.getOntology().equals(lastOnto)) {
-						//use cached
-						VOWLChange vc = VOWLChangeFactory.create(c, getHyperGraph());
-						lastVo.addChange(vc);
-					} else {
-						// get versioned onto
-						if (isVersionControlled(c.getOntology())) {
-							lastOnto = c.getOntology();
-							lastVo = getVersionControlledOntology(lastOnto);
-							VOWLChange vc = VOWLChangeFactory.create(c, getHyperGraph());
-							lastVo.addChange(vc);
-						}
+					// get versioned onto
+					if (isVersionControlled(c.getOntology())) {
+						VersionedOntology vo = getVersionControlledOntology(c.getOntology());
+						//VOWLChange vc = VOWLChangeFactory.create(c, getHyperGraph());
+						vo.addPendingChange(c);
 					}
 				}
 				if (DBG) System.out.println("" + new Date() + " VHGDB changes done: " + i);
 				// forced to use Callable:
 				return null;
 			}});
+		
 	}
-	
-
-	// ---------------------------------------------------------------------------------------
 }
