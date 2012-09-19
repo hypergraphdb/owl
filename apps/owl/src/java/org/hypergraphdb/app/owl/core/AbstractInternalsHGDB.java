@@ -1729,6 +1729,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	public void setOntologyHyperNode(HGDBOntology ontology) {
 		// TODO ugly, but we need it, because Hypernode Interface does not
 		// define convenient add)
+		if (ontology == null) throw new IllegalArgumentException("Ontology null gives bad queries");
 		this.ontology = (HGDBOntologyImpl) ontology;
 		this.ontoHandle = graph.getHandle(ontology);
 

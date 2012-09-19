@@ -28,7 +28,7 @@ public class OWLChangeConflictDetector implements OWLOntologyChangeVisitorEx<Boo
 	private OWLOntology ontology;
 	
 	public OWLChangeConflictDetector(OWLOntology o) {
-		if (ontology == null) throw new IllegalArgumentException();
+		if (o == null) throw new IllegalArgumentException();
 		ontology = o;
 	}
 	

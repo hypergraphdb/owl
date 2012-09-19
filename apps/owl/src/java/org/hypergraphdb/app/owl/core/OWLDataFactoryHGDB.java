@@ -146,7 +146,7 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	}
 	
 	public OWLDataFactoryHGDB ignoreOntologyScope(boolean ignore) {
-		ignoreOntologyScope = true;
+		ignoreOntologyScope = ignore;
 		return this;
 	}
 

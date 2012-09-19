@@ -31,17 +31,20 @@ public class VOWLChangeFactory {
 	/**
 	 * Creates a storable VOWLChange that represents the given OWLOntologyChange.
 	 * Must be called within a Hypergraph transaction.
-	 * It is expected to be called after the change has been applied to the ontology.
+	 * Can be called before or after the change has been applied to the ontology.
+	 * If called before, change subjects will be added to the graph.
 	 * 
-	 * @param ooc
+	 * @param ooc 
 	 * @param graph
-	 * @return
+	 * @return a VOWLChange that was not yet added to the graph
 	 */
 	public static VOWLChange create(OWLOntologyChange ooc, HyperGraph graph) {
 		if (ooc instanceof AddImport) {
 			ImportChange ic = (ImportChange)ooc;
 			HGHandle handle = graph.getHandle(ic.getImportDeclaration());
-			if (handle == null) throw new IllegalStateException("Could not get handle for ImportDeclaration of change : " + ooc + ". Cannot create VOWLChange." );
+			if (handle == null) {
+				handle = graph.add(ic.getImportDeclaration());
+			}
 			return new VAddImportChange(handle);
 		} else if (ooc instanceof RemoveImport) {
 			ImportChange ic = (ImportChange)ooc;
@@ -54,12 +57,18 @@ public class VOWLChangeFactory {
 		} else if (ooc instanceof AddAxiom) {
 			AddAxiom aac = (AddAxiom)ooc;
 			HGHandle handle = graph.getHandle(aac.getAxiom());
-			if (handle == null) throw new IllegalStateException("Could not get handle for Axiom of change : " + ooc + ". Cannot create VOWLChange." );
+			if (handle == null) {
+				//Always call hashCode before saving an axiom! (ByHashCodeIndexer)
+				aac.getAxiom().hashCode();
+				handle = graph.add(aac.getAxiom());
+			}
 			return new VAddAxiomChange(handle);
 		} else if (ooc instanceof RemoveAxiom) {
 			RemoveAxiom rac = (RemoveAxiom)ooc;
 			HGHandle handle = graph.getHandle(rac.getAxiom());
 			if (handle == null) {
+				//Always call hashCode before saving an axiom! (ByHashCodeIndexer)
+				rac.getAxiom().hashCode();
 				handle = graph.add(rac.getAxiom());
 				//old: throw new IllegalStateException("Could not get handle for Axiom of change : " + ooc + ". Cannot create VOWLChange." );
 			}
@@ -67,7 +76,9 @@ public class VOWLChangeFactory {
 		} else if (ooc instanceof AddOntologyAnnotation) {
 			AddOntologyAnnotation aoac = (AddOntologyAnnotation)ooc;
 			HGHandle handle = graph.getHandle(aoac.getAnnotation());			
-			if (handle == null) throw new IllegalStateException("Could not get handle for Annotation of change : " + ooc + ". Cannot create VOWLChange." );
+			if (handle == null) {
+				handle = graph.add(aoac.getAnnotation());
+			}
 			return new VAddOntologyAnnotationChange(handle);
 		} else if (ooc instanceof RemoveOntologyAnnotation) {
 			RemoveOntologyAnnotation roac = (RemoveOntologyAnnotation)ooc;
