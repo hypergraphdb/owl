@@ -6,6 +6,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HGGraphHolder;
@@ -15,7 +17,9 @@ import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.annotation.HGIgnore;
 import org.hypergraphdb.app.owl.HGDBOntology;
+import org.hypergraphdb.app.owl.versioning.change.OWLChangeConflictDetector;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
+import org.hypergraphdb.app.owl.versioning.change.VOWLChangeFactory;
 import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.hypergraphdb.util.Pair;
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -27,6 +31,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLMutableOntology;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
@@ -36,6 +41,8 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
  * Only one concrete owlontology (revision data) is currently maintained. This is the workingset (Head + uncommitted changes). 
  * All added changes are instantly persisted in changesets and survive downtime.
  * Each commit leads to a new revision and opens a new empty changeset.
+ * 
+ * Conflicting changes are never applied to the ontology here.
  * 
  * Revisions are ordered by RevisionID.
  * The first revision is called base revision, the last head revision.
@@ -65,6 +72,10 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	private List<HGHandle> revisionAndChangeSetPairs;
 		
 	protected HyperGraph graph;
+
+	private SortedSet<Integer> workingSetConflicts = new TreeSet<Integer>();
+
+	private OWLChangeConflictDetector conflictDetector;
 	
 	public VersionedOntology(HGHandle... targets) {
 		revisionAndChangeSetPairs = new ArrayList<HGHandle>(Arrays.asList(targets));
@@ -151,6 +162,29 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	}
 
 	/**
+	 * 
+	 * @return a sorted set of indices of conflicting changes in the workingset.
+	 */
+	public SortedSet<Integer> getWorkingSetConflicts() {
+		return workingSetConflicts;
+	}
+
+	/**
+	 * This will remove all conflicting changes from the workingsetchanges. 
+	 */
+	public void clearWorkingSetConflicts() {
+		getWorkingSetChanges().removeChangesAt(getWorkingSetConflicts());
+		setWorkingSetConflicts(new TreeSet<Integer>());
+	}
+
+	/**
+	 * @param workingSetConflicts the workingSetConflicts to set
+	 */
+	void setWorkingSetConflicts(SortedSet<Integer> workingSetConflicts) {
+		this.workingSetConflicts = workingSetConflicts;
+	}
+
+	/**
 	 * Gets the workingsetData. Do not expect the ontology to have an OWLManager set.
 	 * @return
 	 */
@@ -188,7 +222,11 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 		ListIterator<ChangeSet> csIt = changeSetsToRevert.listIterator(changeSetsToRevert.size());
 		while (csIt.hasPrevious()) {
 			ChangeSet cs = csIt.previous();
-			cs.reverseApplyTo(memOnto);
+			if (cs == getWorkingSetChanges()) {
+				cs.reverseApplyTo(memOnto, getWorkingSetConflicts());
+			} else {
+				cs.reverseApplyTo(memOnto);
+			}
 		}
 		return memOnto;
 	}
@@ -289,6 +327,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	/**
 	 * Creates a new Pair object, adds it to graph and it's handle to our pairlist,
 	 * and updates or adds this versioned Ontology.
+	 * All conflicting changes will be removed from the changeset during the commit.
 	 *
 	 * Structure created:
 	 * <code>
@@ -303,22 +342,26 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	 * @param revision sets the revision (of the new head revision)
 	 */
 	private void commitInternal(HGPersistentHandle ontoHandle, String user, int revision, String comment) {
-		// assert revision > Pairs.getLast().GetFirst.GetRevision)
-		// assert user != null
-		// assert ontoHandle != null; pointin to onto.
-		// asssert head change set not empty
-		// assert head.getOntologyID.equals(ontohandle)
-		Revision newRevision = new Revision();
-		newRevision.setOntologyUUID(ontoHandle);
-		newRevision.setRevision(revision);
-		newRevision.setUser(user);
-		newRevision.setRevisionComment(comment);
-		// ChangeSet
-		ChangeSet emptyCs = new ChangeSet();
-		newRevision.setTimeStamp(emptyCs.getCreatedDate());
-		HGHandle changeSetHandle = graph.add(emptyCs);
-		// 
-		addPair(newRevision, changeSetHandle);
+		if (getWorkingSetConflicts().isEmpty()) {
+			// assert revision > Pairs.getLast().GetFirst.GetRevision)
+			// assert user != null
+			// assert ontoHandle != null; pointin to onto.
+			// asssert head change set not empty
+			// assert head.getOntologyID.equals(ontohandle)
+			Revision newRevision = new Revision();
+			newRevision.setOntologyUUID(ontoHandle);
+			newRevision.setRevision(revision);
+			newRevision.setUser(user);
+			newRevision.setRevisionComment(comment);
+			// ChangeSet
+			ChangeSet emptyCs = new ChangeSet();
+			newRevision.setTimeStamp(emptyCs.getCreatedDate());
+			HGHandle changeSetHandle = graph.add(emptyCs);
+			// 
+			addPair(newRevision, changeSetHandle);
+		} else {
+			throw new IllegalStateException("Committin a workingset with conflicts is not allowed. Conflicts: " + getWorkingSetConflicts().size());
+		}
 	}
 	
 	/**
@@ -514,9 +557,11 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	private void rollbackWorkingChangeSet() {
 		int index = revisionAndChangeSetPairs.size() -1;
 		ChangeSet s = getChangeSet(index);
-		s.reverseApplyTo((OWLMutableOntology)getWorkingSetData());
+		clearWorkingSetConflicts();
+		s.reverseApplyTo((OWLMutableOntology)getWorkingSetData(), getWorkingSetConflicts());
 		s.clear(); //will graph.update
 		// The head changeset is now empty and data represents state before changes.
+		// Conflicts will be clear.
 	}	
 
 	/**
@@ -616,6 +661,13 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 			}});
 	}
 
+	/**
+	 * The workingsetconflicts might change after calling this, if earlier additions or removals
+	 * get removed, leading to a different state of the ontology before applying the workinsetchanges.
+	 *   
+	 * @param rId
+	 * @param keepWorkingSet
+	 */
 	public void revertHeadTo(final RevisionID rId, final boolean keepWorkingSet) {
 		final int revertToIndex = indexOf(rId);
 		if (revertToIndex == -1) throw new IllegalStateException("Revert: No such revision: " + rId);
@@ -627,11 +679,13 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
 			public Object call() {
 				//Roll back workingsetChanges, but keep them for reapplication after removing Revisions.
+				//reapplication will determine all conflicting changes.
 				int workingSetChangesIndex = revisionAndChangeSetPairs.size() - 1;
 				ChangeSet workingSetChanges = getWorkingSetChanges();
 				HGDBOntology workingSetData = getWorkingSetData();
+				SortedSet<Integer> workingSetConflicts = getWorkingSetConflicts();
 				if (keepWorkingSet) {
-					workingSetChanges.reverseApplyTo(workingSetData);
+					workingSetChanges.reverseApplyTo(workingSetData, workingSetConflicts);
 				}
 				//2nd check, repeatable! could be -1 on repeat, but that's ok below.
 				// 1,C; 2,C; H,WSC  WSC...WorkingSetChanges
@@ -651,13 +705,13 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 					//Here might be a problem on remove changes in the WorkinsetChanges.
 					//Something that existed might not be in the changesetData anymore 
 					//after the reverseApplication. 
-					//Shall a removal or nonexistant axiom, anno, import, entity be a NOOP?
-					workingSetChanges.applyTo(getWorkingSetData());
+					SortedSet<Integer> newWorkingSetConflicts = workingSetChanges.applyTo(getWorkingSetData());
 					// Replace Changeset
 					HGHandle preHeadCsHandle = graph.getHandle(preHeadCs);
 					if (!graph.replace(preHeadCsHandle, workingSetChanges)) {
 						throw new IllegalStateException("Could not replace old pre head changeset with previous workingSet");
 					}
+					setWorkingSetConflicts(newWorkingSetConflicts);
 				}
 				return null;
 			}});
@@ -693,17 +747,32 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 //	}
 
 	/**
-	 * Adds one change to the current head changeset.
+	 * Adds one change to the current workingset. 
 	 * The change will be persisted instantly.
+	 * If the change conflicts with 
 	 * 
 	 * Should be called within HGTransaction.
 	 * 
 	 * @param vc
 	 */
-	void addChange(VOWLChange vc){ 
+	void addPendingChange(OWLOntologyChange owlChange){ 
+		if (conflictDetector == null) {
+			conflictDetector = new OWLChangeConflictDetector(getWorkingSetData());
+		}
+		VOWLChange vc = VOWLChangeFactory.create(owlChange, graph);
 		getWorkingSetChanges().addChange(vc);
+		//See, if new change is a conflict
+		if (owlChange.accept(conflictDetector)) {
+			addWorkingSetConflict(getWorkingSetChanges().size() - 1);
+		}
 	}
-	
+
+	private void addWorkingSetConflict(int index){ 
+		if (!workingSetConflicts.add(index)) {
+			System.err.println("" + this + " already contained ws conflict at " + index);
+		}
+	}
+
 	/**
 	 * Adds a delta to the versionedOntology and applies it to headRevisionData. 
 	 * (Delta is typically received by a push or pull operation.)
