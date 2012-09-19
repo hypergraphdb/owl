@@ -60,10 +60,11 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 		if (HGDBApplication.DISTRIBUTED) {
 			ontologyRepository = VDHGDBOntologyRepository.getInstance();
 			((VDHGDBOntologyRepository)ontologyRepository).setOntologyManager(this);
-			this.addOntologyChangeListener(((VDHGDBOntologyRepository)ontologyRepository));
+			//Listent to changes, before they are applied
+			this.addImpendingOntologyChangeListener(((VDHGDBOntologyRepository)ontologyRepository));
 		} else if (HGDBApplication.VERSIONING) {
 			ontologyRepository = VHGDBOntologyRepository.getInstance();
-			this.addOntologyChangeListener(((VHGDBOntologyRepository)ontologyRepository));
+			this.addImpendingOntologyChangeListener(((VHGDBOntologyRepository)ontologyRepository));
 		} else {
 			ontologyRepository = HGDBOntologyRepository.getInstance();
 		}
