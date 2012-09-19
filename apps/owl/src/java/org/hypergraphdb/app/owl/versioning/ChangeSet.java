@@ -44,6 +44,8 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 	 */
 	private static boolean REMOVE_CHANGES_THAT_FAIL_TO_LOAD = false;
 
+	private static boolean DBG_CONFLICTS = true;
+
 	private Date createdDate;
 	private List<HGHandle> changes;
 
@@ -127,6 +129,10 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 				graph.update(ChangeSet.this);
 				return null;
 			}});
+	}
+
+	public VOWLChange getChangeAt(int index) {
+		return graph.get(changes.get(index));
 	}
 
 	/**
@@ -247,24 +253,22 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 		{
 			public SortedSet<Integer> call()
 			{
-				if (useManager) VDHGDBOntologyRepository.getInstance().ignoreChangeEvent(true);
+				if (useManager) VDHGDBOntologyRepository.getInstance().ignoreChangeEvents(true);
 				SortedSet<Integer> conflicts = new TreeSet<Integer>();
-				OWLChangeConflictDetector detector = new OWLChangeConflictDetector(o);
+				//OWLChangeConflictDetector detector = new OWLChangeConflictDetector(o);
 				try
 				{
 					int i = 0;
 					for (OWLOntologyChange oc : VOWLChangeFactory.create(getChanges(), o, graph))
-					{					
-						if (!oc.accept(detector)) {
-							// no conflict
-							if (useManager) {
-								o.getOWLOntologyManager().applyChange(oc);
-							} else {
-								o.applyChange(oc);
-							}
-						} 
-						else 
-						{
+					{		
+						List<OWLOntologyChange> appliedChanges;
+						if (useManager) {
+							appliedChanges = o.getOWLOntologyManager().applyChange(oc);
+						} else {
+							appliedChanges = o.applyChange(oc);
+						}
+						if (appliedChanges.isEmpty()) {
+							System.out.println("Conflict detected: " + i + " " + oc);
 							conflicts.add(i);
 						}
 					}
@@ -273,7 +277,7 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 				}
 				finally
 				{
-					if (useManager) VDHGDBOntologyRepository.getInstance().ignoreChangeEvent(false);
+					if (useManager) VDHGDBOntologyRepository.getInstance().ignoreChangeEvents(false);
 				}
 			}
 		});
@@ -295,7 +299,10 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 
 	/**
 	 * Applies inverted changes of this changeset in inverse order (undo). The
-	 * changes are applied through the ontology's OwlOntologyManager. 
+	 * changes are applied through the ontology's OwlOntologyManager.
+	 * Do not call this method, if the changeset are the workingsetchanges of a versioned ontology 
+	 * with working set conflicts as the history before this changeset might not match the state
+	 * of the ontology after applying workingsetchanges with conflicts. 
 	 * 
 	 * eg. ORIG: 1 add A, 2 modify A to A', 3 remove A' --> UNDO: 3 add A', 2
 	 * modify A' to A, 1 remove A
@@ -303,29 +310,46 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 	 * 
 	 * @param o
 	 */
-	public void reverseApplyTo(final OWLMutableOntology o)
+	public void reverseApplyTo(final OWLMutableOntology o) {
+		reverseApplyTo(o, new TreeSet<Integer>());
+	}
+	
+	/**
+	 * Reverse applies all changes, except those at the conflict indices.
+	 * 
+	 * @param o
+	 * @param conflicts a 
+	 */
+	public void reverseApplyTo(final OWLMutableOntology o, final SortedSet<Integer> conflicts)
 	{
 		graph.getTransactionManager().ensureTransaction(new Callable<Object>()
 		{
 			public Object call()
 			{
-				VDHGDBOntologyRepository.getInstance().ignoreChangeEvent(true);
+				VDHGDBOntologyRepository.getInstance().ignoreChangeEvents(true);
 				try
 				{								
 					ListIterator<HGHandle> li = changes.listIterator(changes.size());
 					while (li.hasPrevious())
 					{
+						int index = li.previousIndex();
 						VOWLChange vc = graph.get(li.previous());
 						OWLOntologyChange c = VOWLChangeFactory.createInverse(vc,
 								o, graph);
 						//TODO add conflict detection
-						o.getOWLOntologyManager().applyChange(c);
+						if (conflicts == null || !conflicts.contains(index)) {
+							o.getOWLOntologyManager().applyChange(c);
+						} else {
+							if (DBG_CONFLICTS) {
+								System.out.println("Avoiding change: " + c + " idx: " + index);
+							}
+						}
 					}
 					return null;
 				}
 				finally
 				{
-					VDHGDBOntologyRepository.getInstance().ignoreChangeEvent(false);
+					VDHGDBOntologyRepository.getInstance().ignoreChangeEvents(false);
 				}
 			}
 		});
