@@ -92,7 +92,7 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 			public Object call() {
 				HGHandle changeHandle = graph.add(change);
 				changes.add(changeHandle);
-				graph.update(this);
+				graph.update(ChangeSet.this);
 				return null;
 			}});
 	}
@@ -105,7 +105,7 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 				if (changeHandle == null)
 					throw new IllegalArgumentException("Can't remove change that's not in the database - " + change);
 				if (changes.remove(changeHandle))
-					graph.update(this);
+					graph.update(ChangeSet.this);
 				return null;
 			}});
 	}
@@ -124,7 +124,7 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 					changes.remove(i);
 					removedChanges ++;
 				}
-				graph.update(this);
+				graph.update(ChangeSet.this);
 				return null;
 			}});
 	}
@@ -174,7 +174,7 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 							e.printStackTrace();
 							System.out.println("REMOVING FAILED CHANGE");
 							changes.remove(h);
-							graph.update(this);
+							graph.update(ChangeSet.this);
 							graph.remove(h, true);
 							changesLoaded = new ArrayList<VOWLChange>();
 							break;
@@ -205,7 +205,7 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 						graph.remove(ch, true);
 					}
 					// changes.clear();
-					graph.update(this);
+					graph.update(ChangeSet.this);
 					return null;
 			}});
 	}
