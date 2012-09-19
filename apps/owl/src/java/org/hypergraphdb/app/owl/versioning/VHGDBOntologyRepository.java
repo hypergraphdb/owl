@@ -92,6 +92,7 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 			public VersionedOntology call() {
 				VersionedOntology newVO = new VersionedOntology(o, user, graph);
 				graph.add(newVO);
+				graph.update(newVO);
 				return newVO;
 			}});
 	}

@@ -4,7 +4,6 @@ import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.versioning.VersioningObject;
-import org.semanticweb.owlapi.model.OWLOntology;
 
 /**
  * Change.

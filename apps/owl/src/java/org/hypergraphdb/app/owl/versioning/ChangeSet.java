@@ -16,6 +16,7 @@ import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.app.owl.versioning.change.OWLChangeConflictDetector;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChangeFactory;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
@@ -238,7 +239,6 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 	 * 
 	 * @param o
 	 * @param useManager if false, apply changes to ontology directly, not using it's owl ontology manager. Always use true if you're using a reasoner.
-	 * 
 	 * @return a sorted list of ascending indices of changes in this changeset that conflict with the given ontology o.
 	 */
 	public SortedSet<Integer> applyTo(final OWLMutableOntology o, final boolean useManager)
@@ -249,18 +249,18 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 			{
 				if (useManager) VDHGDBOntologyRepository.getInstance().ignoreChangeEvent(true);
 				SortedSet<Integer> conflicts = new TreeSet<Integer>();
+				OWLChangeConflictDetector detector = new OWLChangeConflictDetector(o);
 				try
 				{
 					int i = 0;
 					for (OWLOntologyChange oc : VOWLChangeFactory.create(getChanges(), o, graph))
 					{					
-						OWLOntologyChange c = VOWLChangeFactory.create(vc, o, graph);
-						if (!vc.isConflict(o)) 
-						{
+						if (!oc.accept(detector)) {
+							// no conflict
 							if (useManager) {
-								o.getOWLOntologyManager().applyChange(c);
+								o.getOWLOntologyManager().applyChange(oc);
 							} else {
-								o.applyChange(c);
+								o.applyChange(oc);
 							}
 						} 
 						else 
@@ -278,16 +278,19 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 			}
 		});
 	}
+	
 	/**
-	 * Applies the changes of this changeset, leaving out conflicting changes. This method ensures a
-	 * HGTransaction.
+	 * Applies the changes of this changeset, leaving out conflicting changes.
+	 * The changes will be applied through the manager to notify the reasoner. 
+	 * 
+	 * This method ensures a HGTransaction.
 	 * 
 	 * @param o
 	 * @return a sorted list of ascending indices of changes in this changeset that conflict with the given ontology o.
 	 */
 	public SortedSet<Integer> applyTo(final OWLMutableOntology o)	
 	{
-		return applyTo(o, false);
+		return applyTo(o, true);
 	}
 
 	/**
@@ -315,6 +318,7 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 						VOWLChange vc = graph.get(li.previous());
 						OWLOntologyChange c = VOWLChangeFactory.createInverse(vc,
 								o, graph);
+						//TODO add conflict detection
 						o.getOWLOntologyManager().applyChange(c);
 					}
 					return null;
