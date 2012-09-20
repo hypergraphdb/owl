@@ -174,7 +174,10 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	 */
 	public void setWorkingSetConflicts(SortedSet<Integer> workingSetConflicts) {
 		this.workingSetConflicts = workingSetConflicts;
-		graph.update(this);
+		//Allow setting by Hypergraph while no graph is set here.
+		if (graph != null) { 
+			graph.update(this);
+		}
 	}
 
 	/**
