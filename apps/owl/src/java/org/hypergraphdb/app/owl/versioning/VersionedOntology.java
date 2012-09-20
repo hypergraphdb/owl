@@ -17,7 +17,6 @@ import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.annotation.HGIgnore;
 import org.hypergraphdb.app.owl.HGDBOntology;
-import org.hypergraphdb.app.owl.versioning.change.OWLChangeConflictDetector;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChangeFactory;
 import org.hypergraphdb.transaction.HGTransactionConfig;
@@ -75,8 +74,6 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 
 	private SortedSet<Integer> workingSetConflicts = new TreeSet<Integer>();
 
-	private OWLChangeConflictDetector conflictDetector;
-	
 	public VersionedOntology(HGHandle... targets) {
 		revisionAndChangeSetPairs = new ArrayList<HGHandle>(Arrays.asList(targets));
 		//assert at least one Pair.
@@ -148,17 +145,11 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 
 
 	public Revision getHeadRevision() {
-		return graph.getTransactionManager().ensureTransaction(new Callable<Revision>() {
-			public Revision call() {
-				return getRevision(revisionAndChangeSetPairs.size() - 1);
-			}}, HGTransactionConfig.READONLY);
+		return getRevision(revisionAndChangeSetPairs.size() - 1);
 	}
 
 	public ChangeSet getWorkingSetChanges() {
-		return graph.getTransactionManager().ensureTransaction(new Callable<ChangeSet>() {
-			public ChangeSet call() {
-				return getChangeSet(revisionAndChangeSetPairs.size() - 1);
-			}}, HGTransactionConfig.READONLY);
+		return getChangeSet(revisionAndChangeSetPairs.size() - 1);
 	}
 
 	/**
@@ -182,6 +173,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	 */
 	void setWorkingSetConflicts(SortedSet<Integer> workingSetConflicts) {
 		this.workingSetConflicts = workingSetConflicts;
+		graph.update(this);
 	}
 
 	/**
@@ -189,10 +181,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	 * @return
 	 */
 	public HGDBOntology getWorkingSetData(){
-		return graph.getTransactionManager().ensureTransaction(new Callable<HGDBOntology>() {
-			public HGDBOntology call() {
-					return graph.get(getHeadRevision().getOntologyUUID());
-			}}, HGTransactionConfig.READONLY);
+		return graph.get(getHeadRevision().getOntologyUUID());
 	}
 	
 	/**
@@ -755,23 +744,25 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	 * 
 	 * @param vc
 	 */
-	void addPendingChange(OWLOntologyChange owlChange){ 
-		if (conflictDetector == null) {
-			conflictDetector = new OWLChangeConflictDetector(getWorkingSetData());
-		}
+	void addAppliedChange(OWLOntologyChange owlChange){
+		//Changes are guaranteed to have been successfully applied to the ontology. 
+		//see OWLOntologyChangeFilter
 		VOWLChange vc = VOWLChangeFactory.create(owlChange, graph);
 		getWorkingSetChanges().addChange(vc);
-		//See, if new change is a conflict
-		if (owlChange.accept(conflictDetector)) {
-			addWorkingSetConflict(getWorkingSetChanges().size() - 1);
-		}
+// Not necessary:		
+//		//See, if new change is a conflict
+//		if (owlChange.accept(conflictDetector)) {
+//			addWorkingSetConflict(getWorkingSetChanges().size() - 1);
+//		}
 	}
 
-	private void addWorkingSetConflict(int index){ 
-		if (!workingSetConflicts.add(index)) {
-			System.err.println("" + this + " already contained ws conflict at " + index);
-		}
-	}
+//	private void addWorkingSetConflict(int index){ 
+//		if (!workingSetConflicts.add(index)) {
+//			System.err.println("" + this + " already contained ws conflict at " + index);
+//		} else {
+//			graph.update(this);
+//		}
+//	}
 
 	/**
 	 * Adds a delta to the versionedOntology and applies it to headRevisionData. 
@@ -821,6 +812,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 			Revision curR = revisions.get(i);
 			ChangeSet curCS; 
 			HGHandle curCSHandle;  
+			SortedSet<Integer> conflicts;
 			if (i < changeSets.size()) {
 				curCS = changeSets.get(i);
 				curCSHandle = changeSetHandles.get(i);
@@ -841,7 +833,13 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 			if (!curCS.isEmpty()) {
 				// apply the current changeset to our ontology (head revision data)
 				//TODO: we might want to hash the current onto to have content adressible
-				curCS.applyTo(headData);
+				conflicts = curCS.applyTo(headData);
+			} else {
+				conflicts = new TreeSet<Integer>();
+			}
+			if (i == changeSets.size()) {
+				//Set working set conflicts after reapplication of workingset changes or ensure empty for new empty ws changeset.
+				setWorkingSetConflicts(conflicts);
 			}
 			if (i == 0) {
 				if (!getHeadRevision().equals(curR)) throw new IllegalStateException("headrevision does not match first revision (anymore)");

@@ -12,10 +12,10 @@ import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.hypergraphdb.transaction.HGTransactionConfig;
-import org.semanticweb.owlapi.model.ImpendingOWLOntologyChangeListener;
+import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
-import org.semanticweb.owlapi.model.OWLOntologyChangeVetoException;
+import org.semanticweb.owlapi.model.OWLOntologyChangeListener;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
 /**
@@ -24,7 +24,7 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 18, 2012
  */
-public class VHGDBOntologyRepository extends HGDBOntologyRepository implements ImpendingOWLOntologyChangeListener {
+public class VHGDBOntologyRepository extends HGDBOntologyRepository implements OWLOntologyChangeListener {
 	/**
 	 * Will print time every 100 changes.
 	 */
@@ -175,18 +175,17 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements I
 	// ---------------------------------------------------------------------------------------
 
 	/* (non-Javadoc)
-	 * @see org.semanticweb.owlapi.model.ImpendingOWLOntologyChangeListener#handleImpendingOntologyChanges(java.util.List)
+	 * @see org.semanticweb.owlapi.model.OWLOntologyChangeListener#ontologiesChanged(java.util.List)
 	 */
 	@Override
-	public void handleImpendingOntologyChanges(final List<? extends OWLOntologyChange> impendingChanges)
-			throws OWLOntologyChangeVetoException {
+	public void ontologiesChanged(final List<? extends OWLOntologyChange> changes) throws OWLException {
 		if (shouldIgnoreChangeEvents())
 			return;
 		getHyperGraph().getTransactionManager().ensureTransaction(new Callable<Object>() {
 			public Object call() {
-				if (DBG) System.out.println("" + new Date() + " VHGDB processes impending changes: " + impendingChanges.size());
+				if (DBG) System.out.println("" + new Date() + " VHGDB processes applied changes: " + changes.size());
 				int i = 0;
-				for (OWLOntologyChange c : impendingChanges) {
+				for (OWLOntologyChange c : changes) {
 					if (DBG)  { 
 						i++;
 						if (i % 100 == 0) {
@@ -197,7 +196,7 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements I
 					if (isVersionControlled(c.getOntology())) {
 						VersionedOntology vo = getVersionControlledOntology(c.getOntology());
 						//VOWLChange vc = VOWLChangeFactory.create(c, getHyperGraph());
-						vo.addPendingChange(c);
+						vo.addAppliedChange(c);
 					}
 				}
 				if (DBG) System.out.println("" + new Date() + " VHGDB changes done: " + i);

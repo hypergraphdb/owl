@@ -2,9 +2,7 @@ package org.hypergraphdb.app.owl.versioning;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
@@ -16,15 +14,12 @@ import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.versioning.change.OWLChangeConflictDetector;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChangeFactory;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.semanticweb.owlapi.model.OWLMutableOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
-
-import com.sleepycat.je.TransactionConfig;
 
 /**
  * A ChangeSet contains changes affecting one ontology only.
@@ -271,8 +266,8 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 							System.out.println("Conflict detected: " + i + " " + oc);
 							conflicts.add(i);
 						}
+						i++;
 					}
-					i++;
 					return conflicts;
 				}
 				finally

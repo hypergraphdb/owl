@@ -1,25 +1,17 @@
 package org.hypergraphdb.app.owl;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
-import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
-import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
-import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyUUIDException;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.ActivityUtils;
 import org.semanticweb.owlapi.io.FileDocumentSource;
-import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyChangeException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
-import org.semanticweb.owlapi.model.UnloadableImportException;
 
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 
@@ -61,10 +53,10 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 			ontologyRepository = VDHGDBOntologyRepository.getInstance();
 			((VDHGDBOntologyRepository)ontologyRepository).setOntologyManager(this);
 			//Listent to changes, before they are applied
-			this.addImpendingOntologyChangeListener(((VDHGDBOntologyRepository)ontologyRepository));
+			this.addOntologyChangeListener(((VDHGDBOntologyRepository)ontologyRepository));
 		} else if (HGDBApplication.VERSIONING) {
 			ontologyRepository = VHGDBOntologyRepository.getInstance();
-			this.addImpendingOntologyChangeListener(((VHGDBOntologyRepository)ontologyRepository));
+			this.addOntologyChangeListener(((VHGDBOntologyRepository)ontologyRepository));
 		} else {
 			ontologyRepository = HGDBOntologyRepository.getInstance();
 		}
