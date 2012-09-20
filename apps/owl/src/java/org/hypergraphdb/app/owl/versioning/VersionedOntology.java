@@ -169,9 +169,10 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	}
 
 	/**
+	 * Only public for bean serialization. Do not use.
 	 * @param workingSetConflicts the workingSetConflicts to set
 	 */
-	void setWorkingSetConflicts(SortedSet<Integer> workingSetConflicts) {
+	public void setWorkingSetConflicts(SortedSet<Integer> workingSetConflicts) {
 		this.workingSetConflicts = workingSetConflicts;
 		graph.update(this);
 	}
