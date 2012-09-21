@@ -68,13 +68,8 @@ public class PushActivity extends OntologyTransmitActivity {
     private VDHGDBOntologyRepository repository;
     private DistributedOntology sourceDistributedOnto;
     private boolean sourceDistributedExistsOnTarget;
-    
-    /**
-	 * @return the sourceDistributedExistsOnTarget
-	 */
-	public boolean isSourceDistributedExistsOnTarget() {
-		return sourceDistributedExistsOnTarget;
-	}
+    private int sourceNrOfRevisionsPushed;
+    private long sourceSizeOfPushedDataChars;
 
 	/**
      * Might be created as new, if the pushed ontology does not exist on target.
@@ -139,7 +134,7 @@ public class PushActivity extends OntologyTransmitActivity {
 	 * Only call on source, where sourceDistributedOntology is available.
 	 * @return
 	 */
-	private String sourceGetPushMode() {
+	public String sourceGetPushMode() {
 		return getDistributionModeFor(sourceDistributedOnto);
 	}
 	
@@ -221,6 +216,7 @@ public class PushActivity extends OntologyTransmitActivity {
     //@AtActivity(CONTENT);
     public WorkflowStateConstant sourceSendFullVersionedOntology(Message msg) throws Throwable {
 		// PROPOSE
+		setSourceDistributedExistsOnTarget(false);
 		String vowlxmlStringOntology = graph.getTransactionManager().ensureTransaction(new Callable<String>() {
 			public String call() {
 				//TRANSACTION START		
@@ -236,6 +232,8 @@ public class PushActivity extends OntologyTransmitActivity {
         combine(msg, struct(CONTENT, vowlxmlStringOntology)); 
         combine(msg, struct(KEY_DISTRIBUTION_MODE, sourceGetPushMode())); 
         send(targetPeerID, msg);
+        setSourceNrOfRevisionsPushed(sourceDistributedOnto.getVersionedOntology().getNrOfRevisions());
+        setSourceSizeOfPushedDataChars(vowlxmlStringOntology.length());
 		return SendingInitial;
 	}
 	
@@ -323,7 +321,7 @@ public class PushActivity extends OntologyTransmitActivity {
     @PossibleOutcome({"SendingDelta"}) 
     //@AtActivity(CONTENT);
     public WorkflowStateConstant sourceSendVersionedOntologyDelta(final Message msg) throws Throwable {
-        sourceDistributedExistsOnTarget = true;
+		setSourceDistributedExistsOnTarget(true);
 		final List<Revision> targetRevisions = getPart(msg, CONTENT);
 		return graph.getTransactionManager().ensureTransaction(new Callable<WorkflowStateConstant>() {
 			public WorkflowStateConstant call() {
@@ -355,7 +353,10 @@ public class PushActivity extends OntologyTransmitActivity {
 							}
 					        combine(reply, struct(CONTENT, owlxmlStringOntology));
 					        combine(reply, struct(KEY_LAST_MATCHING_REVISION, sourceRevisions.get(lastCommonRevisionIndex)));
-					        setCompletedMessage("Source sent " + (sourceRevisions.size() - lastCommonRevisionIndex - 1) + " changesets to target." 
+					        int nrOfRevisionsSent = (sourceRevisions.size() - lastCommonRevisionIndex - 1);
+					        setSourceNrOfRevisionsPushed(nrOfRevisionsSent);
+					        setSourceSizeOfPushedDataChars(owlxmlStringOntology.length());
+					        setCompletedMessage("Source sent " + nrOfRevisionsSent + " revisions to target." 
 					        		+ " size was : " + (owlxmlStringOntology.length()/1024) + " kilo characters ");
 					        nextState = SendingDelta;
 					        if (DBG_RENDER_ONTOLOGIES_TO_FILE) {
@@ -480,4 +481,42 @@ public class PushActivity extends OntologyTransmitActivity {
 	public String getType() {
 		return TYPENAME;
 	}	
+	
+    
+    /**
+	 * @return the sourceDistributedExistsOnTarget
+	 */
+	public boolean isSourceDistributedExistsOnTarget() {
+		return sourceDistributedExistsOnTarget;
+	}
+
+	public int getSourceNrOfRevisionsPushed() {
+		return sourceNrOfRevisionsPushed;
+	}
+
+	public long getSourceSizeOfPushedDataChars() {
+		return sourceSizeOfPushedDataChars;
+	}
+
+	/**
+	 * @param sourceDistributedExistsOnTarget the sourceDistributedExistsOnTarget to set
+	 */
+	protected void setSourceDistributedExistsOnTarget(boolean sourceDistributedExistsOnTarget) {
+		this.sourceDistributedExistsOnTarget = sourceDistributedExistsOnTarget;
+	}
+
+	/**
+	 * @param sourceNrOfRevisionsPushed the sourceNrOfRevisionsPushed to set
+	 */
+	protected void setSourceNrOfRevisionsPushed(int sourceNrOfRevisionsPushed) {
+		this.sourceNrOfRevisionsPushed = sourceNrOfRevisionsPushed;
+	}
+
+	/**
+	 * @param sourceSizeOfPushedDataChars the sourceSizeOfPushedDataChars to set
+	 */
+	protected void setSourceSizeOfPushedDataChars(long sourceSizeOfPushedDataChars) {
+		this.sourceSizeOfPushedDataChars = sourceSizeOfPushedDataChars;
+	}
+
 }
