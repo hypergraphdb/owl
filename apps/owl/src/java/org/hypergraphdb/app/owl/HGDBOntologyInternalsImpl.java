@@ -634,7 +634,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	public boolean removeOntologyAnnotation(final OWLAnnotation ann) {
 		return graph.getTransactionManager().ensureTransaction(new Callable<Boolean>() {
 			public Boolean call() {
-				System.out.println("Annotations before remove: " + getOntologyAnnotations().size());
+				if (DBG) System.out.println("Annotations before remove: " + getOntologyAnnotations().size());
 				HGHandle annotationHandle = findEqualOntologyAnnotation(ann);
 				if (annotationHandle == null) {
 					return false;
@@ -645,7 +645,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 //				if (doRemove) {
 				boolean success = ontology.remove(annotationHandle);
 //				}
-				System.out.println("Annotations after remove: " + getOntologyAnnotations().size());
+				if (DBG) System.out.println("Annotations after remove: " + getOntologyAnnotations().size());
 				return success;
 			}});
 	}
