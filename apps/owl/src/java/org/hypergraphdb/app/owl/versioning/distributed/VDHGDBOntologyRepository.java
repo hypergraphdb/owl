@@ -151,12 +151,12 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 			
 				@Override
 				public void peerLeft(HGPeerIdentity peer) {
-					System.out.println("Peer left: " + peer);
+					System.out.println("Peer left " + peer);
 				}
 				
 				@Override
 				public void peerJoined(HGPeerIdentity peer) {
-					System.out.println("Peer Joined" + peer);
+					System.out.println("Peer Joined " + peer);
 				}
 			});
 		}
@@ -476,7 +476,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 
 	//public enum RemoteRepositoryActionResult {SUCCESS, DENIED_LOCAL_OUT_OF_DATE, DENIED_WERE_EQUAL, DENIED_REMOTE_OUT_OF_DATE}; 
 	
-	public ClientCentralizedOntology shareRemoteInServerMode(final VersionedOntology vo, final HGPeerIdentity remote) {
+	public ClientCentralizedOntology shareRemoteInServerMode(final VersionedOntology vo, final HGPeerIdentity remote, final int timeoutSecs) {
 		return getHyperGraph().getTransactionManager().ensureTransaction(new Callable<ClientCentralizedOntology>() {
 			public ClientCentralizedOntology call() {
 				//1. push in server mode to remote
@@ -489,7 +489,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 				PushActivity pushActivity = push(newCdo, remote);
 				//Block till conversation over.
 				try {
-					ActivityResult result = pushActivity.getFuture().get();
+					ActivityResult result = pushActivity.getFuture().get(timeoutSecs, TimeUnit.SECONDS);
 					if (result.getException() != null) {
 						throw result.getException();
 					}
@@ -564,13 +564,13 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 	 * @param cco
 	 * @return null, if server not accessible, ontology not on server.
 	 */
-	public VersionedOntologyComparisonResult compareOntologyToRemote(DistributedOntology dOnto, HGPeerIdentity peer) {
+	public VersionedOntologyComparisonResult compareOntologyToRemote(DistributedOntology dOnto, HGPeerIdentity peer, int timeoutSecs) {
 		List<Revision> local = dOnto.getVersionedOntology().getRevisions();
 		List<Revision> remote;
 		HGPersistentHandle uuid = getOntologyUUID(dOnto.getWorkingSetData());
 		GetRemoteOntologyRevisionsActivity rra = getRemoteRevisions(uuid, peer);
 		try {
-			ActivityResult ar = rra.getFuture().get(30, TimeUnit.SECONDS);
+			ActivityResult ar = rra.getFuture().get(timeoutSecs, TimeUnit.SECONDS);
 			if (ar.getException() != null) throw ar.getException();
 		} catch (Throwable e) {
 			e.printStackTrace();
