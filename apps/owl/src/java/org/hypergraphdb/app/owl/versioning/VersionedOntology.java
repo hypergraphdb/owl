@@ -153,6 +153,18 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	}
 
 	/**
+	 * The number of changes that will be committed.
+	 * (Workingset - conflicts)
+	 * @return
+	 */
+	public int getNrOfCommittableChanges() {
+		int wsChanges = getWorkingSetChanges().size();
+		int wsConflicts = getWorkingSetConflicts().size();
+		if (wsChanges - wsConflicts < 0) throw new IllegalStateException("Invariant broken: More conflicts than changes.");
+		return wsChanges - wsConflicts;
+	}
+
+	/**
 	 * 
 	 * @return a sorted set of indices of conflicting changes in the workingset.
 	 */
@@ -335,26 +347,23 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	 * @param revision sets the revision (of the new head revision)
 	 */
 	private void commitInternal(HGPersistentHandle ontoHandle, String user, int revision, String comment) {
-		if (getWorkingSetConflicts().isEmpty()) {
-			// assert revision > Pairs.getLast().GetFirst.GetRevision)
-			// assert user != null
-			// assert ontoHandle != null; pointin to onto.
-			// asssert head change set not empty
-			// assert head.getOntologyID.equals(ontohandle)
-			Revision newRevision = new Revision();
-			newRevision.setOntologyUUID(ontoHandle);
-			newRevision.setRevision(revision);
-			newRevision.setUser(user);
-			newRevision.setRevisionComment(comment);
-			// ChangeSet
-			ChangeSet emptyCs = new ChangeSet();
-			newRevision.setTimeStamp(emptyCs.getCreatedDate());
-			HGHandle changeSetHandle = graph.add(emptyCs);
-			// 
-			addPair(newRevision, changeSetHandle);
-		} else {
-			throw new IllegalStateException("Committin a workingset with conflicts is not allowed. Conflicts: " + getWorkingSetConflicts().size());
-		}
+		clearWorkingSetConflicts();
+		// assert revision > Pairs.getLast().GetFirst.GetRevision)
+		// assert user != null
+		// assert ontoHandle != null; pointin to onto.
+		// asssert head change set not empty
+		// assert head.getOntologyID.equals(ontohandle)
+		Revision newRevision = new Revision();
+		newRevision.setOntologyUUID(ontoHandle);
+		newRevision.setRevision(revision);
+		newRevision.setUser(user);
+		newRevision.setRevisionComment(comment);
+		// ChangeSet
+		ChangeSet emptyCs = new ChangeSet();
+		newRevision.setTimeStamp(emptyCs.getCreatedDate());
+		HGHandle changeSetHandle = graph.add(emptyCs);
+		// 
+		addPair(newRevision, changeSetHandle);
 	}
 	
 	/**
