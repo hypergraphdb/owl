@@ -1,4 +1,13 @@
 Version history:
+1.6.0 Team (Release Date: 2012.09.21)
+++ Core:
+	+ All changes from versioning operations and p2p operations are now applied through the manager, to notify all listeners (reasoner!)
+	+ Conflicts (double additions, double removals) that may occur in the workingset during reverts or updates are now handled properly.
+++ Integration Plugin:
+	+ Overall UI improvements.
+	+ OWL Rendering of Changes in all ChangesetViews
+	+ Conflicts in the workingset will be highlighted.
+	+ Changes in Threading. Swing thread will not be used to propagate changes coming from P2P activities.  
 1.5.0 Team (Release Date: 2012.09.13)
 ++ Core: 
 	+ Client Server Versioning
