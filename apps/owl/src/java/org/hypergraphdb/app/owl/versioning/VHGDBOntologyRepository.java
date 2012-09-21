@@ -28,7 +28,8 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 	/**
 	 * Will print time every 100 changes.
 	 */
-	public static boolean DBG = true;
+	public static boolean DBG = false;
+	public static boolean DBG_CHANGES = false;
 	
 	public static VHGDBOntologyRepository getInstance() {
 		if (!hasInstance()) {
@@ -183,10 +184,10 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 			return;
 		getHyperGraph().getTransactionManager().ensureTransaction(new Callable<Object>() {
 			public Object call() {
-				if (DBG) System.out.println("" + new Date() + " VHGDB processes applied changes: " + changes.size());
+				if (DBG_CHANGES) System.out.println("" + new Date() + " VHGDB processes applied changes: " + changes.size());
 				int i = 0;
 				for (OWLOntologyChange c : changes) {
-					if (DBG)  { 
+					if (DBG_CHANGES)  { 
 						i++;
 						if (i % 100 == 0) {
 							System.out.println("" + new Date() + " VHGDB changes done: " + i);
@@ -199,7 +200,7 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 						vo.addAppliedChange(c);
 					}
 				}
-				if (DBG) System.out.println("" + new Date() + " VHGDB changes done: " + i);
+				if (DBG_CHANGES) System.out.println("" + new Date() + " VHGDB changes done: " + i);
 				// forced to use Callable:
 				return null;
 			}});
