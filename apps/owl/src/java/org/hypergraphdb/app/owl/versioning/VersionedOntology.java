@@ -176,8 +176,10 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	 * This will remove all conflicting changes from the workingsetchanges. 
 	 */
 	public void clearWorkingSetConflicts() {
-		getWorkingSetChanges().removeChangesAt(getWorkingSetConflicts());
-		setWorkingSetConflicts(new TreeSet<Integer>());
+		if (!workingSetConflicts.isEmpty()) {
+			getWorkingSetChanges().removeChangesAt(workingSetConflicts);
+			setWorkingSetConflicts(new TreeSet<Integer>());
+		}
 	}
 
 	/**
