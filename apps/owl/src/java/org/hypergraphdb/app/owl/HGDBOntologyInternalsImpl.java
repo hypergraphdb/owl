@@ -39,6 +39,7 @@ import org.hypergraphdb.app.owl.model.axioms.OWLEquivalentClassesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
 import org.hypergraphdb.app.owl.type.link.AxiomAnnotatedBy;
 import org.hypergraphdb.app.owl.util.IncidenceSetALGenerator;
+import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.indexing.HGIndexer;
 import org.hypergraphdb.query.AtomTypeCondition;
 import org.hypergraphdb.query.HGQueryCondition;
@@ -414,16 +415,18 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 					} else {
 						// we have no cycles up incidence sets starting
 						// on an entity.
-						if (!(o instanceof OWLClassExpression || o instanceof OWLObjectPropertyExpression
-								|| o instanceof OWLDataRange || o instanceof OWLLiteral || o instanceof OWLFacetRestriction
-								|| o instanceof OWLAnnotation)) {
-							throw new IllegalStateException("We encountered an unexpected object in an incidenceset:"
-									+ o);
+						if (!(o instanceof VOWLChange)) {
+							if (!(o instanceof OWLClassExpression || o instanceof OWLObjectPropertyExpression
+									|| o instanceof OWLDataRange || o instanceof OWLLiteral || o instanceof OWLFacetRestriction
+									|| o instanceof OWLAnnotation)) {
+								throw new IllegalStateException("We encountered an unexpected object in an incidenceset:"
+										+ o);
+							}
+							recLevel++;
+							collectOntologyAxiomsRecursive(incidentAtomHandle, axiomList);
+							recLevel--;
 						}
-						recLevel++;
-						collectOntologyAxiomsRecursive(incidentAtomHandle, axiomList);
-						recLevel--;
-					}
+					} //else we don't recurse on changes.
 				} // else o == null do nothing
 			} // for
 			iSetRAR.close();
@@ -454,18 +457,20 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 				} else {
 					// we have no cycles up incidence sets starting
 					// on an entity.
-					if (!(o instanceof OWLClassExpression || o instanceof OWLObjectPropertyExpression
-							|| o instanceof OWLDataRange || o instanceof OWLLiteral || o instanceof OWLFacetRestriction
-							|| o instanceof OWLAnnotation)) {
-						throw new IllegalStateException("We encountered an unexpected object: "+ o 
-								+ "  in incidenceset of " + graph.get(atomHandle));
-					}
-					recLevel++;
-					if (hasOntologyAxiomsRecursive(incidentAtomHandle)) {
+					if (!(o instanceof VOWLChange)) { 
+						if (!(o instanceof OWLClassExpression || o instanceof OWLObjectPropertyExpression
+								|| o instanceof OWLDataRange || o instanceof OWLLiteral || o instanceof OWLFacetRestriction
+								|| o instanceof OWLAnnotation)) {
+							throw new IllegalStateException("We encountered an unexpected object: "+ o 
+									+ "  in incidenceset of " + graph.get(atomHandle));
+						}
+						recLevel++;
+						if (hasOntologyAxiomsRecursive(incidentAtomHandle)) {
+							recLevel--;
+							return true;
+						}
 						recLevel--;
-						return true;
-					}
-					recLevel--;
+					} //else we don't recurse on changes.
 				}
 			} // else o == null do nothing
 		} // for
