@@ -30,6 +30,9 @@ public class OWLLiteralHGDB extends OWLObjectHGDB implements OWLLiteral, HGLink 
 
     private String lang;
 
+    public OWLLiteralHGDB() {
+    	datatypeHandle = null;
+    }
     public OWLLiteralHGDB(HGHandle... args) {
     	datatypeHandle = args[0];
     	// Don't call constructor, because we do not know at this point what kind of literal we get. this("", args[0]);
@@ -146,7 +149,12 @@ public class OWLLiteralHGDB extends OWLObjectHGDB implements OWLLiteral, HGLink 
     }
 
     public OWLDatatype getDatatype() {
-        return getHyperGraph().get(datatypeHandle);
+    	//TODO TEMPORARY FIX NEEDS FIXING!!!!!
+    	if (datatypeHandle == null) {
+    		return getOWLDataFactory().getRDFPlainLiteral(); 
+    	} else {
+    		return getHyperGraph().get(datatypeHandle);
+    	}
     }
 
     @Override
@@ -205,7 +213,7 @@ public class OWLLiteralHGDB extends OWLObjectHGDB implements OWLLiteral, HGLink 
 	 */
 	@Override
 	public int getArity() {
-		return datatypeHandle ==null? 0 : 1;
+		return datatypeHandle == null? 0 : 1;
 	}
 
 	/* (non-Javadoc)
