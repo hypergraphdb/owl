@@ -17,6 +17,8 @@ import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.annotation.HGIgnore;
 import org.hypergraphdb.app.owl.HGDBOntology;
+import org.hypergraphdb.app.owl.core.OWLOntologyEx;
+import org.hypergraphdb.app.owl.core.OWLTempOntologyImpl;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChangeFactory;
 import org.hypergraphdb.transaction.HGTransactionConfig;
@@ -29,11 +31,8 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLMutableOntology;
-import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
-
-import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
 
 /**
  * A VersionedOntology represents all revisions and changesets of one versioned ontology.
@@ -218,11 +217,11 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	 * @param r
 	 * @return
 	 */
-	public OWLOntologyImpl getRevisionData(Revision targetRevision) {
+	public OWLTempOntologyImpl getRevisionData(Revision targetRevision) {
 		// Assert revision is in VersionedOnto
 		HGDBOntology latest = getWorkingSetData();
 		// Create an empty copy.
-		OWLOntologyImpl memOnto = copyIntoPartialInMemOnto(latest);
+		OWLTempOntologyImpl memOnto = copyIntoPartialInMemOnto(latest);
 		// Revert all Changesets from HEAD to r in mem
 		List<ChangeSet> changeSetsToRevert = getChangeSetsFromRevisionToLast(targetRevision);
 		// Iterate over list last to first
@@ -247,7 +246,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	 * @param includeUncommitted
 	 * @return
 	 */
-	public OWLOntology getRevisionData(int targetRevisionIndex, boolean includeUncommitted) {
+	public OWLOntologyEx getRevisionData(int targetRevisionIndex, boolean includeUncommitted) {
 		if (targetRevisionIndex == getArity() - 1 
 				&& targetRevisionIndex >= 0
 				&& includeUncommitted) {
@@ -261,14 +260,14 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 
 	
 	/**
-	 * Returns a view of all changesets from the one after r including the after head changeset.
+	 * Returns a view of all changesets from the one after r including the after head uncommitted changeset.
 	 * @param r
 	 * @return a sublist from changeset after r including the changeset after head.
 	 */
 	public List<ChangeSet> getChangeSetsFromRevisionToLast(Revision r) {
 		int i = indexOf(r);
 		List<ChangeSet> allCS = getChangeSets();
-		return getChangeSets().subList(i, allCS.size() - 1);
+		return allCS.subList(i, allCS.size()); //toIndex is exclusive
 	}
 	
 	/**
@@ -284,13 +283,13 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	 * @param original
 	 * @return
 	 */
-	public OWLOntologyImpl copyIntoPartialInMemOnto(HGDBOntology original) {
+	public OWLTempOntologyImpl copyIntoPartialInMemOnto(HGDBOntology original) {
 		OWLOntologyManager manager = original.getOWLOntologyManager();
 		if (manager == null) {
 			System.out.println("copyIntoPartialInMemOnto: creating custom in memory manager for new onto. Fix this.");
 			manager = OWLManager.createOWLOntologyManager();
 		}
-		OWLOntologyImpl memOnto = new OWLOntologyImpl(manager, original.getOntologyID());
+		OWLTempOntologyImpl memOnto = new OWLTempOntologyImpl(manager, original.getOntologyID());
 		// Copy A) ImportDeclarations 
 		for(OWLImportsDeclaration id : original.getImportsDeclarations()) {
 			memOnto.applyChange(new AddImport(memOnto, id));
@@ -303,6 +302,8 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 		for(OWLAxiom ax : original.getAxioms()) {
 			memOnto.applyChange(new AddAxiom(memOnto, ax));
 		}
+		// Copy D) Prefixes
+		memOnto.setPrefixesFrom(original.getPrefixes());
 		return memOnto;
 	}
 	
