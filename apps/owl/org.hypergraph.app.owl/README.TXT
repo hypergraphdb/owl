@@ -1,4 +1,23 @@
 Version history:
+1.7.0 Team (Release Date: 2012.10.04)
+++ Core
+	+ Prefixes stored in repository 
+		- versioned 
+		- included in vowlxml export/import (Changeset and Workingset) 
+		- sent during push pull activities 
+		- collected by GarbageCollector
+	+ Synchronization between stored prefixes and HGDBFormat
+	+ Complete SWRL package implementation
+	+ Bug fixes
+		- Ontology Annotations
+		- Revert to previous revision
+		- All standard OWLAPI tests pass
+++ Integration Plugin:
+	+ Prefix changes instantly persisted on edit change 
+	+ Add/Remove Prefix in History View for versioned ontolgies
+	+ Bug fixes
+		- Load ontology after checkout
+
 1.6.0 Team (Release Date: 2012.09.21)
 ++ Core:
 	+ All changes from versioning operations and p2p operations are now applied through the manager, to notify all listeners (reasoner!)
