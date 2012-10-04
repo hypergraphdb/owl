@@ -94,12 +94,12 @@ public class OWLDataFactoryInternalsHGDB {
     private void preCompileQueries()
     {
         lookupIRIByValue = HGQuery.make(HGHandle.class, factory.getHyperGraph()).compile(
-        		hg.and(hg.type(IRI.class), hg.eq(hg.var("iri"))));
+        		hg.and(hg.typePlus(IRI.class), hg.eq(hg.var("iri"))));
         lookupLiteral = HGQuery.make(HGHandle.class, factory.getHyperGraph()).compile(
         		hg.and(hg.type(OWLLiteralHGDB.class), 
         			   hg.eq("literal", hg.var("literal")),
-        			   hg.incident(hg.var("datatype"))/*,
-        			   hg.eq("lang", hg.var("lang"))*/));
+        			   hg.incident(hg.var("datatype")),
+        			   hg.eq("lang", hg.var("lang")))); //lang needed otherwise OWLAPI tests fail.
         getAxiomAnnotationsQuery = HGQuery.make(OWLAnnotation.class, factory.getHyperGraph()).compile(
         	hg.deref(factory.getHyperGraph(),
 			hg.apply(hg.targetAt(factory.getHyperGraph(), 1), //1 .. Annotation, 0 .. Axiom for AxiomAnnotatedBy
