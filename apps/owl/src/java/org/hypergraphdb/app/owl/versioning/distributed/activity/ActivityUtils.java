@@ -17,6 +17,8 @@ import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyFormat;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
+import org.hypergraphdb.app.owl.core.OWLOntologyEx;
+import org.hypergraphdb.app.owl.core.OWLTempOntologyImpl;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyUUIDException;
@@ -39,13 +41,10 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
-import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChangeException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.UnloadableImportException;
-
-import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
 
 /**
  * ActivityUtils.
@@ -125,7 +124,7 @@ public class ActivityUtils {
 		//OWLOntologyDocumentSource ds = new StringDocumentSource(vowlXMLString);
 		VOWLXMLParser vowlxmlParser = new VOWLXMLParser();
 		//Create an partial in mem onto with a hgdb manager and hgdb data factory to use.
-		OWLOntology partialInMemOnto = new OWLOntologyImpl(manager, new OWLOntologyID());
+		OWLOntologyEx partialInMemOnto = new OWLTempOntologyImpl(manager, new OWLOntologyID());
 		VOWLXMLDocument vowlxmlDoc = new VOWLXMLDocument(partialInMemOnto);
 		//The newly created ontology will hold the manager and the parser will use the manager's
 		//data factory.
@@ -170,7 +169,7 @@ public class ActivityUtils {
 		VOWLXMLParser vowlxmlParser = new VOWLXMLParser();
 		HGDBOntologyManager manager = (HGDBOntologyManager)targetVersionedOntology.getWorkingSetData().getOWLOntologyManager();
 		//Create an dummy in mem onto with a hgdb manager and hgdb data factory to use.
-		OWLOntology dummyOnto = new OWLOntologyImpl(manager, new OWLOntologyID());
+		OWLOntologyEx dummyOnto = new OWLTempOntologyImpl(manager, new OWLOntologyID());
 		VOWLXMLDocument vowlxmlDoc = new VOWLXMLDocument(dummyOnto);
 		//The newly created ontology will hold the manager and the parser will use the manager's
 		//data factory.
@@ -294,9 +293,9 @@ public class ActivityUtils {
 	 * Call within transaction.
 	 * 
 	 * @param from
-	 * @param to
+	 * @param to and ontology already in the graph.
 	 */
-	void storeFromTo(OWLOntology from, HGDBOntology to) {
+	void storeFromTo(OWLOntologyEx from, HGDBOntology to) {
 		final Set<OWLAxiom> axioms = from.getAxioms();
 		int i = 0;
 		for (OWLAxiom axiom : axioms) {
@@ -315,6 +314,8 @@ public class ActivityUtils {
 		for (OWLImportsDeclaration im : from.getImportsDeclarations()) {
 			to.applyChange(new AddImport(to, im));
 		}
+		to.setPrefixesFrom(from.getPrefixes());
+		if (DBG) System.out.println("Prefixes stored: nr: " + to.getPrefixes().size());
 	}
 
 	//
