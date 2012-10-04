@@ -7,17 +7,21 @@ import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLV
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_AXIOM_CHANGE;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_IMPORT_CHANGE;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_ONTOLOGY_ANNOTATION_CHANGE;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_PREFIX_CHANGE;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_MODIFY_ONTOLOGY_ID_CHANGE;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_MODIFY_ONTOLOGY_ID_NEW_ID;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_MODIFY_ONTOLOGY_ID_OLD_ID;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_REMOVE_AXIOM_CHANGE;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_REMOVE_IMPORT_CHANGE;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_REMOVE_ONTOLOGY_ANNOTATION_CHANGE;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_REMOVE_PREFIX_CHANGE;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument.DATE_FORMAT;
 import org.coode.owlapi.owlxml.renderer.OWLXMLObjectRenderer;
+import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
@@ -27,7 +31,7 @@ import org.hypergraphdb.app.owl.versioning.change.VImportChange;
 import org.hypergraphdb.app.owl.versioning.change.VModifyOntologyIDChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.app.owl.versioning.change.VOntologyAnnotationChange;
-import org.semanticweb.owlapi.model.OWLOntology;
+import org.hypergraphdb.app.owl.versioning.change.VPrefixChange;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.vocab.Namespaces;
 
@@ -72,12 +76,24 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor {
 			}
 			//Data
 			if (configuration.isLastRevisionData()) {
-				OWLOntology ontologyData; 
+				OWLOntologyEx ontologyData; 
 				ontologyData = vo.getRevisionData(lastRevision, configuration.isUncommittedChanges());
 				//Render Ontology Data
 				writer.startOntologyData(ontologyData);
 				ontologyData.accept(owlObjectRenderer);
 				writer.endOntologyData();
+				// Need to render Ontology contained Format Prefixes here.
+				if (!ontologyData.getPrefixes().isEmpty()) {
+					writer.writeStartElement(VOWLXMLVocabulary.V_PREFIX_MAP);
+					Map<String,String> prefixMap = ontologyData.getPrefixes();
+					for (Map.Entry<String, String> prefix : prefixMap.entrySet()) {
+						writer.writeStartElement(VOWLXMLVocabulary.V_PREFIX_MAP_ENTRY);
+						writer.writeAttribute("prefixName", prefix.getKey());
+						writer.writeAttribute("namespace", prefix.getValue());
+						writer.writeEndElement();
+					}
+					writer.writeEndElement();
+				}
 			}
 			//VersionedOntology
             writer.writeEndElement();
@@ -168,6 +184,24 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor {
 		}
 
 		/* (non-Javadoc)
+		 * @see org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor#visit(org.hypergraphdb.app.owl.versioning.change.VPrefixChange)
+		 */
+		@Override
+		public void visit(VPrefixChange change) {
+			if (VOWLChange.isAddChange(change)) {
+				writer.writeStartElement(V_ADD_PREFIX_CHANGE);
+			} else if (VOWLChange.isRemoveChange(change)){
+				writer.writeStartElement(V_REMOVE_PREFIX_CHANGE);
+			} else {
+				throw new IllegalArgumentException("Prefixchange neither add nor remove: " + change);
+			}
+			//Write NEW
+			writer.writeAttribute(Namespaces.OWL + "prefixName", change.getPrefixName());
+			writer.writeAttribute(Namespaces.OWL + "prefix", change.getPrefix());
+			writer.writeEndElement();
+		}	   
+
+		/* (non-Javadoc)
 		 * @see org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor#visit(org.hypergraphdb.app.owl.versioning.change.VModifyOntologyIDChange)
 		 */
 		@Override
@@ -208,5 +242,6 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor {
 			writer.writeAttribute(VOWLXMLVocabulary.NAMESPACE + "lastRevisionData", "" + configuration.isLastRevisionData());
 			writer.writeAttribute(VOWLXMLVocabulary.NAMESPACE + "unCommittedChanges", "" + configuration.isUncommittedChanges());
 			writer.writeEndElement();
-		}	   
+		}
+
 }

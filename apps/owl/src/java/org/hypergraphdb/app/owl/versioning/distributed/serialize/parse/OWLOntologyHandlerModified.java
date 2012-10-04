@@ -7,6 +7,7 @@ import org.coode.owlapi.owlxmlparser.OWLAnnotationElementHandler;
 import org.coode.owlapi.owlxmlparser.OWLElementHandler;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserHandler;
+import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
@@ -96,8 +97,8 @@ public class OWLOntologyHandlerModified extends AbstractVOWLElementHandler<OWLOn
     	}
     }
 
-    public OWLOntology getOWLObject() {
-        return getOntology();
+    public OWLOntologyEx getOWLObject() {
+        return (OWLOntologyEx)getOntology();
     }
 
     @Override

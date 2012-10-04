@@ -7,12 +7,14 @@ import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLV
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_AXIOM_CHANGE;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_IMPORT_CHANGE;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_ONTOLOGY_ANNOTATION_CHANGE;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_PREFIX_CHANGE;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_MODIFY_ONTOLOGY_ID_CHANGE;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_MODIFY_ONTOLOGY_ID_NEW_ID;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_MODIFY_ONTOLOGY_ID_OLD_ID;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_REMOVE_AXIOM_CHANGE;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_REMOVE_IMPORT_CHANGE;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_REMOVE_ONTOLOGY_ANNOTATION_CHANGE;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_REMOVE_PREFIX_CHANGE;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.VERSIONED_ONTOLOGY;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.VERSIONED_ONTOLOGY_ROOT;
 import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.ABBREVIATED_IRI_ELEMENT;
@@ -213,6 +215,9 @@ import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VAxiomCha
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VImportChangeElementHandler;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VOntologyAnnotationChangeElementHandler;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VOntologyIDChangeElementHandler;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VPrefixChangeElementHandler;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VPrefixMapElementHandler;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VPrefixMapEntryElementHandler;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VersionedOntologyElementHandler;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VersionedOntologyDocumentElementHandler;
 import org.semanticweb.owlapi.io.OWLParserException;
@@ -251,7 +256,9 @@ import org.xml.sax.SAXException;
  *     <!-- optional; contains head revision Ontology Data as described in RenderConFiguration 
  *          which will be parsed by regular OWLXML handlers. 
  *     -->
- *     </Ontology>
+ *     </Ontology>     
+ *     <!-- optional VPrefixMap, dependent on Ontology data existence; contains Prefixes for HGDBOntology 
+ *     -->
  * 	  
  * </vo:VersionedOntology>
  * 
@@ -366,6 +373,12 @@ public class VOWLXMLParserHandler extends OWLXMLParserHandler {
             }
         }, V_REMOVE_ONTOLOGY_ANNOTATION_CHANGE.getShortName());
 
+        addFactory(new AbstractVElementHandlerFactory(V_ADD_PREFIX_CHANGE) {
+            public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler) {
+                return new VPrefixChangeElementHandler(handler);
+            }
+        }, V_REMOVE_PREFIX_CHANGE.getShortName());
+
         addFactory(new AbstractVElementHandlerFactory(V_MODIFY_ONTOLOGY_ID_CHANGE) {
             public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler) {
                 return new VOntologyIDChangeElementHandler(handler);
@@ -373,6 +386,18 @@ public class VOWLXMLParserHandler extends OWLXMLParserHandler {
         }, V_MODIFY_ONTOLOGY_ID_NEW_ID.getShortName(), 
         V_MODIFY_ONTOLOGY_ID_OLD_ID.getShortName());
         
+        addFactory(new AbstractVElementHandlerFactory(VOWLXMLVocabulary.V_PREFIX_MAP) {
+            public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler) {
+                return new VPrefixMapElementHandler(handler);
+            }
+        });
+        
+        addFactory(new AbstractVElementHandlerFactory(VOWLXMLVocabulary.V_PREFIX_MAP_ENTRY) {
+            public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler) {
+                return new VPrefixMapEntryElementHandler(handler);
+            }
+        });
+
         //
         // Add all OwlOntology related handlers that are also used in the superclass.
         //

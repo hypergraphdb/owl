@@ -5,10 +5,9 @@ import java.util.List;
 import java.util.Locale;
 
 import org.hypergraphdb.HGPersistentHandle;
+import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
-//import org.hypergraphdb.app.owl.versioning.VersionedOntology;
-import org.semanticweb.owlapi.model.OWLOntology;
 
 /**
  * This class represents the toplevel structure of an VOWLXML document.
@@ -28,7 +27,7 @@ public class VOWLXMLDocument {
 	private List<Revision> revisions;
 	private List<ChangeSet> changesets;
 	
-	private OWLOntology revisionData;
+	private OWLOntologyEx revisionData;
 	private int headRevisionIndex;
 	private HGPersistentHandle versionedOntologyID;
 	
@@ -37,7 +36,7 @@ public class VOWLXMLDocument {
 	 * @param vo the VersionedOntology to merge the parsed results into; may be null.
 	 * @param onto the empty OWLOntoloy to add all revision Data to; may be null.
 	 */
-	public VOWLXMLDocument(OWLOntology onto) {
+	public VOWLXMLDocument(OWLOntologyEx onto) {
 		setRenderConfig(new VOWLXMLRenderConfiguration());
 		//setVersionedOntology(vo);
 		setRevisionData(onto);
@@ -141,13 +140,13 @@ public class VOWLXMLDocument {
 	/**
 	 * @return the revisionData
 	 */
-	public OWLOntology getRevisionData() {
+	public OWLOntologyEx getRevisionData() {
 		return revisionData;
 	}
 	/**
 	 * @param revisionData the revisionData to set
 	 */
-	public void setRevisionData(OWLOntology revisionData) {
+	public void setRevisionData(OWLOntologyEx revisionData) {
 		this.revisionData = revisionData;
 	}
 	/**

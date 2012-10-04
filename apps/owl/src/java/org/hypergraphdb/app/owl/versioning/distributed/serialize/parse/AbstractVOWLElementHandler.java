@@ -94,4 +94,18 @@ public abstract class AbstractVOWLElementHandler<O> extends AbstractOWLElementHa
 	@Override
 	public void handleChild(OWLImportsHandlerModified h) throws OWLXMLParserException {
 	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VOWLElementHandler#handleChild(org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VPrefixMapElementHandler)
+	 */
+	@Override
+	public void handleChild(VPrefixMapElementHandler h) throws OWLXMLParserException {
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VOWLElementHandler#handleChild(org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VPrefixMapEntryElementHandler)
+	 */
+	@Override
+	public void handleChild(VPrefixMapEntryElementHandler h) throws OWLXMLParserException {
+	}
 }

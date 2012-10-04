@@ -2,16 +2,16 @@ package org.hypergraphdb.app.owl.versioning.distributed.serialize.parse;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserHandler;
 import org.hypergraphdb.HGPersistentHandle;
+import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
-//import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.handle.UUIDPersistentHandle;
 import org.semanticweb.owlapi.io.OWLParserException;
-import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.UnloadableImportException;
 
 /**
@@ -31,7 +31,7 @@ public class VersionedOntologyElementHandler extends AbstractVOWLElementHandler<
 
 	private List<Revision> revisions;
 	private List<ChangeSet> changeSets;
-	private OWLOntology ontologyHeadData;
+	private OWLOntologyEx ontologyHeadData;
 	
 	/**
 	 * @param handler
@@ -99,6 +99,15 @@ public class VersionedOntologyElementHandler extends AbstractVOWLElementHandler<
 		ontologyHeadData = h.getOWLObject();
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public void handleChild(VPrefixMapElementHandler h) throws OWLXMLParserException {
+		if (ontologyHeadData == null) {
+			throw new OWLXMLParserException("VPrefixMap must not exist without an OwlOntology data entry.", getLineNumber(), getColumnNumber());
+		}
+		ontologyHeadData.setPrefixesFrom((Map<String, String>)h.getOWLObject());
+	}
+
 	/* (non-Javadoc)
 	 * @see org.coode.owlapi.owlxmlparser.OWLElementHandler#endElement()
 	 */
@@ -152,7 +161,7 @@ public class VersionedOntologyElementHandler extends AbstractVOWLElementHandler<
 	 * 
 	 * @return the ontologyHeadData
 	 */
-	public OWLOntology getOntologyHeadData() throws OWLXMLParserException {
+	public OWLOntologyEx getOntologyHeadData() throws OWLXMLParserException {
 		return ontologyHeadData;
 	}
 }
