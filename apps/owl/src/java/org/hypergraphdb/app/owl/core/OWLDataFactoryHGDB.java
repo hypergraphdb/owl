@@ -2079,7 +2079,7 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		SWRLHead swrlHead = new SWRLHead(headHandles);
 		HGHandle bodyHandle = graph.add(swrlBody);
 		HGHandle headHandle = graph.add(swrlHead);		
-		graph.add(bodyHandle);
+		graph.add(bodyHandle); //TODO THIS SEEMS WRONG!!!!
 		graph.add(headHandle);
 		SWRLRuleHGDB ruleAxiom = new SWRLRuleHGDB(bodyHandle, headHandle, annos);
 		ruleAxiom.setHyperGraph(graph);
@@ -2096,7 +2096,11 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *            The argument (x)
 	 */
 	public SWRLClassAtom getSWRLClassAtom(OWLClassExpression predicate, SWRLIArgument arg) {
-		SWRLClassAtomHGDB classAtom = new SWRLClassAtomHGDB(predicate, arg);
+		HGHandle predicateH = graph.getHandle(predicate);
+		HGHandle argH = graph.getHandle(arg);
+		if (predicateH == null) throw new IllegalStateException();
+		if (argH == null) throw new IllegalStateException();
+		SWRLClassAtomHGDB classAtom = new SWRLClassAtomHGDB(predicateH, argH);
 		graph.add(classAtom);
 		return classAtom;
 		//return new SWRLClassAtomImpl(this, predicate, arg);
@@ -2112,7 +2116,11 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *            The argument (x)
 	 */
 	public SWRLDataRangeAtom getSWRLDataRangeAtom(OWLDataRange predicate, SWRLDArgument arg) {
-		SWRLDataRangeAtomHGDB atom = new SWRLDataRangeAtomHGDB(predicate, arg);
+		HGHandle predicateH = graph.getHandle(predicate);
+		HGHandle argH = graph.getHandle(arg);
+		if (predicateH == null) throw new IllegalStateException();
+		if (argH == null) throw new IllegalStateException();
+		SWRLDataRangeAtomHGDB atom = new SWRLDataRangeAtomHGDB(predicateH, argH);
 		graph.add(atom);
 		return atom;
 		// return new SWRLDataRangeAtomImpl(this, predicate, arg);
@@ -2132,7 +2140,13 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 */
 	public SWRLObjectPropertyAtom getSWRLObjectPropertyAtom(OWLObjectPropertyExpression property, SWRLIArgument arg0,
 			SWRLIArgument arg1) {
-		SWRLObjectPropertyAtomHGDB atom = new SWRLObjectPropertyAtomHGDB(property, arg0, arg1);
+		HGHandle propertyH = graph.getHandle(property);
+		HGHandle arg0H = graph.getHandle(arg0);
+		HGHandle arg1H = graph.getHandle(arg1);
+		if (propertyH == null) throw new IllegalStateException("not in graph: " + property); 
+		if (arg0H == null) throw new IllegalStateException("not in graph: " + arg0); 
+		if (arg1H == null) throw new IllegalStateException("not in graph: " + arg1); 
+		SWRLObjectPropertyAtomHGDB atom = new SWRLObjectPropertyAtomHGDB(propertyH, arg0H, arg1H);
 		graph.add(atom);
 		return atom;		
 		// return new SWRLObjectPropertyAtomImpl(this, property, arg0, arg1);
@@ -2152,7 +2166,13 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 */
 	public SWRLDataPropertyAtom getSWRLDataPropertyAtom(OWLDataPropertyExpression property, SWRLIArgument arg0,
 			SWRLDArgument arg1) {
-		SWRLDataPropertyAtomHGDB atom = new SWRLDataPropertyAtomHGDB(property, arg0, arg1);
+		HGHandle propertyH = graph.getHandle(property);
+		HGHandle arg0H = graph.getHandle(arg0);
+		HGHandle arg1H = graph.getHandle(arg1);
+		if (propertyH == null) throw new IllegalStateException("not in graph: " + property); 
+		if (arg0H == null) throw new IllegalStateException("not in graph: " + arg0); 
+		if (arg1H == null) throw new IllegalStateException("not in graph: " + arg1); 
+		SWRLDataPropertyAtomHGDB atom = new SWRLDataPropertyAtomHGDB(propertyH, arg0H, arg1H);
 		graph.add(atom);
 		return atom;				
 		// return new SWRLDataPropertyAtomImpl(this, property, arg0, arg1);
@@ -2167,7 +2187,9 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *            A non-empty set of SWRL D-Objects
 	 */
 	public SWRLBuiltInAtom getSWRLBuiltInAtom(IRI builtInIRI, List<SWRLDArgument> args) {
-		SWRLBuiltInAtomHGDB atom = new SWRLBuiltInAtomHGDB(builtInIRI, args);
+		HGHandle builtInIRIH = assertIRI(builtInIRI);
+		List<HGHandle> argsH = getHandlesListFor(args);
+		SWRLBuiltInAtomHGDB atom = new SWRLBuiltInAtomHGDB(builtInIRIH, argsH);
 		graph.add(atom);
 		return atom;				
 		//return new SWRLBuiltInAtomImpl(this, builtInIRI, args);
@@ -2181,7 +2203,8 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 * @return A SWRLVariable that has the name specified by the IRI
 	 */
 	public SWRLVariable getSWRLVariable(final IRI var) {
-		SWRLVariableHGDB atom = new SWRLVariableHGDB(var);
+		HGHandle varH = assertIRI(var);
+		SWRLVariableHGDB atom = new SWRLVariableHGDB(varH);
 		graph.add(atom);
 		return atom;				
 	}
@@ -2194,7 +2217,7 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 */
 	public SWRLIndividualArgument getSWRLIndividualArgument(OWLIndividual individual) {
 		HGHandle h = graph.getHandle(individual);
-		if (h == null) throw new IllegalArgumentException("Individual handle not found.");
+		if (h == null) throw new IllegalArgumentException("Individual handle not found: " + individual);
 		SWRLIndividualArgumentHGDB atom = new SWRLIndividualArgumentHGDB(h);
 		graph.add(atom);
 		return atom;
@@ -2208,24 +2231,37 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *            The constant that is the object argument
 	 */
 	public SWRLLiteralArgument getSWRLLiteralArgument(OWLLiteral literal) {
-		//HGHandle h = graph.getHandle(literal);
-		//if (h == null) throw new IllegalArgumentException("Literal handle not found.");
-		//TODO Do we care here, whether literal is in graph or not? It is.
-		SWRLLiteralArgument atom = new SWRLLiteralArgumentHGDB(literal);
+		HGHandle literalH = graph.getHandle(literal);
+		if (literalH == null) throw new IllegalArgumentException("Literal handle not found: " + literal);
+		SWRLLiteralArgument atom = new SWRLLiteralArgumentHGDB(literalH);
 		graph.add(atom);
 		return atom;
 		//return new SWRLLiteralArgumentImpl(this, literal);
 	}
 
 	public SWRLDifferentIndividualsAtom getSWRLDifferentIndividualsAtom(SWRLIArgument arg0, SWRLIArgument arg1) {
-		SWRLDifferentIndividualsAtom atom = new SWRLDifferentIndividualsAtomHGDB(arg0, arg1);
+		OWLObjectProperty property = getOWLObjectProperty(OWLRDFVocabulary.OWL_DIFFERENT_FROM.getIRI());
+		HGHandle propertyH = graph.getHandle(property);
+		HGHandle arg0H = graph.getHandle(arg0);
+		HGHandle arg1H = graph.getHandle(arg1);
+		if (propertyH == null) throw new IllegalStateException("not in graph: constant: " + propertyH); 
+		if (arg0H == null) throw new IllegalStateException("not in graph: " + arg0); 
+		if (arg1H == null) throw new IllegalStateException("not in graph: " + arg1); 
+		SWRLDifferentIndividualsAtom atom = new SWRLDifferentIndividualsAtomHGDB(propertyH, arg0H, arg1H);
 		graph.add(atom);
 		return atom;
 		//return new SWRLDifferentIndividualsAtomImpl(this, arg0, arg1);
 	}
 
 	public SWRLSameIndividualAtom getSWRLSameIndividualAtom(SWRLIArgument arg0, SWRLIArgument arg1) {
-		SWRLSameIndividualAtom atom = new SWRLSameIndividualAtomHGDB(arg0, arg1);
+		OWLObjectProperty property = getOWLObjectProperty(OWLRDFVocabulary.OWL_SAME_AS.getIRI());
+		HGHandle propertyH = graph.getHandle(property);
+		HGHandle arg0H = graph.getHandle(arg0);
+		HGHandle arg1H = graph.getHandle(arg1);
+		if (propertyH == null) throw new IllegalStateException("not in graph: constant: " + property); 
+		if (arg0H == null) throw new IllegalStateException("not in graph: " + arg0); 
+		if (arg1H == null) throw new IllegalStateException("not in graph: " + arg1); 
+		SWRLSameIndividualAtom atom = new SWRLSameIndividualAtomHGDB(propertyH, arg0H, arg1H);
 		graph.add(atom);
 		return atom;
 		//return new SWRLSameIndividualAtomImpl(this, arg0, arg1);
