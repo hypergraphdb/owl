@@ -2,6 +2,8 @@ package org.hypergraphdb.app.owl;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import org.hypergraphdb.app.owl.core.HGDBTask;
@@ -24,7 +26,7 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLOntologyStorer;
 
 /**
- * HGDBStorer.
+ * HGDBStorer used to import ontologies into the repository by creating a new DB backed ontology and copying all content.
  * 
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  */
@@ -62,6 +64,7 @@ public class HGDBStorer implements OWLOntologyStorer, HGDBTask {
 		if (DBG) System.out.println("HGDBStorer.storeOntology ");
 		HGDBOntologyManager man = (HGDBOntologyManager) manager;
 		HGDBOntologyRepository repo =  man.getOntologyRepository();
+		HGDBOntologyFormat format = (HGDBOntologyFormat) ontologyFormat;
 		StopWatch stopWatch = new StopWatch(true);
 		HGDBOntology newOnto = null;
 		if (!(ontologyFormat instanceof HGDBOntologyFormat)) {
@@ -105,8 +108,9 @@ public class HGDBStorer implements OWLOntologyStorer, HGDBTask {
 			for (OWLImportsDeclaration i : ontology.getImportsDeclarations()) {
 				newOnto.applyChange(new AddImport(newOnto, i));
 			}
+			// Save prefixes in HGDBOntology 
+			storePrefixes(format, newOnto);
 			// no need to store in HG, already done by createOntology.
-			// TODO after storage, we need to use it.
 			printProgress(repo);
 		} catch (OWLOntologyChangeException e) {
 			System.out.println("Storage Exception during ontology axiom adding. Removing newly created ontology: " + newOnto.getOntologyID());
@@ -120,6 +124,12 @@ public class HGDBStorer implements OWLOntologyStorer, HGDBTask {
 		stopWatch.stop("Done: HGDBStorer.storeOntology ");
 	}
 
+	private void storePrefixes(HGDBOntologyFormat format, HGDBOntology onto) {
+		Map<String, String> prefixMap = new HashMap<String, String>();
+		prefixMap.putAll(format.getPrefixName2PrefixMap());
+		onto.setPrefixesFrom(prefixMap);
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 

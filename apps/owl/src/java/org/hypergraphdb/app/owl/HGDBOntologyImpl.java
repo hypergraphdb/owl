@@ -3,8 +3,10 @@ package org.hypergraphdb.app.owl;
 import static org.semanticweb.owlapi.util.CollectionFactory.createSet;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -17,9 +19,13 @@ import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.IncidenceSet;
 import org.hypergraphdb.annotation.HGIgnore;
+import org.hypergraphdb.app.owl.core.AddPrefixChange;
 import org.hypergraphdb.app.owl.core.ChangeAxiomVisitorHGDB;
 import org.hypergraphdb.app.owl.core.HGChangeableLink;
+import org.hypergraphdb.app.owl.core.HGDBOntologyChangeVisitor;
 import org.hypergraphdb.app.owl.core.OWLSubgraphObject;
+import org.hypergraphdb.app.owl.core.RemovePrefixChange;
+import org.hypergraphdb.query.HGQueryCondition;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
@@ -1376,7 +1382,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		log.info("OWLOntoChange: " + c.toString());
 	}
 
-	protected class OWLOntologyChangeFilter implements OWLOntologyChangeVisitor {
+	protected class OWLOntologyChangeFilter implements HGDBOntologyChangeVisitor {
 
 		private List<OWLOntologyChange> appliedChanges;
 
@@ -1446,6 +1452,48 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		public void visit(RemoveOntologyAnnotation change) {
 			if (internals.removeOntologyAnnotation(change.getAnnotation())) {
 				appliedChanges.add(change);
+			}
+		}
+
+		/* (non-Javadoc)
+		 * @see org.hypergraphdb.app.owl.core.HGDBOntologyChangeVisitor#visit(org.hypergraphdb.app.owl.core.AddPrefixChange)
+		 */
+		@Override
+		public void visit(AddPrefixChange change) {
+			String prefixName = change.getPrefixNameToPrefix().getFirst();
+			String namespace = change.getPrefixNameToPrefix().getSecond();
+			if (prefixName == null) throw new IllegalArgumentException();
+			if (namespace == null) throw new IllegalArgumentException();
+			String oldNamespace = internals.setPrefix(prefixName, namespace);
+			if (oldNamespace == null || !oldNamespace.equals(namespace)) {
+				appliedChanges.add(change);
+				if (manager != null) {
+					//Keep format synchronized
+					HGDBOntologyFormat hgdbf = (HGDBOntologyFormat)manager.getOntologyFormat(HGDBOntologyImpl.this);
+					if (hgdbf != null && !hgdbf.isFiringChange()) {
+						hgdbf.addPrefixQuiet(prefixName, namespace);
+					}
+				}
+			}
+		}
+
+		/* (non-Javadoc)
+		 * @see org.hypergraphdb.app.owl.core.HGDBOntologyChangeVisitor#visit(org.hypergraphdb.app.owl.core.RemovePrefixChange)
+		 */
+		@Override
+		public void visit(RemovePrefixChange change) {
+			String prefixName = change.getPrefixNameToPrefix().getFirst();
+			if (prefixName == null) throw new IllegalArgumentException();
+			String oldPrefix = internals.removePrefix(prefixName);
+			if (oldPrefix != null) {
+				appliedChanges.add(change);
+				if (manager != null) {
+					//Keep format synchronized
+					HGDBOntologyFormat hgdbf = (HGDBOntologyFormat)manager.getOntologyFormat(HGDBOntologyImpl.this);
+					if (hgdbf != null && !hgdbf.isFiringChange()) {
+						hgdbf.removePrefixQuiet(prefixName);
+					}
+				}
 			}
 		}
 	}
@@ -1572,10 +1620,11 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 							// graph.remove(objectHandle);							
 						}
 					} else {
-							throw new IllegalStateException("Just removed an axiom that did refer to an entity outside our ontology:" + object);
+						throw new IllegalStateException("Just removed an axiom that did refer to an entity outside our ontology:" + object + " axiom: " + axiom);
 					}
 				} else {
-					throw new IllegalStateException("getHandle(entity) for entity in memory returned null. Implement find?");
+					//We assume here that no
+					throw new IllegalStateException("getHandle(entity) for entity in memory returned null. Implement find? " + object + " axiom: " + axiom);
 				}
 //			} else {
 //				if (DBG) log.info("handleAxiomRemoved: found builtin entity in Axiom signature: " + object);
@@ -1872,4 +1921,25 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		return "Ontology(" + getOntologyID() + ")"; 
 	}
 
+	// --------------------------------------------------------
+	// PREFIXES
+	// 
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.HGDBOntology#getPrefixMap()
+	 */
+	@Override
+	@HGIgnore
+	public Map<String, String> getPrefixes() {
+		return internals.getPrefixes();
+	}
+	
+	/**
+	 * Sets a Map of PrefixNames to Prefixes.
+	 * Internal use only for setting prefixes quietly after load. 
+	 * 
+	 * @return
+	 */
+	public void setPrefixesFrom(Map<String, String> prefixMap) {
+		internals.setPrefixesFrom(prefixMap);
+	}
 }

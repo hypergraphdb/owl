@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
@@ -537,5 +538,16 @@ public interface HGDBOntologyInternals {
 	Set<OWLAnnotationAxiom> getOWLAnnotationPropertyAxioms(OWLAnnotationProperty prop);
 	
 	Set<OWLObjectPropertyAxiom> getOWLObjectPropertyExpressionAxioms(OWLObjectPropertyExpression prop);
+	
+	// 2012.10.02 Prefixes
+	Map<String, String> getPrefixes();
+	
+	void setPrefixesFrom(Map<String, String> prefixMap);
+
+	String getPrefix(String prefixName);
+	
+	String setPrefix(String prefixName, String prefix);
+	
+	String removePrefix(String prefixName);
 	
 }

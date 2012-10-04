@@ -4,13 +4,18 @@ import java.io.File;
 import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.app.owl.core.AddPrefixChange;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
+import org.hypergraphdb.app.owl.core.PrefixChange;
+import org.hypergraphdb.app.owl.core.PrefixChangeListener;
+import org.hypergraphdb.app.owl.core.RemovePrefixChange;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.ActivityUtils;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
@@ -20,7 +25,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Feb 3, 2012
  */
-public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements HGDBOntologyManager {
+public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements HGDBOntologyManager, PrefixChangeListener {
 
 	public static boolean DBG = true;
 
@@ -145,5 +150,41 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 	public int getCurrentTaskProgress() {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+	
+    public void setOntologyFormat(OWLOntology ontology, OWLOntologyFormat format) {
+    	if (format instanceof HGDBOntologyFormat) {
+    		((HGDBOntologyFormat)format).addPrefixChangeListener(this);
+    	}
+    	super.setOntologyFormat(ontology, format);
+    }
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.core.PrefixChangeListener#prefixChanged(org.hypergraphdb.app.owl.core.PrefixChange)
+	 */
+	@Override
+	public void prefixChanged(PrefixChange e) {
+		//We get notfied here if anybody modifies prefixes.
+		//We will have to look up the ontology and call for a change to be applied
+		HGDBOntology ho = getOntologyForFormat(e.getFormat());
+		if (e instanceof AddPrefixChange) {
+			applyChange(new AddPrefixChange(ho, e.getPrefixName(), e.getPrefix()));
+		} else if (e instanceof RemovePrefixChange) {
+			applyChange(new RemovePrefixChange(ho, e.getPrefixName(), e.getPrefix()));
+		} else {
+			throw new IllegalArgumentException("Unknown prefixchange: " + e + "" + e.getClass());
+		}
+	}
+	
+	public HGDBOntology getOntologyForFormat(HGDBOntologyFormat f) {
+		for (OWLOntology o : getOntologies()) {
+			if (o instanceof HGDBOntology) {
+				OWLOntologyFormat candidate = getOntologyFormat(o);
+				if (f == candidate) {
+					return (HGDBOntology)o;
+				}
+			}
+		}
+		return null;
 	}
 }

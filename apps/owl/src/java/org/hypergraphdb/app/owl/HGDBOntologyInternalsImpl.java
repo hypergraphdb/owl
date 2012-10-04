@@ -5,17 +5,18 @@ import static org.semanticweb.owlapi.util.CollectionFactory.createSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGIndex;
-import org.hypergraphdb.HGQuery;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HGRandomAccessResult;
 import org.hypergraphdb.IncidenceSet;
@@ -25,6 +26,7 @@ import org.hypergraphdb.app.owl.core.AxiomTypeToHGDBMap;
 import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
+import org.hypergraphdb.app.owl.core.PrefixHGDB;
 import org.hypergraphdb.app.owl.model.OWLAnnotationHGDB;
 import org.hypergraphdb.app.owl.model.OWLAnnotationPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLAnonymousIndividualHGDB;
@@ -590,17 +592,17 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 	}
 
 	public Set<OWLAnnotation> getOntologyAnnotations() {
-		return ontologyAnnotationsQuery.findInSet();
-//		return graph.getTransactionManager().ensureTransaction(new Callable<Set<OWLAnnotation>>() {
-//			public Set<OWLAnnotation> call() {
-//				List<OWLAnnotation> l;
-//				l = ontology.getAll(hg.type(OWLAnnotationHGDB.class));
-//				Set<OWLAnnotation> s;
-//				s = getReturnSet(l);
-//				if (s.size() != l.size()) throw new IllegalStateException("Set contract broken.");
-//				return s;
-//			}
-//		}, HGTransactionConfig.READONLY);
+//		return ontologyAnnotationsQuery.findInSet();
+		return graph.getTransactionManager().ensureTransaction(new Callable<Set<OWLAnnotation>>() {
+			public Set<OWLAnnotation> call() {
+				List<OWLAnnotation> l;
+				l = ontology.getAll(hg.type(OWLAnnotationHGDB.class));
+				Set<OWLAnnotation> s;
+				s = getReturnSet(l);
+				if (s.size() != l.size()) throw new IllegalStateException("Set contract broken.");
+				return s;
+			}
+		}, HGTransactionConfig.READONLY);
 	}
 
 	/**
@@ -1758,5 +1760,90 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		+ "\n By Signature test onto member  : " + PERFCOUNTER_FIND_BY_SIGNATURE_ONTOLOGY_MEMBERS
 		+ "\n By Signature test slow equals  : " + PERFCOUNTER_FIND_BY_SIGNATURE_EQUALS
 		+ "\n ---------------------------------\n";
+	}
+
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#getPrefixes()
+	 */
+	@Override
+	public Map<String, String> getPrefixes() {
+		Map<String, String> prefixMap = new HashMap<String, String>(9);
+		List<PrefixHGDB> prefixes = ontology.getAll(hg.type(PrefixHGDB.class));
+		for(PrefixHGDB prefix : prefixes) {
+			if (prefixMap.put(prefix.getPrefixName(), prefix.getNamespace()) != null) {
+				throw new IllegalStateException("Key Set contract broken");
+			}
+		}
+		return prefixMap;
+	}
+	
+	public void setPrefixesFrom(final Map<String, String> prefixMap) {
+		graph.getTransactionManager().ensureTransaction(new Callable<String>() {
+			public String call() {
+				final Set<String> oldPrefixes = getPrefixes().keySet();
+				for (String oldPrefix : oldPrefixes) {
+					removePrefix(oldPrefix);
+				}
+				for (Map.Entry<String, String> newPrefix : prefixMap.entrySet()) {
+					setPrefix(newPrefix.getKey(), newPrefix.getValue());
+				}
+				return null;
+			};
+		}, HGTransactionConfig.DEFAULT);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#getPrefix(java.lang.String)
+	 */
+	@Override
+	public String getPrefix(final String prefixName) {
+		PrefixHGDB prefix = ontology.getOne(hg.and(hg.eq("prefixName", prefixName), hg.type(PrefixHGDB.class)));
+		return prefix == null? null : prefix.getNamespace();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#setPrefix(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public String setPrefix(final String prefixName, final String namespace) {
+		return graph.getTransactionManager().ensureTransaction(new Callable<String>() {
+			public String call() {
+				boolean needsAdd = true;
+				HGHandle oldPrefixHandle = ontology.findOne(hg.and(hg.eq("prefixName", prefixName), hg.type(PrefixHGDB.class)));
+				String oldNamespace = null;
+				if (oldPrefixHandle != null) {
+					oldNamespace = graph.<PrefixHGDB>get(oldPrefixHandle).getNamespace();
+					if (!oldNamespace.equals(namespace)) {
+						ontology.removeGlobally(oldPrefixHandle);
+					} else {
+						needsAdd = false;						
+					}
+				}
+				if (needsAdd) {
+					PrefixHGDB prefix = new PrefixHGDB(prefixName, namespace);
+					ontology.add(graph.add(prefix));
+				}
+				return oldNamespace;
+			};
+		}, HGTransactionConfig.DEFAULT);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#removePrefix(java.lang.String)
+	 */
+	@Override
+	public String removePrefix(final String prefixName) {
+		return graph.getTransactionManager().ensureTransaction(new Callable<String>() {
+			public String call() {
+				HGHandle oldPrefixHandle = ontology.findOne(hg.and(hg.eq("prefixName", prefixName), hg.type(PrefixHGDB.class)));
+				String oldNamespace = null;
+				if (oldPrefixHandle != null) {
+					oldNamespace = graph.<PrefixHGDB>get(oldPrefixHandle).getNamespace();
+					ontology.removeGlobally(oldPrefixHandle);
+				}
+				return oldNamespace;
+			};
+		}, HGTransactionConfig.DEFAULT);
 	}	
 }

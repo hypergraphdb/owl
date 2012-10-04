@@ -1,8 +1,12 @@
 package org.hypergraphdb.app.owl;
 
+import java.util.Map;
+
 import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HyperNode;
 import org.hypergraphdb.annotation.HGIgnore;
+import org.hypergraphdb.app.owl.core.OWLOntologyEx;
+import org.hypergraphdb.app.owl.core.PrefixHolder;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLMutableOntology;
 import org.semanticweb.owlapi.model.OWLOntologyID;
@@ -28,7 +32,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
  * 
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  */
-public interface HGDBOntology extends OWLMutableOntology, HyperNode, HGHandleHolder
+public interface HGDBOntology extends OWLOntologyEx, HyperNode, HGHandleHolder
 {	
 		
 	void setOntologyID(OWLOntologyID id);
@@ -40,7 +44,6 @@ public interface HGDBOntology extends OWLMutableOntology, HyperNode, HGHandleHol
 	void setDocumentIRI(IRI documentIRI);
 	
 	IRI getDocumentIRI();
-	
 	/**
 	 * Returns the number of atoms who are members in the ontology subgraph.
 	 * Use this for testing.
