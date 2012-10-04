@@ -1,5 +1,6 @@
 package org.hypergraphdb.app.owl.model.swrl;
 
+import org.hypergraphdb.HGHandle;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 
 import org.semanticweb.owlapi.model.OWLObjectVisitor;
@@ -17,13 +18,13 @@ import org.semanticweb.owlapi.model.SWRLObjectVisitorEx;
  */
 public class SWRLObjectPropertyAtomHGDB extends	SWRLBinaryAtomHGDB<SWRLIArgument, SWRLIArgument> implements	SWRLObjectPropertyAtom
 {
-	public SWRLObjectPropertyAtomHGDB()
-	{		
+	public SWRLObjectPropertyAtomHGDB(HGHandle... args)
+	{
+		super(args);
 	}
-	
-	public SWRLObjectPropertyAtomHGDB(OWLObjectPropertyExpression predicate, 
-									  SWRLIArgument arg0,
-									  SWRLIArgument arg1)
+
+	//public SWRLObjectPropertyAtomHGDB(OWLObjectPropertyExpression predicate, SWRLIArgument arg0, SWRLIArgument arg1)
+	public SWRLObjectPropertyAtomHGDB(HGHandle predicate, HGHandle arg0, HGHandle arg1)
 	{
 		super(predicate, arg0, arg1);
 	}

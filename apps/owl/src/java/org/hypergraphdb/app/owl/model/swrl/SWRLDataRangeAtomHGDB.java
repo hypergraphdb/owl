@@ -1,5 +1,6 @@
 package org.hypergraphdb.app.owl.model.swrl;
 
+import org.hypergraphdb.HGHandle;
 import org.semanticweb.owlapi.model.OWLDataRange;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectVisitor;
@@ -10,19 +11,21 @@ import org.semanticweb.owlapi.model.SWRLObjectVisitor;
 import org.semanticweb.owlapi.model.SWRLObjectVisitorEx;
 
 /**
- * 
  * SWRLDataRangeAtomHGDB.
  * @author Boris Iordanov (CIAO/Miami-Dade County)
+ * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 9, 2011
  */
 public class SWRLDataRangeAtomHGDB extends SWRLUnaryAtomHGDB<SWRLDArgument>
 		implements SWRLDataRangeAtom
 {
-	public SWRLDataRangeAtomHGDB()
-	{		
-	}
 	
-	public SWRLDataRangeAtomHGDB(OWLDataRange predicate, SWRLDArgument arg)
+	public SWRLDataRangeAtomHGDB(HGHandle...args) {
+		super(args);
+	}
+
+	//public SWRLDataRangeAtomHGDB(OWLDataRange predicate, SWRLDArgument arg)
+	public SWRLDataRangeAtomHGDB(HGHandle predicate, HGHandle arg)
 	{
 		super(predicate, arg);
 	}

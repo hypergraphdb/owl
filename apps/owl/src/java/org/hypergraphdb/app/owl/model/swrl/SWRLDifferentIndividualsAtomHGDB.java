@@ -1,13 +1,12 @@
 package org.hypergraphdb.app.owl.model.swrl;
 
-import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
+import org.hypergraphdb.HGHandle;
 import org.semanticweb.owlapi.model.OWLObjectVisitor;
 import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
 import org.semanticweb.owlapi.model.SWRLDifferentIndividualsAtom;
 import org.semanticweb.owlapi.model.SWRLIArgument;
 import org.semanticweb.owlapi.model.SWRLObjectVisitor;
 import org.semanticweb.owlapi.model.SWRLObjectVisitorEx;
-import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 /**
  * SWRLDifferentIndividualsAtomHGDB.
@@ -17,17 +16,21 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
  */
 public class SWRLDifferentIndividualsAtomHGDB extends SWRLBinaryAtomHGDB<SWRLIArgument, SWRLIArgument> implements SWRLDifferentIndividualsAtom
 {
-	public SWRLDifferentIndividualsAtomHGDB()
-	{		
-	}
 	
-	public SWRLDifferentIndividualsAtomHGDB(SWRLIArgument arg0, SWRLIArgument arg1)
+	public SWRLDifferentIndividualsAtomHGDB(HGHandle... args)
 	{
-		super(OWLDataFactoryHGDB.getInstance()
-				.getOWLObjectProperty(OWLRDFVocabulary.OWL_DIFFERENT_FROM
-						.getIRI()), arg0, arg1);
+		super(args);
 	}
 
+	//public SWRLDifferentIndividualsAtomHGDB(SWRLIArgument arg0, SWRLIArgument arg1)
+	public SWRLDifferentIndividualsAtomHGDB(HGHandle owlDifferentFrom, HGHandle arg0, HGHandle arg1)
+	{
+//		super(OWLDataFactoryHGDB.getInstance()
+//				.getOWLObjectProperty(OWLRDFVocabulary.OWL_DIFFERENT_FROM
+//						.getIRI()), arg0, arg1);
+		super(owlDifferentFrom, arg0, arg1);
+	}
+	
 	public void accept(OWLObjectVisitor visitor)
 	{
 		visitor.visit(this);

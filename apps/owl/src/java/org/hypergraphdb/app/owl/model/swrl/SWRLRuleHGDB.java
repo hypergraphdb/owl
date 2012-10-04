@@ -13,15 +13,15 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.SWRLVariableExtractor;
 
 /**
- * SWRLRuleHGDB.
+ * SWRLRuleHGDB. Internal Cache.
  * 
  * @author Boris Iordanov (CIAO/Miami-Dade County)
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 9, 2011
  */
 public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLink {
-	private HGHandle bodyHandle = null;
-	private HGHandle headHandle = null;
+	private HGHandle bodyHandle;
+	private HGHandle headHandle;
 
 	private Set<SWRLVariable> variables;
 	private Boolean containsAnonymousClassExpressions = null;
@@ -37,6 +37,8 @@ public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLin
 	public SWRLRuleHGDB(HGHandle body, HGHandle head, Set<? extends OWLAnnotation> annotations) {
 		//SWRLBody body, SWRLHead head.
 		super(annotations);
+		if (body == null) throw new IllegalArgumentException();
+		if (head == null) throw new IllegalArgumentException();
 		this.bodyHandle = body;
 		this.headHandle = head;				
 	}
@@ -117,6 +119,7 @@ public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLin
 
 	public boolean containsAnonymousClassExpressions() {
 		if (containsAnonymousClassExpressions == null) {
+			containsAnonymousClassExpressions = false;
 			for (SWRLAtom atom : getHead()) {
 				if (atom instanceof SWRLClassAtom) {
 					if (((SWRLClassAtom) atom).getPredicate().isAnonymous()) {
@@ -134,9 +137,6 @@ public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLin
 						}
 					}
 				}
-			}
-			if (containsAnonymousClassExpressions == null) {
-				containsAnonymousClassExpressions = false;
 			}
 		}
 		return containsAnonymousClassExpressions;

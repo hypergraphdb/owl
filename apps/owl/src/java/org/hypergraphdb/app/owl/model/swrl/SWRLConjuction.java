@@ -9,16 +9,13 @@ import org.hypergraphdb.HGLink;
 /**
  * SWRLConjuction.
  * @author Boris Iordanov (CIAO/Miami-Dade County)
+ * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 9, 2011
  */
 public class SWRLConjuction implements HGLink
 {
 	private ArrayList<HGHandle> L = new ArrayList<HGHandle>();
 
-	public SWRLConjuction()
-	{		
-	}
-	
 	public SWRLConjuction(Collection<HGHandle> args)
 	{
 		this(args.toArray(new HGHandle[0]));
