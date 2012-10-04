@@ -5,6 +5,10 @@ import java.util.List;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.app.owl.HGDBOntology;
+import org.hypergraphdb.app.owl.core.AddPrefixChange;
+import org.hypergraphdb.app.owl.core.OWLOntologyEx;
+import org.hypergraphdb.app.owl.core.RemovePrefixChange;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
@@ -88,6 +92,20 @@ public class VOWLChangeFactory {
 				//old: throw new IllegalStateException("Could not get handle for Annotation of change : " + ooc + ". Cannot create VOWLChange." );
 			}
 			return new VRemoveOntologyAnnotationChange(handle);
+		} else if (ooc instanceof AddPrefixChange) {
+			AddPrefixChange apc = (AddPrefixChange)ooc;
+			HGHandle handle = graph.getHandle(apc.getPrefixNameToPrefix());			
+			if (handle == null) {
+				handle = graph.add(apc.getPrefixNameToPrefix());
+			}
+			return new VAddPrefixChange(handle);
+		} else if (ooc instanceof RemovePrefixChange) {
+			RemovePrefixChange apc = (RemovePrefixChange)ooc;
+			HGHandle handle = graph.getHandle(apc.getPrefixNameToPrefix());			
+			if (handle == null) {
+				handle = graph.add(apc.getPrefixNameToPrefix());
+			}
+			return new VRemovePrefixChange(handle);
 		} else if (ooc instanceof SetOntologyID) {
 			SetOntologyID soic = (SetOntologyID)ooc;
 			HGHandle oldId = graph.getHandle(soic.getOriginalOntologyID());
@@ -150,6 +168,12 @@ public class VOWLChangeFactory {
 		} else if (voc instanceof VRemoveOntologyAnnotationChange) {
 			VOntologyAnnotationChange aoac = (VOntologyAnnotationChange)voc;
 			return new RemoveOntologyAnnotation(onto, (OWLAnnotation)graph.get(aoac.getOntologyAnnotationHandle()));
+		} else if (voc instanceof VAddPrefixChange) {
+			VAddPrefixChange vapc = (VAddPrefixChange)voc;
+			return new AddPrefixChange((HGDBOntology)onto, vapc.getPrefixName(), vapc.getPrefix());
+		} else if (voc instanceof VRemovePrefixChange) {
+			VRemovePrefixChange vapc = (VRemovePrefixChange)voc;
+			return new RemovePrefixChange((HGDBOntology)onto, vapc.getPrefixName(), vapc.getPrefix());
 		} else if (voc instanceof VModifyOntologyIDChange) {
 			VModifyOntologyIDChange soic = (VModifyOntologyIDChange)voc;
 			//HGHandle oldId = graph.get(soic.getOldOntologyID());
@@ -187,6 +211,12 @@ public class VOWLChangeFactory {
 		} else if (voc instanceof VRemoveOntologyAnnotationChange) {
 			VOntologyAnnotationChange aoac = (VOntologyAnnotationChange)voc;
 			return new AddOntologyAnnotation(onto, (OWLAnnotation)graph.get(aoac.getOntologyAnnotationHandle()));
+		} else if (voc instanceof VAddPrefixChange) {
+			VAddPrefixChange vapc = (VAddPrefixChange)voc;
+			return new RemovePrefixChange((OWLOntologyEx)onto, vapc.getPrefixName(), vapc.getPrefix());
+		} else if (voc instanceof VRemovePrefixChange) {
+			VRemovePrefixChange vapc = (VRemovePrefixChange)voc;
+			return new AddPrefixChange((OWLOntologyEx)onto, vapc.getPrefixName(), vapc.getPrefix());
 		} else if (voc instanceof VModifyOntologyIDChange) {
 			VModifyOntologyIDChange soic = (VModifyOntologyIDChange)voc;
 			OWLOntologyID oldId = graph.get(soic.getOldOntologyIDHandle());

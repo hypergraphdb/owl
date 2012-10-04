@@ -16,11 +16,11 @@ public abstract class VOWLChange implements HGLink, VersioningObject, HGGraphHol
 	HyperGraph graph;
 	
 	public static boolean isAddChange(VOWLChange c) {
-		return c instanceof VAddAxiomChange || c instanceof VAddImportChange || c instanceof VAddOntologyAnnotationChange;
+		return c instanceof VAddAxiomChange || c instanceof VAddImportChange || c instanceof VAddOntologyAnnotationChange || c instanceof VAddPrefixChange;
 	}
 
 	public static boolean isRemoveChange(VOWLChange c) {
-		return c instanceof VRemoveAxiomChange || c instanceof VRemoveImportChange || c instanceof VRemoveOntologyAnnotationChange;
+		return c instanceof VRemoveAxiomChange || c instanceof VRemoveImportChange || c instanceof VRemoveOntologyAnnotationChange || c instanceof VRemovePrefixChange;
 	}
 
 	public static boolean isModifyChange(VOWLChange c) {
