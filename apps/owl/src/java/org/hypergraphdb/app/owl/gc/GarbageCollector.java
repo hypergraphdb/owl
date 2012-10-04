@@ -1,10 +1,12 @@
 package org.hypergraphdb.app.owl.gc;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -22,6 +24,7 @@ import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.core.HGDBTask;
 import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
 import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
+import org.hypergraphdb.app.owl.core.PrefixHGDB;
 import org.hypergraphdb.app.owl.model.OWLAnnotationHGDB;
 import org.hypergraphdb.app.owl.model.swrl.SWRLConjuction;
 import org.hypergraphdb.app.owl.query.AnySubgraphMemberCondition;
@@ -270,7 +273,8 @@ public class GarbageCollector implements HGDBTask {
 		taskSize = annos.size() 
 				+ importsDeclarations.size() 
 				+ axioms.size() * 2 // remove from onto + remove axiom.
-				+ entities.size();
+				+ entities.size() 
+				+ onto.getPrefixes().size();
 		
 		// we do essential things in the first transaction, but for performance reasons, 
 		// we do not include the complex removal of axioms in the long term transaction.
@@ -347,8 +351,19 @@ public class GarbageCollector implements HGDBTask {
 						onto.remove(axiomHandle);
 					}
 				}
-				
-				// B) Collect Ontology
+				// B) Cause Prefixes to be removed
+				for (Map.Entry<String, String> prefix : onto.getPrefixes().entrySet()) {
+					if (isCancelTask()) return null;
+					//fake progress
+					progressTask();
+					stats.increaseOtherObjects();				
+					stats.increaseTotalAtoms();				
+				}
+				if (!analyzeMode) {
+					onto.setPrefixesFrom(Collections.<String, String>emptyMap());
+				}
+								
+				// C) Collect Ontology
 				HGHandle ontoHandle = graph.getHandle(onto);
 				if (analyzeMode) {
 					//Mark for removal before analysing axioms or entities
@@ -543,9 +558,28 @@ public class GarbageCollector implements HGDBTask {
 	 */
 	private void collectAtomsReverseOrder(List<HGHandle> collectibleAtoms) {
 		ListIterator<HGHandle> it = collectibleAtoms.listIterator(collectibleAtoms.size());
-		while (it.hasPrevious()) {
-			HGHandle curAtomHandle = it.previous();
-			graphRemove(curAtomHandle);
+		try {
+			while (it.hasPrevious()) {
+				HGHandle curAtomHandle = it.previous();
+				graphRemove(curAtomHandle);
+			}
+		} catch (RuntimeException e) {
+			System.err.println("collectAtomsReverseOrder: ");
+			ListIterator<HGHandle> it2 = collectibleAtoms.listIterator(collectibleAtoms.size());
+			while (it2.hasPrevious()) {
+				HGHandle curAtomHandle = it2.previous();
+				System.err.print(curAtomHandle);
+				try {
+					System.err.print(graph.get(curAtomHandle));
+				} catch (Exception ex) {
+				}
+				try {
+					System.err.print(graph.get(curAtomHandle).getClass());
+				} catch (Exception ex) {
+				}
+				System.err.println();
+			}
+			throw e;
 		}
 	}
 	
@@ -914,8 +948,15 @@ public class GarbageCollector implements HGDBTask {
 		}
 			returnValue = graph.remove(atom, true);
 		} catch (RuntimeException e) {
-			System.out.println("During remove of: " + atom);
-			System.out.println("Remove Exception: " + e);
+			System.err.println("During remove of: " + atom);
+			System.err.println("Remove Exception: " + e);
+			System.err.print("Trying to load it: " );
+			try {
+				System.err.println(graph.get(atom));
+				System.err.println(graph.get(atom).getClass().toString());
+			} catch (Exception ex){
+				System.out.println("failed ");
+			}
 			throw e;
 		}
 		return returnValue;
