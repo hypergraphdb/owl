@@ -39,6 +39,7 @@ import org.hypergraphdb.app.owl.model.axioms.OWLDeclarationAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLDisjointClassesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLEquivalentClassesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
+import org.hypergraphdb.app.owl.model.swrl.SWRLConjuction;
 import org.hypergraphdb.app.owl.type.link.AxiomAnnotatedBy;
 import org.hypergraphdb.app.owl.util.IncidenceSetALGenerator;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
@@ -76,6 +77,7 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
+import org.semanticweb.owlapi.model.SWRLObject;
 
 import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 
@@ -420,7 +422,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 						if (!(o instanceof VOWLChange)) {
 							if (!(o instanceof OWLClassExpression || o instanceof OWLObjectPropertyExpression
 									|| o instanceof OWLDataRange || o instanceof OWLLiteral || o instanceof OWLFacetRestriction
-									|| o instanceof OWLAnnotation)) {
+									|| o instanceof OWLAnnotation || o instanceof SWRLObject || o instanceof SWRLConjuction)) {
 								throw new IllegalStateException("We encountered an unexpected object in an incidenceset:"
 										+ o);
 							}
@@ -462,7 +464,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 					if (!(o instanceof VOWLChange)) { 
 						if (!(o instanceof OWLClassExpression || o instanceof OWLObjectPropertyExpression
 								|| o instanceof OWLDataRange || o instanceof OWLLiteral || o instanceof OWLFacetRestriction
-								|| o instanceof OWLAnnotation)) {
+								|| o instanceof OWLAnnotation || o instanceof SWRLObject || o instanceof SWRLConjuction)) {
 							throw new IllegalStateException("We encountered an unexpected object: "+ o 
 									+ "  in incidenceset of " + graph.get(atomHandle));
 						}
