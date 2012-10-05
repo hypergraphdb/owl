@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl.util;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,6 +36,7 @@ public class OntologyComparator {
 					//To will contain only added after this loop
 					//To = To - FROM
 					toAxioms.remove(fromA);
+					result.equal(fromA);
 				}
 			}
 			//Determine ADDED
@@ -90,6 +92,7 @@ public class OntologyComparator {
 		
 		public static class ComparatorDelta {
 			private List<OWLAxiom> addedAxioms = new ArrayList<OWLAxiom>();
+			private List<OWLAxiom> equalAxioms = new ArrayList<OWLAxiom>();
 			private List<OWLAxiom> removedAxioms = new ArrayList<OWLAxiom>();
 			private List<OWLAnnotation> addedOntologyAnnotations = new ArrayList<OWLAnnotation>();
 			private List<OWLAnnotation> removedOntologyAnnotations = new ArrayList<OWLAnnotation>();
@@ -99,6 +102,10 @@ public class OntologyComparator {
 
 			public void added(OWLAxiom o) {
 				addedAxioms.add(o);
+			}
+
+			public void equal(OWLAxiom o) {
+				equalAxioms.add(o);
 			}
 
 			public void added(OWLAnnotation o) {
@@ -126,14 +133,18 @@ public class OntologyComparator {
 				changedNewOntologyIDs.add(newId);
 			}
 			
-			public boolean isEmpty() {
-				return addedAxioms.isEmpty() 
+			/**
+			 * True, if there is an addition or removal. Ignores equal axiom list.
+			 * @return
+			 */
+			public boolean hasChanges() {
+				return !(addedAxioms.isEmpty() 
 				&& removedAxioms.isEmpty()
 				&& addedImportDeclarations.isEmpty()
 				&& removedImportDeclarations.isEmpty()
 				&& addedOntologyAnnotations.isEmpty()
 				&& removedOntologyAnnotations.isEmpty()
-				&& changedNewOntologyIDs.isEmpty();
+				&& changedNewOntologyIDs.isEmpty());
 			}
 			
 			public int nrOfChanges() {
@@ -151,6 +162,13 @@ public class OntologyComparator {
 			 */
 			public List<OWLAxiom> getAddedAxioms() {
 				return addedAxioms;
+			}
+
+			/**
+			 * @return the equalAxioms
+			 */
+			public List<OWLAxiom> getEqualAxioms() {
+				return equalAxioms;
 			}
 
 			/**
@@ -202,15 +220,16 @@ public class OntologyComparator {
 			
 			public void print(PrintWriter p) {
 				p.println("## COMPARATOR DELTA START");
-				p.println("## REMOVED AXIOMS");
+				p.println("## REMOVED AXIOMS: " + getRemovedAxioms().size());
 				for (OWLAxiom ax : getRemovedAxioms()) {
 					p.println(ax.toString());
 				}
 				if (getRemovedAxioms().isEmpty()) p.println("None.");
-				p.println("## ADDED AXIOMS");
+				p.println("## ADDED AXIOMS: " + getAddedAxioms().size());
 				for (OWLAxiom ax : getAddedAxioms()) {
 					p.println(ax.toString());
 				}
+				p.println("## EQUAL AXIOMS: " + getEqualAxioms().size());
 				if (getAddedAxioms().isEmpty()) p.println("None.");
 				p.println("## REMOVED ONTOLOGY ANNOTATIONS");
 				for (OWLAnnotation an : getRemovedOntologyAnnotations()) {
@@ -273,12 +292,23 @@ public class OntologyComparator {
 				OntologyComparator comp = new OntologyComparator();
 				ComparatorDelta delta = comp.compare(from, to);
 				delta.sortAxioms();
+				saveAxioms(new File(toFile.getAbsolutePath() + "_added.owl"), delta.getAddedAxioms());
+				saveAxioms(new File(toFile.getAbsolutePath() + "_remove.owl"), delta.getRemovedAxioms());
+				saveAxioms(new File(toFile.getAbsolutePath() + "_equal.owl"), delta.getEqualAxioms());
 				delta.print(new PrintWriter(System.out));
 				System.out.println(" END COMPARATOR ");
 			} catch (Exception e) {
 				System.err.println(e);
 				System.exit(-1);
 			}
+		}
+		
+		public static void saveAxioms(File f, List<OWLAxiom> axioms) throws IOException{
+			PrintWriter p = new PrintWriter(f.getAbsolutePath(), "UTF-8");
+			for (OWLAxiom ax : axioms) {
+				p.println(ax);
+			}
+			p.close();
 		}
 		
 		public static void printHelp() {
