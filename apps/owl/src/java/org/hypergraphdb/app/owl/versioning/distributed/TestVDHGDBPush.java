@@ -12,6 +12,8 @@ import org.hypergraphdb.app.owl.HGDBOWLManager;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGDBOntologyManagerImpl;
+import org.hypergraphdb.app.owl.core.OWLOntologyEx;
+import org.hypergraphdb.app.owl.core.OWLTempOntologyImpl;
 import org.hypergraphdb.app.owl.gc.GarbageCollector;
 import org.hypergraphdb.app.owl.usage.ImportOntologies;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
@@ -50,6 +52,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
  * @created Mar 12, 2012
  * Look for ////
  */
+@Deprecated 
 public class TestVDHGDBPush {
 	/**
 	 * This ontology will be imported.
@@ -312,7 +315,7 @@ public class TestVDHGDBPush {
 			System.out.println("Parsing: " + f + " length: " + (f.length() / 1024) + " kB");
 			OWLOntologyDocumentSource source = new FileDocumentSource(f);
 			VOWLXMLParser parser = new VOWLXMLParser();
-			OWLOntology onto = new OWLOntologyImpl(manager, new OWLOntologyID());
+			OWLOntologyEx onto = new OWLTempOntologyImpl(manager, new OWLOntologyID());
 			// must have onto for manager in super class
 			VOWLXMLDocument versionedOntologyRoot = new VOWLXMLDocument(onto);
 			try {

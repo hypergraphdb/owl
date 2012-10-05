@@ -18,6 +18,8 @@ import org.hypergraphdb.app.owl.HGDBOWLManager;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyFactory;
 import org.hypergraphdb.app.owl.HGDBOntologyManagerImpl;
+import org.hypergraphdb.app.owl.core.OWLOntologyEx;
+import org.hypergraphdb.app.owl.core.OWLTempOntologyImpl;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyUUIDException;
@@ -55,6 +57,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Mar 9, 2012
  */
+@Deprecated
 public class TestVersionedOntoRenderAndParse {
 
 	public static File TESTFILE = new File("C:\\_CiRM\\testontos\\County.owl");
@@ -128,7 +131,7 @@ public class TestVersionedOntoRenderAndParse {
 			System.out.println("PARSING: " + f + " length: " + (f.length() / 1024) + " kB");
 			OWLOntologyDocumentSource source = new FileDocumentSource(f);
 			VOWLXMLParser parser = new VOWLXMLParser();
-			OWLOntology onto = new OWLOntologyImpl(manager, new OWLOntologyID());
+			OWLOntologyEx onto = new OWLTempOntologyImpl(manager, new OWLOntologyID());
 			// must have onto for manager in super class
 			VOWLXMLDocument versionedOntologyRoot = new VOWLXMLDocument(onto);
 			//
