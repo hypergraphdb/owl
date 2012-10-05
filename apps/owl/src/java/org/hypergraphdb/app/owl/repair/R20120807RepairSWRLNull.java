@@ -37,6 +37,8 @@ import org.semanticweb.owlapi.model.IRI;
  * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Aug 7, 2012
+ * 2012.09.27 deprecated because model.swrl package was redesigned. Kept for reference how to update types.
+ * @deprecated
  */
 public class R20120807RepairSWRLNull {
 
@@ -44,6 +46,7 @@ public class R20120807RepairSWRLNull {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		exit();
 		HGDBOntologyRepository.setHypergraphDBLocation(args[0]);
 		System.out.println("Opening Repository at " + args[0]);
 		VHGDBOntologyRepository vrep = VHGDBOntologyRepository.getInstance();
@@ -64,7 +67,7 @@ public class R20120807RepairSWRLNull {
 			df.setHyperGraph(graph);
 			if (atom.getPredicate() == null) {
 				System.err.println("  THE PREDICATE WAS NULL, REPAIRING CURRENT ATOM: " + i);
-				atom.setPredicateDirect(df.getOWLClass(IRI.create("DUMMY_TEST_CLASS")));
+				//TODO atom.setPredicateDirect(df.getOWLClass(IRI.create("DUMMY_TEST_CLASS")));
 				System.out.println("After repair: " + atom);
 				graph.update(atom);
 			}
@@ -81,6 +84,13 @@ public class R20120807RepairSWRLNull {
 		vrep.dispose();
 	}
 	
+/**
+	 * 
+	 */
+	private static void exit() {
+		throw new IllegalStateException("implementation has changed.");		
+	}
+
 //	public static void replaceTheType(HyperGraph graph) {
 //		RecordType newType = new RecordType();
 //		HGHandle argumentType = graph.getTypeSystem().getTypeHandle(SWRLIArgument.class);
