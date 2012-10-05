@@ -17,7 +17,7 @@ import org.semanticweb.owlapi.model.SWRLPredicate;
  */
 public abstract class SWRLAtomHGDB extends OWLObjectHGDB implements SWRLAtom, HGLink
 {
-	HGHandle predicateHandle;
+	private HGHandle predicateHandle;
 
 	public SWRLAtomHGDB(HGHandle...args) {
 		if (args[0] == null) throw new IllegalArgumentException();

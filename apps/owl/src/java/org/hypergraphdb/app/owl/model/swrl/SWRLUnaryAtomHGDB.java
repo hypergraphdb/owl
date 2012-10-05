@@ -22,7 +22,7 @@ public abstract class SWRLUnaryAtomHGDB<A extends SWRLArgument> extends
 	public SWRLUnaryAtomHGDB(HGHandle...args) {
 		super(args);
 		if (args[1] == null) throw new IllegalArgumentException();
-		predicateHandle = args[1];
+		arg = args[1];
 	}
 
 	//public SWRLUnaryAtomHGDB(SWRLPredicate predicate, A arg)
