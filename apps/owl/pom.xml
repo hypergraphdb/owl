@@ -86,7 +86,6 @@
         </configuration>
     </plugin>    
     -->
-    <!-- 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -107,6 +106,7 @@
              <stripVersion>true</stripVersion>
             </configuration>
           </execution>
+<!--  No MORE NATIVE LIBS SINCE JE MIGRATION
           <execution>
             <id>unpack-native-libs-for-ant-eclipse-plugin-build</id>
             <phase>package</phase>
@@ -128,9 +128,9 @@
               </artifactItems>
             </configuration>
           </execution>
+ -->
         </executions>
       </plugin>
-       -->
     </plugins>
   </build>
   
