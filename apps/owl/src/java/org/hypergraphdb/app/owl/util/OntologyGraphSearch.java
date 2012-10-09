@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -72,12 +73,14 @@ public class OntologyGraphSearch {
 		for (OWLAxiom ax : allAxioms) {
 			Set<OWLEntity> sig = ax.getSignature();
 			for (OWLEntity e : sig) {
+				Set<OWLAnnotationAssertionAxiom> annotations = e.getAnnotationAssertionAxioms(onto);
 				Set<OWLAxiom> eAxioms = entityToAxioms.get(e);
 				if (eAxioms == null) {
 					eAxioms = new HashSet<OWLAxiom>();
 					entityToAxioms.put(e, eAxioms);
 				}
 				eAxioms.add(ax);
+				eAxioms.addAll(annotations);
 			}
 		}
 	}
