@@ -1,5 +1,5 @@
 Version history:
-1.7.0 Team (Release Date: 2012.10.04)
+1.7.0 Team (Release Date: 2012.10.11)
 ++ Core
 	+ Prefixes stored in repository 
 		- versioned 
