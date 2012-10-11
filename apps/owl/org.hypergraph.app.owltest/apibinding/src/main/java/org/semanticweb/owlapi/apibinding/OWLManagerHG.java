@@ -103,11 +103,11 @@ public class OWLManagerHG {
      * @return The new manager.
      */
     public static OWLOntologyManagerImpl createManchesterOWLOntologyManager() {
-        return (OWLOntologyManagerImpl)createOWLOntologyManager(getOWLDataFactory(true), true);
+        return (OWLOntologyManagerImpl)createOWLOntologyManager(getOWLDataFactoryInt(true), true);
     }
 
     public static HGDBOntologyManager createHGDBOWLOntologyManager() {
-        return (HGDBOntologyManager)createOWLOntologyManager(getOWLDataFactory(false), false);
+        return (HGDBOntologyManager)createOWLOntologyManager(getOWLDataFactoryInt(false), false);
     }
 
     private static void ontologyManagerCreated(OWLOntologyManager man) {
@@ -162,11 +162,29 @@ public class OWLManagerHG {
      * Gets a global data factory that can be used to create OWL API objects.
      * @return An OWLDataFactory  that can be used for creating OWL API objects.
      */
+    private static OWLDataFactory getOWLDataFactoryInt(boolean manchester) {
+    	if (manchester) {
+    		return OWLDataFactoryImpl.getInstance();
+    	} else {
+    		OWLDataFactoryHGDB f = OWLDataFactoryHGDB.getInstance();
+    		return OWLDataFactoryHGDB.getInstance();
+    	}
+    }
+    /**
+     * Gets a global data factory that can be used to create OWL API objects.
+     * @return An OWLDataFactory  that can be used for creating OWL API objects.
+     */
     public static OWLDataFactory getOWLDataFactory(boolean manchester) {
     	if (manchester) {
     		return OWLDataFactoryImpl.getInstance();
     	} else {
+    		OWLDataFactoryHGDB f = OWLDataFactoryHGDB.getInstance();
+    		if (f.getHyperGraph() == null) {
+    			//let it be initialized with hypergraph
+    			createOWLOntologyManager(f, false);
+    		}
     		return OWLDataFactoryHGDB.getInstance();
     	}
     }
+
 }

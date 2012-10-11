@@ -82,8 +82,8 @@ import org.semanticweb.owlapi.vocab.PrefixOWLOntologyFormat;
  * Author: Matthew Horridge<br> The University Of Manchester<br> Bio-Health Informatics Group<br> Date:
  * 10-May-2008<br><br>
  */
-public abstract class AbstractOWLAPITestCase extends TestCase {
 
+public abstract class AbstractOWLAPITestCase extends TestCase {
 	//public static boolean RUN_GARBAGE_COLLECTOR_AFTER_DELETING_ONTOLOGIES = true;
 	
 	public boolean MANCHESTER_FIRST = true;
@@ -258,7 +258,7 @@ public abstract class AbstractOWLAPITestCase extends TestCase {
         // If HGDB --> IMPORT ONTOLOGY AND USER HGDB ONTOLOGY as ont2
         OWLOntology ont2;
         if (man instanceof HGDBOntologyManager) {
-        	ont2 = importOntology(ont, target, (HGDBOntologyManager)man);
+        	ont2 = importOntology(ont, target, (HGDBOntologyManager)man, format);
         } else {
         	ont2 = man.loadOntologyFromOntologyDocument(new StringDocumentSource(target.toString()));
         }
@@ -318,16 +318,24 @@ public abstract class AbstractOWLAPITestCase extends TestCase {
         return ont2;
     }
 
-    public HGDBOntology importOntology(OWLOntology ont, StringDocumentTarget target, HGDBOntologyManager manHGDB) throws OWLOntologyCreationException, OWLOntologyStorageException {
+    public HGDBOntology importOntology(OWLOntology ont, StringDocumentTarget target, HGDBOntologyManager manHGDB, OWLOntologyFormat fromFormat) throws OWLOntologyCreationException, OWLOntologyStorageException {
         IRI targetIRI; 
         if (ont.getOntologyID().isAnonymous()) {
         	targetIRI = IRI.create("hgdb://ANONYMOUS");	        	
         } else {
         	targetIRI = new HTTPHGDBIRIMapper().getDocumentIRI(ont.getOntologyID().getDefaultDocumentIRI());	
         }
+        PrefixOWLOntologyFormat format = new HGDBOntologyFormat();
+        if (fromFormat instanceof PrefixOWLOntologyFormat && format instanceof PrefixOWLOntologyFormat) {
+            PrefixOWLOntologyFormat fromPrefixFormat = (PrefixOWLOntologyFormat) fromFormat;
+            PrefixOWLOntologyFormat toPrefixFormat = (PrefixOWLOntologyFormat) format;
+            toPrefixFormat.copyPrefixesFrom(fromPrefixFormat);
+        }
         HGDBOntologyOutputTarget targetHGDB = new HGDBOntologyOutputTarget(targetIRI); 
     	OWLOntology mixedOnto = manHGDB.loadOntologyFromOntologyDocument(new StringDocumentSource(target.toString()));
-    	manHGDB.saveOntology(mixedOnto, new HGDBOntologyFormat(), targetHGDB);
+    	manHGDB.saveOntology(mixedOnto, format, targetHGDB);
+    	//TODO we need the prefixes.
+    	//We could stop the Dartabase here and load after the stop to test persistence better.
     	return (HGDBOntology) manHGDB.loadOntology(targetIRI);
 
     }
