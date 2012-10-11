@@ -57,6 +57,7 @@ public class HGDBApplication extends HGApplication
 	
 	private static HGDBApplication instance;
 	
+	@SuppressWarnings("rawtypes")
 	private HGIndexer axiomByHashCodeIndexer;
 	
 	public static HGDBApplication getInstance() {
@@ -200,6 +201,7 @@ public class HGDBApplication extends HGApplication
 		
 	}
 
+	@SuppressWarnings("rawtypes")
 	public Collection<HGIndexer> getIRIIndexers(HyperGraph graph)
 	{
 		HGHandle[] typeHandlesNamedObjectsWithIRIDimension = new HGHandle[] {
@@ -216,6 +218,7 @@ public class HGDBApplication extends HGApplication
 		return L;
 	}
 	
+	@SuppressWarnings("rawtypes")
 	public HGIndexer getAxiomByHashCodeIndexer(HyperGraph graph ) {
 		if (axiomByHashCodeIndexer == null) {
 			HGHandle typeHandle = graph.getTypeSystem().getTypeHandle(OWLAxiomHGDB.class);
@@ -228,6 +231,7 @@ public class HGDBApplication extends HGApplication
 	/**
 	 * @param graph
 	 */
+	@SuppressWarnings("rawtypes")
 	private void registerIndices(HyperGraph graph) {
 		//
 		// BY_PART_INDEXERS "IRI"

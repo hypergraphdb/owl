@@ -10,53 +10,82 @@ import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 
 
 /**
- * OntologyExporter imports all versioned ontologies interactively one by one from VOWLXML Format.
+ * OntologyImporter imports all versioned ontologies from a directory interactively one by one 
+ * from VOWLXML Format.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Sep 14, 2012
  */
 public class OntologyImporter {
-	public static String LOCALDB_DIR = "C:\\OntologyServer\\hg";
-	public static String IMPORT_DIR_VOWLXML = "C:\\_CiRM\\workspaceMD\\RepoMigration\\exported";
 	
 	/**
-	 * @param argv ignored.
+	 * @param argv vowlxmlDirectory localDBDir
 	 */
 	public static void main(String[] argv) {
-		importAll();
-		System.out.println("Bye bye!");
+		if (argv.length != 2){
+			help();
+			System.exit(0);
+		}
+		File source = new File(argv[0]);
+		File target = new File(argv[1]);
+		validateDir(source);
+		validateDir(target);
+		importAll(source, target);
+		System.out.println("Thanks for using OntologyImporter.");
 	}
 	
-	public static void importAll() {
-		File dbdir = new File(LOCALDB_DIR);
+	public static void validateDir(File dir) {
+		if (!dir.isDirectory()
+				|| !dir.exists()
+				|| !dir.canRead()) {
+			System.err.println("Parameter" + dir + " not acceptable, because (!dir or !exists or !canRead) ");
+			System.exit(-1);
+		}
+	}
+
+	public static void help() {
+		System.out.println("Interactively imports all versioned OWL/XML files from a directory into a Hypergraph HGOWL repository");
+		System.out.println("java OntologyImporter vowlxmlDirectory hgowlRepository");
+		System.out.println();
+		System.out.println("  vowlxmlSourceDirectory");
+		System.out.println("      Specifies a source directory that contains one or more ontology files in Versioned OWL/XML format.");
+		System.out.println();
+		System.out.println("  hgowlRepositoryTargetDirectory");
+		System.out.println("      Specifies a target directory that contains a hgowl repository.");
+		System.out.println("      If hgowlRepositoryDirectory is an empty directory a hgowl repository will be created.");
+		System.out.println();
+		System.out.println("Both directories must exist.");
+	}
+
+	public static void importAll(File sourceDir, File targetRepo) {
 		System.out.println("**************************************************");
 		System.out.println("* VERSIONED ONTOLOGY IMPORTER STARTED AT "+ new Date());
-		System.out.println("  Repository  location: " + dbdir);
-		System.out.println("  Import file location: " + IMPORT_DIR_VOWLXML);
+		System.out.println("  Repository  location: " + targetRepo);
+		System.out.println("  Import file location: " + sourceDir);
 		System.out.print("  Continue?[y/n] ");
 		if (!userInput().equals("y")) {
 			System.out.println("  Import cancelled ");
 			return;
 		}
-		if (!dbdir.exists()) {
-			System.out.println("DB Directory does not exist: " + dbdir);
+		if (!targetRepo.exists()) {
+			System.out.println("DB Directory does not exist: " + targetRepo);
 			return;
 		}
 		System.out.print("  Starting repository... ");
 		VDHGDBOntologyRepository dr = null;
-		VDHGDBOntologyRepository.setHypergraphDBLocation(dbdir.getAbsolutePath());
+		VDHGDBOntologyRepository.setHypergraphDBLocation(targetRepo.getAbsolutePath());
 		HGDBOntologyManager manager = HGDBOWLManager.createOWLOntologyManager();
 		dr = (VDHGDBOntologyRepository) manager.getOntologyRepository();
 		System.out.println("done. ");
 		System.out.print("  Scanning directory... ");
-		File dir = new File(IMPORT_DIR_VOWLXML);
-		if (!(dir.exists() && dir.isDirectory())) {
-			System.out.println("DB Directory does not exist or is not a dir: " + dir.getAbsolutePath());
+		if (!(sourceDir.exists() && sourceDir.isDirectory())) {
+			System.out.println("Source Directory does not exist or is not a dir: " + sourceDir.getAbsolutePath());
 			return;
 		}
 		System.out.println("done. ");
-		String[] importFiles = dir.list();
+		String[] importFiles = sourceDir.list();
 		for (String importFileStr : importFiles) {
-			File importFile = new File(IMPORT_DIR_VOWLXML + "\\" + importFileStr);
+			File importFile = new File(sourceDir + "\\" + importFileStr);
 			System.out.print("Start Import of " + importFile + "?[y/n]");
 			if (!userInput().equals("y")) {
 				System.out.println("Skipping: " + importFileStr);
@@ -77,7 +106,7 @@ public class OntologyImporter {
 		System.out.println("No more files in import directory.");
 		dr.printStatistics();
 	}
-	
+
 	private static String userInput() {
 		String retVal;
 		try {

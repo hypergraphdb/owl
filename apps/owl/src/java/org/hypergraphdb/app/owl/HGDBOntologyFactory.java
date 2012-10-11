@@ -91,6 +91,7 @@ public class HGDBOntologyFactory implements OWLOntologyFactory {
 //		}
 //	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public HGDBOntology loadOWLOntology(
 			OWLOntologyDocumentSource documentSource,

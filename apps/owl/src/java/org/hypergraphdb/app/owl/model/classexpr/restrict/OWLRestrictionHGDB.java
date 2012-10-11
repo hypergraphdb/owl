@@ -29,7 +29,7 @@ public abstract class OWLRestrictionHGDB<R extends OWLPropertyRange, P extends O
 
 
     public P getProperty() {
-    	return (P)getHyperGraph().get(propertyHandle);
+    	return getHyperGraph().<P>get(propertyHandle);
         //return property;
     }
 

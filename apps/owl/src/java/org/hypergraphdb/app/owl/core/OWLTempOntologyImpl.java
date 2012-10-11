@@ -72,7 +72,6 @@ public class OWLTempOntologyImpl extends OWLOntologyImpl implements OWLOntologyE
 
     public List<OWLOntologyChange> applyChanges(List<OWLOntologyChange> changes) {
         List<OWLOntologyChange> appliedChanges = new ArrayList<OWLOntologyChange>();
-        OWLOntologyChangeFilter changeFilter = new OWLOntologyChangeFilter();
         for (OWLOntologyChange change : changes) {
             appliedChanges.addAll(applyChange(change));
         }

@@ -28,7 +28,7 @@ public abstract class OWLQuantifiedRestrictionHGDB <R extends OWLPropertyRange, 
 
 
     public F getFiller() {
-        return (F)getHyperGraph().get(fillerHandle);
+        return getHyperGraph().<F>get(fillerHandle);
     }
 
 

@@ -41,11 +41,8 @@ import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
-import com.sleepycat.je.Transaction;
-import com.sleepycat.je.TransactionConfig;
-
 /**
- * HGDBOntologyRepository.
+ * HGDBOntologyRepository, the repository for database backed OWL ontologies.
  * 
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  */

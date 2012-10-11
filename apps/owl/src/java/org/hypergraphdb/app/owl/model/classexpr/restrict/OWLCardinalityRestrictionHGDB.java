@@ -48,7 +48,7 @@ public abstract class OWLCardinalityRestrictionHGDB<R extends OWLPropertyRange, 
 
 
     public F getFiller() {    	
-        return (F)getHyperGraph().get(fillerHandle);
+        return getHyperGraph().<F>get(fillerHandle);
     }
 
 

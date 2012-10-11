@@ -12,7 +12,6 @@ import org.hypergraphdb.HGAtomCache;
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery;
-import org.hypergraphdb.HGRandomAccessResult;
 import org.hypergraphdb.HGSearchResult;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.HGQuery.hg;

@@ -17,7 +17,7 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLRuntimeException;
 
 /**
- * ImportExample.
+ * ImportOntologies.
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Feb 26, 2012
  */
@@ -32,7 +32,7 @@ public class ImportOntologies {
 	 * @param argv
 	 */
 	public static void main(String[] argv) {
-		if (argv.length == 0) {
+		if (argv.length < 2) {
 			printHelp();
 			System.exit(-1);
 		}

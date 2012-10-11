@@ -3,7 +3,6 @@ package org.hypergraphdb.app.owl;
 import static org.semanticweb.owlapi.util.CollectionFactory.createSet;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +24,6 @@ import org.hypergraphdb.app.owl.core.HGChangeableLink;
 import org.hypergraphdb.app.owl.core.HGDBOntologyChangeVisitor;
 import org.hypergraphdb.app.owl.core.OWLSubgraphObject;
 import org.hypergraphdb.app.owl.core.RemovePrefixChange;
-import org.hypergraphdb.query.HGQueryCondition;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
@@ -91,7 +89,6 @@ import org.semanticweb.owlapi.model.OWLObjectVisitor;
 import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
-import org.semanticweb.owlapi.model.OWLOntologyChangeVisitor;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLReflexiveObjectPropertyAxiom;
@@ -112,7 +109,7 @@ import org.semanticweb.owlapi.util.OWLEntityCollector;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 /**
- * HGDBOntology.
+ * HGDBOntology, a graph database backed OWLOntology implementation. 
  * 
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  */

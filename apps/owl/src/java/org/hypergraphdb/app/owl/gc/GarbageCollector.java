@@ -24,7 +24,6 @@ import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.core.HGDBTask;
 import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
 import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
-import org.hypergraphdb.app.owl.core.PrefixHGDB;
 import org.hypergraphdb.app.owl.model.OWLAnnotationHGDB;
 import org.hypergraphdb.app.owl.model.swrl.SWRLConjuction;
 import org.hypergraphdb.app.owl.query.AnySubgraphMemberCondition;
@@ -279,11 +278,12 @@ public class GarbageCollector implements HGDBTask {
 		// we do essential things in the first transaction, but for performance reasons, 
 		// we do not include the complex removal of axioms in the long term transaction.
 		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+			@SuppressWarnings("unused")
 			public Object call() {
 				Set<OWLAnnotation> annos = onto.getAnnotations();
 				Set<OWLImportsDeclaration> importsDeclarations = onto.getImportsDeclarations();
 				Set<OWLAxiom> axioms = onto.getAxioms();
-				Set<OWLEntity> entities = onto.getSignature();
+				//Set<OWLEntity> entities = onto.getSignature();
 				for (OWLAnnotation anno : annos) {
 					if (isCancelTask()) return null;
 					progressTask();
@@ -729,6 +729,7 @@ public class GarbageCollector implements HGDBTask {
 	 * @param analyzeRemovedSet
 	 * @return true, if the IRI is not used by any other NamedObject.
 	 */
+	@SuppressWarnings("rawtypes")
 	private boolean isUsedByAnyNamedObject(IRI iri, Collection<HGHandle> atomsAboutToBeRemoved) {
 		for (HGIndexer I : HGDBApplication.getInstance().getIRIIndexers(graph)) {
 			 HGRandomAccessResult<Object>  iriUsage = graph.getIndexManager().getIndex(I).find(iri);

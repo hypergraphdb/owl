@@ -14,7 +14,6 @@ import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.hypergraphdb.type.DefaultJavaTypeMapper;
 import org.hypergraphdb.type.HGAtomType;
 import org.hypergraphdb.type.HGCompositeType;
-import org.semanticweb.owlapi.model.IRI;
 
 /**
  * R20120807RepairSWRLNull.

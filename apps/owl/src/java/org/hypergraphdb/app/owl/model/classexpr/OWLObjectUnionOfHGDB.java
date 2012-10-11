@@ -3,7 +3,6 @@ package org.hypergraphdb.app.owl.model.classexpr;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
 
 import org.hypergraphdb.HGHandle;
 import org.semanticweb.owlapi.model.ClassExpressionType;

@@ -3,7 +3,6 @@ package org.hypergraphdb.app.owl.model;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 import org.hypergraphdb.app.owl.util.ImplUtils;
 import org.semanticweb.owlapi.model.EntityType;

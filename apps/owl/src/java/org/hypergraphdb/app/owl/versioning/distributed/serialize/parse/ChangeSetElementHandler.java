@@ -78,7 +78,6 @@ public class ChangeSetElementHandler extends AbstractVOWLElementHandler<ChangeSe
 	 */
 	@Override
 	public void endElement() throws OWLParserException, UnloadableImportException {
-		System.out.println("CHANGESET END, Line: " + getLineNumber());
 		if (createdDate == null) throw new OWLParserException("Missing createdDate", getLineNumber(), getColumnNumber());
 		if (changes == null) throw new OWLParserException("Missing changes", getLineNumber(), getColumnNumber());
 		changeSet = new ChangeSet(changes);

@@ -703,6 +703,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 		if (axiom == null) throw new NullPointerException("axiom");
 		if (ignoreAnnotations) throw new IllegalStateException("Current Hash lookup Implementation fails, ignoreAnnotations is set.");
 		return graph.getTransactionManager().ensureTransaction(new Callable<OWLAxiomHGDB>() {
+			@SuppressWarnings("rawtypes")
 			public OWLAxiomHGDB call() {
 				int findHashCode = axiom.hashCode();
 				HGIndexer axiomByHashCodeIndexer = HGDBApplication.getInstance().getAxiomByHashCodeIndexer(graph);

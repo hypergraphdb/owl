@@ -286,7 +286,7 @@ public class VersionedOntology  implements HGLink, HGGraphHolder, VersioningObje
 	public OWLTempOntologyImpl copyIntoPartialInMemOnto(HGDBOntology original) {
 		OWLOntologyManager manager = original.getOWLOntologyManager();
 		if (manager == null) {
-			System.out.println("copyIntoPartialInMemOnto: creating custom in memory manager for new onto. Fix this.");
+			System.out.println("copyIntoPartialInMemOnto: OWLTempOntologyImpl: creating custom in memory manager for new onto.");
 			manager = OWLManager.createOWLOntologyManager();
 		}
 		OWLTempOntologyImpl memOnto = new OWLTempOntologyImpl(manager, original.getOntologyID());

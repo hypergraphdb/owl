@@ -26,7 +26,7 @@ public abstract class OWLPropertyRangeAxiomHGDB <P extends OWLPropertyExpression
     }
 
     public R getRange() {
-        return (R)getHyperGraph().get(rangeHandle);
+        return getHyperGraph().<R>get(rangeHandle);
     }
 
     @Override

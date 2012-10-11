@@ -8,9 +8,7 @@ import java.util.TreeSet;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
-import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.annotation.HGIgnore;
-import org.hypergraphdb.app.owl.type.link.AxiomAnnotatedBy;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;

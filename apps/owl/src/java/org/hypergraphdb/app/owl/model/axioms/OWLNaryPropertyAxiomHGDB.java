@@ -10,7 +10,6 @@ import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
 import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNaryPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
