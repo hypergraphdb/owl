@@ -33,9 +33,10 @@ public abstract class SWRLUnaryAtomHGDB<A extends SWRLArgument> extends
 		this.arg = arg;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public A getArgument()
 	{
-		return getHyperGraph().get(arg);
+		return (A)getHyperGraph().get(arg);
 	}
 
 	public Collection<SWRLArgument> getAllArguments()
