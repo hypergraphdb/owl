@@ -36,7 +36,16 @@ public class SWRLBuiltInAtomHGDB extends SWRLAtomHGDB implements SWRLBuiltInAtom
 		this.argHs.addAll(Arrays.asList(args).subList(1, args.length));
 	}
 
-	//	public SWRLBuiltInAtomHGDB(IRI predicate, List<SWRLDArgument> args)
+	public SWRLBuiltInAtomHGDB(IRI predicate)
+	{
+		throw new UnsupportedOperationException();
+	}
+	
+	public SWRLBuiltInAtomHGDB(IRI predicate, List<SWRLDArgument> args)
+	{
+		throw new UnsupportedOperationException();
+	}
+	
 	public SWRLBuiltInAtomHGDB(HGHandle predicate, List<HGHandle> args)
 	{
 		super(predicate);

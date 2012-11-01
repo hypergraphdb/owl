@@ -22,7 +22,11 @@ public class SWRLClassAtomHGDB extends SWRLUnaryAtomHGDB<SWRLIArgument>	implemen
 		super(args);
 	}
 
-	//	public SWRLClassAtomHGDB(OWLClassExpression predicate, SWRLIArgument arg)
+	public SWRLClassAtomHGDB(OWLClassExpression predicate, SWRLIArgument arg)
+	{
+		throw new UnsupportedOperationException();
+	}
+	
 	public SWRLClassAtomHGDB(HGHandle predicate, HGHandle arg)
 	{
 		super(predicate, arg);

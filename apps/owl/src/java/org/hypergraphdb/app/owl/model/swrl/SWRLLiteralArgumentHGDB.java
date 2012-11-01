@@ -13,25 +13,33 @@ import org.semanticweb.owlapi.model.SWRLObjectVisitorEx;
 
 /**
  * SWRLLiteralArgumentHGDB.
+ * 
  * @author Boris Iordanov (CIAO/Miami-Dade County)
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 9, 2011
  */
 public class SWRLLiteralArgumentHGDB extends OWLObjectHGDB implements SWRLLiteralArgument, HGLink
 {
-	//private OWLLiteral literal;
+	// private OWLLiteral literal;
 	private HGHandle literal;
 
-	public SWRLLiteralArgumentHGDB(HGHandle... args) { 
-		this.literal = args[0]; 
+	public SWRLLiteralArgumentHGDB(HGHandle... args)
+	{
+		this.literal = args[0];
 	}
 
-	//public SWRLLiteralArgumentHGDB(OWLLiteral literal) { 
-	public SWRLLiteralArgumentHGDB(HGHandle literal) { 
-		if (literal == null) throw new IllegalArgumentException();
-		this.literal = literal; 
+	public SWRLLiteralArgumentHGDB(OWLLiteral literal)
+	{
+		throw new UnsupportedOperationException();
 	}
-	
+
+	public SWRLLiteralArgumentHGDB(HGHandle literal)
+	{
+		if (literal == null)
+			throw new IllegalArgumentException();
+		this.literal = literal;
+	}
+
 	public OWLLiteral getLiteral()
 	{
 		return getHyperGraph().get(literal);
@@ -76,36 +84,49 @@ public class SWRLLiteralArgumentHGDB extends OWLObjectHGDB implements SWRLLitera
 		return getLiteral().compareTo(((SWRLLiteralArgument) object).getLiteral());
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getArity()
 	 */
 	@Override
-	public int getArity() {
+	public int getArity()
+	{
 		// TODO Auto-generated method stub
-		return literal == null? 0: 1;
+		return literal == null ? 0 : 1;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getTargetAt(int)
 	 */
 	@Override
-	public HGHandle getTargetAt(int i) {
+	public HGHandle getTargetAt(int i)
+	{
 		return literal;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int, org.hypergraphdb.HGHandle)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int,
+	 * org.hypergraphdb.HGHandle)
 	 */
 	@Override
-	public void notifyTargetHandleUpdate(int i, HGHandle handle) {
+	public void notifyTargetHandleUpdate(int i, HGHandle handle)
+	{
 		literal = handle;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#notifyTargetRemoved(int)
 	 */
 	@Override
-	public void notifyTargetRemoved(int i) {
+	public void notifyTargetRemoved(int i)
+	{
 		literal = null;
 	}
 }

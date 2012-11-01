@@ -24,7 +24,10 @@ public class SWRLSameIndividualAtomHGDB extends
 		super(args);
 	}
 
-	//public SWRLSameIndividualAtomHGDB(SWRLIArgument arg0, SWRLIArgument arg1)
+	public SWRLSameIndividualAtomHGDB(SWRLIArgument arg0, SWRLIArgument arg1)
+	{
+		throw new UnsupportedOperationException();
+	}
 	public SWRLSameIndividualAtomHGDB(HGHandle sameAsH, HGHandle arg0, HGHandle arg1)
 	{
 //		super(OWLDataFactoryHGDB.getInstance()

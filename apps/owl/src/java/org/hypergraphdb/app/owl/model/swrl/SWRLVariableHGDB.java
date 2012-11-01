@@ -13,6 +13,7 @@ import org.semanticweb.owlapi.model.SWRLVariable;
 
 /**
  * SWRLVariableHGDB.
+ * 
  * @author Boris Iordanov (CIAO/Miami-Dade County)
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 9, 2011
@@ -21,17 +22,25 @@ public class SWRLVariableHGDB extends OWLObjectHGDB implements SWRLVariable, HGL
 {
 	private HGHandle iri;
 
-	//public SWRLVariableHGDB(IRI iri) 
-	public SWRLVariableHGDB(HGHandle... args) {
-		if (args[0] == null) throw new IllegalArgumentException();
-		this.iri = args[0]; 
-	}
-
-	public SWRLVariableHGDB(HGHandle iri) {
-		if (iri == null) throw new IllegalArgumentException();
-		this.iri = iri; 
+	public SWRLVariableHGDB(IRI iri)
+	{
+		throw new UnsupportedOperationException();
 	}
 	
+	public SWRLVariableHGDB(HGHandle... args)
+	{
+		if (args[0] == null)
+			throw new IllegalArgumentException();
+		this.iri = args[0];
+	}
+
+	public SWRLVariableHGDB(HGHandle iri)
+	{
+		if (iri == null)
+			throw new IllegalArgumentException();
+		this.iri = iri;
+	}
+
 	public IRI getIRI()
 	{
 		return getHyperGraph().get(iri);
@@ -76,35 +85,48 @@ public class SWRLVariableHGDB extends OWLObjectHGDB implements SWRLVariable, HGL
 		return getIRI().compareTo(((SWRLVariable) object).getIRI());
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getArity()
 	 */
 	@Override
-	public int getArity() {
+	public int getArity()
+	{
 		return 1;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getTargetAt(int)
 	 */
 	@Override
-	public HGHandle getTargetAt(int i) {
+	public HGHandle getTargetAt(int i)
+	{
 		return iri;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int, org.hypergraphdb.HGHandle)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int,
+	 * org.hypergraphdb.HGHandle)
 	 */
 	@Override
-	public void notifyTargetHandleUpdate(int i, HGHandle handle) {
+	public void notifyTargetHandleUpdate(int i, HGHandle handle)
+	{
 		iri = handle;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#notifyTargetRemoved(int)
 	 */
 	@Override
-	public void notifyTargetRemoved(int i) {
+	public void notifyTargetRemoved(int i)
+	{
 		iri = getHyperGraph().getHandleFactory().nullHandle();
 	}
 }

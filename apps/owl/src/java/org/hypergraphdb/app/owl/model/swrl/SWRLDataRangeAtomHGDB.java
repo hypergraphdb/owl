@@ -24,7 +24,11 @@ public class SWRLDataRangeAtomHGDB extends SWRLUnaryAtomHGDB<SWRLDArgument>
 		super(args);
 	}
 
-	//public SWRLDataRangeAtomHGDB(OWLDataRange predicate, SWRLDArgument arg)
+	public SWRLDataRangeAtomHGDB(OWLDataRange predicate, SWRLDArgument arg)
+	{
+		throw new UnsupportedOperationException();	
+	}
+	
 	public SWRLDataRangeAtomHGDB(HGHandle predicate, HGHandle arg)
 	{
 		super(predicate, arg);

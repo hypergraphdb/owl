@@ -23,7 +23,11 @@ public class SWRLDataPropertyAtomHGDB extends SWRLBinaryAtomHGDB<SWRLIArgument, 
 		super(args);
 	}
 
-	//public SWRLDataPropertyAtomHGDB(OWLDataPropertyExpression predicate, SWRLIArgument arg0, SWRLDArgument arg1)
+	public SWRLDataPropertyAtomHGDB(OWLDataPropertyExpression predicate, SWRLIArgument arg0, SWRLDArgument arg1)
+	{
+		throw new UnsupportedOperationException();
+	}
+	
 	public SWRLDataPropertyAtomHGDB(HGHandle predicate, HGHandle arg0, HGHandle arg1)
 	{
 		super(predicate, arg0, arg1);

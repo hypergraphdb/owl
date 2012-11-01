@@ -22,7 +22,10 @@ public class SWRLDifferentIndividualsAtomHGDB extends SWRLBinaryAtomHGDB<SWRLIAr
 		super(args);
 	}
 
-	//public SWRLDifferentIndividualsAtomHGDB(SWRLIArgument arg0, SWRLIArgument arg1)
+	public SWRLDifferentIndividualsAtomHGDB(SWRLIArgument arg0, SWRLIArgument arg1)
+	{
+		throw new UnsupportedOperationException();
+	}
 	public SWRLDifferentIndividualsAtomHGDB(HGHandle owlDifferentFrom, HGHandle arg0, HGHandle arg1)
 	{
 //		super(OWLDataFactoryHGDB.getInstance()
