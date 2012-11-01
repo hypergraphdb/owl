@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
+import org.hypergraphdb.annotation.HGIgnore;
 import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
 import org.semanticweb.owlapi.model.SWRLArgument;
 import org.semanticweb.owlapi.model.SWRLAtom;
@@ -37,11 +38,13 @@ public abstract class SWRLAtomHGDB extends OWLObjectHGDB implements SWRLAtom, HG
 		predicateHandle = predicate;
 	}
 
+	@HGIgnore
 	public void setArguments(List<? extends SWRLArgument> L)
 	{
 		throw new UnsupportedOperationException();
 	}	
 	
+	@HGIgnore
 	public void setPredicate(SWRLPredicate predicate)
 	{
 		throw new UnsupportedOperationException();
@@ -63,7 +66,7 @@ public abstract class SWRLAtomHGDB extends OWLObjectHGDB implements SWRLAtom, HG
 		// }
 		// }
 	}
-
+	@HGIgnore
 	public SWRLPredicate getPredicate()
 	{
 		return (SWRLPredicate) ((predicateHandle == null) ? null : getHyperGraph().get(predicateHandle));
