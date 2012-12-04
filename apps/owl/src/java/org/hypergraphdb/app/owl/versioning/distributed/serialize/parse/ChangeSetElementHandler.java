@@ -43,8 +43,6 @@ public class ChangeSetElementHandler extends AbstractVOWLElementHandler<ChangeSe
 	 */
 	@Override
 	public void startElement(String name) throws OWLXMLParserException {
-		//System.out.println("CHANGESET END, Line: " + getLineNumber());
-		//reset();
 	}
 
 	@Override

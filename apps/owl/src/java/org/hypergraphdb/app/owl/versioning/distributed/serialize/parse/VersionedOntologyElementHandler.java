@@ -76,6 +76,7 @@ public class VersionedOntologyElementHandler extends AbstractVOWLElementHandler<
 		Revision r= h.getOWLObject();
 		//Add Revision to Graph or not??
 		// > NO, will be added as bean of the Pair object in VersionedOntology getHyperGraph().add(r);
+		System.out.print("R" + revisions.size());
 		revisions.add(r);
 	}
 
@@ -113,6 +114,7 @@ public class VersionedOntologyElementHandler extends AbstractVOWLElementHandler<
 	 */
 	@Override
 	public void endElement() throws OWLParserException, UnloadableImportException {
+		System.out.println();
 		getParentHandler().handleChild(this);
 	}
 
