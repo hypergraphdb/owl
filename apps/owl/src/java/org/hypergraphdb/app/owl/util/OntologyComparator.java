@@ -28,6 +28,8 @@ public class OntologyComparator {
 			// Compare Axioms
 			Set<OWLAxiom> fromAxioms = from.getAxioms();
 			Set<OWLAxiom> toAxioms = to.getAxioms();
+			result.setTotalAxiomsFrom(fromAxioms.size());
+			result.setTotalAxiomsTo(toAxioms.size());
 			// Determine REMOVED toAxioms = toAxiom - fromAxioms
 			for (OWLAxiom fromA : fromAxioms) {
 				if (!toAxioms.contains(fromA)) {
@@ -99,6 +101,25 @@ public class OntologyComparator {
 			private List<OWLImportsDeclaration> addedImportDeclarations = new ArrayList<OWLImportsDeclaration>();
 			private List<OWLImportsDeclaration> removedImportDeclarations = new ArrayList<OWLImportsDeclaration>();
 			private List<OWLOntologyID> changedNewOntologyIDs = new ArrayList<OWLOntologyID>();
+			private int totalAxiomsFrom = -1;
+			private int totalAxiomsTo = -1;
+
+
+			public int getTotalAxiomsFrom() {
+				return totalAxiomsFrom;
+			}
+
+			public void setTotalAxiomsFrom(int totalAxiomsFrom) {
+				this.totalAxiomsFrom = totalAxiomsFrom;
+			}
+
+			public int getTotalAxiomsTo() {
+				return totalAxiomsTo;
+			}
+
+			public void setTotalAxiomsTo(int totalAxiomsTo) {
+				this.totalAxiomsTo = totalAxiomsTo;
+			}
 
 			public void added(OWLAxiom o) {
 				addedAxioms.add(o);
@@ -220,6 +241,8 @@ public class OntologyComparator {
 			
 			public void print(PrintWriter p) {
 				p.println("## COMPARATOR DELTA START");
+				p.println("## TOTAL FROM ONTOLOGY AXIOMS: " + getTotalAxiomsFrom());
+				p.println("## TOTAL TO ONTOLOGY AXIOMS  : " + getTotalAxiomsTo());
 				p.println("## REMOVED AXIOMS: " + getRemovedAxioms().size());
 				for (OWLAxiom ax : getRemovedAxioms()) {
 					p.println(ax.toString());
