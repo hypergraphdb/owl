@@ -10,10 +10,11 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import mjson.Json;
+
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
-import org.hypergraphdb.peer.Message;
 import org.hypergraphdb.peer.Messages;
 import org.hypergraphdb.peer.Performative;
 import org.hypergraphdb.peer.workflow.Activity;
@@ -70,7 +71,7 @@ public class FindOntologyServersActivity extends Activity {
 		this.getState().assign(WorkflowStateConstant.Started);
 		Set<HGPeerIdentity> peers = getPeerInterface().getThisPeer().getConnectedPeers();
 		for (HGPeerIdentity peer : peers) {
-			Message msg = createMessage(Performative.QueryIf, null);
+			Json msg = createMessage(Performative.QueryIf, null);
 			send(peer, msg);
 		}
 		nrOfPeersInitiatorIsWaitingFor = peers.size();
@@ -80,8 +81,8 @@ public class FindOntologyServersActivity extends Activity {
 	 * @see org.hypergraphdb.peer.workflow.Activity#handleMessage(org.hypergraphdb.peer.Message)
 	 */
 	@Override
-	public void handleMessage(Message msg) {
-		Performative p = msg.getPerformative();
+	public void handleMessage(Json msg) {
+		Performative p = Messages.fromJson(msg.at(Messages.PERFORMATIVE));
 		if (p == Performative.QueryIf) {
 			targetHandleQueryIf(msg);
 		} else if (p == Performative.Confirm) {
@@ -94,7 +95,7 @@ public class FindOntologyServersActivity extends Activity {
 			throw new RuntimeException(new VOWLException("Performative not understood: " + p));
 		}
 	}
-	public void targetHandleQueryIf(Message msg) {
+	public void targetHandleQueryIf(Json msg) {
 		Performative response;
 		if (repository.isOntologyServer()) {
 			response = Performative.Confirm;
@@ -123,19 +124,19 @@ public class FindOntologyServersActivity extends Activity {
 		}
 	}
 
-	public void initiatorHandleConfirm(Message msg) {
+	public void initiatorHandleConfirm(Json msg) {
 		Object sender = Messages.getSender(msg);
 		System.out.println("Found ontolgy server: " + sender);
 		ontologyServers.add(getThisPeer().getIdentity(sender));
 		initiatorReceivedTargetResponse();
 	}
 
-	public void initiatorHandleDisconfirm(Message msg) {
+	public void initiatorHandleDisconfirm(Json msg) {
 		Object sender = Messages.getSender(msg);
 		nonOntologyServers.add(getThisPeer().getIdentity(sender));
 		initiatorReceivedTargetResponse();
 	}
-	public void initiatorHandleNotUnderstood(Message msg) {
+	public void initiatorHandleNotUnderstood(Json msg) {
 		//System.out.println(Messages.getSender(msg));
 		Object sender = Messages.getSender(msg);
 		System.err.println("There is a client on the network that does not understand FindOntologyServers :" + sender);

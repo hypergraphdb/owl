@@ -88,10 +88,12 @@ public class HGDBOntologyRepository {
 	public static void setHypergraphDBLocation(String hypergraphDBLocation) {
 		if(instance != null) throw new IllegalStateException("Cannot set db location because of life instance.");
 		File f = new File(hypergraphDBLocation);
+		if (!f.exists())
+		    f.mkdirs();
 		if (!f.isDirectory()) throw new IllegalStateException("HGDB Location not a directory: " + hypergraphDBLocation);
 		if (!f.canRead()) throw new IllegalStateException("HGDB Location cannot be read: " + hypergraphDBLocation);
 		if (!f.canWrite()) throw new IllegalStateException("HGDB Location cannot be written to: " + hypergraphDBLocation);
-		if (!f.exists()) throw new IllegalStateException("HGDB Location does not exist: " + hypergraphDBLocation);	
+		//if (!f.exists()) throw new IllegalStateException("HGDB Location does not exist: " + hypergraphDBLocation);	
 		HGDBOntologyRepository.hypergraphDBLocation = hypergraphDBLocation;		
 	}
 

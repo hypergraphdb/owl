@@ -3,9 +3,6 @@ package org.hypergraphdb.app.owl.versioning.distributed.activity;
 import static org.hypergraphdb.peer.Messages.CONTENT;
 import static org.hypergraphdb.peer.Messages.getReply;
 import static org.hypergraphdb.peer.Messages.getSender;
-import static org.hypergraphdb.peer.Structs.combine;
-import static org.hypergraphdb.peer.Structs.getPart;
-import static org.hypergraphdb.peer.Structs.struct;
 import static org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository.OBJECTCONTEXT_REPOSITORY;
 
 import java.io.Serializable;
@@ -14,6 +11,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+
+import mjson.Json;
 
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
@@ -24,7 +23,7 @@ import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.distributed.VDRenderer;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
-import org.hypergraphdb.peer.Message;
+import org.hypergraphdb.peer.Messages;
 import org.hypergraphdb.peer.Performative;
 import org.hypergraphdb.peer.workflow.FSMActivity;
 import org.hypergraphdb.peer.workflow.FromState;
@@ -86,7 +85,7 @@ public class BrowseRepositoryActivity extends FSMActivity {
 	 */
 	@Override
 	public void initiate() {
-        Message msg = createMessage(Performative.QueryIf, this);
+        Json msg = createMessage(Performative.QueryIf, this);
         send(targetPeerID, msg);
 	}
 	
@@ -98,8 +97,8 @@ public class BrowseRepositoryActivity extends FSMActivity {
 	 */
 	@FromState("Started") //TARGET
     @OnMessage(performative="QueryIf")
-    public WorkflowStateConstant targetQueryOntologyIds(final Message msg) throws Throwable {
-		Message reply = getReply(msg, Performative.Inform);
+    public WorkflowStateConstant targetQueryOntologyIds(final Json msg) throws Throwable {
+		Json reply = getReply(msg, Performative.Inform);
 		List<BrowseEntry> ontologyIDsAndUUIDs = graph.getTransactionManager().ensureTransaction(new Callable<List<BrowseEntry>>() {
 			public List<BrowseEntry> call() {
 				// TRANSACTION START
@@ -112,7 +111,7 @@ public class BrowseRepositoryActivity extends FSMActivity {
 				// TRANSACTION END
 				return ontologyIDsAndUUIDs;
 			}});
-		combine(reply, struct(CONTENT, ontologyIDsAndUUIDs));
+		reply.set(CONTENT, ontologyIDsAndUUIDs);
 		send(getSender(msg), reply);
 		return WorkflowStateConstant.Completed;
 	}
@@ -125,8 +124,10 @@ public class BrowseRepositoryActivity extends FSMActivity {
 	 */
 	@FromState("Started") //TARGET
     @OnMessage(performative="Inform")
-    public WorkflowStateConstant sourceReceiveOntologyIds(final Message msg) throws Throwable {
-		repositoryBrowseEntries = getPart(msg, CONTENT);
+    public WorkflowStateConstant sourceReceiveOntologyIds(final Json msg) throws Throwable {
+		repositoryBrowseEntries = new ArrayList<BrowseEntry>(); 
+		for (Json x : msg.at(CONTENT).asJsonList())
+		    repositoryBrowseEntries.add((BrowseEntry)Messages.fromJson(x));
 		return WorkflowStateConstant.Completed;
 	}
 

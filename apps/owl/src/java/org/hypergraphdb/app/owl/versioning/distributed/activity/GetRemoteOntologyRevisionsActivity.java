@@ -1,16 +1,17 @@
 package org.hypergraphdb.app.owl.versioning.distributed.activity;
 
+
 import static org.hypergraphdb.peer.Messages.CONTENT;
 import static org.hypergraphdb.peer.Messages.getReply;
 import static org.hypergraphdb.peer.Messages.getSender;
-import static org.hypergraphdb.peer.Structs.combine;
-import static org.hypergraphdb.peer.Structs.getPart;
-import static org.hypergraphdb.peer.Structs.struct;
 import static org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository.OBJECTCONTEXT_REPOSITORY;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+
+import mjson.Json;
 
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
@@ -20,7 +21,7 @@ import org.hypergraphdb.app.owl.versioning.distributed.DistributedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
-import org.hypergraphdb.peer.Message;
+import org.hypergraphdb.peer.Messages;
 import org.hypergraphdb.peer.Performative;
 import org.hypergraphdb.peer.workflow.FSMActivity;
 import org.hypergraphdb.peer.workflow.FromState;
@@ -83,9 +84,9 @@ public class GetRemoteOntologyRevisionsActivity extends FSMActivity {
 	 */
 	@Override
 	public void initiate() {
-        Message msg = createMessage(Performative.QueryIf, this);
+        Json msg = createMessage(Performative.QueryIf, this);
         if (sourceDistributedOntologyUUID == null) throw new NullPointerException("sourceDistributedOntologyUUID must not be null");
-    	combine(msg, struct(CONTENT, sourceDistributedOntologyUUID));
+    	msg.set(CONTENT, sourceDistributedOntologyUUID);
         send(targetPeerID, msg);
 	}
 	
@@ -97,18 +98,18 @@ public class GetRemoteOntologyRevisionsActivity extends FSMActivity {
 	 */
 	@FromState("Started") //TARGET
     @OnMessage(performative="QueryIf")
-    public WorkflowStateConstant targetQueryOntologyRevisions(final Message msg) throws Throwable {
-		final HGPersistentHandle sourceUUID = getPart(msg, CONTENT);
-		Message reply = graph.getTransactionManager().ensureTransaction(new Callable<Message>() {
-			public Message call() {
-				Message reply;
+    public WorkflowStateConstant targetQueryOntologyRevisions(final Json msg) throws Throwable {
+		final HGPersistentHandle sourceUUID = Messages.fromJson(msg.at(CONTENT));
+		Json reply = graph.getTransactionManager().ensureTransaction(new Callable<Json>() {
+			public Json call() {
+				Json reply;
 				HGDBOntology o = graph.get(sourceUUID);
 				if (o != null) {
 					DistributedOntology sourceDistributedOnto = repository.getDistributedOntology(o);
 					if (sourceDistributedOnto != null) {
 						 reply = getReply(msg, Performative.Inform);			        	
 						 List<Revision> revList = sourceDistributedOnto.getVersionedOntology().getRevisions();
-				        combine(reply, struct(CONTENT, revList));
+				        reply.set(CONTENT, revList);
 				        return reply;
 					} else {
 							// Ontology but not shared 
@@ -132,8 +133,10 @@ public class GetRemoteOntologyRevisionsActivity extends FSMActivity {
 	 */
 	@FromState("Started") //TARGET
     @OnMessage(performative="Inform")
-    public WorkflowStateConstant sourceReceiveOntologyIds(final Message msg) throws Throwable {
-		revisionsFromTarget = getPart(msg, CONTENT);
+    public WorkflowStateConstant sourceReceiveOntologyIds(final Json msg) throws Throwable {
+		revisionsFromTarget = new ArrayList<Revision>();
+		for (Json x : msg.at(CONTENT).asJsonList())
+		    revisionsFromTarget.add((Revision)Messages.fromJson(x));
 		return WorkflowStateConstant.Completed;
 	}
 
@@ -144,5 +147,4 @@ public class GetRemoteOntologyRevisionsActivity extends FSMActivity {
 	public List<Revision> getRemoteOntologyRevisions() {
 		return revisionsFromTarget;
 	}
-	
 }

@@ -3,15 +3,15 @@ package org.hypergraphdb.app.owl.versioning.distributed.activity;
 import static org.hypergraphdb.peer.Messages.CONTENT;
 import static org.hypergraphdb.peer.Messages.getReply;
 import static org.hypergraphdb.peer.Messages.getSender;
-import static org.hypergraphdb.peer.Structs.combine;
-import static org.hypergraphdb.peer.Structs.getPart;
-import static org.hypergraphdb.peer.Structs.struct;
 import static org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository.OBJECTCONTEXT_REPOSITORY;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+
+import mjson.Json;
 
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
@@ -25,7 +25,7 @@ import org.hypergraphdb.app.owl.versioning.distributed.DistributedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
-import org.hypergraphdb.peer.Message;
+import org.hypergraphdb.peer.Messages;
 import org.hypergraphdb.peer.Performative;
 import org.hypergraphdb.peer.workflow.FSMActivity;
 import org.hypergraphdb.peer.workflow.FromState;
@@ -50,7 +50,7 @@ public class GetRemoteOntologyChangesetActivity extends FSMActivity {
     private HyperGraph graph;
     private HGPersistentHandle sourceDistributedOntologyUUID;
     private RevisionID sourceDistributedOntologyRevision;
-    private List<String> renderedChangesFromTarget;
+    private Json renderedChangesFromTarget;
 
 
 	public GetRemoteOntologyChangesetActivity(HyperGraphPeer thisPeer, UUID id)
@@ -93,10 +93,10 @@ public class GetRemoteOntologyChangesetActivity extends FSMActivity {
 	 */
 	@Override
 	public void initiate() {
-        Message msg = createMessage(Performative.QueryIf, this);
+        Json msg = createMessage(Performative.QueryIf, this);
         if (sourceDistributedOntologyUUID == null) throw new NullPointerException("sourceDistributedOntologyUUID must not be null");
         Object[] queryParams = new Object[] {sourceDistributedOntologyUUID, sourceDistributedOntologyRevision };
-    	combine(msg, struct(CONTENT, queryParams));
+    	msg.set(CONTENT, queryParams);
         send(targetPeerID, msg);
 	}
 	
@@ -108,13 +108,13 @@ public class GetRemoteOntologyChangesetActivity extends FSMActivity {
 	 */
 	@FromState("Started") //TARGET
     @OnMessage(performative="QueryIf")
-    public WorkflowStateConstant targetQueryOntologyRevisions(final Message msg) throws Throwable {
-		Object[] queryParams = getPart(msg, CONTENT);
-		final HGPersistentHandle sourceUUID = (HGPersistentHandle)queryParams[0];
-		final RevisionID revisionID = (RevisionID)queryParams[1];
-		Message reply = graph.getTransactionManager().ensureTransaction(new Callable<Message>() {
-			public Message call() {
-				Message reply;
+    public WorkflowStateConstant targetQueryOntologyRevisions(final Json msg) throws Throwable {
+		Json queryParams = msg.at(CONTENT);
+		final HGPersistentHandle sourceUUID = (HGPersistentHandle)Messages.fromJson(queryParams.at(0));
+		final RevisionID revisionID = (RevisionID)Messages.fromJson(queryParams.at(1));
+		Json reply = graph.getTransactionManager().ensureTransaction(new Callable<Json>() {
+			public Json call() {
+				Json reply;
 				HGDBOntology o = graph.get(sourceUUID);
 				if (o != null) {
 					DistributedOntology targetDistributedOnto = repository.getDistributedOntology(o);
@@ -130,7 +130,7 @@ public class GetRemoteOntologyChangesetActivity extends FSMActivity {
 								renderedChanges.add(change.toString());
 							}
 							reply = getReply(msg, Performative.Inform);			        	
-					        combine(reply, struct(CONTENT, renderedChanges));
+					        reply.set(CONTENT, renderedChanges);
 					        return reply;
 						} else {
 							// Ontology but not changeset
@@ -157,8 +157,8 @@ public class GetRemoteOntologyChangesetActivity extends FSMActivity {
 	 */
 	@FromState("Started") //TARGET
     @OnMessage(performative="Inform")
-    public WorkflowStateConstant sourceReceiveOntologyIds(final Message msg) throws Throwable {
-		renderedChangesFromTarget = getPart(msg, CONTENT);
+    public WorkflowStateConstant sourceReceiveOntologyIds(final Json msg) throws Throwable {
+		renderedChangesFromTarget = msg.at(CONTENT);
 		return WorkflowStateConstant.Completed;
 	}
 
@@ -167,6 +167,9 @@ public class GetRemoteOntologyChangesetActivity extends FSMActivity {
 	 * @return a list of revisions, null if failure
 	 */
 	public List<String> getRemoteChangeSetChangesRendered() {
-		return renderedChangesFromTarget;
+	    List<String> L = new ArrayList<String>();
+	    for (Json x : renderedChangesFromTarget.asJsonList())
+	        L.add(x.asString());
+	    return L;
 	}	
 }

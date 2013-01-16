@@ -1,7 +1,11 @@
 package org.hypergraphdb.app.owl.versioning;
 
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+
+import org.hypergraphdb.peer.serializer.HGPeerJsonFactory;
 
 /**
  * Revision represents the first ontology or a revised version of the ontology.
@@ -142,4 +146,19 @@ public class Revision extends RevisionID implements /* HGHandleHolder , */ Versi
 		return (thiso == null && other == null)
 			|| (thiso != null && thiso.equals(other));
 	}	
+	
+	public static void main(String []argv)
+	{
+	    HGPeerJsonFactory fac = HGPeerJsonFactory.getInstance();
+	    Revision rev = new Revision();
+	    rev.setTimeStamp(null);
+	    rev.setRevision(43);
+	    rev.setUser("asdfasd");
+	    rev.setRevisionComment("as asd ada fasdfasd");
+	    System.out.println(fac.make(rev));
+	    List<Revision> L = new ArrayList<Revision>();
+	    L.add(rev);
+	    L.add(new Revision());
+	    System.out.println(fac.make(L));
+	}
 }

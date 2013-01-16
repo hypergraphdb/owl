@@ -3,6 +3,8 @@ package org.hypergraphdb.app.owl.versioning.distributed;
 import java.io.File;
 import java.util.Map;
 
+import mjson.Json;
+
 import org.hypergraphdb.app.owl.HGDBOWLManager;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.peer.HGPeerIdentity;
@@ -40,17 +42,17 @@ public class VDHGDBOntologyServer
 		    else
 		        die("Invalid parameter name " + A[0]);
 		}
-		Map<String, Object> configuration = HyperGraphPeer.loadConfiguration(new File(filename));
+		Json configuration = HyperGraphPeer.loadConfiguration(new File(filename));
 		if (db != null)
-		    configuration.put("localDB", db);
+		    configuration.set("localDB", db);
 		if (name != null)
-		    configuration.put("peerName", name);
-		if (port != null)
-		    Structs.getStruct(configuration, "jxta", "tcp").put("port", Integer.parseInt(port));
+		    configuration.set("peerName", name);
+//		if (port != null)
+//		    Structs.getStruct(configuration, "jxta", "tcp").put("port", Integer.parseInt(port));
 		
-		File dir = new File(configuration.get("localDB").toString());
+		File dir = new File(configuration.at("localDB").asString());
 		System.out.println("Starting ontology server peer at " + dir + 
-				" with peer name " + configuration.get("peerName"));
+				" with peer name " + configuration.at("peerName"));
 		
 		VDHGDBOntologyRepository dr = null;
 		

@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl.versioning.distributed;
 
 import java.io.BufferedReader;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -16,7 +17,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static org.hypergraphdb.peer.Structs.getPart;
+import mjson.Json;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGPersistentHandle;
@@ -24,6 +25,7 @@ import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
+import org.hypergraphdb.app.owl.util.JsonBeans;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.RevisionID;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
@@ -35,7 +37,6 @@ import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.PeerInterface;
 import org.hypergraphdb.peer.PeerPresenceListener;
-import org.hypergraphdb.peer.serializer.JSONReader;
 import org.hypergraphdb.peer.workflow.Activity;
 import org.hypergraphdb.peer.workflow.ActivityResult;
 import org.hypergraphdb.peer.xmpp.XMPPPeerInterface;
@@ -140,11 +141,11 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 	}
 	
 	
-	private void createAndConfigurePeer(Map<String, Object> peerConfig) {
+	private void createAndConfigurePeer(Json peerConfig) {
 		peer = new HyperGraphPeer(peerConfig, getHyperGraph());
 		peer.getActivityManager();
 		peer.getObjectContext().put(OBJECTCONTEXT_REPOSITORY, this);
-		setOntologyServer(Boolean.parseBoolean((String) peerConfig.get(CONFIG_KEY_SERVER)));
+		setOntologyServer(Boolean.parseBoolean((String) peerConfig.at(CONFIG_KEY_SERVER).asString()));
 		
 		if (DBG) {
 			peer.addPeerPresenceListener(new PeerPresenceListener() {
@@ -182,12 +183,10 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 	 * @return a default configuration or the configuration found in the configuration file.
 	 * @throws IOException 
 	 */
-	@SuppressWarnings("unchecked")
-	private Map<String,Object> loadPeerConfig() {
+	private Json loadPeerConfig() {
 		URL peerConfigFile = getClass().getResource(PEER_CONFIGURATION_FILE);
-		Map<String,Object> peerConfig;
+		Json peerConfig;
 		if (peerConfigFile != null) {
-			JSONReader reader = new JSONReader();
 			System.out.println("LOADING PEER CONFIGURATION FROM: " + PEER_CONFIGURATION_FILE);
 			try {
 				String cur, configAsString = "";
@@ -195,22 +194,22 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 				while ((cur = brr.readLine()) != null) {
 					configAsString = configAsString + cur + "\n"; 
 				}
-				peerConfig = (Map<String, Object>)getPart(reader.read(configAsString));
+				peerConfig = Json.read(configAsString);
 			} catch (IOException e) {
 				throw new RuntimeException("Loading configuration failed: " + PEER_CONFIGURATION_FILE, e);
 			}
 //			peerConfig = HyperGraphPeer.loadConfiguration(new File (peerConfigFile.getFile()));
 		} else {
 			System.out.println("USING TEST PEER CONFIGURATION (W203-003.miamidade.gov)");
-			peerConfig = new HashMap<String, Object>();
+			peerConfig = Json.object();
 			List<Map<?,?>> bootstrapConfig = new ArrayList<Map<?,?>>();
 			Map<String,Object> bootstrapConfigSub1 = new HashMap<String, Object>();
 			Map<String,Object> bootstrapConfigSub2 = new HashMap<String, Object>();
 			Map<String,Object> interfaceConfig = new HashMap<String, Object>();
-			peerConfig.put("interfaceType", "org.hypergraphdb.peer.xmpp.XMPPPeerInterface");
-			peerConfig.put("peerName", "VDHGDBOntologyRepository");
-			peerConfig.put("interfaceConfig", interfaceConfig);
-			peerConfig.put("bootstrap", bootstrapConfig);
+			peerConfig.set("interfaceType", "org.hypergraphdb.peer.xmpp.XMPPPeerInterface");
+			peerConfig.set("peerName", "VDHGDBOntologyRepository");
+			peerConfig.set("interfaceConfig", interfaceConfig);
+			peerConfig.set("bootstrap", bootstrapConfig);
 			bootstrapConfig.add(bootstrapConfigSub1);
 			bootstrapConfig.add(bootstrapConfigSub2);
 			bootstrapConfigSub1.put("class", "org.hypergraphdb.peer.bootstrap.AffirmIdentityBootstrap");
@@ -229,7 +228,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 		return peerConfig;
 	}
 	
-	public boolean startNetworking(Map<String, Object> configuration) {
+	public boolean startNetworking(Json configuration) {
 		if (peer != null && peer.getPeerInterface().isConnected()) {
 			throw new IllegalStateException("Peer is currently connected. Disconnect first.");
 		}
@@ -241,13 +240,12 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 		if (peer != null && peer.getPeerInterface().isConnected()) {
 			throw new IllegalStateException("Peer is currently connected. Disconnect first.");
 		}
-		Map<String, Object> config = loadPeerConfig();
-		@SuppressWarnings("unchecked")
-		Map<String, Object> interFaceConfig = (Map<String, Object>)config.get("interfaceConfig");
-		interFaceConfig.put("user", userName);
-		interFaceConfig.put("password", password);
-		interFaceConfig.put("serverUrl", serverUrl);
-		createAndConfigurePeer(config);
+		Json config = loadPeerConfig();
+		Json interFaceConfig = config.at("interfaceConfig");
+		interFaceConfig.set("user", userName);
+		interFaceConfig.set("password", password);
+		interFaceConfig.set("serverUrl", serverUrl);
+		createAndConfigurePeer(Json.make(config));
 		return startNetworkingInternal();
 	}
 
@@ -260,7 +258,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 			throw new IllegalStateException("Peer is currently connected. Disconnect first.");
 		}
 		//DBG_ClearDates();
-		createAndConfigurePeer(loadPeerConfig());
+		createAndConfigurePeer(Json.make(loadPeerConfig()));
 		return startNetworkingInternal();
 	}
 

@@ -3,15 +3,15 @@ package org.hypergraphdb.app.owl.versioning.distributed.activity;
 import static org.hypergraphdb.peer.Messages.CONTENT;
 import static org.hypergraphdb.peer.Messages.getReply;
 import static org.hypergraphdb.peer.Messages.getSender;
-import static org.hypergraphdb.peer.Structs.combine;
-import static org.hypergraphdb.peer.Structs.getPart;
-import static org.hypergraphdb.peer.Structs.struct;
 import static org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository.OBJECTCONTEXT_REPOSITORY;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+
+import mjson.Json;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGPersistentHandle;
@@ -25,7 +25,7 @@ import org.hypergraphdb.app.owl.versioning.distributed.ServerCentralizedOntology
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
-import org.hypergraphdb.peer.Message;
+import org.hypergraphdb.peer.Messages;
 import org.hypergraphdb.peer.Performative;
 import org.hypergraphdb.peer.workflow.FromState;
 import org.hypergraphdb.peer.workflow.OnMessage;
@@ -143,12 +143,13 @@ public class PushActivity extends OntologyTransmitActivity {
 	 */
 	@Override
 	public void initiate() {
-        Message msg = createMessage(Performative.QueryIf, this);
-        combine(msg, struct(CONTENT, sourceDistributedOnto.getVersionedOntology().getHeadRevision().getOntologyUUID())); 
-        combine(msg, struct(KEY_DISTRIBUTION_MODE, sourceGetPushMode())); 
+        Json msg = createMessage(Performative.QueryIf, this);
+        msg.set(CONTENT, sourceDistributedOnto.getVersionedOntology().getHeadRevision().getOntologyUUID()); 
+        msg.set(KEY_DISTRIBUTION_MODE, sourceGetPushMode()); 
         send(targetPeerID, msg);
         if (DBG) {
-        	getThisPeer().getGraph().getLogger().trace("Query if target push : " + sourceDistributedOnto.getVersionedOntology().getHeadRevision());
+        	getThisPeer().getGraph().getLogger().trace("Query if target push : " + 
+        	            sourceDistributedOnto.getVersionedOntology().getHeadRevision());
         }
 	}
 
@@ -163,10 +164,10 @@ public class PushActivity extends OntologyTransmitActivity {
     @OnMessage(performative="QueryIf")
     @PossibleOutcome({"ReceivingDelta", "ReceivingInitial"})
     //@AtActivity(CONTENT);
-    public WorkflowStateConstant targetQueryIfVersionedOntologyExists(final Message msg) throws Throwable {
+    public WorkflowStateConstant targetQueryIfVersionedOntologyExists(final Json msg) throws Throwable {
 		// msg parsing
-		final HGPersistentHandle headRevisionOntologyID = getPart(msg, CONTENT);
-		final String pushMode = getPart(msg, KEY_DISTRIBUTION_MODE);
+		final HGPersistentHandle headRevisionOntologyID = Messages.fromJson(msg.at(CONTENT));
+		final String pushMode = msg.at(KEY_DISTRIBUTION_MODE).asString();
 		// Look up in repository
 		//TRANSACTION START
 		return graph.getTransactionManager().ensureTransaction(new Callable<WorkflowStateConstant>() {
@@ -180,9 +181,11 @@ public class PushActivity extends OntologyTransmitActivity {
 						// and tell if we have uncommitted changes.
 						// TODO send content hash
 				        if (targetDistributedOnto.getVersionedOntology().getWorkingSetChanges().isEmpty()) {
-				        	Message reply = getReply(msg, Performative.Confirm);
-				        	List<Revision> revList = targetDistributedOnto.getVersionedOntology().getRevisions();
-					        combine(reply, struct(CONTENT, revList));
+				        	Json reply = getReply(msg, Performative.Confirm); 
+				        	Json revList = Json.array();
+				        	for (Revision r : targetDistributedOnto.getVersionedOntology().getRevisions())
+				        	    revList.add(Json.make(r));
+					        reply.set(CONTENT, revList);
 					        send(getSender(msg), reply);
 							return ReceivingDelta;
 				        } else {
@@ -198,7 +201,7 @@ public class PushActivity extends OntologyTransmitActivity {
 				} else {
 					// o null or targetDistributedOnto null
 					// send Confirm
-			        Message reply = getReply(msg, Performative.Disconfirm);
+			        Json reply = getReply(msg, Performative.Disconfirm);
 			        send(getSender(msg), reply);
 					return ReceivingInitial;
 					//TRANSACTION END
@@ -214,7 +217,7 @@ public class PushActivity extends OntologyTransmitActivity {
     @OnMessage(performative="Disconfirm")
     @PossibleOutcome({"SendingInitial"}) 
     //@AtActivity(CONTENT);
-    public WorkflowStateConstant sourceSendFullVersionedOntology(Message msg) throws Throwable {
+    public WorkflowStateConstant sourceSendFullVersionedOntology(Json msg) throws Throwable {
 		// PROPOSE
 		setSourceDistributedExistsOnTarget(false);
 		String vowlxmlStringOntology = graph.getTransactionManager().ensureTransaction(new Callable<String>() {
@@ -229,8 +232,8 @@ public class PushActivity extends OntologyTransmitActivity {
 			}} );
 		msg = createMessage(Performative.Propose, this);
 		// send full head revision data, not versioned yet.
-        combine(msg, struct(CONTENT, vowlxmlStringOntology)); 
-        combine(msg, struct(KEY_DISTRIBUTION_MODE, sourceGetPushMode())); 
+        msg.set(CONTENT, vowlxmlStringOntology); 
+        msg.set(KEY_DISTRIBUTION_MODE, sourceGetPushMode()); 
         send(targetPeerID, msg);
         setSourceNrOfRevisionsPushed(sourceDistributedOnto.getVersionedOntology().getNrOfRevisions());
         setSourceSizeOfPushedDataChars(vowlxmlStringOntology.length());
@@ -246,9 +249,9 @@ public class PushActivity extends OntologyTransmitActivity {
     @OnMessage(performative="Propose")
     //@PossibleOutcome({"Completed", "Failed"}) 
     //@AtActivity(CONTENT);
-    public WorkflowStateConstant targetReceiveFullVersionedOntologyAsNew(Message msg) throws Throwable {
-		final String vowlxmlStringOntology = getPart(msg, CONTENT);		
-		final String pushMode = getPart(msg, KEY_DISTRIBUTION_MODE);
+    public WorkflowStateConstant targetReceiveFullVersionedOntologyAsNew(Json msg) throws Throwable {
+		final String vowlxmlStringOntology = msg.at(CONTENT).asString();		
+		final String pushMode = msg.at(KEY_DISTRIBUTION_MODE).asString();
 		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
 			public Object call() {
 				//TRANSACTION START
@@ -284,7 +287,7 @@ public class PushActivity extends OntologyTransmitActivity {
 				//TRANSACTION END
 		}}, HGTransactionConfig.DEFAULT);
 		//RESPOND
-        Message reply = getReply(msg, Performative.AcceptProposal);
+        Json reply = getReply(msg, Performative.AcceptProposal);
         send(getSender(msg), reply);
         setCompletedMessage("Full versioned ontology received. Size: " + (vowlxmlStringOntology.length()/1024) + " kilo characters");
 		return WorkflowStateConstant.Completed;
@@ -300,7 +303,7 @@ public class PushActivity extends OntologyTransmitActivity {
     @OnMessage(performative="AcceptProposal")
     @PossibleOutcome({"Completed"}) 
     //@AtActivity(CONTENT);
-    public WorkflowStateConstant sourceReceiveConfirmationForFullVersionedOntology(Message msg) throws Throwable {
+    public WorkflowStateConstant sourceReceiveConfirmationForFullVersionedOntology(Json msg) throws Throwable {
         setCompletedMessage("Target reported: accepted full versioned ontology. All changes were applied.");
         sourceDistributedExistsOnTarget = true;
 		return WorkflowStateConstant.Completed;
@@ -320,12 +323,14 @@ public class PushActivity extends OntologyTransmitActivity {
     @OnMessage(performative="Confirm")
     @PossibleOutcome({"SendingDelta"}) 
     //@AtActivity(CONTENT);
-    public WorkflowStateConstant sourceSendVersionedOntologyDelta(final Message msg) throws Throwable {
+    public WorkflowStateConstant sourceSendVersionedOntologyDelta(final Json msg) throws Throwable {
 		setSourceDistributedExistsOnTarget(true);
-		final List<Revision> targetRevisions = getPart(msg, CONTENT);
+		final List<Revision> targetRevisions = new ArrayList<Revision>();
+		for (Json jrev : msg.at(CONTENT).asJsonList())
+		    targetRevisions.add((Revision)Messages.fromJson(jrev));
 		return graph.getTransactionManager().ensureTransaction(new Callable<WorkflowStateConstant>() {
 			public WorkflowStateConstant call() {
-				Message reply; 
+				Json reply; 
 				WorkflowStateConstant nextState;
 				int lastCommonRevisionIndex; 
 				boolean allSourceRevisionsAreInTarget;
@@ -351,8 +356,8 @@ public class PushActivity extends OntologyTransmitActivity {
 							} catch(Exception e) {
 								throw new RuntimeException(e);
 							}
-					        combine(reply, struct(CONTENT, owlxmlStringOntology));
-					        combine(reply, struct(KEY_LAST_MATCHING_REVISION, sourceRevisions.get(lastCommonRevisionIndex)));
+					        reply.set(CONTENT, owlxmlStringOntology);
+					        reply.set(KEY_LAST_MATCHING_REVISION, sourceRevisions.get(lastCommonRevisionIndex));
 					        int nrOfRevisionsSent = (sourceRevisions.size() - lastCommonRevisionIndex - 1);
 					        setSourceNrOfRevisionsPushed(nrOfRevisionsSent);
 					        setSourceSizeOfPushedDataChars(owlxmlStringOntology.length());
@@ -372,7 +377,7 @@ public class PushActivity extends OntologyTransmitActivity {
 							// T C0C1C2							
 							// source equals target
 							reply = getReply(msg, Performative.Confirm);
-							combine(reply, struct(CONTENT, "Source and Target are equal."));
+							reply.set(CONTENT, "Source and Target are equal.");
 							setCompletedMessage("Source and Target are equal. Nothing to transmit.");
 							nextState = WorkflowStateConstant.Completed;
 						}
@@ -383,7 +388,7 @@ public class PushActivity extends OntologyTransmitActivity {
 							//Suggest Pull
 							//target has more than source, but all shared match
 							reply = getReply(msg, Performative.Confirm);
-							combine(reply, struct(CONTENT, "Target is newer than source."));
+							reply.set(CONTENT, "Target is newer than source.");
 							setCompletedMessage("Target is newer than source. A pull is suggested and possible.");
 							nextState = WorkflowStateConstant.Completed;
 						} else {
@@ -401,7 +406,7 @@ public class PushActivity extends OntologyTransmitActivity {
 					throw new RuntimeException(new VOWLSourceTargetConflictException("No common revision at beginning of source and target histories."));
 				}
 				//TRANSACTION END
-		        combine(reply, struct(KEY_DISTRIBUTION_MODE, sourceGetPushMode())); 
+		        reply.set(KEY_DISTRIBUTION_MODE, sourceGetPushMode()); 
 		        send(getSender(msg), reply);
 				return nextState;
 			}});
@@ -409,8 +414,8 @@ public class PushActivity extends OntologyTransmitActivity {
 
 	@FromState("ReceivingDelta") //TARGET
     @OnMessage(performative="Confirm")
-    public WorkflowStateConstant targetReceiveVersionedOntologyDeltaNotNecessary(final Message msg) throws Throwable {
-		String message = getPart(msg, CONTENT);
+    public WorkflowStateConstant targetReceiveVersionedOntologyDeltaNotNecessary(final Json msg) throws Throwable {
+		String message = msg.at(CONTENT).asString();
 		setCompletedMessage("Source reported that no delta is necessary. Reason: " + message);
 		return WorkflowStateConstant.Completed;
 	}
@@ -424,12 +429,12 @@ public class PushActivity extends OntologyTransmitActivity {
     @OnMessage(performative="Propose")
     //@PossibleOutcome({"Completed", "Failed"}) 
     //@AtActivity(CONTENT);
-    public WorkflowStateConstant targetReceiveVersionedOntologyDelta(final Message msg) throws Throwable {
+    public WorkflowStateConstant targetReceiveVersionedOntologyDelta(final Json msg) throws Throwable {
 		//
 		// Test if received last revision matches target head and all other prerequisites are still met.
 		//
-		final Revision lastMatchingRevision = getPart(msg, KEY_LAST_MATCHING_REVISION);
-		final String pushMode = getPart(msg, KEY_DISTRIBUTION_MODE);
+		final Revision lastMatchingRevision = Messages.fromJson(msg.at(KEY_LAST_MATCHING_REVISION));
+		final String pushMode = msg.at(KEY_DISTRIBUTION_MODE).asString();
 		// Validate if lastMatchingRevision still is target HEAD, keep UUID
 		//Throws exceptions if not.
 		String vowlxmlStringDelta = graph.getTransactionManager().ensureTransaction(new Callable<String>() {
@@ -439,7 +444,7 @@ public class PushActivity extends OntologyTransmitActivity {
 				targetAssertDistributionModeMatches(targetDistributedOntology, pushMode);
 				VersionedOntology targetVersionedOntology = targetDistributedOntology.getVersionedOntology();
 				if (DBG) System.out.println("RECEIVING delta");
-				String vowlxmlStringDelta = getPart(msg, CONTENT);
+				String vowlxmlStringDelta = msg.at(CONTENT).asString();
 				OWLOntologyDocumentSource ds = new StringDocumentSource(vowlxmlStringDelta);
 				// Parse, apply and append the delta
 				try {
@@ -460,7 +465,7 @@ public class PushActivity extends OntologyTransmitActivity {
 				return vowlxmlStringDelta;
 				//TRANSACTION END
 			}});
-		Message reply = getReply(msg, Performative.AcceptProposal);
+		Json reply = getReply(msg, Performative.AcceptProposal);
 		send(getSender(msg), reply);
 		setCompletedMessage("Delta received and applied. Size: " + (vowlxmlStringDelta.length()/1024) + " kilo characters");
 		return WorkflowStateConstant.Completed;
@@ -469,7 +474,7 @@ public class PushActivity extends OntologyTransmitActivity {
 	@FromState("SendingDelta") //Source
     @OnMessage(performative="AcceptProposal")
     @PossibleOutcome({"Completed"}) 
-    public WorkflowStateConstant sourceReceiveConfirmationForDelta(Message msg) throws Throwable {
+    public WorkflowStateConstant sourceReceiveConfirmationForDelta(Json msg) throws Throwable {
 		setCompletedMessage("All changes were applied to target.");
 		return WorkflowStateConstant.Completed;
 	}
@@ -518,5 +523,4 @@ public class PushActivity extends OntologyTransmitActivity {
 	protected void setSourceSizeOfPushedDataChars(long sourceSizeOfPushedDataChars) {
 		this.sourceSizeOfPushedDataChars = sourceSizeOfPushedDataChars;
 	}
-
 }
