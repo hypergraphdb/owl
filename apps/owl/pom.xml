@@ -65,9 +65,7 @@
   
   <build>
     <plugins>
-<!-- Ignore/Execute plugin execution
-
---> 
+<!-- Ignore/Execute plugin execution -->
     <plugin>
         <groupId>org.eclipse.m2e</groupId>
         <artifactId>lifecycle-mapping</artifactId>
@@ -91,12 +89,13 @@
                 </pluginExecutions>
             </lifecycleMappingMetadata>
         </configuration>
-    </plugin>       
+    </plugin>    
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
         <version>2.4</version>
         <executions>
+<!-- 
           <execution>
             <id>copy-dependencies-for-ant-eclipse-plugin-build</id>
             <phase>package</phase>
@@ -112,7 +111,7 @@
              <stripVersion>true</stripVersion>
             </configuration>
           </execution>
-<!--  No MORE NATIVE LIBS SINCE JE MIGRATION
+ No MORE NATIVE LIBS SINCE JE MIGRATION
           <execution>
             <id>unpack-native-libs-for-ant-eclipse-plugin-build</id>
             <phase>package</phase>
