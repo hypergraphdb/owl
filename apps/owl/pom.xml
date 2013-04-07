@@ -65,7 +65,9 @@
   
   <build>
     <plugins>
-<!-- Ignore/Execute plugin execution 
+<!-- Ignore/Execute plugin execution
+
+--> 
     <plugin>
         <groupId>org.eclipse.m2e</groupId>
         <artifactId>lifecycle-mapping</artifactId>
@@ -89,8 +91,7 @@
                 </pluginExecutions>
             </lifecycleMappingMetadata>
         </configuration>
-    </plugin>    
-    -->
+    </plugin>       
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
