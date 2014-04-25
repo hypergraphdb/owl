@@ -145,7 +145,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 		peer = new HyperGraphPeer(peerConfig, getHyperGraph());
 		peer.getActivityManager();
 		peer.getObjectContext().put(OBJECTCONTEXT_REPOSITORY, this);
-		setOntologyServer(Boolean.parseBoolean((String) peerConfig.at(CONFIG_KEY_SERVER).asString()));
+		setOntologyServer(Boolean.parseBoolean((String) peerConfig.at(CONFIG_KEY_SERVER, "false").asString()));
 		
 		if (DBG) {
 			peer.addPeerPresenceListener(new PeerPresenceListener() {
