@@ -63,7 +63,8 @@ public class Revision extends RevisionID implements /* HGHandleHolder , */ Versi
 	}
 
 	public String toString() {
-		return super.toString() + " by " + user + " at " + dateFormat.format(timeStamp);
+		return super.toString() + " by " + user + " at " + 
+		            (timeStamp == null ? "NA" : dateFormat.format(timeStamp));
 	}
 //	
 //	public OWLOntology getRevisionData() {

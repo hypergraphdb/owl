@@ -47,16 +47,19 @@ public class HGDBStorer implements OWLOntologyStorer, HGDBTask {
 		return ontologyFormat instanceof HGDBOntologyFormat;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.semanticweb.owlapi.model.OWLOntologyStorer#storeOntology(org.semanticweb
-	 * .owlapi.model.OWLOntologyManager,
-	 * org.semanticweb.owlapi.model.OWLOntology,
-	 * org.semanticweb.owlapi.model.IRI,
-	 * org.semanticweb.owlapi.model.OWLOntologyFormat)
-	 */
+	
+	@Override
+	public void storeOntology(OWLOntology ontology, OWLOntologyDocumentTarget target, OWLOntologyFormat format) throws OWLOntologyStorageException, IOException 
+	{
+	    this.storeOntology(ontology.getOWLOntologyManager(), ontology, target, format);
+	}
+
+	@Override
+    public void storeOntology(OWLOntology ontology, IRI documentIRI, OWLOntologyFormat format) throws OWLOntologyStorageException, IOException 
+	{
+	    this.storeOntology(ontology.getOWLOntologyManager(), ontology, documentIRI, format);
+	}
+	
 	@Override
 	public void storeOntology(OWLOntologyManager manager, OWLOntology ontology, IRI documentIRI,
 			OWLOntologyFormat ontologyFormat) throws OWLOntologyStorageException, IOException {

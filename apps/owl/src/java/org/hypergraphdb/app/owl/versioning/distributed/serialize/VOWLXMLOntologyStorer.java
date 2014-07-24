@@ -40,4 +40,11 @@ public class VOWLXMLOntologyStorer extends AbstractOWLOntologyStorer {
 			throw new OWLOntologyStorageException("Can only store database backed versioned ontologies.");
 		}
 	}
+
+    @Override
+    protected void storeOntology(OWLOntology ontology, Writer writer,
+            OWLOntologyFormat format) throws OWLOntologyStorageException
+    {
+        storeOntology(ontology.getOWLOntologyManager(), ontology, writer, format);
+    }
 }

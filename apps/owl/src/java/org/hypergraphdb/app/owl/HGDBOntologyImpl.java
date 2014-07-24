@@ -24,6 +24,7 @@ import org.hypergraphdb.app.owl.core.HGChangeableLink;
 import org.hypergraphdb.app.owl.core.HGDBOntologyChangeVisitor;
 import org.hypergraphdb.app.owl.core.OWLSubgraphObject;
 import org.hypergraphdb.app.owl.core.RemovePrefixChange;
+import org.hypergraphdb.query.HGQueryCondition;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
@@ -116,7 +117,9 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology, HGGraphHolder,
 		HGHandleHolder {
 	
-	public static boolean DBG = false; //Switches LOG string creation on or off.
+    private static final long serialVersionUID = 1L;
+
+    public static boolean DBG = false; //Switches LOG string creation on or off.
 
 	protected Logger log = Logger.getLogger(this.getClass().getCanonicalName());
 
@@ -1939,4 +1942,21 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	public void setPrefixesFrom(Map<String, String> prefixMap) {
 		internals.setPrefixesFrom(prefixMap);
 	}
+
+    @Override
+    public Set<OWLAnonymousIndividual> getAnonymousIndividuals()
+    {
+        // TODO Auto-generated method stub
+        
+        // this a new method in OWLAPI 3.4, to be implemented!
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<HGHandle> findAll(HGQueryCondition condition)
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

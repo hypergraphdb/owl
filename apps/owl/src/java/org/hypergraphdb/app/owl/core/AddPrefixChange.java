@@ -1,6 +1,10 @@
 package org.hypergraphdb.app.owl.core;
 
+import java.util.Set;
+
 import org.hypergraphdb.app.owl.HGDBOntologyFormat;
+import org.semanticweb.owlapi.change.OWLOntologyChangeData;
+import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLOntologyChangeVisitor;
 import org.semanticweb.owlapi.model.OWLOntologyChangeVisitorEx;
 
@@ -40,5 +44,4 @@ public class AddPrefixChange extends PrefixChange {
 	public String toString() {
 		return "Add " + super.toString();
 	}
-
 }

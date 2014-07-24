@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl.versioning.distributed;
 
 import java.io.File;
+
 import java.util.Map;
 
 import mjson.Json;
@@ -12,6 +13,18 @@ import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.Structs;
 import org.jivesoftware.smack.XMPPConnection;
 
+/**
+ * <p>
+ * A main class to start an ontology versioning server. The arguments are 
+ * a filename with the JSON P2P configuration for the HyperGraphDB P2P framework
+ * and the directory location of the HyperGraphDB instance holding the ontologies.
+ * </p>
+ * 
+ * <p>
+ * For example:<br><br>
+ * java -cp <classpath> VDHGDBOntologyServer VDHGDBOntologyServer.p2p /var/hgdb/ontologydb
+ * </p>
+ */
 public class VDHGDBOntologyServer
 {
 	static
@@ -78,9 +91,12 @@ public class VDHGDBOntologyServer
 //			dr.startNetworking(xmppConfig.get("user").toString(), 
 //							   xmppConfig.get("password").toString(), 
 //							   xmppConfig.get("serverUrl").toString());
-			
-			while (true)
-			{
+			System.out.println("Versioned distributed ontologies are:");
+			for (DistributedOntology O : dr.getDistributedOntologies()) {
+			    System.out.println(O.getVersionedOntology());
+			}
+			    
+			while (true) {
 				System.out.print("beep\t");
 				Thread.sleep(10 * 60 * 1000);
 			}

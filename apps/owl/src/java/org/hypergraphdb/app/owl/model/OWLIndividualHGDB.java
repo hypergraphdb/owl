@@ -30,6 +30,7 @@ import org.semanticweb.owlapi.model.OWLSameIndividualAxiom;
 
 public abstract class OWLIndividualHGDB extends OWLObjectHGDB implements OWLIndividual
 {
+    private static final long serialVersionUID = 1L;
 
     protected OWLIndividualHGDB() {
     }
@@ -121,6 +122,18 @@ public abstract class OWLIndividualHGDB extends OWLObjectHGDB implements OWLIndi
         return result;
     }
 
+    @Override
+    public boolean hasDataPropertyValue(OWLDataPropertyExpression property, 
+                                        OWLLiteral value, 
+                                        OWLOntology ontology) {
+        for (OWLDataPropertyAssertionAxiom ax : ontology.getDataPropertyAssertionAxioms(this)) {
+            if (ax.getProperty().equals(property) && ax.getObject().equals(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     /**
      * Test whether a specific value for a specific object property on this individual has been asserted.
      * @param property The property whose values will be examined

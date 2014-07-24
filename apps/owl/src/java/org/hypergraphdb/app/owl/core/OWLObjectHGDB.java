@@ -110,6 +110,16 @@ public abstract class OWLObjectHGDB implements OWLObject, HGGraphHolder, HGHandl
 		return result;
 	}
 
+	public Set<OWLAnonymousIndividual> getAnonymousIndividuals() {
+        Set<OWLAnonymousIndividual> result = new HashSet<OWLAnonymousIndividual>();
+        for (OWLEntity ent : getSignature()) {
+            if (ent instanceof OWLAnonymousIndividual) {
+                result.add((OWLAnonymousIndividual)ent.asOWLNamedIndividual());
+            }
+        }
+        return result;	    
+	}
+	
 	public Set<OWLNamedIndividual> getIndividualsInSignature() {
 		Set<OWLNamedIndividual> result = new HashSet<OWLNamedIndividual>();
 		for (OWLEntity ent : getSignature()) {

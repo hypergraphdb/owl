@@ -62,7 +62,7 @@ public class HGDBOntologyRepository {
 	/**
 	 * Default location of the hypergraph instance. 
 	 */
-	public static final String DEFAULT_HYPERGRAPH_DB_LOCATION = "c:/temp/protegedb";
+	public static final String DEFAULT_HYPERGRAPH_DB_LOCATION = "/tmp/protegedb";
 	
 	private static String hypergraphDBLocation = DEFAULT_HYPERGRAPH_DB_LOCATION;
 	

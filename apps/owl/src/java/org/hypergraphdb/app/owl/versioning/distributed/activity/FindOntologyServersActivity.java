@@ -82,7 +82,7 @@ public class FindOntologyServersActivity extends Activity {
 	 */
 	@Override
 	public void handleMessage(Json msg) {
-		Performative p = Messages.fromJson(msg.at(Messages.PERFORMATIVE));
+		Performative p = Performative.toConstant(msg.at(Messages.PERFORMATIVE).asString());
 		if (p == Performative.QueryIf) {
 			targetHandleQueryIf(msg);
 		} else if (p == Performative.Confirm) {
@@ -91,6 +91,9 @@ public class FindOntologyServersActivity extends Activity {
 			initiatorHandleDisconfirm(msg);
 		} else if (p == Performative.NotUnderstood) {
 			initiatorHandleNotUnderstood(msg);
+		} else if (p == Performative.Failure) {
+		    System.err.println("Failure at find ontology server: " + msg);
+		    getState().assign(WorkflowStateConstant.Failed);		    
 		} else {
 			throw new RuntimeException(new VOWLException("Performative not understood: " + p));
 		}

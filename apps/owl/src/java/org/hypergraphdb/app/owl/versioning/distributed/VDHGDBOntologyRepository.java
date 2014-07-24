@@ -1,7 +1,6 @@
 package org.hypergraphdb.app.owl.versioning.distributed;
 
 import java.io.BufferedReader;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -41,6 +40,7 @@ import org.hypergraphdb.peer.workflow.Activity;
 import org.hypergraphdb.peer.workflow.ActivityResult;
 import org.hypergraphdb.peer.xmpp.XMPPPeerInterface;
 import org.hypergraphdb.transaction.HGTransactionConfig;
+import org.hypergraphdb.util.HGUtils;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
@@ -236,7 +236,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 		return startNetworkingInternal();
 	}	
 	
-	public boolean startNetworking(String userName, String password, String serverUrl) {
+	public boolean startNetworking(String userName, String password, String serverUrl, String room) {
 		if (peer != null && peer.getPeerInterface().isConnected()) {
 			throw new IllegalStateException("Peer is currently connected. Disconnect first.");
 		}
@@ -245,6 +245,10 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 		interFaceConfig.set("user", userName);
 		interFaceConfig.set("password", password);
 		interFaceConfig.set("serverUrl", serverUrl);
+		if (!HGUtils.isEmpty(room)) {
+		    interFaceConfig.set("room", room);
+		    interFaceConfig.set("ignoreRoster", true);
+		}
 		createAndConfigurePeer(Json.make(config));
 		return startNetworkingInternal();
 	}

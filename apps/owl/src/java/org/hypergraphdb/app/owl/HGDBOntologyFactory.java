@@ -20,6 +20,8 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
  */
 public class HGDBOntologyFactory implements OWLOntologyFactory {
 
+    private static final long serialVersionUID = 1L;
+
     private static final Logger logger = Logger.getLogger(HGDBOntologyFactory.class.getName());
 
     private HGDBOntologyManager			manager;
@@ -132,4 +134,10 @@ public class HGDBOntologyFactory implements OWLOntologyFactory {
 		logger.info("HGDB loadOWLOntology with config from: " + documentSource.getDocumentIRI());
 		return loadOWLOntology(documentSource, handler);
 	}
+
+    @Override
+    public OWLOntologyManager getOWLOntologyManager()
+    {
+        return manager;
+    }
 }

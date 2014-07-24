@@ -326,7 +326,7 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 */
 	public OWLAnonymousIndividual getOWLAnonymousIndividual() {
 		//TODO we could ensure here that NodeId gets initialized to max(ID) + 1, et.c.
-		OWLAnonymousIndividual i = new OWLAnonymousIndividualHGDB(NodeID.getNodeID());
+		OWLAnonymousIndividual i = new OWLAnonymousIndividualHGDB(NodeID.getNodeID(null));
 		graph.add(i);
 		return i;
 		//return new OWLAnonymousIndividualImpl(this, NodeID.getNodeID());
