@@ -17,13 +17,6 @@
   <artifactId>hgdbowl</artifactId>
   <name>HyperGraphDB OWL</name>
   <description>An implementation of the OWLAPI backed by HyperGraphDB for transparent and automatic persistence of OWL ontologies. Each ontology is a subgraph in the graph database.</description>
-      
- <repositories>
-    <repository>
-      <id>hypergraphdb</id>
-      <url>http://hypergraphdb.org/maven</url>
-    </repository>
- </repositories>
  
   <dependencies>
 	<dependency>
@@ -47,9 +40,9 @@
 	  <version>${version}</version>
 	</dependency>	
     <dependency>
-      <groupId>net.sourceforge.owlapi</groupId>
-      <artifactId>owlapi</artifactId>
-      <version>3.2.4</version>
+	<groupId>edu.stanford.protege</groupId>
+	<artifactId>org.semanticweb.owl.owlapi</artifactId>
+	<version>3.4.4</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
