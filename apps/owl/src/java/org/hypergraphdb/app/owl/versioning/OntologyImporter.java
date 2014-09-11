@@ -4,8 +4,11 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.util.Date;
 
+import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOWLManager;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
+import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
+import org.hypergraphdb.app.owl.util.ImplUtils;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 
 
@@ -73,8 +76,10 @@ public class OntologyImporter {
 		}
 		System.out.print("  Starting repository... ");
 		VDHGDBOntologyRepository dr = null;
-		VDHGDBOntologyRepository.setHypergraphDBLocation(targetRepo.getAbsolutePath());
-		HGDBOntologyManager manager = HGDBOWLManager.createOWLOntologyManager();
+		HyperGraph graph = ImplUtils.owldb(targetRepo.getAbsolutePath());
+		HGDBOntologyManager manager = HGDBOWLManager.createOWLOntologyManager(
+				OWLDataFactoryHGDB.get(graph),
+				new VDHGDBOntologyRepository(graph.getLocation()));
 		dr = (VDHGDBOntologyRepository) manager.getOntologyRepository();
 		System.out.println("done. ");
 		System.out.print("  Scanning directory... ");

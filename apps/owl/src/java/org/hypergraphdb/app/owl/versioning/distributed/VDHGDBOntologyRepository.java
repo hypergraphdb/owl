@@ -23,15 +23,18 @@ import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
-import org.hypergraphdb.app.owl.HGDBOntologyRepository;
-import org.hypergraphdb.app.owl.util.JsonBeans;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.RevisionID;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.VersionedOntologyComparator;
 import org.hypergraphdb.app.owl.versioning.VersionedOntologyComparator.VersionedOntologyComparisonResult;
-import org.hypergraphdb.app.owl.versioning.distributed.activity.*;
+import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowseRepositoryActivity;
+import org.hypergraphdb.app.owl.versioning.distributed.activity.FindOntologyServersActivity;
+import org.hypergraphdb.app.owl.versioning.distributed.activity.GetRemoteOntologyChangesetActivity;
+import org.hypergraphdb.app.owl.versioning.distributed.activity.GetRemoteOntologyRevisionsActivity;
+import org.hypergraphdb.app.owl.versioning.distributed.activity.PullActivity;
+import org.hypergraphdb.app.owl.versioning.distributed.activity.PushActivity;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.PeerInterface;
@@ -51,7 +54,7 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
  * @created Feb 16, 2012
  */
 public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
-
+	private static boolean DBG = false;
 	public static final String OBJECTCONTEXT_REPOSITORY = "Repository";
 	public static final String CONFIG_KEY_SERVER = "OntologyServer";
 
@@ -65,28 +68,12 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 	private boolean isOntologyServer = false;
 	
 	HyperGraphPeer peer;
-	
-	public static VDHGDBOntologyRepository getInstance() {
-		if (!hasInstance()) {
-			String hypergraphDBLocation = getHypergraphDBLocation();
-			System.out.println("VDHGDB REPOSITORY AT: " + hypergraphDBLocation);
-			VDHGDBOntologyRepository instance = new VDHGDBOntologyRepository(hypergraphDBLocation);
-			//instance.setOntologyManager(manager);
-			setInstance(instance);
-			//instance.initializeActivities();
-			//((VDHGDBOntologyRepository)getInstance()).initializeActivities();
-		}
-		HGDBOntologyRepository instance = HGDBOntologyRepository.getInstance(); 
-		if (!(instance instanceof VDHGDBOntologyRepository)) throw new IllegalStateException("Instance requested not Versioned Repository type.: " + instance);
-		return (VDHGDBOntologyRepository)instance;
-	}	
-	
-	private VDHGDBOntologyRepository(String location) {
+		
+	public VDHGDBOntologyRepository(String location) {
 		super(location);
 	}
 	
 	public HGDBOntologyManager getOntologyManager() {
-		//if (ontologyManager == null) throw new IllegalArgumentException();
 		return ontologyManager;
 	}
 
@@ -139,8 +126,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository {
 				}
 			}}, HGTransactionConfig.READONLY);
 	}
-	
-	
+		
 	private void createAndConfigurePeer(Json peerConfig) {
 		peer = new HyperGraphPeer(peerConfig, getHyperGraph());
 		peer.getActivityManager();

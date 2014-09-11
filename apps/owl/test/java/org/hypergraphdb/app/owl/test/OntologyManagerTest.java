@@ -1,15 +1,20 @@
 package org.hypergraphdb.app.owl.test;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 
 import org.hypergraphdb.HGQuery.hg;
+import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOWLManager;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyImpl;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
+import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
+import org.hypergraphdb.app.owl.util.ImplUtils;
 import org.hypergraphdb.app.owl.util.StopWatch;
+import org.hypergraphdb.util.HGUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -107,8 +112,8 @@ public abstract class OntologyManagerTest {
 			System.out.print("Dropping Hypergraph containing " + r.getOntologies().size() + " Ontologies and ");
 			System.out.print(r.getHyperGraph().count(hg.all()));
 			System.out.println(" total Atoms.") ;
-			r.dropHypergraph();
 			r.dispose();
+			HGUtils.dropHyperGraphInstance(r.getHyperGraph().getLocation());
 		}
 		df = null;
 		m = null;
@@ -146,7 +151,10 @@ public abstract class OntologyManagerTest {
 	public void initializeHypergraphMode() {
 		System.out.print("TESTRUN in HYPERGRAPH MODE: ");
 		System.out.println(" PHGDBOntologyManagerImpl ");
-		m = HGDBOWLManager.createOWLOntologyManager();	
+		HyperGraph graph = ImplUtils.owldb(
+				System.getProperty("java.io.tmpdir") + File.pathSeparator + "hgdbtest"); 
+		m = HGDBOWLManager.createOWLOntologyManager(OWLDataFactoryHGDB.get(graph),
+				new HGDBOntologyRepository(graph.getLocation()));	
 		r = ((HGDBOntologyManager)m).getOntologyRepository();
 	}
 	

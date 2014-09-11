@@ -2,15 +2,15 @@ package org.hypergraphdb.app.owl.versioning.distributed;
 
 import java.io.File;
 
-import java.util.Map;
-
 import mjson.Json;
 
+import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOWLManager;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
+import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
+import org.hypergraphdb.app.owl.util.ImplUtils;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
-import org.hypergraphdb.peer.Structs;
 import org.jivesoftware.smack.XMPPConnection;
 
 /**
@@ -40,7 +40,6 @@ public class VDHGDBOntologyServer
 		String filename = args[0];
 		String db = null;
 		String name = null;
-		String port = null;
 		for (int i = 1; i < args.length; i++)
 		{
 		    String [] A = args[i].split("=");
@@ -51,8 +50,9 @@ public class VDHGDBOntologyServer
 		    else if ("name".equals(A[0]))
 		        name = A[1];
 		    else if ("port".equals(A[0]))
-		        port = A[1];
-		    else
+			{
+			}
+			else
 		        die("Invalid parameter name " + A[0]);
 		}
 		Json configuration = HyperGraphPeer.loadConfiguration(new File(filename));
@@ -74,9 +74,10 @@ public class VDHGDBOntologyServer
 
 			if (!dir.exists())
 				dir.mkdir();
-			VDHGDBOntologyRepository.setHypergraphDBLocation(dir.getAbsolutePath());
-
-			HGDBOntologyManager manager = HGDBOWLManager.createOWLOntologyManager();
+			HyperGraph graph = ImplUtils.owldb(dir.getAbsolutePath());
+			HGDBOntologyManager manager = HGDBOWLManager.createOWLOntologyManager(
+					OWLDataFactoryHGDB.get(graph),
+					new VDHGDBOntologyRepository(graph.getLocation()));
 			dr = (VDHGDBOntologyRepository) manager.getOntologyRepository();
 			//dr.printAllOntologies();
 			dr.printStatistics();

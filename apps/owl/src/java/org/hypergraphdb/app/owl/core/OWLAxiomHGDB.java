@@ -28,8 +28,10 @@ import org.semanticweb.owlapi.util.NNF;
  * @created Nov 18, 2011
  */
 public abstract class OWLAxiomHGDB extends OWLObjectHGDB implements OWLAxiom, HGLink {
-	
-    private OWLAxiom nnf;
+
+	private static final long serialVersionUID = 1L;
+
+	private OWLAxiom nnf;
 
     //private final Set<OWLAnnotation> annotations;
     private Set<OWLAnnotation> annotations;
@@ -99,7 +101,7 @@ public abstract class OWLAxiomHGDB extends OWLObjectHGDB implements OWLAxiom, HG
     	if (getHyperGraph() == null) throw new IllegalStateException("Hypergraph null.");
     	HGHandle atomHandle = getAtomHandle(); 
 		annotations = new TreeSet<OWLAnnotation>();
-		annotations.addAll(OWLDataFactoryHGDB.getInstance().data
+		annotations.addAll(OWLDataFactoryHGDB.get(getHyperGraph()).data
 					.getAxiomAnnotationsQuery.var("axiom", atomHandle).findAll());		
 //		annotations.addAll((Collection<? extends OWLAnnotation>) hg.<OWLAnnotation>getAll(getHyperGraph(), 
 //				hg.apply(hg.targetAt(getHyperGraph(), 1), //1 .. Annotation, 0 .. Axiom for AxiomAnnotatedBy

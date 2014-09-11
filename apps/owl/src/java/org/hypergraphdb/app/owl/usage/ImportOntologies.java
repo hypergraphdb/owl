@@ -2,11 +2,14 @@ package org.hypergraphdb.app.owl.usage;
 
 import java.io.File;
 
+import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOWLManager;
 import org.hypergraphdb.app.owl.HGDBOntologyFormat;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGDBOntologyOutputTarget;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
+import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
+import org.hypergraphdb.app.owl.util.ImplUtils;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -37,9 +40,10 @@ public class ImportOntologies {
 			System.exit(-1);
 		}
 		File[] files = createAndValidateFileArray(argv);
-		HGDBOntologyRepository.setHypergraphDBLocation(files[0].getAbsolutePath());
 		System.out.println("Initializing Ontology Manager and  Repository...");
-		manager = HGDBOWLManager.createOWLOntologyManager();
+		HyperGraph graph = ImplUtils.owldb(files[0].getAbsolutePath());
+		manager = HGDBOWLManager.createOWLOntologyManager(OWLDataFactoryHGDB.get(graph),
+							new HGDBOntologyRepository(graph));
 		//repository = (VHGDBOntologyRepository) manager.getOntologyRepository();
 		if (files.length == 1) {
 			printRepository();

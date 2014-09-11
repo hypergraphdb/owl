@@ -90,6 +90,7 @@ import org.hypergraphdb.app.owl.model.swrl.SWRLObjectPropertyAtomHGDB;
 import org.hypergraphdb.app.owl.model.swrl.SWRLRuleHGDB;
 import org.hypergraphdb.app.owl.model.swrl.SWRLSameIndividualAtomHGDB;
 import org.hypergraphdb.app.owl.model.swrl.SWRLVariableHGDB;
+import org.hypergraphdb.app.owl.util.Context;
 import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.CollectionFactory;
@@ -120,9 +121,9 @@ import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
  */
 public class OWLDataFactoryHGDB implements OWLDataFactory {
 
-	public static boolean DBG = true;
+	// private static boolean DBG = true;
 	
-	private static OWLDataFactoryHGDB instance = new OWLDataFactoryHGDB();
+	// private static OWLDataFactoryHGDB instance = new OWLDataFactoryHGDB();
 
 	//private static OWLClass OWL_THING = new OWLClassHGDB(OWLRDFVocabulary.OWL_THING.getIRI());
 
@@ -133,13 +134,21 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	private HyperGraph graph;
 	private boolean ignoreOntologyScope = false;
 	
+	public static OWLDataFactoryHGDB get(HyperGraph graph)
+	{
+		OWLDataFactoryHGDB f = Context.get(graph).singleton(OWLDataFactoryHGDB.class);
+		if (f.getHyperGraph() == null)
+			f.setHyperGraph(graph);
+		return f;
+	}
+	
 	public OWLDataFactoryHGDB() {
 		data = new OWLDataFactoryInternalsHGDB(this);
 	}
 
-	public static OWLDataFactoryHGDB getInstance() {
-		return instance;
-	}
+//	public static OWLDataFactoryHGDB getInstance() {
+//		return instance;
+//	}
 
 	public boolean ignoreOntologyScope() {
 		return ignoreOntologyScope;

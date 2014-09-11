@@ -1,35 +1,26 @@
 package org.hypergraphdb.app.owl;
 
-import java.io.File;
 import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.logging.Logger;
 
-import org.hypergraphdb.HGConfiguration;
-import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HGPersistentHandle;
-import org.hypergraphdb.HGRandomAccessResult;
 import org.hypergraphdb.HGQuery.hg;
+import org.hypergraphdb.HGRandomAccessResult;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.management.HGManagement;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryInternalsHGDB;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyUUIDException;
-import org.hypergraphdb.app.owl.gc.GarbageCollector;
-import org.hypergraphdb.app.owl.gc.GarbageCollectorStatistics;
-//import org.hypergraphdb.app.owl.test.TestData;
+import org.hypergraphdb.app.owl.util.ImplUtils;
 import org.hypergraphdb.app.owl.util.Path;
-import org.hypergraphdb.handle.SequentialUUIDHandleFactory;
 import org.hypergraphdb.query.HGQueryCondition;
 import org.hypergraphdb.transaction.HGTransactionConfig;
-import org.hypergraphdb.util.HGUtils;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -47,136 +38,21 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  */
 public class HGDBOntologyRepository {	
-	
-	public static boolean DBG = true; //trigger log string creation.
-	
-	private Logger log = Logger.getLogger(HGDBOntologyRepository.class.getName());
-
-	public static final boolean DROP_HYPERGRAPH_ON_START = false;
-
-	/**
-	 * Set this to >0 to create Test Ontologies Data on startup.
-	 */
-	public static final int ENSURE_TEST_ONTOLOGY_COUNT = 0; 
-	
-	/**
-	 * Default location of the hypergraph instance. 
-	 */
-	public static final String DEFAULT_HYPERGRAPH_DB_LOCATION = "/tmp/protegedb";
-	
-	private static String hypergraphDBLocation = DEFAULT_HYPERGRAPH_DB_LOCATION;
-	
-	private static HGDBOntologyRepository instance = null;
-
-	private HyperGraph graph; 
-	
-	private GarbageCollector garbageCollector;
 			
-	/**
-	 * @return the hypergraphDBLocation
-	 */
-	public static String getHypergraphDBLocation() {
-		return hypergraphDBLocation;
-	}
-
-	/**
-	 * Sets the repository folder location.
-	 * @param hypergraphDBLocation the hypergraphDBLocation to set
-	 * @throws IllegalStateException if the instance was already created.
-	 * @throws IllegalStateException if string is no directory, no read, no write or not exists.
-	 */
-	public static void setHypergraphDBLocation(String hypergraphDBLocation) {
-		if(instance != null) throw new IllegalStateException("Cannot set db location because of life instance.");
-		File f = new File(hypergraphDBLocation);
-		if (!f.exists())
-		    f.mkdirs();
-		if (!f.isDirectory()) throw new IllegalStateException("HGDB Location not a directory: " + hypergraphDBLocation);
-		if (!f.canRead()) throw new IllegalStateException("HGDB Location cannot be read: " + hypergraphDBLocation);
-		if (!f.canWrite()) throw new IllegalStateException("HGDB Location cannot be written to: " + hypergraphDBLocation);
-		//if (!f.exists()) throw new IllegalStateException("HGDB Location does not exist: " + hypergraphDBLocation);	
-		HGDBOntologyRepository.hypergraphDBLocation = hypergraphDBLocation;		
-	}
-
-	public static HGDBOntologyRepository getInstance() {
-		if (instance == null) {
-			System.out.println("HGDB REPOSITORY AT: " + hypergraphDBLocation);
-			instance = new HGDBOntologyRepository(hypergraphDBLocation);
-		}
-		return instance;
-	}
+	private static boolean DBG = false;
 	
-	public static boolean hasInstance() {
-		return instance != null;
-	}
-	
-	protected static void setInstance(HGDBOntologyRepository instance) {
-		if (hasInstance()) throw new IllegalStateException("instance exists.");
-		HGDBOntologyRepository.instance = instance;
-	}
+	private HyperGraph graph; 
 	
     /**
 	 * @param graph
 	 */
-	protected HGDBOntologyRepository(String hypergraphDBLocation) {
-		initialize(hypergraphDBLocation);
-		if (graph.isOpen()) {
-			printAllOntologies();
-		} else {
-			//TODO force open?
-		}
-			
-	}
-		
-	protected void initialize(String location) {
-		if (DROP_HYPERGRAPH_ON_START) {
-			dropHypergraph(location);
-		}
-		ensureHypergraph(location);
-		//we have a graph here.
-		HGManagement.ensureInstalled(graph, HGDBApplication.getInstance());	
-//		if (ENSURE_TEST_ONTOLOGY_COUNT > 0) {
-//			TestData.ensureTestData(this, ENSURE_TEST_ONTOLOGY_COUNT);			
-//		}
-		garbageCollector = new GarbageCollector(this);
+	public HGDBOntologyRepository(String hypergraphDBLocation) {
+		this.graph = ImplUtils.owldb(hypergraphDBLocation);
 	}
 
-	/** 
-	 * Ensures a HypergraphDB at the HYPERGRAPH_DB_LOCATION.
-	 */
-	private void ensureHypergraph(String location) {
-		HGConfiguration config = new HGConfiguration();
-		//config.setStoreImplementation((HGStoreImplementation)HGUtils.getImplementationOf(HGStoreImplementation.class.getName(), 
-        //           "org.hypergraphdb.storage.bdb.BDBStorageImplementation"));
-		config.setClassLoader(HGDBOntologyRepository.class.getClassLoader());
-		config.setUseSystemAtomAttributes(false);
-		// Avoid counting incidence sets and cache all of them, since there's no representation that
-		// risks having very large incidence sets, we're using sub-graphs for those cases.
-		config.setMaxCachedIncidenceSetSize(Integer.MAX_VALUE);
-		//BDBConfig bdbConfig = (BDBConfig)config.getStoreImplementation().getConfiguration();
-		// Change the storage cache from the 20MB default to 150MB
-		//bdbConfig.getEnvironmentConfig().setCacheSize(150*1024*1024);
-		SequentialUUIDHandleFactory handleFactory =
-            new SequentialUUIDHandleFactory(System.currentTimeMillis(), 0);
-		config.setHandleFactory(handleFactory);	
-		//2012.02.07 Default Cached IS size was 10K
-		//We ensure that all incidence sets get cached here.
-		config.setMaxCachedIncidenceSetSize(10000000);
-		graph = HGEnvironment.get(location, config);
-		if (DBG) {
-			long nrOfAtoms = hg.count(graph, hg.all());
-			log.info("Hypergraph contains " + nrOfAtoms + " Atoms");
-		}
+	public HGDBOntologyRepository(HyperGraph graph) {
+		this.graph = graph;
 	}
-
-	private void dropHypergraph(String location) {
-		HGUtils.dropHyperGraphInstance(location);	
-	}
-	
-	public void dropHypergraph() {
-		String location = graph.getLocation();
-		dropHypergraph(location);
-	}
-
 	
 	/**
 	 * Creates an Ontology and adds it to the graph, if an Ontology with the same ontologyID does not yet exist.
@@ -345,13 +221,13 @@ public class HGDBOntologyRepository {
 		return graph.add(ontology);
 	}
 	
-	public GarbageCollectorStatistics runGarbageCollector() {
-		return garbageCollector.runGarbageCollection();		
-	}
-
-	public GarbageCollector getGarbageCollector() {
-		return garbageCollector;		
-	}
+//	public GarbageCollectorStatistics runGarbageCollector() {
+//		return garbageCollector.runGarbageCollection();		
+//	}
+//
+//	public GarbageCollector getGarbageCollector() {
+//		return garbageCollector;		
+//	}
 	
 	public void printStatistics() {
 		printStatistics(new PrintWriter(System.out));
@@ -391,7 +267,7 @@ public class HGDBOntologyRepository {
 
 	public void printAllOntologies() {
 		List<HGDBOntology> l = getOntologies();
-		System.out.println("************* ONTOLOGIES IN HYPERGRAPH REPOSITORY " + getHypergraphDBLocation() + "*************");		
+		System.out.println("************* ONTOLOGIES IN HYPERGRAPH REPOSITORY " + graph.getLocation() + "*************");		
 		for (HGDBOntology hgdbMutableOntology : l) {
 			printOntology(hgdbMutableOntology);
 		}			

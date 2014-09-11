@@ -13,12 +13,11 @@ import java.util.concurrent.Callable;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGIndex;
 import org.hypergraphdb.HGPersistentHandle;
+import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HGRandomAccessResult;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.IncidenceSet;
 import org.hypergraphdb.algorithms.HGDepthFirstTraversal;
-import org.hypergraphdb.app.owl.HGDBApplication;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.core.HGDBTask;
@@ -29,6 +28,7 @@ import org.hypergraphdb.app.owl.model.swrl.SWRLConjuction;
 import org.hypergraphdb.app.owl.query.AnySubgraphMemberCondition;
 import org.hypergraphdb.app.owl.query.OWLEntityIsBuiltIn;
 import org.hypergraphdb.app.owl.type.link.AxiomAnnotatedBy;
+import org.hypergraphdb.app.owl.util.ImplUtils;
 import org.hypergraphdb.app.owl.util.StopWatch;
 import org.hypergraphdb.app.owl.util.TargetSetALGenerator;
 import org.hypergraphdb.atom.HGSubgraph;
@@ -731,7 +731,7 @@ public class GarbageCollector implements HGDBTask {
 	 */
 	@SuppressWarnings("rawtypes")
 	private boolean isUsedByAnyNamedObject(IRI iri, Collection<HGHandle> atomsAboutToBeRemoved) {
-		for (HGIndexer I : HGDBApplication.getInstance().getIRIIndexers(graph)) {
+		for (HGIndexer I : ImplUtils.getIRIIndexers(graph)) {
 			 HGRandomAccessResult<Object>  iriUsage = graph.getIndexManager().getIndex(I).find(iri);
 			 while(iriUsage.hasNext()) {
 				 HGHandle iriUser = (HGHandle)iriUsage.next();

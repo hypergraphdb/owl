@@ -35,18 +35,15 @@ import org.semanticweb.owlapi.util.OWLObjectTypeIndexProvider;
 
 public abstract class OWLObjectHGDB implements OWLObject, HGGraphHolder, HGHandleHolder, HGTypeHolder<HGAtomType>
 {
+	private static final long serialVersionUID = 1L;
 	private HyperGraph graph;
 	private HGHandle handle;
-	private final OWLDataFactory dataFactory;
+	private OWLDataFactory dataFactory;
 	private int hashCode = 0;
 	private Set<OWLEntity> signature;
 	private HGAtomType hgAtomType;
 	
 	public OWLObjectHGDB() {
-		this.dataFactory = OWLDataFactoryHGDB.getInstance();
-		
-		//Boris Map<String, OWLDataFactory> owlFactoryByGraph = ...dataFactory.
-		
 	}
 
 	/* (non-Javadoc)
@@ -252,6 +249,7 @@ public abstract class OWLObjectHGDB implements OWLObject, HGGraphHolder, HGHandl
 	public void setHyperGraph(HyperGraph graph)
 	{
 		this.graph = graph;
+		this.dataFactory = OWLDataFactoryHGDB.get(graph);
 	}
 	
 	/* (non-Javadoc)

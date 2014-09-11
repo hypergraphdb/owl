@@ -28,21 +28,10 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 	/**
 	 * Will print time every 100 changes.
 	 */
-	public static boolean DBG = false;
-	public static boolean DBG_CHANGES = false;
-	
-	public static VHGDBOntologyRepository getInstance() {
-		if (!hasInstance()) {
-			String hypergraphDBLocation = getHypergraphDBLocation();
-			System.out.println("HGDB REPOSITORY AT: " + hypergraphDBLocation);
-			setInstance(new VHGDBOntologyRepository(hypergraphDBLocation));
-		}
-		HGDBOntologyRepository instance = HGDBOntologyRepository.getInstance(); 
-		if (!(instance instanceof VHGDBOntologyRepository)) throw new IllegalStateException("Instance requested not Versioned Repository type.: " + instance);
-		return (VHGDBOntologyRepository)instance;
-	}
-	
-	protected VHGDBOntologyRepository(String location) {
+	private static boolean DBG = false;
+	private static boolean DBG_CHANGES = false;
+
+	public VHGDBOntologyRepository(String location) {
 		super(location);
 	}		
 

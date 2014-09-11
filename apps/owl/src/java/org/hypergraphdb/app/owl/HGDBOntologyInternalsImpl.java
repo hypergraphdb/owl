@@ -41,6 +41,7 @@ import org.hypergraphdb.app.owl.model.axioms.OWLEquivalentClassesAxiomHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
 import org.hypergraphdb.app.owl.model.swrl.SWRLConjuction;
 import org.hypergraphdb.app.owl.type.link.AxiomAnnotatedBy;
+import org.hypergraphdb.app.owl.util.ImplUtils;
 import org.hypergraphdb.app.owl.util.IncidenceSetALGenerator;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.indexing.HGIndexer;
@@ -706,7 +707,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 			@SuppressWarnings("rawtypes")
 			public OWLAxiomHGDB call() {
 				int findHashCode = axiom.hashCode();
-				HGIndexer axiomByHashCodeIndexer = HGDBApplication.getInstance().getAxiomByHashCodeIndexer(graph);
+				HGIndexer axiomByHashCodeIndexer = ImplUtils.getAxiomByHashCodeIndexer(graph);
 				HGIndex<Integer, HGHandle> index = graph.getIndexManager().getIndex(axiomByHashCodeIndexer);
 //2012.02.06 hilpold query was much too slow: therefore using index.find
 // 						List<HGHandle> axiomCandidatesByHash = ontology.findAll(hg.and(
@@ -1547,7 +1548,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB {
 //						hg.and(hg.type(OWLNamedIndividualHGDB.class), new SubgraphMemberCondition(ontoHandle)));
 //			}
 //		}, HGTransactionConfig.READONLY);
-		HGQueryCondition cond = OWLDataFactoryHGDB.getInstance().ignoreOntologyScope() ?
+		HGQueryCondition cond = OWLDataFactoryHGDB.get(graph).ignoreOntologyScope() ?
 				hg.type(OWLNamedIndividualHGDB.class) :
 				hg.and(hg.type(OWLNamedIndividualHGDB.class), hg.memberOf(ontoHandle));
 		return getReturnSet((List<OWLNamedIndividual>)(List<?>)hg.getAll(graph, cond));

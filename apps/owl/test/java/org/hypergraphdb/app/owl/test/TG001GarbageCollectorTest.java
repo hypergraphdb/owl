@@ -36,7 +36,7 @@ public class TG001GarbageCollectorTest extends OntologyManagerTest {
 	@Before
 	public void setUp() throws Exception {
 		super.setUp();
-		gc = super.isHypergraphMode()? r.getGarbageCollector() : null;
+		gc = super.isHypergraphMode() ? new GarbageCollector(r) : null;
 	}
 
 	/**

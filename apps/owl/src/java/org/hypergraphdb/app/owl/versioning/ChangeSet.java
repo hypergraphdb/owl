@@ -14,6 +14,7 @@ import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChangeFactory;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
@@ -248,7 +249,11 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 		{
 			public SortedSet<Integer> call()
 			{
-				if (useManager) VDHGDBOntologyRepository.getInstance().ignoreChangeEvents(true);
+				HGDBOntologyManager manager = null;
+				if (useManager) {
+					manager = (HGDBOntologyManager)o.getOWLOntologyManager();
+					((VDHGDBOntologyRepository)manager.getOntologyRepository()).ignoreChangeEvents(true);
+				}
 				SortedSet<Integer> conflicts = new TreeSet<Integer>();
 				//OWLChangeConflictDetector detector = new OWLChangeConflictDetector(o);
 				try
@@ -258,7 +263,7 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 					{		
 						List<OWLOntologyChange> appliedChanges;
 						if (useManager) {
-							appliedChanges = o.getOWLOntologyManager().applyChange(oc);
+							appliedChanges = manager.applyChange(oc);
 						} else {
 							appliedChanges = o.applyChange(oc);
 						}
@@ -272,7 +277,8 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 				}
 				finally
 				{
-					if (useManager) VDHGDBOntologyRepository.getInstance().ignoreChangeEvents(false);
+					if (useManager) 
+						((VDHGDBOntologyRepository)manager.getOntologyRepository()).ignoreChangeEvents(false);
 				}
 			}
 		});
@@ -321,7 +327,8 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 		{
 			public Object call()
 			{
-				VDHGDBOntologyRepository.getInstance().ignoreChangeEvents(true);
+				HGDBOntologyManager manager = (HGDBOntologyManager)o.getOWLOntologyManager();
+				((VDHGDBOntologyRepository)manager.getOntologyRepository()).ignoreChangeEvents(true);
 				try
 				{								
 					ListIterator<HGHandle> li = changes.listIterator(changes.size());
@@ -344,7 +351,7 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 				}
 				finally
 				{
-					VDHGDBOntologyRepository.getInstance().ignoreChangeEvents(false);
+					((VDHGDBOntologyRepository)manager.getOntologyRepository()).ignoreChangeEvents(false);
 				}
 			}
 		});

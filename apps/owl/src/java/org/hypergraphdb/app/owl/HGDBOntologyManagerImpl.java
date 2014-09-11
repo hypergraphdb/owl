@@ -11,7 +11,6 @@ import org.hypergraphdb.app.owl.core.PrefixChangeListener;
 import org.hypergraphdb.app.owl.core.RemovePrefixChange;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
-import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.ActivityUtils;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -26,6 +25,8 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
  * @created Feb 3, 2012
  */
 public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements HGDBOntologyManager, PrefixChangeListener {
+
+	private static final long serialVersionUID = 1L;
 
 	public static boolean DBG = true;
 
@@ -51,20 +52,11 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 		HGDBOntologyManagerImpl.deleteOntologiesOnRemove = deleteOntologiesOnRemove;
 	}
 
-	public HGDBOntologyManagerImpl(OWLDataFactoryHGDB dataFactory) {
+	public HGDBOntologyManagerImpl(OWLDataFactoryHGDB dataFactory, HGDBOntologyRepository ontologyRepository) {
 		super(dataFactory);						
-		//Make sure there is an application, a graph, et.c.
-		if (HGDBApplication.DISTRIBUTED) {
-			ontologyRepository = VDHGDBOntologyRepository.getInstance();
-			((VDHGDBOntologyRepository)ontologyRepository).setOntologyManager(this);
-			//Listent to changes, before they are applied
-			this.addOntologyChangeListener(((VDHGDBOntologyRepository)ontologyRepository));
-		} else if (HGDBApplication.VERSIONING) {
-			ontologyRepository = VHGDBOntologyRepository.getInstance();
+		this.ontologyRepository = ontologyRepository;
+		if (ontologyRepository instanceof VHGDBOntologyRepository)
 			this.addOntologyChangeListener(((VHGDBOntologyRepository)ontologyRepository));
-		} else {
-			ontologyRepository = HGDBOntologyRepository.getInstance();
-		}
 		addIRIMapper(new HGDBIRIMapper(ontologyRepository));
 		dataFactory.setHyperGraph(ontologyRepository.getHyperGraph());
 	}

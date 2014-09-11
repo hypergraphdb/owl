@@ -37,8 +37,7 @@ public class TestData {
 	
 	public static void ensureTestData(HGDBOntologyRepository r, int howMany) {
 		//PHGDBOntologyManagerImpl m = HGDBOntologyRepository.createOWLOntologyManager();
-		OWLDataFactoryHGDB df = OWLDataFactoryHGDB.getInstance();
-		df.setHyperGraph(r.getHyperGraph());
+		OWLDataFactoryHGDB df = OWLDataFactoryHGDB.get(r.getHyperGraph());
 		
 		if (howMany < 0) throw new IllegalArgumentException("howMany < 0");
 		for (int i =0; i < howMany; i++) {

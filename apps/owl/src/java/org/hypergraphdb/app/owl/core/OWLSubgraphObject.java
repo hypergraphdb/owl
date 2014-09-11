@@ -10,6 +10,7 @@ import java.util.TreeSet;
 
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandleHolder;
+import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.atom.HGSubgraph;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -34,15 +35,19 @@ import org.semanticweb.owlapi.util.OWLObjectTypeIndexProvider;
  */
 public abstract class OWLSubgraphObject extends HGSubgraph implements OWLObject, HGGraphHolder,
 		HGHandleHolder {
-	private final OWLDataFactory dataFactory;
+
+	private static final long serialVersionUID = 1L;
+	private OWLDataFactory dataFactory;
 	private int hashCode = 0;
 	private Set<OWLEntity> signature;
 
 	public OWLSubgraphObject() {		
-		this.dataFactory = OWLDataFactoryHGDB.getInstance();		
-		//Boris Map<String, OWLDataFactory> owlFactoryByGraph = ...dataFactory.		
 	}
 
+	public void setHyperGraph(HyperGraph graph)	{
+		super.setHyperGraph(graph);
+		this.dataFactory = OWLDataFactoryHGDB.get(graph);	
+	}
 	public OWLDataFactory getOWLDataFactory() {
 		return dataFactory; //StatisUitils.owlFactoryByGraph.get(graph.getLocation());
 	}

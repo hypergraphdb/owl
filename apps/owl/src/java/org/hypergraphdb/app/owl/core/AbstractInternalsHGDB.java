@@ -1375,7 +1375,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 	}
 	
 	private HGHandle getStoredIRI(final IRI iri) {
-		return OWLDataFactoryHGDB.getInstance().data.lookupIRIByValue.var("iri", iri).findOne();
+		return OWLDataFactoryHGDB.get(this.graph).data.lookupIRIByValue.var("iri", iri).findOne();
 //    	HGHandle iriHandle  = graph.getTransactionManager().ensureTransaction(new Callable<HGHandle>() {
 //			public HGHandle call() {
 //				return hg.findOne(graph, hg.and(hg.type(IRI.class), hg.eq(iri)));
@@ -1734,7 +1734,7 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 
 		// The type is not included in the query because it's actually much faster
 		// to load the atom and check the type as a separate filtering step.
-		if (OWLDataFactoryHGDB.getInstance().ignoreOntologyScope()) {			
+		if (OWLDataFactoryHGDB.get(this.graph).ignoreOntologyScope()) {			
 			this.findAxiomQuery = HGQuery.make(HGHandle.class, graph).compile( 
 					hg.and(/* hg.memberOf(ontoHandle), */ hg.incident(hg.var("entity"))));
 		}

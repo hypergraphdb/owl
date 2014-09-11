@@ -1,8 +1,6 @@
 package org.hypergraphdb.app.owl;
 
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.logging.Logger;
 
 import org.hypergraphdb.HGHandle;
@@ -10,10 +8,8 @@ import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HGTypeSystem;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.management.HGApplication;
-import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
-import org.hypergraphdb.app.owl.model.OWLAnnotationPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLClassHGDB;
 import org.hypergraphdb.app.owl.model.OWLDataPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLDatatypeHGDB;
@@ -26,6 +22,7 @@ import org.hypergraphdb.app.owl.type.OWLImportsDeclarationType;
 import org.hypergraphdb.app.owl.type.OWLNamedObjectType;
 import org.hypergraphdb.app.owl.type.OntologyIDType;
 import org.hypergraphdb.app.owl.type.TypeUtils;
+import org.hypergraphdb.app.owl.util.ImplUtils;
 import org.hypergraphdb.indexing.ByPartIndexer;
 import org.hypergraphdb.indexing.ByTargetIndexer;
 import org.hypergraphdb.indexing.DirectValueIndexer;
@@ -47,32 +44,8 @@ import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
  */
 public class HGDBApplication extends HGApplication
 {
-	public static boolean DBG = true;
-
-	public static boolean VERSIONING = true;
-
-	public static boolean DISTRIBUTED = true;
-	
 	private Logger log = Logger.getLogger(HGDBApplication.class.getName());
-	
-	private static HGDBApplication instance;
-	
-	@SuppressWarnings("rawtypes")
-	private HGIndexer axiomByHashCodeIndexer;
-	
-	public static HGDBApplication getInstance() {
-		if (instance == null) {
-			//TODO make thread safe
-			instance = new HGDBApplication();
-		}
-		return instance;			
-	}
-	
-	private HGDBApplication() {
-		super();
 		
-	}
-	
 	/**
 	 * 
 	 * @param graph
@@ -86,25 +59,6 @@ public class HGDBApplication extends HGApplication
 		registerTypeOWLNamedObjectTypesHGDB(graph);		
 	}
 	
-//	/**
-//	 * @param graph
-//	 */
-//	@SuppressWarnings("deprecation")
-//	private void registerTypeOWLFacetEnumTypeHGDB(HyperGraph graph) {
-//		HGTypeSystem typeSystem = graph.getTypeSystem();
-//		
-//		if (typeSystem.getTypeHandleIfDefined(OWLFacet.class) == null) {
-//			HGPersistentHandle typeHandle = graph.getHandleFactory().makeHandle();
-//			HGAtomType type = new OWLFacetEnumType();
-//			type.setHyperGraph(graph);
-//			typeSystem.addPredefinedType(typeHandle, 
-//													type, 
-//													OWLFacet.class);
-//			log.info("HG IRI type registered.");
-//		}
-//		
-//	}
-
 	@SuppressWarnings("deprecation")
 	private void registerTypeIRI(HyperGraph graph) {
 		HGTypeSystem typeSystem = graph.getTypeSystem();
@@ -196,38 +150,8 @@ public class HGDBApplication extends HGApplication
 		registerAllAtomTypes(graph);
 		registerIndices(graph);
 		ensureBuiltInObjects(graph);
-		//registerAllLinkTypes(graph);
-		if (DBG) printAllTypes(graph);
-		
 	}
 
-	@SuppressWarnings("rawtypes")
-	public Collection<HGIndexer> getIRIIndexers(HyperGraph graph)
-	{
-		HGHandle[] typeHandlesNamedObjectsWithIRIDimension = new HGHandle[] {
-				graph.getTypeSystem().getTypeHandle(OWLClassHGDB.class),
-				graph.getTypeSystem().getTypeHandle(OWLDatatypeHGDB.class),
-				graph.getTypeSystem().getTypeHandle(OWLAnnotationPropertyHGDB.class),
-				graph.getTypeSystem().getTypeHandle(OWLDataPropertyHGDB.class),
-				graph.getTypeSystem().getTypeHandle(OWLObjectPropertyHGDB.class),
-				graph.getTypeSystem().getTypeHandle(OWLNamedIndividualHGDB.class)
-		};		
-		ArrayList<HGIndexer> L = new ArrayList<HGIndexer>();
-		for (HGHandle typeHandle : typeHandlesNamedObjectsWithIRIDimension)
-			L.add(new ByPartIndexer(typeHandle, "IRI"));
-		return L;
-	}
-	
-	@SuppressWarnings("rawtypes")
-	public HGIndexer getAxiomByHashCodeIndexer(HyperGraph graph ) {
-		if (axiomByHashCodeIndexer == null) {
-			HGHandle typeHandle = graph.getTypeSystem().getTypeHandle(OWLAxiomHGDB.class);
-			axiomByHashCodeIndexer = new ByPartIndexer(typeHandle, "hashCode");
-
-		}
-		return axiomByHashCodeIndexer;
-	}
-	
 	/**
 	 * @param graph
 	 */
@@ -236,7 +160,7 @@ public class HGDBApplication extends HGApplication
 		//
 		// BY_PART_INDEXERS "IRI"
 		//
-		for (HGIndexer indexer : getIRIIndexers(graph))
+		for (HGIndexer indexer : ImplUtils.getIRIIndexers(graph))
 			graph.getIndexManager().register(indexer);
 		
 		//
@@ -254,7 +178,7 @@ public class HGDBApplication extends HGApplication
 		//
 		// Axiom HashCode indexer
 		//
-		graph.getIndexManager().register(getAxiomByHashCodeIndexer(graph));
+		graph.getIndexManager().register(ImplUtils.getAxiomByHashCodeIndexer(graph));
 		
 		// IRI indexer
 		graph.getIndexManager().register(new DirectValueIndexer<IRI>(graph.getTypeSystem().getTypeHandle(IRI.class)));
@@ -263,6 +187,7 @@ public class HGDBApplication extends HGApplication
 	/**
 	 * For debug purposes. 
 	 */
+	@SuppressWarnings("unused")
 	private void printAllTypes(HyperGraph graph) {
 		System.out.println("PRINTING SUPERTYPES for just registered classes");
 		TypeUtils.printAllSupertypes(graph, graph.getTypeSystem().getAtomType(OWLClassHGDB.class));
@@ -292,24 +217,6 @@ public class HGDBApplication extends HGApplication
 		df.getOWLBottomDataProperty();
 		df.getOWLBottomObjectProperty();
 	}
-
-//	/**
-//	 * @param graph
-//	 */
-//	private void registerAllLinkTypes(HyperGraph graph) {
-////		HGRelType relType = new HGRelType("internals1:1", 				
-////				graph.getTypeSystem().getTypeHandle(HGDBOntologyImpl.class),
-////				graph.getTypeSystem().getTypeHandle(HGDBOntologyInternalsImpl.class));
-////		HGHandle internalsType = graph.add(relType);
-////		//
-////		relType = new HGRelType("importsDeclaration1:M", 				
-////		graph.getTypeSystem().getTypeHandle(HGDBOntologyInternalsImpl.class),
-////		graph.getTypeSystem().getTypeHandle(OWLImportsDeclaration.class));
-////		HGHandle importsType = graph.add(relType);
-//		
-//	}
-	
-	
 
 	public void reset(HyperGraph graph)
 	{

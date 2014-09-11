@@ -2,6 +2,7 @@ package org.hypergraphdb.app.owl.test;
 
 
 
+import java.io.File;
 import java.util.Date;
 
 import org.hypergraphdb.HGHandle;
@@ -30,7 +31,8 @@ public class HypergraphSimpleTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		HGDBOntologyRepository r = HGDBOntologyRepository.getInstance();
+		HGDBOntologyRepository r = new HGDBOntologyRepository(
+				System.getProperty("java.io.tmpdir") + File.pathSeparator + "hgdbtest");
 		graph = r.getHyperGraph();
 	}
 
