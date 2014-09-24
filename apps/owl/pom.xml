@@ -42,7 +42,7 @@
     <dependency>
 	<groupId>edu.stanford.protege</groupId>
 	<artifactId>org.semanticweb.owl.owlapi</artifactId>
-	<version>3.4.4</version>
+	<version>3.4.2</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -60,6 +60,14 @@
   </dependencies>  
   
   <build>
+    <resources>
+      <resource>
+        <directory>.</directory>
+        <includes>
+          <include>plugin.xml</include>
+        </includes>
+      </resource>      
+    </resources>  
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -79,12 +87,21 @@
             <Bundle-SymbolicName>org.hypergraphdb.app.owl;singleton:=true</Bundle-SymbolicName>
             <Bundle-Name>HypergraphDB Owl-API Backend</Bundle-Name>
             <Bundle-Version>1.7.0</Bundle-Version>
+            <!-- 
+			<Bundle-RequiredExecutionEnvironment>J2SE-1.5,JavaSE-1.6</Bundle-RequiredExecutionEnvironment>
+			 -->
             <Export-Package>org.hypergraphdb.app.owl.*</Export-Package>
-            <!--
-            <Import-Package>!.,!org.apache.*,*</Import-Package>
+            <Import-Package>!.,!org.apache.*,!org.w3c.dom.*,!org.xml.sax.*,!mjson.*,!org.jivesoftware.*,
+            org.hypergraphdb,org.hypergraphdb.algorithms,org.hypergraphdb.query,
+            org.hypergraphdb.util,org.hypergraphdb.type,org.hypergraphdb.annotation,
+            org.hypergraphdb.atom,org.hypergraphdb.cache,org.hypergraphdb.event,
+            org.hypergraphdb.handle,org.hypergraphdb.maintenance,org.hypergraphdb.storage,
+            org.hypergraphdb.transaction,org.hypergraphdb.type.javaprimitive,
+            org.hypergraphdb.indexing,org.hypergraphdb.query.cond2qry,org.hypergraphdb.query.impl,*</Import-Package>
+            <!-- 
             <Embed-Dependency>*;scope=compile|runtime;artifactId=!owlapi</Embed-Dependency>
             <Embed-Transitive>true</Embed-Transitive>
-            -->            
+             -->
           </instructions>
         </configuration>
       </plugin>      

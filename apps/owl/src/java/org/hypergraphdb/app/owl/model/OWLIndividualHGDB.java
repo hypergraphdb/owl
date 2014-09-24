@@ -122,7 +122,7 @@ public abstract class OWLIndividualHGDB extends OWLObjectHGDB implements OWLIndi
         return result;
     }
 
-    @Override
+//    @Override
     public boolean hasDataPropertyValue(OWLDataPropertyExpression property, 
                                         OWLLiteral value, 
                                         OWLOntology ontology) {

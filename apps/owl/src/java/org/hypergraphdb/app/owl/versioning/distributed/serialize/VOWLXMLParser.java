@@ -49,7 +49,7 @@ public class VOWLXMLParser extends OWLXMLParser {
             SAXParserFactory factory = SAXParserFactory.newInstance();
             factory.setNamespaceAware(true);
             SAXParser parser = factory.newSAXParser();
-            isrc = getInputSource(documentSource, null); // TODO that null parameter was just to compile with 3.4.4
+            isrc = getInputSource(documentSource); // TODO that null parameter was just to compile with 3.4.4
             VOWLXMLParserHandler handler = new VOWLXMLParserHandler(versionedOntologyRoot, null, loaderConfig);
             parser.parse(isrc, handler);
             Map<String, String> prefix2NamespaceMap = handler.getPrefixName2PrefixMap();
