@@ -6,8 +6,8 @@ Export-Package: org.hypergraphdb.app.owl.repair;uses:="org.hypergraphd
  sioning.change;uses:="org.hypergraphdb.app.owl.model,org.hypergraphdb
  .util,org.hypergraphdb.app.owl.versioning,org.hypergraphdb.app.owl.co
  re,org.semanticweb.owlapi.model,org.hypergraphdb,org.hypergraphdb.app
- .owl",org.hypergraphdb.app.owl.model;uses:="org.semanticweb.owlapi.vo
- cab,uk.ac.manchester.cs.owl.owlapi,org.hypergraphdb.app.owl.util,org.
+ .owl",org.hypergraphdb.app.owl.model;uses:="uk.ac.manchester.cs.owl.o
+ wlapi,org.semanticweb.owlapi.vocab,org.hypergraphdb.app.owl.util,org.
  hypergraphdb.app.owl.core,org.semanticweb.owlapi.model,org.hypergraph
  db,org.semanticweb.owlapi.util",org.hypergraphdb.app.owl.usage;uses:=
  "org.hypergraphdb.app.owl.util,org.hypergraphdb.app.owl.core,org.hype
@@ -69,8 +69,8 @@ Export-Package: org.hypergraphdb.app.owl.repair;uses:="org.hypergraphd
  istributed.serialize.parse,org.hypergraphdb.app.owl",org.hypergraphdb
  .app.owl.versioning.distributed.activity;uses:="org.hypergraphdb.app.
  owl.versioning.change,org.hypergraphdb.peer,org.hypergraphdb.app.owl.
- versioning,org.hypergraphdb.app.owl.exception,org.hypergraphdb.app.ow
- l.core,org.semanticweb.owlapi.model,org.hypergraphdb.peer.workflow,or
+ exception,org.hypergraphdb.app.owl.core,org.hypergraphdb.app.owl.vers
+ ioning,org.semanticweb.owlapi.model,org.hypergraphdb.peer.workflow,or
  g.hypergraphdb.util,org.hypergraphdb.app.owl.versioning.distributed,o
  rg.semanticweb.owlapi.io,org.hypergraphdb.app.owl.versioning.distribu
  ted.serialize,org.hypergraphdb.transaction,org.hypergraphdb,org.hyper
@@ -119,7 +119,7 @@ Bundle-Name: HypergraphDB Owl-API Backend
 Created-By: Apache Maven Bundle Plugin
 Build-Jdk: 1.6.0_31
 Bundle-Version: 1.7.0
-Bnd-LastModified: 1411248682058
+Bnd-LastModified: 1411705964343
 Bundle-ManifestVersion: 2
 Bundle-Description: An implementation of the OWLAPI backed by HyperGra
  phDB for transparent and automatic persistence of OWL ontologies. Eac

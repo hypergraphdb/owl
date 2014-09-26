@@ -94,4 +94,6 @@ public class OWLObjectHasValueHGDB extends OWLValueRestrictionHGDB<OWLClassExpre
 			throw new IllegalArgumentException("i was <> 1; only target valueHandle can be set.");
 		}
 	}
+	
+	
 }

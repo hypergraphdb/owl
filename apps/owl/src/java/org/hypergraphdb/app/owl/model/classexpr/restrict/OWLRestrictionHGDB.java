@@ -33,19 +33,6 @@ public abstract class OWLRestrictionHGDB<R extends OWLPropertyRange, P extends O
         //return property;
     }
 
-
-    @Override
-	public boolean equals(Object obj) {
-        if (super.equals(obj)) {
-            if (!(obj instanceof OWLRestriction)) {
-                return false;
-            }
-            return ((OWLRestriction<?,?,?>) obj).getProperty().equals(getProperty());
-        }
-        return false;
-    }
-    
-
 	/* (non-Javadoc)
 	 * @see org.hypergraphdb.HGLink#getArity()
 	 * This will be overridden in subclasses.
@@ -83,5 +70,33 @@ public abstract class OWLRestrictionHGDB<R extends OWLPropertyRange, P extends O
 	public void notifyTargetRemoved(int i) {
 		if (i < 0 || i >= getArity()) throw new HGException("Index i must be within [0..getArity()-1]. Was : " + i);
 		propertyHandle = getHyperGraph().getHandleFactory().nullHandle();
+	}
+
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = 0;
+		for (int i = 0; i < getArity(); i++)
+			result = prime * result + getTargetAt(i).hashCode();
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		OWLRestrictionHGDB other = (OWLRestrictionHGDB) obj;
+		if (getArity() != other.getArity())
+			return false;
+		for (int i = 0; i < getArity(); i++)
+			if (!getTargetAt(i).equals(other.getTargetAt(i)))
+				return false;
+		return true;
 	}
 }
