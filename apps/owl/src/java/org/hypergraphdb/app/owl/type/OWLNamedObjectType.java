@@ -50,6 +50,8 @@ public class OWLNamedObjectType extends HGAtomTypeBase implements
 	// public static final String DIM_URI = "URI";
 	public static final List<String> DIMENSIONS = Collections
 			.unmodifiableList(Arrays.asList(DIM_IRI));
+	
+	private String typeName;
 	private Class<? extends OWLNamedObject> type;
 
 	public OWLNamedObjectType()
@@ -62,6 +64,20 @@ public class OWLNamedObjectType extends HGAtomTypeBase implements
 	 */
 	public Class<? extends OWLNamedObject> getType()
 	{
+		if (type == null)
+		{
+			try
+			{
+				Class<?> c = HGUtils.loadClass(getHyperGraph(), typeName);
+				// Will throw class cast exception, if cast fails:
+				this.type = c.asSubclass(OWLNamedObject.class);
+			}
+			catch (ClassNotFoundException e)
+			{
+				e.printStackTrace();
+				throw new RuntimeException("Class Not FOUND", e);
+			}		
+		}
 		return type;
 	}
 
@@ -69,19 +85,9 @@ public class OWLNamedObjectType extends HGAtomTypeBase implements
 	 * @param type
 	 *            the type to set
 	 */
-	public void setTypeByName(String canonicalName)
+	public void setTypeByName(String classname)
 	{
-		try
-		{
-			Class<?> c = HGUtils.loadClass(getHyperGraph(), canonicalName);
-			// Will throw class cast exception, if cast fails:
-			this.type = c.asSubclass(OWLNamedObject.class);
-		}
-		catch (ClassNotFoundException e)
-		{
-			e.printStackTrace();
-			throw new RuntimeException("Class Not FOUND", e);
-		}
+		this.typeName = classname;
 	}
 
 	/**
@@ -89,7 +95,7 @@ public class OWLNamedObjectType extends HGAtomTypeBase implements
 	 */
 	public String getTypeByName()
 	{
-		return type.getCanonicalName();
+		return this.typeName;
 	}
 
 	/**
@@ -99,6 +105,7 @@ public class OWLNamedObjectType extends HGAtomTypeBase implements
 	public OWLNamedObjectType type(Class<? extends OWLNamedObject> type)
 	{
 		this.type = type;
+		this.typeName = type.getName();
 		return this;
 	}
 
@@ -116,11 +123,11 @@ public class OWLNamedObjectType extends HGAtomTypeBase implements
 		}
 		//
 		// using reflection
-		if (OWL_NAMED_OBJECT_TYPES_HGDB.contains(type))
+		if (OWL_NAMED_OBJECT_TYPES_HGDB.contains(getType()))
 		{
 			try
 			{
-				constructor = type.getConstructor(IRI.class);
+				constructor = getType().getConstructor(IRI.class);
 			}
 			catch (Exception e)
 			{
@@ -132,7 +139,7 @@ public class OWLNamedObjectType extends HGAtomTypeBase implements
 		{
 			throw new IllegalStateException(
 					"Could not create object. OWLNamedObject subclass not recognized:"
-							+ type);
+							+ getType());
 		}
 		try
 		{

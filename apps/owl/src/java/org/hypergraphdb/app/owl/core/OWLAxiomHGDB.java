@@ -59,6 +59,9 @@ public abstract class OWLAxiomHGDB extends OWLObjectHGDB implements OWLAxiom, HG
     public OWLAxiomHGDB(Collection<? extends OWLAnnotation> annotations) {
         if (!annotations.isEmpty()) {
             this.annotations = CollectionFactory.getCopyOnRequestSet(new TreeSet<OWLAnnotation>(annotations));
+            for (OWLAnnotation ann : annotations)
+            	if (ann == null)
+            		throw new IllegalArgumentException("There is a null annotation in annotation set");
         }
         else {
             this.annotations = Collections.emptySet();

@@ -104,62 +104,74 @@ import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 /**
  * OWLDataFactoryHGDB.
  * 
- * All Axioms are added to the graph after adding them to an ontology.
- * All other items are added to the graph in this datafactory and might never be part of an axiom that gets added to an ontology.
+ * All Axioms are added to the graph after adding them to an ontology. All other
+ * items are added to the graph in this datafactory and might never be part of
+ * an axiom that gets added to an ontology.
  *
  * Cleanup considerations: <br>
- * Sophisticated cleanup is needed to remove atoms that are not part of an ontology, if API users decide 
- * to create objects without adding them to an ontology. <br> 
- * Cleanup has to take into account that an API user (editor) might keep objects/atoms that are existentially dependent on an axiom after removing 
- * an axiom in a REDO stack or reuses them for other purposes later.
- * In such a situation the axiom will not be part of the graph anymore but still refer to dependent objects in the graph. 
+ * Sophisticated cleanup is needed to remove atoms that are not part of an
+ * ontology, if API users decide to create objects without adding them to an
+ * ontology. <br>
+ * Cleanup has to take into account that an API user (editor) might keep
+ * objects/atoms that are existentially dependent on an axiom after removing an
+ * axiom in a REDO stack or reuses them for other purposes later. In such a
+ * situation the axiom will not be part of the graph anymore but still refer to
+ * dependent objects in the graph.
  * 
- * IRIs as used for Annotations need to be cleaned up too. 
+ * IRIs as used for Annotations need to be cleaned up too.
  * 
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  * @created Sep 28, 2011
  */
-public class OWLDataFactoryHGDB implements OWLDataFactory {
+public class OWLDataFactoryHGDB implements OWLDataFactory
+{
 
 	// private static boolean DBG = true;
-	
+
 	// private static OWLDataFactoryHGDB instance = new OWLDataFactoryHGDB();
 
-	//private static OWLClass OWL_THING = new OWLClassHGDB(OWLRDFVocabulary.OWL_THING.getIRI());
+	// private static OWLClass OWL_THING = new
+	// OWLClassHGDB(OWLRDFVocabulary.OWL_THING.getIRI());
 
-	//private static OWLClass OWL_NOTHING = new OWLClassHGDB(OWLRDFVocabulary.OWL_NOTHING.getIRI());
+	// private static OWLClass OWL_NOTHING = new
+	// OWLClassHGDB(OWLRDFVocabulary.OWL_NOTHING.getIRI());
 
 	OWLDataFactoryInternalsHGDB data;
 
 	private HyperGraph graph;
 	private boolean ignoreOntologyScope = false;
-	
+
 	public static OWLDataFactoryHGDB get(HyperGraph graph)
 	{
-		OWLDataFactoryHGDB f = Context.get(graph).singleton(OWLDataFactoryHGDB.class);
+		OWLDataFactoryHGDB f = Context.get(graph).singleton(
+				OWLDataFactoryHGDB.class);
 		if (f.getHyperGraph() == null)
 			f.setHyperGraph(graph);
 		return f;
 	}
-	
-	public OWLDataFactoryHGDB() {
+
+	public OWLDataFactoryHGDB()
+	{
 		data = new OWLDataFactoryInternalsHGDB(this);
 	}
 
-//	public static OWLDataFactoryHGDB getInstance() {
-//		return instance;
-//	}
+	// public static OWLDataFactoryHGDB getInstance() {
+	// return instance;
+	// }
 
-	public boolean ignoreOntologyScope() {
+	public boolean ignoreOntologyScope()
+	{
 		return ignoreOntologyScope;
 	}
-	
-	public OWLDataFactoryHGDB ignoreOntologyScope(boolean ignore) {
+
+	public OWLDataFactoryHGDB ignoreOntologyScope(boolean ignore)
+	{
 		ignoreOntologyScope = ignore;
 		return this;
 	}
 
-	public void purge() {
+	public void purge()
+	{
 		data.purge();
 	}
 
@@ -174,157 +186,256 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *         specified type
 	 */
 	@SuppressWarnings("unchecked")
-	public <E extends OWLEntity> E getOWLEntity(EntityType<E> entityType, IRI iri) {
+	public <E extends OWLEntity> E getOWLEntity(EntityType<E> entityType,
+			IRI iri)
+	{
 		E ret = null;
-		if (entityType.equals(EntityType.CLASS)) {
+		if (entityType == null)
+			throw new IllegalArgumentException("No entity type - null");
+		else if (iri == null)
+			throw new IllegalArgumentException("No IRI - null");
+		if (entityType.equals(EntityType.CLASS))
+		{
 			ret = (E) getOWLClass(iri);
-		} else if (entityType.equals(EntityType.OBJECT_PROPERTY)) {
+		}
+		else if (entityType.equals(EntityType.OBJECT_PROPERTY))
+		{
 			ret = (E) getOWLObjectProperty(iri);
-		} else if (entityType.equals(EntityType.DATA_PROPERTY)) {
+		}
+		else if (entityType.equals(EntityType.DATA_PROPERTY))
+		{
 			ret = (E) getOWLDataProperty(iri);
-		} else if (entityType.equals(EntityType.ANNOTATION_PROPERTY)) {
+		}
+		else if (entityType.equals(EntityType.ANNOTATION_PROPERTY))
+		{
 			ret = (E) getOWLAnnotationProperty(iri);
-		} else if (entityType.equals(EntityType.NAMED_INDIVIDUAL)) {
+		}
+		else if (entityType.equals(EntityType.NAMED_INDIVIDUAL))
+		{
 			ret = (E) getOWLNamedIndividual(iri);
-		} else if (entityType.equals(EntityType.DATATYPE)) {
+		}
+		else if (entityType.equals(EntityType.DATATYPE))
+		{
 			ret = (E) getOWLDatatype(iri);
 		}
 		return ret;
 	}
 
-	public OWLClass getOWLClass(IRI iri) {
+	public OWLClass getOWLClass(IRI iri)
+	{
+		if (iri == null)
+			throw new IllegalArgumentException("No iri - null");
 		return data.getOWLClass(iri);
 	}
 
-	public OWLClass getOWLClass(String iri, PrefixManager prefixManager) {
+	public OWLClass getOWLClass(String iri, PrefixManager prefixManager)
+	{
+		if (iri == null)
+			throw new IllegalArgumentException("No iri - null");
+		else if (prefixManager == null)
+			throw new IllegalArgumentException("No PrefixManager - null");
 		return getOWLClass(prefixManager.getIRI(iri));
 	}
 
-	public OWLAnnotationProperty getOWLAnnotationProperty(String abbreviatedIRI, PrefixManager prefixManager) {
+	public OWLAnnotationProperty getOWLAnnotationProperty(
+			String abbreviatedIRI, PrefixManager prefixManager)
+	{
+		if (abbreviatedIRI == null)
+			throw new IllegalArgumentException("No iri - null");				
+		else if (prefixManager == null)
+			throw new IllegalArgumentException("No PrefixManager - null");		
 		return getOWLAnnotationProperty(prefixManager.getIRI(abbreviatedIRI));
 	}
 
-	public OWLAnnotationProperty getRDFSLabel() {
+	public OWLAnnotationProperty getRDFSLabel()
+	{
 		return getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI());
 	}
 
-	public OWLAnnotationProperty getRDFSComment() {
+	public OWLAnnotationProperty getRDFSComment()
+	{
 		return getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_COMMENT.getIRI());
 	}
 
-	public OWLAnnotationProperty getRDFSSeeAlso() {
+	public OWLAnnotationProperty getRDFSSeeAlso()
+	{
 		return getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_SEE_ALSO.getIRI());
 	}
 
-	public OWLAnnotationProperty getRDFSIsDefinedBy() {
-		return getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_IS_DEFINED_BY.getIRI());
+	public OWLAnnotationProperty getRDFSIsDefinedBy()
+	{
+		return getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_IS_DEFINED_BY
+				.getIRI());
 	}
 
-	public OWLAnnotationProperty getOWLVersionInfo() {
-		return getOWLAnnotationProperty(OWLRDFVocabulary.OWL_VERSION_INFO.getIRI());
+	public OWLAnnotationProperty getOWLVersionInfo()
+	{
+		return getOWLAnnotationProperty(OWLRDFVocabulary.OWL_VERSION_INFO
+				.getIRI());
 	}
 
-	public OWLAnnotationProperty getOWLBackwardCompatibleWith() {
-		return getOWLAnnotationProperty(OWLRDFVocabulary.OWL_BACKWARD_COMPATIBLE_WITH.getIRI());
+	public OWLAnnotationProperty getOWLBackwardCompatibleWith()
+	{
+		return getOWLAnnotationProperty(OWLRDFVocabulary.OWL_BACKWARD_COMPATIBLE_WITH
+				.getIRI());
 	}
 
-	public OWLAnnotationProperty getOWLIncompatibleWith() {
-		return getOWLAnnotationProperty(OWLRDFVocabulary.OWL_INCOMPATIBLE_WITH.getIRI());
+	public OWLAnnotationProperty getOWLIncompatibleWith()
+	{
+		return getOWLAnnotationProperty(OWLRDFVocabulary.OWL_INCOMPATIBLE_WITH
+				.getIRI());
 	}
 
-	public OWLAnnotationProperty getOWLDeprecated() {
-		return getOWLAnnotationProperty(OWLRDFVocabulary.OWL_DEPRECATED.getIRI());
+	public OWLAnnotationProperty getOWLDeprecated()
+	{
+		return getOWLAnnotationProperty(OWLRDFVocabulary.OWL_DEPRECATED
+				.getIRI());
 	}
 
-	public OWLDatatype getOWLDatatype(String abbreviatedIRI, PrefixManager prefixManager) {
+	public OWLDatatype getOWLDatatype(String abbreviatedIRI,
+			PrefixManager prefixManager)
+	{
+		if (abbreviatedIRI == null)
+			throw new IllegalArgumentException("No iri - null");				
+		else if (prefixManager == null)
+			throw new IllegalArgumentException("No PrefixManager - null");		
 		return getOWLDatatype(prefixManager.getIRI(abbreviatedIRI));
 	}
 
-	public OWLClass getOWLThing() {
+	public OWLClass getOWLThing()
+	{
 		return getOWLClass(OWLRDFVocabulary.OWL_THING.getIRI());
-		//return OWL_THING;
+		// return OWL_THING;
 	}
 
-	public OWLClass getOWLNothing() {
+	public OWLClass getOWLNothing()
+	{
 		return getOWLClass(OWLRDFVocabulary.OWL_NOTHING.getIRI());
-		//return OWL_NOTHING;
+		// return OWL_NOTHING;
 	}
 
-	public OWLDataProperty getOWLBottomDataProperty() {
-		return getOWLDataProperty(OWLRDFVocabulary.OWL_BOTTOM_DATA_PROPERTY.getIRI());
+	public OWLDataProperty getOWLBottomDataProperty()
+	{
+		return getOWLDataProperty(OWLRDFVocabulary.OWL_BOTTOM_DATA_PROPERTY
+				.getIRI());
 	}
 
-	public OWLObjectProperty getOWLBottomObjectProperty() {
-		return getOWLObjectProperty(OWLRDFVocabulary.OWL_BOTTOM_OBJECT_PROPERTY.getIRI());
+	public OWLObjectProperty getOWLBottomObjectProperty()
+	{
+		return getOWLObjectProperty(OWLRDFVocabulary.OWL_BOTTOM_OBJECT_PROPERTY
+				.getIRI());
 	}
 
-	public OWLDataProperty getOWLTopDataProperty() {
-		return getOWLDataProperty(OWLRDFVocabulary.OWL_TOP_DATA_PROPERTY.getIRI());
+	public OWLDataProperty getOWLTopDataProperty()
+	{
+		return getOWLDataProperty(OWLRDFVocabulary.OWL_TOP_DATA_PROPERTY
+				.getIRI());
 	}
 
-	public OWLObjectProperty getOWLTopObjectProperty() {
-		return getOWLObjectProperty(OWLRDFVocabulary.OWL_TOP_OBJECT_PROPERTY.getIRI());
+	public OWLObjectProperty getOWLTopObjectProperty()
+	{
+		return getOWLObjectProperty(OWLRDFVocabulary.OWL_TOP_OBJECT_PROPERTY
+				.getIRI());
 	}
 
-	public OWLDatatype getTopDatatype() {
+	public OWLDatatype getTopDatatype()
+	{
 		return getOWLDatatype(OWLRDFVocabulary.RDFS_LITERAL.getIRI());
 	}
 
-	public OWLDatatype getIntegerOWLDatatype() {
+	public OWLDatatype getIntegerOWLDatatype()
+	{
 		return getOWLDatatype(XSDVocabulary.INTEGER.getIRI());
 	}
 
-	public OWLDatatype getFloatOWLDatatype() {
+	public OWLDatatype getFloatOWLDatatype()
+	{
 		return getOWLDatatype(XSDVocabulary.FLOAT.getIRI());
 	}
 
-	public OWLDatatype getDoubleOWLDatatype() {
+	public OWLDatatype getDoubleOWLDatatype()
+	{
 		return getOWLDatatype(XSDVocabulary.DOUBLE.getIRI());
 	}
 
-	public OWLDatatype getBooleanOWLDatatype() {
+	public OWLDatatype getBooleanOWLDatatype()
+	{
 		return getOWLDatatype(XSDVocabulary.BOOLEAN.getIRI());
 	}
 
-	public OWLDatatype getRDFPlainLiteral() {
+	public OWLDatatype getRDFPlainLiteral()
+	{
 		return getOWLDatatype(OWLRDFVocabulary.RDF_PLAIN_LITERAL.getIRI());
 	}
 
-	public OWLObjectProperty getOWLObjectProperty(IRI iri) {
+	public OWLObjectProperty getOWLObjectProperty(IRI iri)
+	{
+		if (iri == null)
+			throw new IllegalArgumentException("No iri - null");				
 		return data.getOWLObjectProperty(iri);
 	}
 
-	public OWLDataProperty getOWLDataProperty(IRI iri) {
+	public OWLDataProperty getOWLDataProperty(IRI iri)
+	{
+		if (iri == null)
+			throw new IllegalArgumentException("No iri - null");				
 		return data.getOWLDataProperty(iri);
 	}
 
-	public OWLNamedIndividual getOWLNamedIndividual(IRI iri) {
+	public OWLNamedIndividual getOWLNamedIndividual(IRI iri)
+	{
+		if (iri == null)
+			throw new IllegalArgumentException("No iri - null");				
 		return data.getOWLNamedIndividual(iri);
 	}
 
-	public OWLDataProperty getOWLDataProperty(String curi, PrefixManager prefixManager) {
+	public OWLDataProperty getOWLDataProperty(String curi,
+			PrefixManager prefixManager)
+	{
+		if (curi == null)
+			throw new IllegalArgumentException("No curi - null");				
+		else if (prefixManager == null)
+			throw new IllegalArgumentException("No PrefixManager - null");
 		return getOWLDataProperty(prefixManager.getIRI(curi));
 	}
 
-	public OWLNamedIndividual getOWLNamedIndividual(String curi, PrefixManager prefixManager) {
+	public OWLNamedIndividual getOWLNamedIndividual(String curi,
+			PrefixManager prefixManager)
+	{
+		if (curi == null)
+			throw new IllegalArgumentException("No curi - null");				
+		else if (prefixManager == null)
+			throw new IllegalArgumentException("No PrefixManager - null");
 		return getOWLNamedIndividual(prefixManager.getIRI(curi));
 	}
 
-	public OWLObjectProperty getOWLObjectProperty(String curi, PrefixManager prefixManager) {
+	public OWLObjectProperty getOWLObjectProperty(String curi,
+			PrefixManager prefixManager)
+	{
+		if (curi == null)
+			throw new IllegalArgumentException("No curi - null");				
+		else if (prefixManager == null)
+			throw new IllegalArgumentException("No PrefixManager - null");		
 		return getOWLObjectProperty(prefixManager.getIRI(curi));
 	}
 
-	public OWLAnonymousIndividual getOWLAnonymousIndividual(String id) {
-		if (id == null) {
-			throw new NullPointerException("ID for anonymous individual is null");
+	public OWLAnonymousIndividual getOWLAnonymousIndividual(String id)
+	{
+		if (id == null)
+		{
+			throw new IllegalArgumentException(
+					"ID for anonymous individual is null");
 		}
-		// we can not try to find the individual by id, because we do not know, which Ontology he belongs to.
+		// we can not try to find the individual by id, because we do not know,
+		// which Ontology he belongs to.
 		// therefore we do not know the context in which the id will be valid.
-		//TODO Think about adding to graph again? 
-		// we could ensure here that NodeId gets initialized to max(ID) + 1, et.c.
-		OWLAnonymousIndividual i = new OWLAnonymousIndividualHGDB(NodeID.getNodeID(id));
+		// TODO Think about adding to graph again?
+		// we could ensure here that NodeId gets initialized to max(ID) + 1,
+		// et.c.
+		OWLAnonymousIndividual i = new OWLAnonymousIndividualHGDB(
+				NodeID.getNodeID(id));
 		graph.add(i);
-		return i; 
+		return i;
 	}
 
 	/**
@@ -333,85 +444,131 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 * 
 	 * @return The anonymous individual
 	 */
-	public OWLAnonymousIndividual getOWLAnonymousIndividual() {
-		//TODO we could ensure here that NodeId gets initialized to max(ID) + 1, et.c.
-		OWLAnonymousIndividual i = new OWLAnonymousIndividualHGDB(NodeID.getNodeID(null));
+	public OWLAnonymousIndividual getOWLAnonymousIndividual()
+	{
+		// TODO we could ensure here that NodeId gets initialized to max(ID) +
+		// 1, et.c.
+		OWLAnonymousIndividual i = new OWLAnonymousIndividualHGDB(
+				NodeID.getNodeID(null));
 		graph.add(i);
 		return i;
-		//return new OWLAnonymousIndividualImpl(this, NodeID.getNodeID());
+		// return new OWLAnonymousIndividualImpl(this, NodeID.getNodeID());
 	}
 
-	public OWLDatatype getOWLDatatype(IRI iri) {
+	public OWLDatatype getOWLDatatype(IRI iri)
+	{
+		if (iri == null)
+			throw new IllegalArgumentException("No iri - null");						
 		return data.getOWLDatatype(iri);
 	}
 
-	public OWLLiteralHGDB getOWLLiteral(final String lexicalValue, final String lang, final HGHandle datatype) {
-		return graph.getTransactionManager().ensureTransaction(new Callable<OWLLiteralHGDB> () {
-			public OWLLiteralHGDB call() {
-			HGHandle hliteral = data.lookupLiteral
-					.var("literal", lexicalValue)
-					.var("lang", lang)
-					.var("datatype", datatype).findOne();
-			if (hliteral == null) {			
-				OWLLiteralHGDB l = new OWLLiteralHGDB(lexicalValue, lang, datatype); 
-				graph.add(l);
-				return l;
-			}
-			else
-				return graph.get(hliteral);
-		}}, HGTransactionConfig.WRITE_UPGRADABLE);
+	public OWLLiteralHGDB getOWLLiteral(final String lexicalValue,
+			final String lang, final HGHandle datatype)
+	{
+		return graph.getTransactionManager().ensureTransaction(
+				new Callable<OWLLiteralHGDB>()
+				{
+					public OWLLiteralHGDB call()
+					{
+						HGHandle hliteral = data.lookupLiteral
+								.var("literal", lexicalValue).var("lang", lang)
+								.var("datatype", datatype).findOne();
+						if (hliteral == null)
+						{
+							OWLLiteralHGDB l = new OWLLiteralHGDB(lexicalValue,
+									lang, datatype);
+							graph.add(l);
+							return l;
+						}
+						else
+							return graph.get(hliteral);
+					}
+				}, HGTransactionConfig.WRITE_UPGRADABLE);
 	}
-	
-	public OWLLiteralHGDB getOWLLiteral(String lexicalValue, OWLDatatype datatype) {
-		if (datatype.isRDFPlainLiteral()) {
+
+	public OWLLiteralHGDB getOWLLiteral(String lexicalValue,
+			OWLDatatype datatype)
+	{
+		if (lexicalValue == null)
+			throw new IllegalArgumentException("No lexicalValue - null");				
+		else if (datatype == null)
+			throw new IllegalArgumentException("No datatype - null");		
+		if (datatype.isRDFPlainLiteral())
+		{
 			int sep = lexicalValue.lastIndexOf('@');
-			if (sep != -1) {
+			if (sep != -1)
+			{
 				String lex = lexicalValue.substring(0, sep);
 				String lang = lexicalValue.substring(sep + 1);
-				return getOWLLiteral(lex, lang, graph.getHandle(getRDFPlainLiteral()));
-			} else {
-				return getOWLLiteral(lexicalValue, "", graph.getHandle(datatype));
+				return getOWLLiteral(lex, lang,
+						graph.getHandle(getRDFPlainLiteral()));
 			}
-		} else {
+			else
+			{
+				return getOWLLiteral(lexicalValue, "",
+						graph.getHandle(datatype));
+			}
+		}
+		else
+		{
 			return getOWLLiteral(lexicalValue, "", graph.getHandle(datatype));
 		}
 	}
 
-	public OWLLiteral getOWLLiteral(String lexicalValue, OWL2Datatype datatype) {
+	public OWLLiteral getOWLLiteral(String lexicalValue, OWL2Datatype datatype)
+	{
+		if (lexicalValue == null)
+			throw new IllegalArgumentException("No lexicalValue - null");				
+		else if (datatype == null)
+			throw new IllegalArgumentException("No datatype - null");				
 		return getOWLLiteral(lexicalValue, getOWLDatatype(datatype.getIRI()));
 	}
 
-	public OWLLiteral getOWLLiteral(int value) {
-		return getOWLLiteral(Integer.toString(value), "", graph.getHandle(getOWLDatatype(XSDVocabulary.INTEGER.getIRI())));
+	public OWLLiteral getOWLLiteral(int value)
+	{
+		return getOWLLiteral(Integer.toString(value), "",
+				graph.getHandle(getOWLDatatype(XSDVocabulary.INTEGER.getIRI())));
 	}
 
-	public OWLLiteral getOWLLiteral(double value) {
-		return getOWLLiteral(Double.toString(value), "", graph.getHandle(getOWLDatatype(XSDVocabulary.DOUBLE.getIRI())));
+	public OWLLiteral getOWLLiteral(double value)
+	{
+		return getOWLLiteral(Double.toString(value), "",
+				graph.getHandle(getOWLDatatype(XSDVocabulary.DOUBLE.getIRI())));
 	}
 
-	public OWLLiteral getOWLLiteral(boolean value) {
-		return getOWLLiteral(Boolean.toString(value), "", graph.getHandle(getOWLDatatype(XSDVocabulary.BOOLEAN.getIRI())));
+	public OWLLiteral getOWLLiteral(boolean value)
+	{
+		return getOWLLiteral(Boolean.toString(value), "",
+				graph.getHandle(getOWLDatatype(XSDVocabulary.BOOLEAN.getIRI())));
 	}
 
-	public OWLLiteral getOWLLiteral(float value) {
-		return getOWLLiteral(Float.toString(value), "", graph.getHandle(getOWLDatatype(XSDVocabulary.FLOAT.getIRI())));
+	public OWLLiteral getOWLLiteral(float value)
+	{
+		return getOWLLiteral(Float.toString(value), "",
+				graph.getHandle(getOWLDatatype(XSDVocabulary.FLOAT.getIRI())));
 	}
 
-	public OWLLiteral getOWLLiteral(String value) {
-		return getOWLLiteral(value, "", graph.getHandle(getOWLDatatype(XSDVocabulary.STRING.getIRI())));
+	public OWLLiteral getOWLLiteral(String value)
+	{
+		return getOWLLiteral(value, "",
+				graph.getHandle(getOWLDatatype(XSDVocabulary.STRING.getIRI())));
 	}
 
-	public OWLLiteral getOWLLiteral(String literal, String lang) {
-		if (literal == null) {
-			throw new NullPointerException("literal argument is null");
-		}
+	public OWLLiteral getOWLLiteral(String literal, String lang)
+	{
+		if (literal == null)
+			throw new IllegalArgumentException("No literal - null");				
 		String normalisedLang;
-		if (lang == null) {
+		if (lang == null)
+		{
 			normalisedLang = "";
-		} else {
+		}
+		else
+		{
 			normalisedLang = lang.trim().toLowerCase();
 		}
-		return getOWLLiteral(literal, normalisedLang, graph.getHandle(getRDFPlainLiteral()));
+		return getOWLLiteral(literal, normalisedLang,
+				graph.getHandle(getRDFPlainLiteral()));
 	}
 
 	/**
@@ -419,7 +576,8 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *             {@link #getOWLLiteral(String, org.semanticweb.owlapi.model.OWLDatatype)}
 	 */
 	@Deprecated
-	public OWLLiteral getOWLTypedLiteral(String literal, OWLDatatype datatype) {
+	public OWLLiteral getOWLTypedLiteral(String literal, OWLDatatype datatype)
+	{
 		return getOWLLiteral(literal, datatype);
 	}
 
@@ -435,7 +593,8 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *             as its datatype
 	 */
 	@Deprecated
-	public OWLLiteral getOWLTypedLiteral(String literal, OWL2Datatype datatype) {
+	public OWLLiteral getOWLTypedLiteral(String literal, OWL2Datatype datatype)
+	{
 		return getOWLLiteral(literal, datatype);
 	}
 
@@ -448,7 +607,8 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *             obtains a literal typed as an integer.
 	 */
 	@Deprecated
-	public OWLLiteral getOWLTypedLiteral(int value) {
+	public OWLLiteral getOWLTypedLiteral(int value)
+	{
 		return getOWLLiteral(value);
 	}
 
@@ -461,7 +621,8 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *             obtains a literal typed as a double.
 	 */
 	@Deprecated
-	public OWLLiteral getOWLTypedLiteral(double value) {
+	public OWLLiteral getOWLTypedLiteral(double value)
+	{
 		return getOWLLiteral(value);
 	}
 
@@ -474,7 +635,8 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *             obtains a literal typed as a boolean.
 	 */
 	@Deprecated
-	public OWLLiteral getOWLTypedLiteral(boolean value) {
+	public OWLLiteral getOWLTypedLiteral(boolean value)
+	{
 		return getOWLLiteral(value);
 	}
 
@@ -487,7 +649,8 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *             obtains a literal typed as a float.
 	 */
 	@Deprecated
-	public OWLLiteral getOWLTypedLiteral(float value) {
+	public OWLLiteral getOWLTypedLiteral(float value)
+	{
 		return getOWLLiteral(value);
 	}
 
@@ -500,7 +663,8 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *             obtains a literal typed as a string.
 	 */
 	@Deprecated
-	public OWLLiteral getOWLTypedLiteral(String value) {
+	public OWLLiteral getOWLTypedLiteral(String value)
+	{
 		return getOWLLiteral(value);
 	}
 
@@ -521,7 +685,8 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *             OWLStringLiteral with a language tag.
 	 */
 	@Deprecated
-	public OWLLiteral getOWLStringLiteral(String literal, String lang) {
+	public OWLLiteral getOWLStringLiteral(String literal, String lang)
+	{
 		return getOWLLiteral(literal, lang);
 	}
 
@@ -534,22 +699,28 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *             without a language tag.
 	 */
 	@Deprecated
-	public OWLLiteral getOWLStringLiteral(String literal) {
+	public OWLLiteral getOWLStringLiteral(String literal)
+	{
 		return getOWLLiteral(literal, "");
 	}
 
-	public OWLDataOneOf getOWLDataOneOf(Set<? extends OWLLiteral> values) {
+	public OWLDataOneOf getOWLDataOneOf(Set<? extends OWLLiteral> values)
+	{
+		if (values == null)
+			throw new IllegalArgumentException("values null");		
 		Set<HGHandle> valueHandles = getHandlesSetFor(values);
 		OWLDataOneOfHGDB d = new OWLDataOneOfHGDB(valueHandles);
 		graph.add(d);
 		return d;
 	}
 
-	public OWLDataOneOf getOWLDataOneOf(OWLLiteral... values) {
+	public OWLDataOneOf getOWLDataOneOf(OWLLiteral... values)
+	{
 		return getOWLDataOneOf(CollectionFactory.createSet(values));
 	}
 
-	public OWLDataComplementOf getOWLDataComplementOf(OWLDataRange dataRange) {
+	public OWLDataComplementOf getOWLDataComplementOf(OWLDataRange dataRange)
+	{
 		if (dataRange == null)
 			throw new IllegalArgumentException("dataRange null");
 		HGHandle dataRangeHandle = graph.getHandle(dataRange);
@@ -558,247 +729,381 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		OWLDataComplementOfHGDB i = new OWLDataComplementOfHGDB(dataRangeHandle);
 		graph.add(i);
 		return i;
-		//return new OWLDataComplementOfImpl(this, dataRange);
+		// return new OWLDataComplementOfImpl(this, dataRange);
 	}
 
-	public OWLDataIntersectionOf getOWLDataIntersectionOf(OWLDataRange... dataRanges) {
+	public OWLDataIntersectionOf getOWLDataIntersectionOf(
+			OWLDataRange... dataRanges)
+	{
 		return getOWLDataIntersectionOf(CollectionFactory.createSet(dataRanges));
-		//return getOWLDataIntersectionOf(CollectionFactory.createSet(dataRanges));
+		// return
+		// getOWLDataIntersectionOf(CollectionFactory.createSet(dataRanges));
 	}
 
-	public OWLDataIntersectionOf getOWLDataIntersectionOf(Set<? extends OWLDataRange> dataRanges) {
+	public OWLDataIntersectionOf getOWLDataIntersectionOf(
+			Set<? extends OWLDataRange> dataRanges)
+	{
+		if (dataRanges == null)
+			throw new IllegalArgumentException("dataRanges null");		
 		Set<HGHandle> dataRangesHandles = getHandlesSetFor(dataRanges);
-		OWLDataIntersectionOfHGDB o = new OWLDataIntersectionOfHGDB(dataRangesHandles);
+		OWLDataIntersectionOfHGDB o = new OWLDataIntersectionOfHGDB(
+				dataRangesHandles);
 		graph.add(o);
 		return o;
-		//return new OWLDataIntersectionOfImpl(this, dataRanges);
+		// return new OWLDataIntersectionOfImpl(this, dataRanges);
 	}
 
-	public OWLDataUnionOf getOWLDataUnionOf(OWLDataRange... dataRanges) {
+	public OWLDataUnionOf getOWLDataUnionOf(OWLDataRange... dataRanges)
+	{
 		return getOWLDataUnionOf(CollectionFactory.createSet(dataRanges));
 	}
 
-	public OWLDataUnionOf getOWLDataUnionOf(Set<? extends OWLDataRange> dataRanges) {
-		Set<HGHandle> dataRangesHandles = getHandlesSetFor(CollectionFactory.createSet(dataRanges));
+	public OWLDataUnionOf getOWLDataUnionOf(
+			Set<? extends OWLDataRange> dataRanges)
+	{
+		if (dataRanges == null)
+			throw new IllegalArgumentException("dataRanges null");		
+		Set<HGHandle> dataRangesHandles = getHandlesSetFor(CollectionFactory
+				.createSet(dataRanges));
 		OWLDataUnionOfHGDB o = new OWLDataUnionOfHGDB(dataRangesHandles);
 		graph.add(o);
 		return o;
-		//return new OWLDataUnionOfImpl(this, dataRanges);
+		// return new OWLDataUnionOfImpl(this, dataRanges);
 	}
 
-	public OWLDatatypeRestriction getOWLDatatypeRestriction(OWLDatatype datatype, Set<OWLFacetRestriction> facets) {
+	public OWLDatatypeRestriction getOWLDatatypeRestriction(
+			OWLDatatype datatype, Set<OWLFacetRestriction> facets)
+	{
+		if (datatype == null)
+			throw new IllegalArgumentException("No datatype - null");
+		else if (facets == null)
+			throw new IllegalArgumentException("No facets - null");		
 		HGHandle dataTypeHandle = getOrFindOWLEntityHandleInGraph(datatype);
 		Set<HGHandle> facetsHandles = getHandlesSetFor(facets);
-		OWLDatatypeRestriction o = new OWLDatatypeRestrictionHGDB(dataTypeHandle, facetsHandles);
+		OWLDatatypeRestriction o = new OWLDatatypeRestrictionHGDB(
+				dataTypeHandle, facetsHandles);
 		graph.add(o);
 		return o;
-		//return new OWLDatatypeRestrictionImpl(this, datatype, facets);
+		// return new OWLDatatypeRestrictionImpl(this, datatype, facets);
 	}
 
-	public OWLDatatypeRestriction getOWLDatatypeRestriction(OWLDatatype datatype, OWLFacet facet,
-			OWLLiteral typedConstant) {
+	public OWLDatatypeRestriction getOWLDatatypeRestriction(
+			OWLDatatype datatype, OWLFacet facet, OWLLiteral typedConstant)
+	{
+		if (datatype == null)
+			throw new IllegalArgumentException("datatype null");
+		else if (facet == null)
+			throw new IllegalArgumentException("facet null");
+		else if (typedConstant == null)
+			throw new IllegalArgumentException("typedConstant null");
 		HGHandle dataTypeHandle = getOrFindOWLEntityHandleInGraph(datatype);
-		OWLFacetRestriction facetRestriction = getOWLFacetRestriction(facet, typedConstant); 
-		HGHandle facetRestrictionHandle = graph.getHandle(facetRestriction); 
-		OWLDatatypeRestriction o = new OWLDatatypeRestrictionHGDB(dataTypeHandle, Collections.singleton(facetRestrictionHandle));
+		OWLFacetRestriction facetRestriction = getOWLFacetRestriction(facet,
+				typedConstant);
+		HGHandle facetRestrictionHandle = graph.getHandle(facetRestriction);
+		OWLDatatypeRestriction o = new OWLDatatypeRestrictionHGDB(
+				dataTypeHandle, Collections.singleton(facetRestrictionHandle));
 		graph.add(o);
 		return o;
 
-		
-		//return new OWLDatatypeRestrictionImpl(this, datatype, Collections.singleton(getOWLFacetRestriction(facet,
-				//typedConstant)));
+		// return new OWLDatatypeRestrictionImpl(this, datatype,
+		// Collections.singleton(getOWLFacetRestriction(facet,
+		// typedConstant)));
 	}
 
-	public OWLDatatypeRestriction getOWLDatatypeRestriction(OWLDatatype dataRange,
-			OWLFacetRestriction... facetRestrictions) {
-		return getOWLDatatypeRestriction(dataRange, CollectionFactory.createSet(facetRestrictions));
+	public OWLDatatypeRestriction getOWLDatatypeRestriction(
+			OWLDatatype dataRange, OWLFacetRestriction... facetRestrictions)
+	{
+		return getOWLDatatypeRestriction(dataRange,
+				CollectionFactory.createSet(facetRestrictions));
 	}
 
-	public OWLDatatypeRestriction getOWLDatatypeMinInclusiveRestriction(int minInclusive) {
-		return getOWLDatatypeRestriction(getIntegerOWLDatatype(), OWLFacet.MIN_INCLUSIVE, getOWLLiteral(minInclusive));
-	}
-
-	public OWLDatatypeRestriction getOWLDatatypeMaxInclusiveRestriction(int maxInclusive) {
-		return getOWLDatatypeRestriction(getIntegerOWLDatatype(), OWLFacet.MAX_INCLUSIVE, getOWLLiteral(maxInclusive));
-	}
-
-	public OWLDatatypeRestriction getOWLDatatypeMinMaxInclusiveRestriction(int minInclusive, int maxInclusive) {
+	public OWLDatatypeRestriction getOWLDatatypeMinInclusiveRestriction(
+			int minInclusive)
+	{
 		return getOWLDatatypeRestriction(getIntegerOWLDatatype(),
-				getOWLFacetRestriction(OWLFacet.MIN_INCLUSIVE, getOWLLiteral(minInclusive)),
+				OWLFacet.MIN_INCLUSIVE, getOWLLiteral(minInclusive));
+	}
+
+	public OWLDatatypeRestriction getOWLDatatypeMaxInclusiveRestriction(
+			int maxInclusive)
+	{
+		return getOWLDatatypeRestriction(getIntegerOWLDatatype(),
+				OWLFacet.MAX_INCLUSIVE, getOWLLiteral(maxInclusive));
+	}
+
+	public OWLDatatypeRestriction getOWLDatatypeMinMaxInclusiveRestriction(
+			int minInclusive, int maxInclusive)
+	{
+		return getOWLDatatypeRestriction(
+				getIntegerOWLDatatype(),
+				getOWLFacetRestriction(OWLFacet.MIN_INCLUSIVE,
+						getOWLLiteral(minInclusive)),
 				getOWLFacetRestriction(OWLFacet.MAX_INCLUSIVE, maxInclusive));
 	}
 
-	public OWLDatatypeRestriction getOWLDatatypeMinExclusiveRestriction(int minExclusive) {
-		return getOWLDatatypeRestriction(getIntegerOWLDatatype(), OWLFacet.MIN_EXCLUSIVE, getOWLLiteral(minExclusive));
-	}
-
-	public OWLDatatypeRestriction getOWLDatatypeMaxExclusiveRestriction(int maxExclusive) {
-		return getOWLDatatypeRestriction(getIntegerOWLDatatype(), OWLFacet.MAX_EXCLUSIVE, getOWLLiteral(maxExclusive));
-	}
-
-	public OWLDatatypeRestriction getOWLDatatypeMinMaxExclusiveRestriction(int minExclusive, int maxExclusive) {
+	public OWLDatatypeRestriction getOWLDatatypeMinExclusiveRestriction(
+			int minExclusive)
+	{
 		return getOWLDatatypeRestriction(getIntegerOWLDatatype(),
-				getOWLFacetRestriction(OWLFacet.MIN_EXCLUSIVE, getOWLLiteral(minExclusive)),
+				OWLFacet.MIN_EXCLUSIVE, getOWLLiteral(minExclusive));
+	}
+
+	public OWLDatatypeRestriction getOWLDatatypeMaxExclusiveRestriction(
+			int maxExclusive)
+	{
+		return getOWLDatatypeRestriction(getIntegerOWLDatatype(),
+				OWLFacet.MAX_EXCLUSIVE, getOWLLiteral(maxExclusive));
+	}
+
+	public OWLDatatypeRestriction getOWLDatatypeMinMaxExclusiveRestriction(
+			int minExclusive, int maxExclusive)
+	{
+		return getOWLDatatypeRestriction(
+				getIntegerOWLDatatype(),
+				getOWLFacetRestriction(OWLFacet.MIN_EXCLUSIVE,
+						getOWLLiteral(minExclusive)),
 				getOWLFacetRestriction(OWLFacet.MAX_EXCLUSIVE, maxExclusive));
 	}
 
-	public OWLDatatypeRestriction getOWLDatatypeMinInclusiveRestriction(double minInclusive) {
-		return getOWLDatatypeRestriction(getIntegerOWLDatatype(), OWLFacet.MIN_INCLUSIVE, getOWLLiteral(minInclusive));
-	}
-
-	public OWLDatatypeRestriction getOWLDatatypeMaxInclusiveRestriction(double maxInclusive) {
-		return getOWLDatatypeRestriction(getIntegerOWLDatatype(), OWLFacet.MAX_INCLUSIVE, getOWLLiteral(maxInclusive));
-	}
-
-	public OWLDatatypeRestriction getOWLDatatypeMinMaxInclusiveRestriction(double minInclusive, double maxInclusive) {
+	public OWLDatatypeRestriction getOWLDatatypeMinInclusiveRestriction(
+			double minInclusive)
+	{
 		return getOWLDatatypeRestriction(getIntegerOWLDatatype(),
-				getOWLFacetRestriction(OWLFacet.MIN_INCLUSIVE, getOWLLiteral(minInclusive)),
+				OWLFacet.MIN_INCLUSIVE, getOWLLiteral(minInclusive));
+	}
+
+	public OWLDatatypeRestriction getOWLDatatypeMaxInclusiveRestriction(
+			double maxInclusive)
+	{
+		return getOWLDatatypeRestriction(getIntegerOWLDatatype(),
+				OWLFacet.MAX_INCLUSIVE, getOWLLiteral(maxInclusive));
+	}
+
+	public OWLDatatypeRestriction getOWLDatatypeMinMaxInclusiveRestriction(
+			double minInclusive, double maxInclusive)
+	{
+		return getOWLDatatypeRestriction(
+				getIntegerOWLDatatype(),
+				getOWLFacetRestriction(OWLFacet.MIN_INCLUSIVE,
+						getOWLLiteral(minInclusive)),
 				getOWLFacetRestriction(OWLFacet.MAX_INCLUSIVE, maxInclusive));
 	}
 
-	public OWLDatatypeRestriction getOWLDatatypeMinExclusiveRestriction(double minExclusive) {
-		return getOWLDatatypeRestriction(getIntegerOWLDatatype(), OWLFacet.MIN_EXCLUSIVE, getOWLLiteral(minExclusive));
-	}
-
-	public OWLDatatypeRestriction getOWLDatatypeMaxExclusiveRestriction(double maxExclusive) {
-		return getOWLDatatypeRestriction(getIntegerOWLDatatype(), OWLFacet.MAX_EXCLUSIVE, getOWLLiteral(maxExclusive));
-	}
-
-	public OWLDatatypeRestriction getOWLDatatypeMinMaxExclusiveRestriction(double minExclusive, double maxExclusive) {
+	public OWLDatatypeRestriction getOWLDatatypeMinExclusiveRestriction(
+			double minExclusive)
+	{
 		return getOWLDatatypeRestriction(getIntegerOWLDatatype(),
-				getOWLFacetRestriction(OWLFacet.MIN_EXCLUSIVE, getOWLLiteral(minExclusive)),
+				OWLFacet.MIN_EXCLUSIVE, getOWLLiteral(minExclusive));
+	}
+
+	public OWLDatatypeRestriction getOWLDatatypeMaxExclusiveRestriction(
+			double maxExclusive)
+	{
+		return getOWLDatatypeRestriction(getIntegerOWLDatatype(),
+				OWLFacet.MAX_EXCLUSIVE, getOWLLiteral(maxExclusive));
+	}
+
+	public OWLDatatypeRestriction getOWLDatatypeMinMaxExclusiveRestriction(
+			double minExclusive, double maxExclusive)
+	{
+		return getOWLDatatypeRestriction(
+				getIntegerOWLDatatype(),
+				getOWLFacetRestriction(OWLFacet.MIN_EXCLUSIVE,
+						getOWLLiteral(minExclusive)),
 				getOWLFacetRestriction(OWLFacet.MAX_EXCLUSIVE, maxExclusive));
 	}
 
-	public OWLFacetRestriction getOWLFacetRestriction(OWLFacet facet, int facetValue) {
+	public OWLFacetRestriction getOWLFacetRestriction(OWLFacet facet,
+			int facetValue)
+	{
 		return getOWLFacetRestriction(facet, getOWLLiteral(facetValue));
 	}
 
-	public OWLFacetRestriction getOWLFacetRestriction(OWLFacet facet, double facetValue) {
+	public OWLFacetRestriction getOWLFacetRestriction(OWLFacet facet,
+			double facetValue)
+	{
 		return getOWLFacetRestriction(facet, getOWLLiteral(facetValue));
 	}
 
-	public OWLFacetRestriction getOWLFacetRestriction(OWLFacet facet, float facetValue) {
+	public OWLFacetRestriction getOWLFacetRestriction(OWLFacet facet,
+			float facetValue)
+	{
 		return getOWLFacetRestriction(facet, getOWLLiteral(facetValue));
 	}
 
-	public OWLFacetRestriction getOWLFacetRestriction(OWLFacet facet, OWLLiteral facetValue) {
+	public OWLFacetRestriction getOWLFacetRestriction(OWLFacet facet,
+			OWLLiteral facetValue)
+	{
+		if (facet == null)
+			throw new IllegalArgumentException("facet null");
+		else if (facetValue == null)
+			throw new IllegalArgumentException("facetValue null");
 		HGHandle facetValueHandle = graph.getHandle(facetValue);
-		OWLFacetRestriction o = new OWLFacetRestrictionHGDB(facet, facetValueHandle);
+		OWLFacetRestriction o = new OWLFacetRestrictionHGDB(facet,
+				facetValueHandle);
 		graph.add(o);
 		return o;
-		//return new OWLFacetRestrictionImpl(this, facet, facetValue);
+		// return new OWLFacetRestrictionImpl(this, facet, facetValue);
 	}
 
-	public OWLObjectIntersectionOf getOWLObjectIntersectionOf(Set<? extends OWLClassExpression> operands) {
+	public OWLObjectIntersectionOf getOWLObjectIntersectionOf(
+			Set<? extends OWLClassExpression> operands)
+	{
+		if (operands == null)
+			throw new IllegalArgumentException(" operands is null ");
 		Set<HGHandle> operandHandles = getHandlesSetFor(operands);
-		OWLObjectIntersectionOfHGDB o = new OWLObjectIntersectionOfHGDB(operandHandles);
+		OWLObjectIntersectionOfHGDB o = new OWLObjectIntersectionOfHGDB(
+				operandHandles);
 		graph.add(o);
 		return o;
 		// return new OWLObjectIntersectionOfImpl(this, operands);
 	}
 
-	public OWLObjectIntersectionOf getOWLObjectIntersectionOf(OWLClassExpression... operands) {
+	public OWLObjectIntersectionOf getOWLObjectIntersectionOf(
+			OWLClassExpression... operands)
+	{
 		return getOWLObjectIntersectionOf(CollectionFactory.createSet(operands));
 	}
 
-	public OWLDataAllValuesFrom getOWLDataAllValuesFrom(OWLDataPropertyExpression property, OWLDataRange dataRange) {
-		if (dataRange == null) {
-			throw new NullPointerException("The filler of the restriction (dataRange) must not be null");
-		}
+	public OWLDataAllValuesFrom getOWLDataAllValuesFrom(
+			OWLDataPropertyExpression property, OWLDataRange dataRange)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("property null");
+		if (dataRange == null)
+			throw new IllegalArgumentException(
+					"The filler of the restriction (dataRange) must not be null");
 		HGHandle dataRangeHandle = graph.getHandle(dataRange);
 		HGHandle propertyHandle = graph.getHandle(property);
-		OWLDataAllValuesFrom o = new OWLDataAllValuesFromHGDB(propertyHandle, dataRangeHandle);
+		OWLDataAllValuesFrom o = new OWLDataAllValuesFromHGDB(propertyHandle,
+				dataRangeHandle);
 		graph.add(o);
 		return o;
 		// return new OWLDataAllValuesFromImpl(this, property, dataRange);
 	}
 
-	public OWLDataExactCardinality getOWLDataExactCardinality(int cardinality, OWLDataPropertyExpression property) {
+	public OWLDataExactCardinality getOWLDataExactCardinality(int cardinality,
+			OWLDataPropertyExpression property)
+	{
 		HGHandle topDataTypeHandle = graph.getHandle(getTopDatatype());
 		HGHandle propertyHandle = graph.getHandle(property);
-		OWLDataExactCardinality o = new OWLDataExactCardinalityHGDB(propertyHandle, cardinality, topDataTypeHandle);
+		OWLDataExactCardinality o = new OWLDataExactCardinalityHGDB(
+				propertyHandle, cardinality, topDataTypeHandle);
 		graph.add(o);
 		return o;
 		// return new OWLDataExactCardinalityImpl(this, property, cardinality,
 		// getTopDatatype());
 	}
 
-	public OWLDataExactCardinality getOWLDataExactCardinality(int cardinality, OWLDataPropertyExpression property,
-			OWLDataRange dataRange) {
-		if (dataRange == null) {
-			throw new NullPointerException("The filler of the restriction (dataRange) must not be null");
-		}
+	public OWLDataExactCardinality getOWLDataExactCardinality(int cardinality,
+			OWLDataPropertyExpression property, OWLDataRange dataRange)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("property null");
+		if (dataRange == null)
+			throw new IllegalArgumentException(
+					"The filler of the restriction (dataRange) must not be null");
 		HGHandle dataRangeHandle = graph.getHandle(dataRange);
 		HGHandle propertyHandle = graph.getHandle(property);
-		OWLDataExactCardinality o = new OWLDataExactCardinalityHGDB(propertyHandle, cardinality, dataRangeHandle);
+		OWLDataExactCardinality o = new OWLDataExactCardinalityHGDB(
+				propertyHandle, cardinality, dataRangeHandle);
 		graph.add(o);
 		return o;
 		// return new OWLDataExactCardinalityImpl(this, property, cardinality,
 		// dataRange);
 	}
 
-	public OWLDataMaxCardinality getOWLDataMaxCardinality(int cardinality, OWLDataPropertyExpression property) {
+	public OWLDataMaxCardinality getOWLDataMaxCardinality(int cardinality,
+			OWLDataPropertyExpression property)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("property null");		
 		HGHandle topDataTypeHandle = graph.getHandle(getTopDatatype());
 		HGHandle propertyHandle = graph.getHandle(property);
-		OWLDataMaxCardinality o = new OWLDataMaxCardinalityHGDB(propertyHandle, cardinality, topDataTypeHandle);
+		OWLDataMaxCardinality o = new OWLDataMaxCardinalityHGDB(propertyHandle,
+				cardinality, topDataTypeHandle);
 		graph.add(o);
 		return o;
 		// return new OWLDataMaxCardinalityImpl(this, property, cardinality,
 		// getTopDatatype());
 	}
 
-	public OWLDataMaxCardinality getOWLDataMaxCardinality(int cardinality, OWLDataPropertyExpression property,
-			OWLDataRange dataRange) {
-		if (dataRange == null) {
-			throw new NullPointerException("The filler of the restriction (dataRange) must not be null");
-		}
+	public OWLDataMaxCardinality getOWLDataMaxCardinality(int cardinality,
+			OWLDataPropertyExpression property, OWLDataRange dataRange)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("property null");
+		if (dataRange == null)
+			throw new IllegalArgumentException(
+					"The filler of the restriction (dataRange) must not be null");
 		HGHandle dataRangeHandle = graph.getHandle(dataRange);
 		HGHandle propertyHandle = graph.getHandle(property);
-		OWLDataMaxCardinality o = new OWLDataMaxCardinalityHGDB(propertyHandle, cardinality, dataRangeHandle);
+		OWLDataMaxCardinality o = new OWLDataMaxCardinalityHGDB(propertyHandle,
+				cardinality, dataRangeHandle);
 		graph.add(o);
 		return o;
 		// return new OWLDataMaxCardinalityImpl(this, property, cardinality,
 		// dataRange);
 	}
 
-	public OWLDataMinCardinality getOWLDataMinCardinality(int cardinality, OWLDataPropertyExpression property) {
+	public OWLDataMinCardinality getOWLDataMinCardinality(int cardinality,
+			OWLDataPropertyExpression property)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("property null");		
 		HGHandle topDataTypeHandle = graph.getHandle(getTopDatatype());
 		HGHandle propertyHandle = graph.getHandle(property);
-		OWLDataMinCardinality o = new OWLDataMinCardinalityHGDB(propertyHandle, cardinality, topDataTypeHandle);
+		OWLDataMinCardinality o = new OWLDataMinCardinalityHGDB(propertyHandle,
+				cardinality, topDataTypeHandle);
 		graph.add(o);
 		return o;
 		// return new OWLDataMinCardinalityImpl(this, property, cardinality,
 		// getTopDatatype());
 	}
 
-	public OWLDataMinCardinality getOWLDataMinCardinality(int cardinality, OWLDataPropertyExpression property,
-			OWLDataRange dataRange) {
-		if (dataRange == null) {
-			throw new NullPointerException("The filler of the restriction (dataRange) must not be null");
-		}
+	public OWLDataMinCardinality getOWLDataMinCardinality(int cardinality,
+			OWLDataPropertyExpression property, OWLDataRange dataRange)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("property null");
+		if (dataRange == null)
+			throw new IllegalArgumentException(
+					"The filler of the restriction (dataRange) must not be null");
 		HGHandle dataRangeHandle = graph.getHandle(dataRange);
 		HGHandle propertyHandle = graph.getHandle(property);
-		OWLDataMinCardinality o = new OWLDataMinCardinalityHGDB(propertyHandle, cardinality, dataRangeHandle);
+		OWLDataMinCardinality o = new OWLDataMinCardinalityHGDB(propertyHandle,
+				cardinality, dataRangeHandle);
 		graph.add(o);
 		return o;
 		// return new OWLDataMinCardinalityImpl(this, property, cardinality,
 		// dataRange);
 	}
 
-	public OWLDataSomeValuesFrom getOWLDataSomeValuesFrom(OWLDataPropertyExpression property, OWLDataRange dataRange) {
-		if (dataRange == null) {
-			throw new NullPointerException("The filler of the restriction (dataRange) must not be null");
-		}
+	public OWLDataSomeValuesFrom getOWLDataSomeValuesFrom(
+			OWLDataPropertyExpression property, OWLDataRange dataRange)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("property null");
+		if (dataRange == null)
+			throw new IllegalArgumentException(
+					"The filler of the restriction (dataRange) must not be null");
+
 		HGHandle dataRangeHandle = graph.getHandle(dataRange);
 		HGHandle propertyHandle = graph.getHandle(property);
-		OWLDataSomeValuesFrom o = new OWLDataSomeValuesFromHGDB(propertyHandle, dataRangeHandle);
+		OWLDataSomeValuesFrom o = new OWLDataSomeValuesFromHGDB(propertyHandle,
+				dataRangeHandle);
 		graph.add(o);
 		return o;
 		// return new OWLDataSomeValuesFromImpl(this, property, dataRange);
 	}
 
-	public OWLDataHasValue getOWLDataHasValue(OWLDataPropertyExpression property, OWLLiteral value) {
+	public OWLDataHasValue getOWLDataHasValue(
+			OWLDataPropertyExpression property, OWLLiteral value)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("property null");
+		if (value == null)
+			throw new IllegalArgumentException("value is null");		
 		HGHandle propertyHandle = graph.getHandle(property);
 		HGHandle valueHandle = graph.getHandle(value);
 		OWLDataHasValue o = new OWLDataHasValueHGDB(propertyHandle, valueHandle);
@@ -807,9 +1112,14 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		// return new OWLDataHasValueImpl(this, property, value);
 	}
 
-	public OWLObjectComplementOf getOWLObjectComplementOf(OWLClassExpression operand) {
+	public OWLObjectComplementOf getOWLObjectComplementOf(
+			OWLClassExpression operand)
+	{
+		if (operand == null)
+			throw new IllegalArgumentException(" operand is null ");		
 		HGHandle operandHandle = graph.getHandle(operand);
-		OWLObjectComplementOfHGDB o = new OWLObjectComplementOfHGDB(operandHandle);
+		OWLObjectComplementOfHGDB o = new OWLObjectComplementOfHGDB(
+				operandHandle);
 		graph.add(o);
 		return o;
 		// TODO consider: shall this ever become part of an ontology? Flyweight?
@@ -817,21 +1127,29 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		// return new OWLObjectComplementOfImpl(this, operand);
 	}
 
-	public OWLObjectAllValuesFrom getOWLObjectAllValuesFrom(OWLObjectPropertyExpression property,
-			OWLClassExpression classExpression) {
-		if (classExpression == null) {
-			throw new NullPointerException("The filler of the restriction (classExpression) must not be null");
-		}
+	public OWLObjectAllValuesFrom getOWLObjectAllValuesFrom(
+			OWLObjectPropertyExpression property,
+			OWLClassExpression classExpression)
+	{
+		if (classExpression == null)
+			throw new IllegalArgumentException(
+					"The filler of the restriction (classExpression) must not be null");
+		else if (property == null)
+			throw new IllegalArgumentException(" property is null ");
 		HGHandle classExpressionHandle = graph.getHandle(classExpression);
 		HGHandle propertyHandle = graph.getHandle(property);
-		OWLObjectAllValuesFrom o = new OWLObjectAllValuesFromHGDB(propertyHandle, classExpressionHandle);
+		OWLObjectAllValuesFrom o = new OWLObjectAllValuesFromHGDB(
+				propertyHandle, classExpressionHandle);
 		graph.add(o);
 		return o;
 		// return new OWLObjectAllValuesFromImpl(this, property,
 		// classExpression);
 	}
 
-	public OWLObjectOneOf getOWLObjectOneOf(Set<? extends OWLIndividual> values) {
+	public OWLObjectOneOf getOWLObjectOneOf(Set<? extends OWLIndividual> values)
+	{
+		if (values == null)
+			throw new IllegalArgumentException(" values is null ");		
 		Set<HGHandle> individualHandles = getHandlesSetFor(values);
 		OWLObjectOneOfHGDB o = new OWLObjectOneOfHGDB(individualHandles);
 		graph.add(o);
@@ -839,85 +1157,120 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		// return new OWLObjectOneOfImpl(this, values);
 	}
 
-	public OWLObjectOneOf getOWLObjectOneOf(OWLIndividual... individuals) {
-		Set<OWLIndividual> individualsSet = CollectionFactory.createSet(individuals);
+	public OWLObjectOneOf getOWLObjectOneOf(OWLIndividual... individuals)
+	{
+		Set<OWLIndividual> individualsSet = CollectionFactory
+				.createSet(individuals);
 		return getOWLObjectOneOf(individualsSet);
 	}
 
-	public OWLObjectExactCardinality getOWLObjectExactCardinality(int cardinality, OWLObjectPropertyExpression property) {
+	public OWLObjectExactCardinality getOWLObjectExactCardinality(
+			int cardinality, OWLObjectPropertyExpression property)
+	{
+		if (property == null)
+			throw new IllegalArgumentException(" property is null ");		
 		HGHandle OWL_THING_Handle = graph.getHandle(getOWLThing());
 		HGHandle propertyHandle = graph.getHandle(property);
-		OWLObjectExactCardinality o = new OWLObjectExactCardinalityHGDB(propertyHandle, cardinality, OWL_THING_Handle);
+		OWLObjectExactCardinality o = new OWLObjectExactCardinalityHGDB(
+				propertyHandle, cardinality, OWL_THING_Handle);
 		graph.add(o);
 		return o;
 		// return new OWLObjectExactCardinalityImpl(this, property, cardinality,
 		// OWL_THING);
 	}
 
-	public OWLObjectExactCardinality getOWLObjectExactCardinality(int cardinality,
-			OWLObjectPropertyExpression property, OWLClassExpression classExpression) {
-		if (classExpression == null) {
-			throw new NullPointerException("The filler of the restriction (classExpression) must not be null");
-		}
+	public OWLObjectExactCardinality getOWLObjectExactCardinality(
+			int cardinality, OWLObjectPropertyExpression property,
+			OWLClassExpression classExpression)
+	{
+		if (classExpression == null)
+			throw new IllegalArgumentException(
+					"The filler of the restriction (classExpression) must not be null");
+		else if (property == null)
+			throw new IllegalArgumentException(" property is null ");		
 		HGHandle propertyHandle = graph.getHandle(property);
 		HGHandle classExpressionHandle = graph.getHandle(classExpression);
-		OWLObjectExactCardinality o = new OWLObjectExactCardinalityHGDB(propertyHandle, cardinality,
-				classExpressionHandle);
+		OWLObjectExactCardinality o = new OWLObjectExactCardinalityHGDB(
+				propertyHandle, cardinality, classExpressionHandle);
 		graph.add(o);
 		return o;
 		// return new OWLObjectExactCardinalityImpl(this, property, cardinality,
 		// classExpression);
 	}
 
-	public OWLObjectMinCardinality getOWLObjectMinCardinality(int cardinality, OWLObjectPropertyExpression property) {
+	public OWLObjectMinCardinality getOWLObjectMinCardinality(int cardinality,
+			OWLObjectPropertyExpression property)
+	{
+		if (property == null)
+			throw new IllegalArgumentException(" property is null ");		
 		HGHandle OWL_THING_Handle = graph.getHandle(getOWLThing());
 		HGHandle propertyHandle = graph.getHandle(property);
-		OWLObjectMinCardinality o = new OWLObjectMinCardinalityHGDB(propertyHandle, cardinality, OWL_THING_Handle);
+		OWLObjectMinCardinality o = new OWLObjectMinCardinalityHGDB(
+				propertyHandle, cardinality, OWL_THING_Handle);
 		graph.add(o);
 		return o;
 		// return new OWLObjectMinCardinalityImpl(this, property, cardinality,
 		// OWL_THING);
 	}
 
-	public OWLObjectMinCardinality getOWLObjectMinCardinality(int cardinality, OWLObjectPropertyExpression property,
-			OWLClassExpression classExpression) {
-		if (classExpression == null) {
-			throw new NullPointerException("The filler of the restriction (classExpression) must not be null");
-		}
+	public OWLObjectMinCardinality getOWLObjectMinCardinality(int cardinality,
+			OWLObjectPropertyExpression property,
+			OWLClassExpression classExpression)
+	{
+		if (classExpression == null)
+			throw new IllegalArgumentException(
+					"The filler of the restriction (classExpression) must not be null");
+		else if (property == null)
+			throw new IllegalArgumentException(" property is null ");
 		HGHandle propertyHandle = graph.getHandle(property);
 		HGHandle classExpressionHandle = graph.getHandle(classExpression);
-		OWLObjectMinCardinality o = new OWLObjectMinCardinalityHGDB(propertyHandle, cardinality, classExpressionHandle);
+		OWLObjectMinCardinality o = new OWLObjectMinCardinalityHGDB(
+				propertyHandle, cardinality, classExpressionHandle);
 		graph.add(o);
 		return o;
 		// return new OWLObjectMinCardinalityImpl(this, property, cardinality,
 		// classExpression);
 	}
 
-	public OWLObjectMaxCardinality getOWLObjectMaxCardinality(int cardinality, OWLObjectPropertyExpression property) {
+	public OWLObjectMaxCardinality getOWLObjectMaxCardinality(int cardinality,
+			OWLObjectPropertyExpression property)
+	{
+		if (property == null)
+			throw new IllegalArgumentException(" property is null ");		
 		HGHandle OWL_THING_Handle = graph.getHandle(getOWLThing());
 		HGHandle propertyHandle = graph.getHandle(property);
-		OWLObjectMaxCardinality o = new OWLObjectMaxCardinalityHGDB(propertyHandle, cardinality, OWL_THING_Handle);
+		OWLObjectMaxCardinality o = new OWLObjectMaxCardinalityHGDB(
+				propertyHandle, cardinality, OWL_THING_Handle);
 		graph.add(o);
 		return o;
 		// return new OWLObjectMaxCardinalityImpl(this, property, cardinality,
 		// OWL_THING);
 	}
 
-	public OWLObjectMaxCardinality getOWLObjectMaxCardinality(int cardinality, OWLObjectPropertyExpression property,
-			OWLClassExpression classExpression) {
-		if (classExpression == null) {
-			throw new NullPointerException("The filler of the restriction (classExpression) must not be null");
-		}
+	public OWLObjectMaxCardinality getOWLObjectMaxCardinality(int cardinality,
+			OWLObjectPropertyExpression property,
+			OWLClassExpression classExpression)
+	{
+		if (classExpression == null)
+			throw new IllegalArgumentException(
+					"The filler of the restriction (classExpression) must not be null");
+		else if (property == null)
+			throw new IllegalArgumentException(" property is null ");
 		HGHandle propertyHandle = graph.getHandle(property);
 		HGHandle classExpressionHandle = graph.getHandle(classExpression);
-		OWLObjectMaxCardinality o = new OWLObjectMaxCardinalityHGDB(propertyHandle, cardinality, classExpressionHandle);
+		OWLObjectMaxCardinality o = new OWLObjectMaxCardinalityHGDB(
+				propertyHandle, cardinality, classExpressionHandle);
 		graph.add(o);
 		return o;
 		// return new OWLObjectMaxCardinalityImpl(this, property, cardinality,
 		// classExpression);
 	}
 
-	public OWLObjectHasSelf getOWLObjectHasSelf(OWLObjectPropertyExpression property) {
+	public OWLObjectHasSelf getOWLObjectHasSelf(
+			OWLObjectPropertyExpression property)
+	{
+		if (property == null)
+			throw new IllegalArgumentException(" property is null ");		
 		HGHandle propertyHandle = graph.getHandle(property);
 		OWLObjectHasSelf o = new OWLObjectHasSelfHGDB(propertyHandle);
 		graph.add(o);
@@ -925,30 +1278,47 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		// return new OWLObjectHasSelfImpl(this, property);
 	}
 
-	public OWLObjectSomeValuesFrom getOWLObjectSomeValuesFrom(OWLObjectPropertyExpression property,
-			OWLClassExpression classExpression) {
-		if (classExpression == null) {
-			throw new NullPointerException("The filler of the restriction (classExpression) must not be null");
-		}
+	public OWLObjectSomeValuesFrom getOWLObjectSomeValuesFrom(
+			OWLObjectPropertyExpression property,
+			OWLClassExpression classExpression)
+	{
+		if (classExpression == null)
+			throw new IllegalArgumentException(
+					"The filler of the restriction (classExpression) must not be null");
+		else if (property == null)
+			throw new IllegalArgumentException(" property is null ");
 		HGHandle propertyHandle = graph.getHandle(property);
 		HGHandle classExpressionHandle = graph.getHandle(classExpression);
-		OWLObjectSomeValuesFrom o = new OWLObjectSomeValuesFromHGDB(propertyHandle, classExpressionHandle);
+		OWLObjectSomeValuesFrom o = new OWLObjectSomeValuesFromHGDB(
+				propertyHandle, classExpressionHandle);
 		graph.add(o);
 		return o;
 		// return new OWLObjectSomeValuesFromImpl(this, property,
 		// classExpression);
 	}
 
-	public OWLObjectHasValue getOWLObjectHasValue(OWLObjectPropertyExpression property, OWLIndividual individual) {
+	public OWLObjectHasValue getOWLObjectHasValue(
+			OWLObjectPropertyExpression property, OWLIndividual individual)
+	{
+		if (individual == null)
+			throw new IllegalArgumentException(
+					"individual must not be null");
+		else if (property == null)
+			throw new IllegalArgumentException(" property is null ");		
 		HGHandle propertyHandle = graph.getHandle(property);
 		HGHandle individualHandle = graph.getHandle(individual);
-		OWLObjectHasValue o = new OWLObjectHasValueHGDB(propertyHandle, individualHandle);
+		OWLObjectHasValue o = new OWLObjectHasValueHGDB(propertyHandle,
+				individualHandle);
 		graph.add(o);
 		return o;
 		// return new OWLObjectHasValueImpl(this, property, individual);
 	}
 
-	public OWLObjectUnionOf getOWLObjectUnionOf(Set<? extends OWLClassExpression> operands) {
+	public OWLObjectUnionOf getOWLObjectUnionOf(
+			Set<? extends OWLClassExpression> operands)
+	{
+		if (operands == null)
+			throw new IllegalArgumentException(" operands is null ");		
 		Set<HGHandle> operandHandles = getHandlesSetFor(operands);
 		OWLObjectUnionOfHGDB o = new OWLObjectUnionOfHGDB(operandHandles);
 		graph.add(o);
@@ -956,73 +1326,105 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		// return new OWLObjectUnionOfImpl(this, operands);
 	}
 
-	public OWLObjectUnionOf getOWLObjectUnionOf(OWLClassExpression... operands) {
+	public OWLObjectUnionOf getOWLObjectUnionOf(OWLClassExpression... operands)
+	{
 		return getOWLObjectUnionOf(CollectionFactory.createSet(operands));
 	}
 
 	public OWLAsymmetricObjectPropertyAxiom getOWLAsymmetricObjectPropertyAxiom(
-			OWLObjectPropertyExpression propertyExpression, Set<? extends OWLAnnotation> annotations) {
-		if (propertyExpression == null) throw new IllegalArgumentException("propertyExpression null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+			OWLObjectPropertyExpression propertyExpression,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (propertyExpression == null)
+			throw new IllegalArgumentException("propertyExpression null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		OWLAsymmetricObjectPropertyAxiomHGDB axiom;
 		HGHandle propertyHandle = graph.getHandle(propertyExpression);
-		axiom = new OWLAsymmetricObjectPropertyAxiomHGDB(propertyHandle, annotations);
+		axiom = new OWLAsymmetricObjectPropertyAxiomHGDB(propertyHandle,
+				annotations);
 		axiom.setHyperGraph(graph);
-		return axiom;	
-		//return new OWLAsymmetricObjectPropertyAxiomImpl(this, propertyExpression, annotations);
+		return axiom;
+		// return new OWLAsymmetricObjectPropertyAxiomImpl(this,
+		// propertyExpression, annotations);
 	}
 
 	public OWLAsymmetricObjectPropertyAxiom getOWLAsymmetricObjectPropertyAxiom(
-			OWLObjectPropertyExpression propertyExpression) {
-		if (propertyExpression == null) throw new IllegalArgumentException("propertyExpression null");
+			OWLObjectPropertyExpression propertyExpression)
+	{
+		if (propertyExpression == null)
+			throw new IllegalArgumentException("propertyExpression null");
 		OWLAsymmetricObjectPropertyAxiomHGDB axiom;
 		HGHandle propertyHandle = graph.getHandle(propertyExpression);
-		axiom = new OWLAsymmetricObjectPropertyAxiomHGDB(propertyHandle, EMPTY_ANNOTATIONS_SET);
+		axiom = new OWLAsymmetricObjectPropertyAxiomHGDB(propertyHandle,
+				EMPTY_ANNOTATIONS_SET);
 		axiom.setHyperGraph(graph);
-		return axiom;	
-		///return getOWLAsymmetricObjectPropertyAxiom(propertyExpression, EMPTY_ANNOTATIONS_SET);
+		return axiom;
+		// /return getOWLAsymmetricObjectPropertyAxiom(propertyExpression,
+		// EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLDataPropertyDomainAxiom getOWLDataPropertyDomainAxiom(OWLDataPropertyExpression property,
-			OWLClassExpression domain, Set<? extends OWLAnnotation> annotations) {
-		if (property == null) throw new IllegalArgumentException("property null");
-		if (domain == null) throw new IllegalArgumentException("domain null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+	public OWLDataPropertyDomainAxiom getOWLDataPropertyDomainAxiom(
+			OWLDataPropertyExpression property, OWLClassExpression domain,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("property null");
+		if (domain == null)
+			throw new IllegalArgumentException("domain null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		OWLDataPropertyDomainAxiomHGDB axiom;
 		HGHandle propertyHandle = graph.getHandle(property);
 		HGHandle domainHandle = graph.getHandle(domain);
-		axiom = new OWLDataPropertyDomainAxiomHGDB(propertyHandle, domainHandle, annotations);
+		axiom = new OWLDataPropertyDomainAxiomHGDB(propertyHandle,
+				domainHandle, annotations);
 		axiom.setHyperGraph(graph);
-		return axiom;			
-		//return new OWLDataPropertyDomainAxiomImpl(this, property, domain, annotations);
+		return axiom;
+		// return new OWLDataPropertyDomainAxiomImpl(this, property, domain,
+		// annotations);
 	}
 
-	public OWLDataPropertyDomainAxiom getOWLDataPropertyDomainAxiom(OWLDataPropertyExpression property,
-			OWLClassExpression domain) {
-		return getOWLDataPropertyDomainAxiom(property, domain, EMPTY_ANNOTATIONS_SET);
+	public OWLDataPropertyDomainAxiom getOWLDataPropertyDomainAxiom(
+			OWLDataPropertyExpression property, OWLClassExpression domain)
+	{
+		return getOWLDataPropertyDomainAxiom(property, domain,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLDataPropertyRangeAxiom getOWLDataPropertyRangeAxiom(OWLDataPropertyExpression property,
-			OWLDataRange owlDataRange, Set<? extends OWLAnnotation> annotations) {
-		if (property == null) throw new IllegalArgumentException("property null");
-		if (owlDataRange == null) throw new IllegalArgumentException("owlDataRange null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+	public OWLDataPropertyRangeAxiom getOWLDataPropertyRangeAxiom(
+			OWLDataPropertyExpression property, OWLDataRange owlDataRange,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("property null");
+		if (owlDataRange == null)
+			throw new IllegalArgumentException("owlDataRange null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		OWLDataPropertyRangeAxiomHGDB axiom;
 		HGHandle propertyHandle = graph.getHandle(property);
 		HGHandle owlDataRangeHandle = graph.getHandle(owlDataRange);
-		axiom = new OWLDataPropertyRangeAxiomHGDB(propertyHandle, owlDataRangeHandle, annotations);
+		axiom = new OWLDataPropertyRangeAxiomHGDB(propertyHandle,
+				owlDataRangeHandle, annotations);
 		axiom.setHyperGraph(graph);
-		return axiom;					
-		//return new OWLDataPropertyRangeAxiomImpl(this, propery, owlDataRange, annotations);
+		return axiom;
+		// return new OWLDataPropertyRangeAxiomImpl(this, propery, owlDataRange,
+		// annotations);
 	}
 
-	public OWLDataPropertyRangeAxiom getOWLDataPropertyRangeAxiom(OWLDataPropertyExpression propery,
-			OWLDataRange owlDataRange) {
-		return getOWLDataPropertyRangeAxiom(propery, owlDataRange, EMPTY_ANNOTATIONS_SET);
+	public OWLDataPropertyRangeAxiom getOWLDataPropertyRangeAxiom(
+			OWLDataPropertyExpression propery, OWLDataRange owlDataRange)
+	{
+		return getOWLDataPropertyRangeAxiom(propery, owlDataRange,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLSubDataPropertyOfAxiom getOWLSubDataPropertyOfAxiom(OWLDataPropertyExpression subProperty,
-			OWLDataPropertyExpression superProperty, Set<? extends OWLAnnotation> annotations) {
+	public OWLSubDataPropertyOfAxiom getOWLSubDataPropertyOfAxiom(
+			OWLDataPropertyExpression subProperty,
+			OWLDataPropertyExpression superProperty,
+			Set<? extends OWLAnnotation> annotations)
+	{
 		if (subProperty == null)
 			throw new IllegalArgumentException("subProperty null");
 		if (superProperty == null)
@@ -1035,19 +1437,25 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		// TODO Implement use of OWLObjectPropertyExpression
 		HGHandle subPropertyHandle = getOrFindOWLEntityHandleInGraph((OWLDataProperty) subProperty);
 		HGHandle superPropertyHandle = getOrFindOWLEntityHandleInGraph((OWLDataProperty) superProperty);
-		if (subPropertyHandle == null || superPropertyHandle == null) {
-			throw new IllegalStateException("No Handle for subProperty or superProperty");
+		if (subPropertyHandle == null || superPropertyHandle == null)
+		{
+			throw new IllegalStateException(
+					"No Handle for subProperty or superProperty");
 		}
-		axiom = new OWLSubDataPropertyOfAxiomHGDB(subPropertyHandle, superPropertyHandle, annotations);
+		axiom = new OWLSubDataPropertyOfAxiomHGDB(subPropertyHandle,
+				superPropertyHandle, annotations);
 		axiom.setHyperGraph(graph);
 		return axiom;
 		// return new OWLSubDataPropertyOfAxiomImpl(this, subProperty,
 		// superProperty, annotations);
 	}
 
-	public OWLSubDataPropertyOfAxiom getOWLSubDataPropertyOfAxiom(OWLDataPropertyExpression subProperty,
-			OWLDataPropertyExpression superProperty) {
-		return getOWLSubDataPropertyOfAxiom(subProperty, superProperty, EMPTY_ANNOTATIONS_SET);
+	public OWLSubDataPropertyOfAxiom getOWLSubDataPropertyOfAxiom(
+			OWLDataPropertyExpression subProperty,
+			OWLDataPropertyExpression superProperty)
+	{
+		return getOWLSubDataPropertyOfAxiom(subProperty, superProperty,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
 	/**
@@ -1060,33 +1468,43 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *             if owlEntity is <code>null</code>
 	 */
 
-	public OWLDeclarationAxiom getOWLDeclarationAxiom(OWLEntity owlEntity) {
-		if (owlEntity == null) {
-			throw new NullPointerException("owlEntity");
+	public OWLDeclarationAxiom getOWLDeclarationAxiom(OWLEntity owlEntity)
+	{
+		if (owlEntity == null)
+		{
+			throw new IllegalArgumentException("owlEntity");
 		}
 		return getOWLDeclarationAxiom(owlEntity, EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLDeclarationAxiom getOWLDeclarationAxiom(OWLEntity owlEntity, Set<? extends OWLAnnotation> annotations) {
-		if (owlEntity == null) {
-			throw new NullPointerException("owlEntity");
+	public OWLDeclarationAxiom getOWLDeclarationAxiom(OWLEntity owlEntity,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (owlEntity == null)
+		{
+			throw new IllegalArgumentException("owlEntity");
 		}
-		if (annotations == null) {
-			throw new NullPointerException("annotations");
+		if (annotations == null)
+		{
+			throw new IllegalArgumentException("annotations");
 		}
 		// owlEntity and annotations are in Graph, if created by this
 		// Datafactory
 		OWLDeclarationAxiomHGDB axiom;
 		HGHandle owlEntityHandle = getOrFindOWLEntityHandleInGraph(owlEntity);
-		if (owlEntityHandle == null) {
+		if (owlEntityHandle == null)
+		{
 			// TODO HGDBApplication.ensureBuiltInObjects should add all BUILTING
 			// Types
-			System.out.println("WARNING: Had to create NONHGDB DeclarationAxiom for :" + owlEntity + " class " + owlEntity.getClass());
+			System.out
+					.println("WARNING: Had to create NONHGDB DeclarationAxiom for :"
+							+ owlEntity + " class " + owlEntity.getClass());
 			// 2010.10.06 not acceptable anymore: return new
 			// OWLDeclarationAxiomImpl(this, owlEntity, annotations);
-			throw new IllegalStateException("Could not find owlEntity in Cache or store. "
-					+ " This occured on builtin entities before after gc was run. "
-					+ owlEntity + " Class: " + owlEntity.getClass());
+			throw new IllegalStateException(
+					"Could not find owlEntity in Cache or store. "
+							+ " This occured on builtin entities before after gc was run. "
+							+ owlEntity + " Class: " + owlEntity.getClass());
 		}
 		// hilpold 2011.10.13
 		// An equal (see equals()) one might exist, so we must not add a
@@ -1102,28 +1520,42 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		return axiom;
 	}
 
-	public OWLDifferentIndividualsAxiom getOWLDifferentIndividualsAxiom(Set<? extends OWLIndividual> individuals,
-			Set<? extends OWLAnnotation> annotations) {
-		if (individuals == null) throw new IllegalArgumentException("individuals null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+	public OWLDifferentIndividualsAxiom getOWLDifferentIndividualsAxiom(
+			Set<? extends OWLIndividual> individuals,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (individuals == null)
+			throw new IllegalArgumentException("individuals null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		OWLDifferentIndividualsAxiomHGDB axiom;
 		Set<HGHandle> individualsHandles = getHandlesSetFor(individuals);
-		axiom = new OWLDifferentIndividualsAxiomHGDB(individualsHandles, annotations);
+		axiom = new OWLDifferentIndividualsAxiomHGDB(individualsHandles,
+				annotations);
 		axiom.setHyperGraph(graph);
 		return axiom;
-		//return new OWLDifferentIndividualsAxiomImpl(this, individuals, annotations);
+		// return new OWLDifferentIndividualsAxiomImpl(this, individuals,
+		// annotations);
 	}
 
-	public OWLDifferentIndividualsAxiom getOWLDifferentIndividualsAxiom(OWLIndividual... individuals) {
-		return getOWLDifferentIndividualsAxiom(CollectionFactory.createSet(individuals));
+	public OWLDifferentIndividualsAxiom getOWLDifferentIndividualsAxiom(
+			OWLIndividual... individuals)
+	{
+		return getOWLDifferentIndividualsAxiom(CollectionFactory
+				.createSet(individuals));
 	}
 
-	public OWLDifferentIndividualsAxiom getOWLDifferentIndividualsAxiom(Set<? extends OWLIndividual> individuals) {
-		return getOWLDifferentIndividualsAxiom(individuals, EMPTY_ANNOTATIONS_SET);
+	public OWLDifferentIndividualsAxiom getOWLDifferentIndividualsAxiom(
+			Set<? extends OWLIndividual> individuals)
+	{
+		return getOWLDifferentIndividualsAxiom(individuals,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLDisjointClassesAxiom getOWLDisjointClassesAxiom(Set<? extends OWLClassExpression> classExpressions,
-			Set<? extends OWLAnnotation> annotations) {
+	public OWLDisjointClassesAxiom getOWLDisjointClassesAxiom(
+			Set<? extends OWLClassExpression> classExpressions,
+			Set<? extends OWLAnnotation> annotations)
+	{
 		if (classExpressions == null)
 			throw new IllegalArgumentException("classExpressions null");
 		if (annotations == null)
@@ -1132,75 +1564,107 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		// Datafactory
 		OWLDisjointClassesAxiomHGDB axiom;
 		Set<HGHandle> classExpressionsHandles = getHandlesSetFor(classExpressions);
-		axiom = new OWLDisjointClassesAxiomHGDB(classExpressionsHandles, annotations);
+		axiom = new OWLDisjointClassesAxiomHGDB(classExpressionsHandles,
+				annotations);
 		axiom.setHyperGraph(graph);
 		return axiom;
 		// return new OWLDisjointClassesAxiomImpl(this, classExpressions,
 		// annotations);
 	}
 
-	public OWLDisjointClassesAxiom getOWLDisjointClassesAxiom(Set<? extends OWLClassExpression> classExpressions) {
-		return getOWLDisjointClassesAxiom(classExpressions, EMPTY_ANNOTATIONS_SET);
+	public OWLDisjointClassesAxiom getOWLDisjointClassesAxiom(
+			Set<? extends OWLClassExpression> classExpressions)
+	{
+		return getOWLDisjointClassesAxiom(classExpressions,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLDisjointClassesAxiom getOWLDisjointClassesAxiom(OWLClassExpression... classExpressions) {
+	public OWLDisjointClassesAxiom getOWLDisjointClassesAxiom(
+			OWLClassExpression... classExpressions)
+	{
 		Set<OWLClassExpression> clses = new HashSet<OWLClassExpression>();
 		clses.addAll(Arrays.asList(classExpressions));
 		return getOWLDisjointClassesAxiom(clses);
 	}
 
 	public OWLDisjointDataPropertiesAxiom getOWLDisjointDataPropertiesAxiom(
-			Set<? extends OWLDataPropertyExpression> properties, Set<? extends OWLAnnotation> annotations) {
-		if (properties == null) throw new IllegalArgumentException("properties null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+			Set<? extends OWLDataPropertyExpression> properties,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (properties == null)
+			throw new IllegalArgumentException("properties null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		OWLDisjointDataPropertiesAxiomHGDB axiom;
 		Set<HGHandle> propertiesHandles = getHandlesSetFor(properties);
-		axiom = new OWLDisjointDataPropertiesAxiomHGDB(propertiesHandles, annotations);
+		axiom = new OWLDisjointDataPropertiesAxiomHGDB(propertiesHandles,
+				annotations);
 		axiom.setHyperGraph(graph);
 		return axiom;
-		//return new OWLDisjointDataPropertiesAxiomImpl(this, properties, annotations);
+		// return new OWLDisjointDataPropertiesAxiomImpl(this, properties,
+		// annotations);
 	}
 
 	public OWLDisjointDataPropertiesAxiom getOWLDisjointDataPropertiesAxiom(
-			Set<? extends OWLDataPropertyExpression> properties) {
-		return getOWLDisjointDataPropertiesAxiom(properties, EMPTY_ANNOTATIONS_SET);
+			Set<? extends OWLDataPropertyExpression> properties)
+	{
+		return getOWLDisjointDataPropertiesAxiom(properties,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLDisjointDataPropertiesAxiom getOWLDisjointDataPropertiesAxiom(OWLDataPropertyExpression... properties) {
-		return getOWLDisjointDataPropertiesAxiom(CollectionFactory.createSet(properties));
-	}
-
-	public OWLDisjointObjectPropertiesAxiom getOWLDisjointObjectPropertiesAxiom(
-			OWLObjectPropertyExpression... properties) {
-		return getOWLDisjointObjectPropertiesAxiom(CollectionFactory.createSet(properties));
-	}
-
-	public OWLDisjointObjectPropertiesAxiom getOWLDisjointObjectPropertiesAxiom(
-			Set<? extends OWLObjectPropertyExpression> properties) {
-		return getOWLDisjointObjectPropertiesAxiom(properties, EMPTY_ANNOTATIONS_SET);
+	public OWLDisjointDataPropertiesAxiom getOWLDisjointDataPropertiesAxiom(
+			OWLDataPropertyExpression... properties)
+	{
+		return getOWLDisjointDataPropertiesAxiom(CollectionFactory
+				.createSet(properties));
 	}
 
 	public OWLDisjointObjectPropertiesAxiom getOWLDisjointObjectPropertiesAxiom(
-			Set<? extends OWLObjectPropertyExpression> properties, Set<? extends OWLAnnotation> annotations) {
-		if (properties == null) throw new IllegalArgumentException("properties null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+			OWLObjectPropertyExpression... properties)
+	{
+		return getOWLDisjointObjectPropertiesAxiom(CollectionFactory
+				.createSet(properties));
+	}
+
+	public OWLDisjointObjectPropertiesAxiom getOWLDisjointObjectPropertiesAxiom(
+			Set<? extends OWLObjectPropertyExpression> properties)
+	{
+		return getOWLDisjointObjectPropertiesAxiom(properties,
+				EMPTY_ANNOTATIONS_SET);
+	}
+
+	public OWLDisjointObjectPropertiesAxiom getOWLDisjointObjectPropertiesAxiom(
+			Set<? extends OWLObjectPropertyExpression> properties,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (properties == null)
+			throw new IllegalArgumentException("properties null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		OWLDisjointObjectPropertiesAxiomHGDB axiom;
 		Set<HGHandle> propertiesHandles = getHandlesSetFor(properties);
-		axiom = new OWLDisjointObjectPropertiesAxiomHGDB(propertiesHandles, annotations);
+		axiom = new OWLDisjointObjectPropertiesAxiomHGDB(propertiesHandles,
+				annotations);
 		axiom.setHyperGraph(graph);
 		return axiom;
-		//return new OWLDisjointObjectPropertiesAxiomImpl(this, properties, annotations);
+		// return new OWLDisjointObjectPropertiesAxiomImpl(this, properties,
+		// annotations);
 	}
-	
-	public OWLEquivalentClassesAxiom getOWLEquivalentClassesAxiom(Set<? extends OWLClassExpression> classExpressions,
-			Set<? extends OWLAnnotation> annotations) {
-		if (classExpressions == null) throw new IllegalArgumentException("classExpressions null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+
+	public OWLEquivalentClassesAxiom getOWLEquivalentClassesAxiom(
+			Set<? extends OWLClassExpression> classExpressions,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (classExpressions == null)
+			throw new IllegalArgumentException("classExpressions null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		// classExpressions and annotations are in Graph, if created by this
 		// Datafactory
 		OWLEquivalentClassesAxiomHGDB axiom;
 		Set<HGHandle> classExpressionsHandles = getHandlesSetFor(classExpressions);
-		axiom = new OWLEquivalentClassesAxiomHGDB(classExpressionsHandles, annotations);
+		axiom = new OWLEquivalentClassesAxiomHGDB(classExpressionsHandles,
+				annotations);
 		axiom.setHyperGraph(graph); // 2011.10.06 needed now, that we don't add
 									// it to the graph right away.
 		return axiom;
@@ -1208,322 +1672,502 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		// annotations);
 	}
 
-	public OWLEquivalentClassesAxiom getOWLEquivalentClassesAxiom(OWLClassExpression clsA, OWLClassExpression clsB) {
+	public OWLEquivalentClassesAxiom getOWLEquivalentClassesAxiom(
+			OWLClassExpression clsA, OWLClassExpression clsB)
+	{
 		return getOWLEquivalentClassesAxiom(clsA, clsB, EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLEquivalentClassesAxiom getOWLEquivalentClassesAxiom(OWLClassExpression clsA, OWLClassExpression clsB,
-			Set<? extends OWLAnnotation> annotations) {
-		return getOWLEquivalentClassesAxiom(CollectionFactory.createSet(clsA, clsB), annotations);
+	public OWLEquivalentClassesAxiom getOWLEquivalentClassesAxiom(
+			OWLClassExpression clsA, OWLClassExpression clsB,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		return getOWLEquivalentClassesAxiom(
+				CollectionFactory.createSet(clsA, clsB), annotations);
 	}
 
-	public OWLEquivalentClassesAxiom getOWLEquivalentClassesAxiom(OWLClassExpression... classExpressions) {
+	public OWLEquivalentClassesAxiom getOWLEquivalentClassesAxiom(
+			OWLClassExpression... classExpressions)
+	{
 		Set<OWLClassExpression> clses = new HashSet<OWLClassExpression>();
 		clses.addAll(Arrays.asList(classExpressions));
 		return getOWLEquivalentClassesAxiom(clses);
 	}
 
-	public OWLEquivalentClassesAxiom getOWLEquivalentClassesAxiom(Set<? extends OWLClassExpression> classExpressions) {
-		return getOWLEquivalentClassesAxiom(classExpressions, EMPTY_ANNOTATIONS_SET);
+	public OWLEquivalentClassesAxiom getOWLEquivalentClassesAxiom(
+			Set<? extends OWLClassExpression> classExpressions)
+	{
+		return getOWLEquivalentClassesAxiom(classExpressions,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
 	public OWLEquivalentDataPropertiesAxiom getOWLEquivalentDataPropertiesAxiom(
-			Set<? extends OWLDataPropertyExpression> properties, Set<? extends OWLAnnotation> annotations) {
-		if (properties == null) throw new IllegalArgumentException("properties null");
+			Set<? extends OWLDataPropertyExpression> properties,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (properties == null)
+			throw new IllegalArgumentException("property null");
+		else if (annotations == null)
+			throw new IllegalArgumentException(" annotations is null ");
 		OWLEquivalentDataPropertiesAxiomHGDB axiom;
 		Set<HGHandle> propertiesHandles = getHandlesSetFor(properties);
-		axiom = new OWLEquivalentDataPropertiesAxiomHGDB(propertiesHandles, annotations);
+		axiom = new OWLEquivalentDataPropertiesAxiomHGDB(propertiesHandles,
+				annotations);
 		axiom.setHyperGraph(graph);
 		return axiom;
-		//return new OWLEquivalentDataPropertiesAxiomImpl(this, properties, annotations);
+		// return new OWLEquivalentDataPropertiesAxiomImpl(this, properties,
+		// annotations);
 	}
 
 	public OWLEquivalentDataPropertiesAxiom getOWLEquivalentDataPropertiesAxiom(
-			Set<? extends OWLDataPropertyExpression> properties) {
-		return getOWLEquivalentDataPropertiesAxiom(properties, EMPTY_ANNOTATIONS_SET);
+			Set<? extends OWLDataPropertyExpression> properties)
+	{
+		return getOWLEquivalentDataPropertiesAxiom(properties,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLEquivalentDataPropertiesAxiom getOWLEquivalentDataPropertiesAxiom(OWLDataPropertyExpression propertyA,
-			OWLDataPropertyExpression propertyB) {
-		return getOWLEquivalentDataPropertiesAxiom(propertyA, propertyB, EMPTY_ANNOTATIONS_SET);
+	public OWLEquivalentDataPropertiesAxiom getOWLEquivalentDataPropertiesAxiom(
+			OWLDataPropertyExpression propertyA,
+			OWLDataPropertyExpression propertyB)
+	{
+		return getOWLEquivalentDataPropertiesAxiom(propertyA, propertyB,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLEquivalentDataPropertiesAxiom getOWLEquivalentDataPropertiesAxiom(OWLDataPropertyExpression propertyA,
-			OWLDataPropertyExpression propertyB, Set<? extends OWLAnnotation> annotations) {
-		return getOWLEquivalentDataPropertiesAxiom(CollectionFactory.createSet(propertyA, propertyB), annotations);
+	public OWLEquivalentDataPropertiesAxiom getOWLEquivalentDataPropertiesAxiom(
+			OWLDataPropertyExpression propertyA,
+			OWLDataPropertyExpression propertyB,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (propertyA == null)
+			throw new IllegalArgumentException("propertyA null");
+		else if (propertyB == null)
+			throw new IllegalArgumentException(" propertyB is null ");
+		else if (annotations == null)
+			throw new IllegalArgumentException(" annotations is null ");				
+		return getOWLEquivalentDataPropertiesAxiom(
+				CollectionFactory.createSet(propertyA, propertyB), annotations);
 	}
 
-	public OWLEquivalentDataPropertiesAxiom getOWLEquivalentDataPropertiesAxiom(OWLDataPropertyExpression... properties) {
-		return getOWLEquivalentDataPropertiesAxiom(CollectionFactory.createSet(properties));
+	public OWLEquivalentDataPropertiesAxiom getOWLEquivalentDataPropertiesAxiom(
+			OWLDataPropertyExpression... properties)
+	{
+		return getOWLEquivalentDataPropertiesAxiom(CollectionFactory
+				.createSet(properties));
 	}
 
 	public OWLEquivalentObjectPropertiesAxiom getOWLEquivalentObjectPropertiesAxiom(
-			OWLObjectPropertyExpression... properties) {
-		if (properties == null) throw new IllegalArgumentException("property null");
+			OWLObjectPropertyExpression... properties)
+	{
+		if (properties == null)
+			throw new IllegalArgumentException("property null");
 		OWLEquivalentObjectPropertiesAxiomHGDB axiom;
-		Set<HGHandle> propertiesHandles = getHandlesSetFor(CollectionFactory.createSet(properties));
-		axiom = new OWLEquivalentObjectPropertiesAxiomHGDB(propertiesHandles, EMPTY_ANNOTATIONS_SET);
+		Set<HGHandle> propertiesHandles = getHandlesSetFor(CollectionFactory
+				.createSet(properties));
+		axiom = new OWLEquivalentObjectPropertiesAxiomHGDB(propertiesHandles,
+				EMPTY_ANNOTATIONS_SET);
 		axiom.setHyperGraph(graph);
 		return axiom;
-		//return getOWLEquivalentObjectPropertiesAxiom(CollectionFactory.createSet(properties));
+		// return
+		// getOWLEquivalentObjectPropertiesAxiom(CollectionFactory.createSet(properties));
 	}
 
 	public OWLEquivalentObjectPropertiesAxiom getOWLEquivalentObjectPropertiesAxiom(
-			Set<? extends OWLObjectPropertyExpression> properties) {
-		return getOWLEquivalentObjectPropertiesAxiom(properties, EMPTY_ANNOTATIONS_SET);
+			Set<? extends OWLObjectPropertyExpression> properties)
+	{
+		return getOWLEquivalentObjectPropertiesAxiom(properties,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
 	public OWLEquivalentObjectPropertiesAxiom getOWLEquivalentObjectPropertiesAxiom(
-			OWLObjectPropertyExpression propertyA, OWLObjectPropertyExpression propertyB) {
-		return getOWLEquivalentObjectPropertiesAxiom(propertyA, propertyB, EMPTY_ANNOTATIONS_SET);
+			OWLObjectPropertyExpression propertyA,
+			OWLObjectPropertyExpression propertyB)
+	{
+		return getOWLEquivalentObjectPropertiesAxiom(propertyA, propertyB,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
 	public OWLEquivalentObjectPropertiesAxiom getOWLEquivalentObjectPropertiesAxiom(
-			OWLObjectPropertyExpression propertyA, OWLObjectPropertyExpression propertyB,
-			Set<? extends OWLAnnotation> annotations) {
-		return getOWLEquivalentObjectPropertiesAxiom(CollectionFactory.createSet(propertyA, propertyB), annotations);
+			OWLObjectPropertyExpression propertyA,
+			OWLObjectPropertyExpression propertyB,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		return getOWLEquivalentObjectPropertiesAxiom(
+				CollectionFactory.createSet(propertyA, propertyB), annotations);
 	}
 
-	public OWLFunctionalDataPropertyAxiom getOWLFunctionalDataPropertyAxiom(OWLDataPropertyExpression property,
-			Set<? extends OWLAnnotation> annotations) {
-		if (property == null) throw new IllegalArgumentException("property null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+	public OWLFunctionalDataPropertyAxiom getOWLFunctionalDataPropertyAxiom(
+			OWLDataPropertyExpression property,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("property null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		OWLFunctionalDataPropertyAxiomHGDB axiom;
 		HGHandle propertyHandle = graph.getHandle(property);
-		axiom = new OWLFunctionalDataPropertyAxiomHGDB(propertyHandle, annotations);
-		axiom.setHyperGraph(graph);
-		return axiom;		
-		//return new OWLFunctionalDataPropertyAxiomImpl(this, property, annotations);
-	}
-
-	public OWLFunctionalDataPropertyAxiom getOWLFunctionalDataPropertyAxiom(OWLDataPropertyExpression property) {
-		return getOWLFunctionalDataPropertyAxiom(property, EMPTY_ANNOTATIONS_SET);
-	}
-
-	public OWLFunctionalObjectPropertyAxiom getOWLFunctionalObjectPropertyAxiom(OWLObjectPropertyExpression property,
-			Set<? extends OWLAnnotation> annotations) {
-		if (property == null) throw new IllegalArgumentException("property null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
-		OWLFunctionalObjectPropertyAxiomHGDB axiom;
-		HGHandle propertyHandle = graph.getHandle(property);
-		axiom = new OWLFunctionalObjectPropertyAxiomHGDB(propertyHandle, annotations);
+		axiom = new OWLFunctionalDataPropertyAxiomHGDB(propertyHandle,
+				annotations);
 		axiom.setHyperGraph(graph);
 		return axiom;
-		//return new OWLFunctional ObjectPropertyAxiomImpl(this, property, annotations);
+		// return new OWLFunctionalDataPropertyAxiomImpl(this, property,
+		// annotations);
 	}
 
-	public OWLFunctionalObjectPropertyAxiom getOWLFunctionalObjectPropertyAxiom(OWLObjectPropertyExpression property) {
-		return getOWLFunctionalObjectPropertyAxiom(property, EMPTY_ANNOTATIONS_SET);
+	public OWLFunctionalDataPropertyAxiom getOWLFunctionalDataPropertyAxiom(
+			OWLDataPropertyExpression property)
+	{
+		return getOWLFunctionalDataPropertyAxiom(property,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLImportsDeclaration getOWLImportsDeclaration(IRI importedOntologyIRI) {
+	public OWLFunctionalObjectPropertyAxiom getOWLFunctionalObjectPropertyAxiom(
+			OWLObjectPropertyExpression property,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("property null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
+		OWLFunctionalObjectPropertyAxiomHGDB axiom;
+		HGHandle propertyHandle = graph.getHandle(property);
+		axiom = new OWLFunctionalObjectPropertyAxiomHGDB(propertyHandle,
+				annotations);
+		axiom.setHyperGraph(graph);
+		return axiom;
+		// return new OWLFunctional ObjectPropertyAxiomImpl(this, property,
+		// annotations);
+	}
+
+	public OWLFunctionalObjectPropertyAxiom getOWLFunctionalObjectPropertyAxiom(
+			OWLObjectPropertyExpression property)
+	{
+		return getOWLFunctionalObjectPropertyAxiom(property,
+				EMPTY_ANNOTATIONS_SET);
+	}
+
+	public OWLImportsDeclaration getOWLImportsDeclaration(
+			IRI importedOntologyIRI)
+	{
+		if (importedOntologyIRI == null)
+			throw new IllegalArgumentException("imported ontology IRI is null");
 		// TODO create a HGDB type for it, even though it's not needed to have
 		// consistency
 		// and get rid of all uk.ac types in the graph.
 		return new OWLImportsDeclarationImpl(importedOntologyIRI);
 	}
 
-	public OWLDataPropertyAssertionAxiom getOWLDataPropertyAssertionAxiom(OWLDataPropertyExpression property,
-			OWLIndividual subject, OWLLiteral object, Set<? extends OWLAnnotation> annotations) {
-		if (property == null) throw new IllegalArgumentException("property null");
-		if (subject == null)	throw new IllegalArgumentException("subject null");
-		if (object == null)	throw new IllegalArgumentException("object null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+	public OWLDataPropertyAssertionAxiom getOWLDataPropertyAssertionAxiom(
+			OWLDataPropertyExpression property, OWLIndividual subject,
+			OWLLiteral object, Set<? extends OWLAnnotation> annotations)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("property null");
+		if (subject == null)
+			throw new IllegalArgumentException("subject null");
+		if (object == null)
+			throw new IllegalArgumentException("object null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		OWLDataPropertyAssertionAxiomHGDB axiom;
 		HGHandle propertyHandle = graph.getHandle(property);
 		HGHandle subjectHandle = graph.getHandle(subject);
 		HGHandle objectHandle = graph.getHandle(object);
-		if (propertyHandle == null || subjectHandle == null || objectHandle == null) {
-			throw new IllegalStateException("No Handle for property, individual AND/OR object.");
+		if (propertyHandle == null || subjectHandle == null
+				|| objectHandle == null)
+		{
+			throw new IllegalStateException(
+					"No Handle for property, individual AND/OR object.");
 		}
-		axiom = new OWLDataPropertyAssertionAxiomHGDB(subjectHandle, propertyHandle, objectHandle, annotations);
+		axiom = new OWLDataPropertyAssertionAxiomHGDB(subjectHandle,
+				propertyHandle, objectHandle, annotations);
 		axiom.setHyperGraph(graph);
-		return axiom;		
-		//return new OWLDataPropertyAssertionAxiomImpl(this, subject, property, object, annotations);
+		return axiom;
+		// return new OWLDataPropertyAssertionAxiomImpl(this, subject, property,
+		// object, annotations);
 	}
 
-	public OWLDataPropertyAssertionAxiom getOWLDataPropertyAssertionAxiom(OWLDataPropertyExpression property,
-			OWLIndividual subject, OWLLiteral object) {
-		return getOWLDataPropertyAssertionAxiom(property, subject, object, EMPTY_ANNOTATIONS_SET);
+	public OWLDataPropertyAssertionAxiom getOWLDataPropertyAssertionAxiom(
+			OWLDataPropertyExpression property, OWLIndividual subject,
+			OWLLiteral object)
+	{
+		return getOWLDataPropertyAssertionAxiom(property, subject, object,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLDataPropertyAssertionAxiom getOWLDataPropertyAssertionAxiom(OWLDataPropertyExpression property,
-			OWLIndividual subject, int value) {
-		return getOWLDataPropertyAssertionAxiom(property, subject, getOWLLiteral(value), EMPTY_ANNOTATIONS_SET);
+	public OWLDataPropertyAssertionAxiom getOWLDataPropertyAssertionAxiom(
+			OWLDataPropertyExpression property, OWLIndividual subject, int value)
+	{
+		return getOWLDataPropertyAssertionAxiom(property, subject,
+				getOWLLiteral(value), EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLDataPropertyAssertionAxiom getOWLDataPropertyAssertionAxiom(OWLDataPropertyExpression property,
-			OWLIndividual subject, double value) {
-		return getOWLDataPropertyAssertionAxiom(property, subject, getOWLLiteral(value), EMPTY_ANNOTATIONS_SET);
+	public OWLDataPropertyAssertionAxiom getOWLDataPropertyAssertionAxiom(
+			OWLDataPropertyExpression property, OWLIndividual subject,
+			double value)
+	{
+		return getOWLDataPropertyAssertionAxiom(property, subject,
+				getOWLLiteral(value), EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLDataPropertyAssertionAxiom getOWLDataPropertyAssertionAxiom(OWLDataPropertyExpression property,
-			OWLIndividual subject, float value) {
-		return getOWLDataPropertyAssertionAxiom(property, subject, getOWLLiteral(value), EMPTY_ANNOTATIONS_SET);
+	public OWLDataPropertyAssertionAxiom getOWLDataPropertyAssertionAxiom(
+			OWLDataPropertyExpression property, OWLIndividual subject,
+			float value)
+	{
+		return getOWLDataPropertyAssertionAxiom(property, subject,
+				getOWLLiteral(value), EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLDataPropertyAssertionAxiom getOWLDataPropertyAssertionAxiom(OWLDataPropertyExpression property,
-			OWLIndividual subject, boolean value) {
-		return getOWLDataPropertyAssertionAxiom(property, subject, getOWLLiteral(value), EMPTY_ANNOTATIONS_SET);
+	public OWLDataPropertyAssertionAxiom getOWLDataPropertyAssertionAxiom(
+			OWLDataPropertyExpression property, OWLIndividual subject,
+			boolean value)
+	{
+		return getOWLDataPropertyAssertionAxiom(property, subject,
+				getOWLLiteral(value), EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLDataPropertyAssertionAxiom getOWLDataPropertyAssertionAxiom(OWLDataPropertyExpression property,
-			OWLIndividual subject, String value) {
-		return getOWLDataPropertyAssertionAxiom(property, subject, getOWLLiteral(value), EMPTY_ANNOTATIONS_SET);
+	public OWLDataPropertyAssertionAxiom getOWLDataPropertyAssertionAxiom(
+			OWLDataPropertyExpression property, OWLIndividual subject,
+			String value)
+	{
+		return getOWLDataPropertyAssertionAxiom(property, subject,
+				getOWLLiteral(value), EMPTY_ANNOTATIONS_SET);
 	}
 
 	public OWLNegativeDataPropertyAssertionAxiom getOWLNegativeDataPropertyAssertionAxiom(
-			OWLDataPropertyExpression property, OWLIndividual subject, OWLLiteral object) {
-		return getOWLNegativeDataPropertyAssertionAxiom(property, subject, object, EMPTY_ANNOTATIONS_SET);
+			OWLDataPropertyExpression property, OWLIndividual subject,
+			OWLLiteral object)
+	{
+		return getOWLNegativeDataPropertyAssertionAxiom(property, subject,
+				object, EMPTY_ANNOTATIONS_SET);
 	}
 
 	public OWLNegativeDataPropertyAssertionAxiom getOWLNegativeDataPropertyAssertionAxiom(
-			OWLDataPropertyExpression property, OWLIndividual subject, OWLLiteral object,
-			Set<? extends OWLAnnotation> annotations) {
-		if (property == null) throw new IllegalArgumentException("property null");
-		if (subject == null) throw new IllegalArgumentException("subject null");
-		if (object == null) throw new IllegalArgumentException("object null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+			OWLDataPropertyExpression property, OWLIndividual subject,
+			OWLLiteral object, Set<? extends OWLAnnotation> annotations)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("property null");
+		if (subject == null)
+			throw new IllegalArgumentException("subject null");
+		if (object == null)
+			throw new IllegalArgumentException("object null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		OWLNegativeDataPropertyAssertionAxiomHGDB axiom;
 		HGHandle propertyHandle = graph.getHandle(property);
 		HGHandle subjectHandle = graph.getHandle(subject);
 		HGHandle objectHandle = graph.getHandle(object);
-		if (propertyHandle == null || subjectHandle == null || objectHandle == null) {
-			throw new IllegalStateException("No Handle for property, individual AND/OR object.");
+		if (propertyHandle == null || subjectHandle == null
+				|| objectHandle == null)
+		{
+			throw new IllegalStateException(
+					"No Handle for property, individual AND/OR object.");
 		}
-		axiom = new OWLNegativeDataPropertyAssertionAxiomHGDB(subjectHandle, propertyHandle, objectHandle, annotations);
+		axiom = new OWLNegativeDataPropertyAssertionAxiomHGDB(subjectHandle,
+				propertyHandle, objectHandle, annotations);
 		axiom.setHyperGraph(graph);
-		return axiom;		
-		//return new OWLNegativeDataPropertyAssertionImplAxiom(this, subject, property, object, annotations);
+		return axiom;
+		// return new OWLNegativeDataPropertyAssertionImplAxiom(this, subject,
+		// property, object, annotations);
 	}
 
 	public OWLNegativeObjectPropertyAssertionAxiom getOWLNegativeObjectPropertyAssertionAxiom(
-			OWLObjectPropertyExpression property, OWLIndividual subject, OWLIndividual object) {
-		return getOWLNegativeObjectPropertyAssertionAxiom(property, subject, object, EMPTY_ANNOTATIONS_SET);
+			OWLObjectPropertyExpression property, OWLIndividual subject,
+			OWLIndividual object)
+	{
+		return getOWLNegativeObjectPropertyAssertionAxiom(property, subject,
+				object, EMPTY_ANNOTATIONS_SET);
 	}
 
 	public OWLNegativeObjectPropertyAssertionAxiom getOWLNegativeObjectPropertyAssertionAxiom(
-			OWLObjectPropertyExpression property, OWLIndividual subject, OWLIndividual object,
-			Set<? extends OWLAnnotation> annotations) {
-		if (property == null) throw new IllegalArgumentException("property null");
-		if (subject == null)	throw new IllegalArgumentException("subject null");
-		if (object == null)	throw new IllegalArgumentException("object null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+			OWLObjectPropertyExpression property, OWLIndividual subject,
+			OWLIndividual object, Set<? extends OWLAnnotation> annotations)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("property null");
+		if (subject == null)
+			throw new IllegalArgumentException("subject null");
+		if (object == null)
+			throw new IllegalArgumentException("object null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		OWLNegativeObjectPropertyAssertionAxiomHGDB axiom;
 		HGHandle propertyHandle = graph.getHandle(property);
 		HGHandle subjectHandle = graph.getHandle(subject);
 		HGHandle objectHandle = graph.getHandle(object);
-		if (propertyHandle == null || subjectHandle == null || objectHandle == null) {
-			throw new IllegalStateException("No Handle for property, individual AND/OR object.");
+		if (propertyHandle == null || subjectHandle == null
+				|| objectHandle == null)
+		{
+			throw new IllegalStateException(
+					"No Handle for property, individual AND/OR object.");
 		}
-		axiom = new OWLNegativeObjectPropertyAssertionAxiomHGDB(subjectHandle, propertyHandle, objectHandle, annotations);
+		axiom = new OWLNegativeObjectPropertyAssertionAxiomHGDB(subjectHandle,
+				propertyHandle, objectHandle, annotations);
 		axiom.setHyperGraph(graph);
-		return axiom;		
-		//return new OWLNegativeObjectPropertyAssertionAxiomImpl(this, subject, property, object, annotations);
+		return axiom;
+		// return new OWLNegativeObjectPropertyAssertionAxiomImpl(this, subject,
+		// property, object, annotations);
 	}
 
-	public OWLObjectPropertyAssertionAxiom getOWLObjectPropertyAssertionAxiom(OWLObjectPropertyExpression property,
-			OWLIndividual individual, OWLIndividual object) {
-		return getOWLObjectPropertyAssertionAxiom(property, individual, object, EMPTY_ANNOTATIONS_SET);
+	public OWLObjectPropertyAssertionAxiom getOWLObjectPropertyAssertionAxiom(
+			OWLObjectPropertyExpression property, OWLIndividual individual,
+			OWLIndividual object)
+	{
+		return getOWLObjectPropertyAssertionAxiom(property, individual, object,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLClassAssertionAxiom getOWLClassAssertionAxiom(OWLClassExpression classExpression, OWLIndividual individual) {
-		return getOWLClassAssertionAxiom(classExpression, individual, EMPTY_ANNOTATIONS_SET);
+	public OWLClassAssertionAxiom getOWLClassAssertionAxiom(
+			OWLClassExpression classExpression, OWLIndividual individual)
+	{
+		return getOWLClassAssertionAxiom(classExpression, individual,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLClassAssertionAxiom getOWLClassAssertionAxiom(OWLClassExpression classExpression,
-			OWLIndividual individual, Set<? extends OWLAnnotation> annotations) {
-		if (classExpression == null) throw new IllegalArgumentException("classExpression null");
-		if (individual == null) throw new IllegalArgumentException("individual null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+	public OWLClassAssertionAxiom getOWLClassAssertionAxiom(
+			OWLClassExpression classExpression, OWLIndividual individual,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (classExpression == null)
+			throw new IllegalArgumentException("classExpression null");
+		if (individual == null)
+			throw new IllegalArgumentException("individual null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		OWLClassAssertionHGDB axiom;
 		HGHandle classExpressionHandle = graph.getHandle(classExpression);
 		HGHandle individualHandle = graph.getHandle(individual);
-		axiom = new OWLClassAssertionHGDB(individualHandle, classExpressionHandle, annotations);
+		axiom = new OWLClassAssertionHGDB(individualHandle,
+				classExpressionHandle, annotations);
 		axiom.setHyperGraph(graph);
-		return axiom;				
-		//return new OWLClassAssertionImpl(this, individual, classExpression, annotations);
+		return axiom;
+		// return new OWLClassAssertionImpl(this, individual, classExpression,
+		// annotations);
 	}
 
 	public OWLInverseFunctionalObjectPropertyAxiom getOWLInverseFunctionalObjectPropertyAxiom(
-			OWLObjectPropertyExpression property) {
-		return getOWLInverseFunctionalObjectPropertyAxiom(property, EMPTY_ANNOTATIONS_SET);
+			OWLObjectPropertyExpression property)
+	{
+		return getOWLInverseFunctionalObjectPropertyAxiom(property,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
 	public OWLInverseFunctionalObjectPropertyAxiom getOWLInverseFunctionalObjectPropertyAxiom(
-			OWLObjectPropertyExpression property, Set<? extends OWLAnnotation> annotations) {
-		if (property == null) throw new IllegalArgumentException("property null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+			OWLObjectPropertyExpression property,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("property null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		OWLInverseFunctionalObjectPropertyAxiomHGDB axiom;
 		HGHandle propertyHandle = graph.getHandle(property);
-		axiom = new OWLInverseFunctionalObjectPropertyAxiomHGDB(propertyHandle, annotations);
+		axiom = new OWLInverseFunctionalObjectPropertyAxiomHGDB(propertyHandle,
+				annotations);
 		axiom.setHyperGraph(graph);
-		return axiom;		
-		//return new OWLInverseFunctionalO bjectPropertyAxiomImpl(this, property, annotations);
+		return axiom;
+		// return new OWLInverseFunctionalO bjectPropertyAxiomImpl(this,
+		// property, annotations);
 	}
 
-	public OWLIrreflexiveObjectPropertyAxiom getOWLIrreflexiveObjectPropertyAxiom(OWLObjectPropertyExpression property,
-			Set<? extends OWLAnnotation> annotations) {
-		if (property == null) throw new IllegalArgumentException("property null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+	public OWLIrreflexiveObjectPropertyAxiom getOWLIrreflexiveObjectPropertyAxiom(
+			OWLObjectPropertyExpression property,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("property null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		OWLIrreflexiveObjectPropertyAxiomHGDB axiom;
 		HGHandle propertyHandle = graph.getHandle(property);
-		axiom = new OWLIrreflexiveObjectPropertyAxiomHGDB(propertyHandle, annotations);
+		axiom = new OWLIrreflexiveObjectPropertyAxiomHGDB(propertyHandle,
+				annotations);
 		axiom.setHyperGraph(graph);
-		return axiom;		
-		//return new OWLIrreflexiveObjectPropertyAxiomImpl(this, property, annotations);
+		return axiom;
+		// return new OWLIrreflexiveObjectPropertyAxiomImpl(this, property,
+		// annotations);
 	}
 
-	public OWLReflexiveObjectPropertyAxiom getOWLReflexiveObjectPropertyAxiom(OWLObjectPropertyExpression property) {
-		return getOWLReflexiveObjectPropertyAxiom(property, EMPTY_ANNOTATIONS_SET);
+	public OWLReflexiveObjectPropertyAxiom getOWLReflexiveObjectPropertyAxiom(
+			OWLObjectPropertyExpression property)
+	{
+		return getOWLReflexiveObjectPropertyAxiom(property,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLIrreflexiveObjectPropertyAxiom getOWLIrreflexiveObjectPropertyAxiom(OWLObjectPropertyExpression property) {
-		return getOWLIrreflexiveObjectPropertyAxiom(property, EMPTY_ANNOTATIONS_SET);
+	public OWLIrreflexiveObjectPropertyAxiom getOWLIrreflexiveObjectPropertyAxiom(
+			OWLObjectPropertyExpression property)
+	{
+		return getOWLIrreflexiveObjectPropertyAxiom(property,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLObjectPropertyDomainAxiom getOWLObjectPropertyDomainAxiom(OWLObjectPropertyExpression property,
-			OWLClassExpression classExpression, Set<? extends OWLAnnotation> annotations) {
-		if (property == null) throw new IllegalArgumentException("property null");
-		if (classExpression == null) throw new IllegalArgumentException("classExpression null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+	public OWLObjectPropertyDomainAxiom getOWLObjectPropertyDomainAxiom(
+			OWLObjectPropertyExpression property,
+			OWLClassExpression classExpression,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("property null");
+		if (classExpression == null)
+			throw new IllegalArgumentException("classExpression null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		OWLObjectPropertyDomainAxiomHGDB axiom;
 		HGHandle propertyHandle = graph.getHandle(property);
 		HGHandle classExpressionHandle = graph.getHandle(classExpression);
-		axiom = new OWLObjectPropertyDomainAxiomHGDB(propertyHandle, classExpressionHandle, annotations);
+		axiom = new OWLObjectPropertyDomainAxiomHGDB(propertyHandle,
+				classExpressionHandle, annotations);
 		axiom.setHyperGraph(graph);
 		return axiom;
-		//return new OWLObjectPropert yDomainAxiomImpl(this, property, classExpression, annotations);
+		// return new OWLObjectPropert yDomainAxiomImpl(this, property,
+		// classExpression, annotations);
 	}
 
-	public OWLObjectPropertyDomainAxiom getOWLObjectPropertyDomainAxiom(OWLObjectPropertyExpression property,
-			OWLClassExpression classExpression) {
-		return getOWLObjectPropertyDomainAxiom(property, classExpression, EMPTY_ANNOTATIONS_SET);
+	public OWLObjectPropertyDomainAxiom getOWLObjectPropertyDomainAxiom(
+			OWLObjectPropertyExpression property,
+			OWLClassExpression classExpression)
+	{
+		return getOWLObjectPropertyDomainAxiom(property, classExpression,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLObjectPropertyRangeAxiom getOWLObjectPropertyRangeAxiom(OWLObjectPropertyExpression property,
-			OWLClassExpression range, Set<? extends OWLAnnotation> annotations) {
-		if (property == null) throw new IllegalArgumentException("property null");
-		if (range == null) throw new IllegalArgumentException("range null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+	public OWLObjectPropertyRangeAxiom getOWLObjectPropertyRangeAxiom(
+			OWLObjectPropertyExpression property, OWLClassExpression range,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("property null");
+		if (range == null)
+			throw new IllegalArgumentException("range null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		// chain, superProperty and annotations are in Graph, if created
 		// by this Datafactory
 		OWLObjectPropertyRangeAxiomHGDB axiom;
 		HGHandle propertyHandle = graph.getHandle(property);
 		HGHandle rangeHandle = graph.getHandle(range);
-		axiom = new OWLObjectPropertyRangeAxiomHGDB(propertyHandle, rangeHandle, annotations);
+		axiom = new OWLObjectPropertyRangeAxiomHGDB(propertyHandle,
+				rangeHandle, annotations);
 		axiom.setHyperGraph(graph);
 		return axiom;
-		//return new OWLObjectPropertyRang eAxiomImpl(this, property, range, annotations);
+		// return new OWLObjectPropertyRang eAxiomImpl(this, property, range,
+		// annotations);
 	}
 
-	public OWLObjectPropertyRangeAxiom getOWLObjectPropertyRangeAxiom(OWLObjectPropertyExpression property,
-			OWLClassExpression range) {
-		return getOWLObjectPropertyRangeAxiom(property, range, EMPTY_ANNOTATIONS_SET);
+	public OWLObjectPropertyRangeAxiom getOWLObjectPropertyRangeAxiom(
+			OWLObjectPropertyExpression property, OWLClassExpression range)
+	{
+		return getOWLObjectPropertyRangeAxiom(property, range,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLSubObjectPropertyOfAxiom getOWLSubObjectPropertyOfAxiom(OWLObjectPropertyExpression subProperty,
-			OWLObjectPropertyExpression superProperty, Set<? extends OWLAnnotation> annotations) {
+	public OWLSubObjectPropertyOfAxiom getOWLSubObjectPropertyOfAxiom(
+			OWLObjectPropertyExpression subProperty,
+			OWLObjectPropertyExpression superProperty,
+			Set<? extends OWLAnnotation> annotations)
+	{
 		if (subProperty == null)
 			throw new IllegalArgumentException("subProperty null");
 		if (superProperty == null)
@@ -1534,63 +2178,88 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		// Datafactory
 		OWLSubObjectPropertyOfAxiomHGDB axiom;
 		// TODO Implement use of OWLObjectPropertyExpression
-		
-		//2011.11.03 Assume it's there.
+
+		// 2011.11.03 Assume it's there.
 		HGHandle subPropertyHandle = graph.getHandle(subProperty);
 		HGHandle superPropertyHandle = graph.getHandle(superProperty);
-		//HGHandle subPropertyHandle = getOrFindOWLEntityHandleInGraph((OWLObjectProperty) subProperty);
-		//HGHandle superPropertyHandle = getOrFindOWLEntityHandleInGraph((OWLObjectProperty) superProperty);
-		if (subPropertyHandle == null || superPropertyHandle == null) {
-			throw new IllegalStateException("No Handle for subProperty or superProperty");
+		// HGHandle subPropertyHandle =
+		// getOrFindOWLEntityHandleInGraph((OWLObjectProperty) subProperty);
+		// HGHandle superPropertyHandle =
+		// getOrFindOWLEntityHandleInGraph((OWLObjectProperty) superProperty);
+		if (subPropertyHandle == null || superPropertyHandle == null)
+		{
+			throw new IllegalStateException(
+					"No Handle for subProperty or superProperty");
 		}
-		axiom = new OWLSubObjectPropertyOfAxiomHGDB(subPropertyHandle, superPropertyHandle, annotations);
+		axiom = new OWLSubObjectPropertyOfAxiomHGDB(subPropertyHandle,
+				superPropertyHandle, annotations);
 		axiom.setHyperGraph(graph);
 		return axiom;
 		// return new OWLSubObjectPropertyOfAxiomImpl(this, subProperty,
 		// superProperty, annotations);
 	}
 
-	public OWLSubObjectPropertyOfAxiom getOWLSubObjectPropertyOfAxiom(OWLObjectPropertyExpression subProperty,
-			OWLObjectPropertyExpression superProperty) {
-		return getOWLSubObjectPropertyOfAxiom(subProperty, superProperty, EMPTY_ANNOTATIONS_SET);
+	public OWLSubObjectPropertyOfAxiom getOWLSubObjectPropertyOfAxiom(
+			OWLObjectPropertyExpression subProperty,
+			OWLObjectPropertyExpression superProperty)
+	{
+		return getOWLSubObjectPropertyOfAxiom(subProperty, superProperty,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLReflexiveObjectPropertyAxiom getOWLReflexiveObjectPropertyAxiom(OWLObjectPropertyExpression property,
-			Set<? extends OWLAnnotation> annotations) {
-		if (property == null) throw new IllegalArgumentException("property null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+	public OWLReflexiveObjectPropertyAxiom getOWLReflexiveObjectPropertyAxiom(
+			OWLObjectPropertyExpression property,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("property null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		OWLReflexiveObjectPropertyAxiomHGDB axiom;
 		HGHandle propertyHandle = graph.getHandle(property);
-		axiom = new OWLReflexiveObjectPropertyAxiomHGDB(propertyHandle, annotations);
+		axiom = new OWLReflexiveObjectPropertyAxiomHGDB(propertyHandle,
+				annotations);
 		axiom.setHyperGraph(graph);
-		return axiom;				
-		//return new OWLReflexiveObjectPropertyAxiomImpl(this, property, annotations);
+		return axiom;
+		// return new OWLReflexiveObjectPropertyAxiomImpl(this, property,
+		// annotations);
 	}
 
-	public OWLSameIndividualAxiom getOWLSameIndividualAxiom(Set<? extends OWLIndividual> individuals,
-			Set<? extends OWLAnnotation> annotations) {
-		if (individuals == null) throw new IllegalArgumentException("individuals null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+	public OWLSameIndividualAxiom getOWLSameIndividualAxiom(
+			Set<? extends OWLIndividual> individuals,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (individuals == null)
+			throw new IllegalArgumentException("individuals null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		OWLSameIndividualAxiomHGDB axiom;
 		Set<HGHandle> individualsHandles = getHandlesSetFor(individuals);
 		axiom = new OWLSameIndividualAxiomHGDB(individualsHandles, annotations);
 		axiom.setHyperGraph(graph);
-		return axiom;				
-		//return new OWLSameIndividualAxiomImpl(this, individuals, annotations);
+		return axiom;
+		// return new OWLSameIndividualAxiomImpl(this, individuals,
+		// annotations);
 	}
 
-	public OWLSameIndividualAxiom getOWLSameIndividualAxiom(OWLIndividual... individuals) {
+	public OWLSameIndividualAxiom getOWLSameIndividualAxiom(
+			OWLIndividual... individuals)
+	{
 		Set<OWLIndividual> inds = new HashSet<OWLIndividual>();
 		inds.addAll(Arrays.asList(individuals));
 		return getOWLSameIndividualAxiom(inds);
 	}
 
-	public OWLSameIndividualAxiom getOWLSameIndividualAxiom(Set<? extends OWLIndividual> individuals) {
+	public OWLSameIndividualAxiom getOWLSameIndividualAxiom(
+			Set<? extends OWLIndividual> individuals)
+	{
 		return getOWLSameIndividualAxiom(individuals, EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLSubClassOfAxiom getOWLSubClassOfAxiom(OWLClassExpression subClass, OWLClassExpression superClass,
-			Set<? extends OWLAnnotation> annotations) {
+	public OWLSubClassOfAxiom getOWLSubClassOfAxiom(
+			OWLClassExpression subClass, OWLClassExpression superClass,
+			Set<? extends OWLAnnotation> annotations)
+	{
 		if (subClass == null)
 			throw new IllegalArgumentException("subClass null");
 		if (superClass == null)
@@ -1601,12 +2270,16 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		// Datafactory
 		OWLSubClassOfAxiomHGDB axiom;
 		// TODO Implement use of OWLClassExpression
-//2010.10.25		HGHandle subClassHandle = getOrFindOWLEntityHandleInGraph((OWLClass) subClass);
-//		HGHandle superClassHandle = getOrFindOWLEntityHandleInGraph((OWLClass) superClass);
+		// 2010.10.25 HGHandle subClassHandle =
+		// getOrFindOWLEntityHandleInGraph((OWLClass) subClass);
+		// HGHandle superClassHandle =
+		// getOrFindOWLEntityHandleInGraph((OWLClass) superClass);
 		HGHandle subClassHandle = getHyperGraph().getHandle(subClass);
 		HGHandle superClassHandle = getHyperGraph().getHandle(superClass);
-		if (subClassHandle == null || superClassHandle == null) {
-			throw new IllegalStateException("No Handle for subClass or superClass");
+		if (subClassHandle == null || superClassHandle == null)
+		{
+			throw new IllegalStateException(
+					"No Handle for subClass or superClass");
 		}
 		// hilpold 2011.10.06 we do not care, whether the axiom exists here.
 		// Just as the original implementation.
@@ -1619,7 +2292,8 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		// hg.link(subClassHandle, superClassHandle)
 		// ));
 		// if (axiom == null) {
-		axiom = new OWLSubClassOfAxiomHGDB(subClassHandle, superClassHandle, annotations);
+		axiom = new OWLSubClassOfAxiomHGDB(subClassHandle, superClassHandle,
+				annotations);
 		axiom.setHyperGraph(graph); // 2011.10.06 needed now, that we don't add
 									// it to the graph right away.
 		// //TODO maybe we shall not do this here, but wait for appliedChanges
@@ -1632,43 +2306,66 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		// annotations);
 	}
 
-	public OWLSubClassOfAxiom getOWLSubClassOfAxiom(OWLClassExpression subClass, OWLClassExpression superClass) {
-		return getOWLSubClassOfAxiom(subClass, superClass, EMPTY_ANNOTATIONS_SET);
+	public OWLSubClassOfAxiom getOWLSubClassOfAxiom(
+			OWLClassExpression subClass, OWLClassExpression superClass)
+	{
+		return getOWLSubClassOfAxiom(subClass, superClass,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLSymmetricObjectPropertyAxiom getOWLSymmetricObjectPropertyAxiom(OWLObjectPropertyExpression property,
-			Set<? extends OWLAnnotation> annotations) {
-		if (property == null) throw new IllegalArgumentException("property null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+	public OWLSymmetricObjectPropertyAxiom getOWLSymmetricObjectPropertyAxiom(
+			OWLObjectPropertyExpression property,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("property null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		OWLSymmetricObjectPropertyAxiomHGDB axiom;
 		HGHandle propertyHandle = graph.getHandle(property);
-		axiom = new OWLSymmetricObjectPropertyAxiomHGDB(propertyHandle, annotations);
+		axiom = new OWLSymmetricObjectPropertyAxiomHGDB(propertyHandle,
+				annotations);
 		axiom.setHyperGraph(graph);
-		return axiom;				
-		//return new OWLSymmetricObjectPropertyAxiomImpl(this, property, annotations);
+		return axiom;
+		// return new OWLSymmetricObjectPropertyAxiomImpl(this, property,
+		// annotations);
 	}
 
-	public OWLSymmetricObjectPropertyAxiom getOWLSymmetricObjectPropertyAxiom(OWLObjectPropertyExpression property) {
-		return getOWLSymmetricObjectPropertyAxiom(property, EMPTY_ANNOTATIONS_SET);
+	public OWLSymmetricObjectPropertyAxiom getOWLSymmetricObjectPropertyAxiom(
+			OWLObjectPropertyExpression property)
+	{
+		return getOWLSymmetricObjectPropertyAxiom(property,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLTransitiveObjectPropertyAxiom getOWLTransitiveObjectPropertyAxiom(OWLObjectPropertyExpression property,
-			Set<? extends OWLAnnotation> annotations) {
-		if (property == null) throw new IllegalArgumentException("property null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+	public OWLTransitiveObjectPropertyAxiom getOWLTransitiveObjectPropertyAxiom(
+			OWLObjectPropertyExpression property,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("property null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		OWLTransitiveObjectPropertyAxiomHGDB axiom;
 		HGHandle propertyHandle = graph.getHandle(property);
-		axiom = new OWLTransitiveObjectPropertyAxiomHGDB(propertyHandle, annotations);
+		axiom = new OWLTransitiveObjectPropertyAxiomHGDB(propertyHandle,
+				annotations);
 		axiom.setHyperGraph(graph);
-		return axiom;				
-		//return new OWLTransitiveObjectPropertyAxiomImpl(this, property, annotations);
+		return axiom;
+		// return new OWLTransitiveObjectPropertyAxiomImpl(this, property,
+		// annotations);
 	}
 
-	public OWLTransitiveObjectPropertyAxiom getOWLTransitiveObjectPropertyAxiom(OWLObjectPropertyExpression property) {
-		return getOWLTransitiveObjectPropertyAxiom(property, EMPTY_ANNOTATIONS_SET);
+	public OWLTransitiveObjectPropertyAxiom getOWLTransitiveObjectPropertyAxiom(
+			OWLObjectPropertyExpression property)
+	{
+		return getOWLTransitiveObjectPropertyAxiom(property,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLObjectInverseOf getOWLObjectInverseOf(OWLObjectPropertyExpression property) {
+	public OWLObjectInverseOf getOWLObjectInverseOf(
+			OWLObjectPropertyExpression property)
+	{
 		if (property == null)
 			throw new IllegalArgumentException("property null");
 		HGHandle propertyHandle = graph.getHandle(property);
@@ -1680,78 +2377,116 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	}
 
 	public OWLInverseObjectPropertiesAxiom getOWLInverseObjectPropertiesAxiom(
-			OWLObjectPropertyExpression forwardProperty, OWLObjectPropertyExpression inverseProperty,
-			Set<? extends OWLAnnotation> annotations) {
-		if (forwardProperty == null) throw new IllegalArgumentException("forwardProperty null");
-		if (inverseProperty == null) throw new IllegalArgumentException("inverseProperty null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+			OWLObjectPropertyExpression forwardProperty,
+			OWLObjectPropertyExpression inverseProperty,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (forwardProperty == null)
+			throw new IllegalArgumentException("forwardProperty null");
+		if (inverseProperty == null)
+			throw new IllegalArgumentException("inverseProperty null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		OWLInverseObjectPropertiesAxiomHGDB axiom;
 		HGHandle forwardPropertyHandle = graph.getHandle(forwardProperty);
 		HGHandle inversePropertyHandle = graph.getHandle(inverseProperty);
-		axiom = new OWLInverseObjectPropertiesAxiomHGDB(forwardPropertyHandle, inversePropertyHandle, annotations);
+		axiom = new OWLInverseObjectPropertiesAxiomHGDB(forwardPropertyHandle,
+				inversePropertyHandle, annotations);
 		axiom.setHyperGraph(graph);
 		return axiom;
-		//return new OWLInverseObjectPropertiesAxiomImpl(this, forwardProperty, inverseProperty, annotations);
+		// return new OWLInverseObjectPropertiesAxiomImpl(this, forwardProperty,
+		// inverseProperty, annotations);
 	}
 
 	public OWLInverseObjectPropertiesAxiom getOWLInverseObjectPropertiesAxiom(
-			OWLObjectPropertyExpression forwardProperty, OWLObjectPropertyExpression inverseProperty) {
-		return getOWLInverseObjectPropertiesAxiom(forwardProperty, inverseProperty, EMPTY_ANNOTATIONS_SET);
+			OWLObjectPropertyExpression forwardProperty,
+			OWLObjectPropertyExpression inverseProperty)
+	{
+		return getOWLInverseObjectPropertiesAxiom(forwardProperty,
+				inverseProperty, EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLSubPropertyChainOfAxiom getOWLSubPropertyChainOfAxiom(List<? extends OWLObjectPropertyExpression> chain,
-			OWLObjectPropertyExpression superProperty, Set<? extends OWLAnnotation> annotations) {
-		if (chain == null) throw new IllegalArgumentException("chain null");
-		if (superProperty == null) throw new IllegalArgumentException("superProperty null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+	public OWLSubPropertyChainOfAxiom getOWLSubPropertyChainOfAxiom(
+			List<? extends OWLObjectPropertyExpression> chain,
+			OWLObjectPropertyExpression superProperty,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (chain == null)
+			throw new IllegalArgumentException("chain null");
+		if (superProperty == null)
+			throw new IllegalArgumentException("superProperty null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		// chain, superProperty and annotations are in Graph, if created
 		// by this Datafactory
 		OWLSubPropertyChainAxiomHGDB axiom;
 		List<HGHandle> chainElementHandles = getHandlesListFor(chain);
 		HGHandle superPropertyHandle = graph.getHandle(superProperty);
-		axiom = new OWLSubPropertyChainAxiomHGDB(chainElementHandles, superPropertyHandle, annotations);
+		axiom = new OWLSubPropertyChainAxiomHGDB(chainElementHandles,
+				superPropertyHandle, annotations);
 		axiom.setHyperGraph(graph);
 		return axiom;
-		//return new OWLSubPropertyChainAxiomImpl(this, chain, superProperty, annotations);
+		// return new OWLSubPropertyChainAxiomImpl(this, chain, superProperty,
+		// annotations);
 	}
 
-	public OWLSubPropertyChainOfAxiom getOWLSubPropertyChainOfAxiom(List<? extends OWLObjectPropertyExpression> chain,
-			OWLObjectPropertyExpression superProperty) {
-		return getOWLSubPropertyChainOfAxiom(chain, superProperty, EMPTY_ANNOTATIONS_SET);
+	public OWLSubPropertyChainOfAxiom getOWLSubPropertyChainOfAxiom(
+			List<? extends OWLObjectPropertyExpression> chain,
+			OWLObjectPropertyExpression superProperty)
+	{
+		return getOWLSubPropertyChainOfAxiom(chain, superProperty,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLHasKeyAxiom getOWLHasKeyAxiom(OWLClassExpression ce, Set<? extends OWLPropertyExpression<?, ?>> properties, Set<? extends OWLAnnotation> annotations) {
-		if (ce == null) throw new IllegalArgumentException("owlClass null");
-		if (properties == null)	throw new IllegalArgumentException("properties null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+	public OWLHasKeyAxiom getOWLHasKeyAxiom(OWLClassExpression ce,
+			Set<? extends OWLPropertyExpression<?, ?>> properties,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (ce == null)
+			throw new IllegalArgumentException("owlClass null");
+		if (properties == null)
+			throw new IllegalArgumentException("properties null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		OWLHasKeyAxiomHGDB axiom;
 		HGHandle owlClassHandle = graph.getHandle(ce);
 		Set<HGHandle> propertiesHandles = getHandlesSetFor(properties);
-		axiom = new OWLHasKeyAxiomHGDB(owlClassHandle, propertiesHandles, annotations);
+		axiom = new OWLHasKeyAxiomHGDB(owlClassHandle, propertiesHandles,
+				annotations);
 		axiom.setHyperGraph(graph);
-		return axiom;		
-		//return new OWLHasKeyAxiomImpl(this, ce, properties, annotations);
+		return axiom;
+		// return new OWLHasKeyAxiomImpl(this, ce, properties, annotations);
 	}
 
-	public OWLHasKeyAxiom getOWLHasKeyAxiom(OWLClassExpression ce, Set<? extends OWLPropertyExpression<?, ?>> properties) {
+	public OWLHasKeyAxiom getOWLHasKeyAxiom(OWLClassExpression ce,
+			Set<? extends OWLPropertyExpression<?, ?>> properties)
+	{
 		return getOWLHasKeyAxiom(ce, properties, EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLHasKeyAxiom getOWLHasKeyAxiom(OWLClassExpression ce, OWLPropertyExpression<?, ?>... properties) {
+	public OWLHasKeyAxiom getOWLHasKeyAxiom(OWLClassExpression ce,
+			OWLPropertyExpression<?, ?>... properties)
+	{
 		return getOWLHasKeyAxiom(ce, CollectionFactory.createSet(properties));
 	}
 
 	public OWLDisjointUnionAxiom getOWLDisjointUnionAxiom(OWLClass owlClass,
-			Set<? extends OWLClassExpression> classExpressions, Set<? extends OWLAnnotation> annotations) {
-		if (owlClass == null) throw new IllegalArgumentException("owlClass null");
-		if (classExpressions == null) throw new IllegalArgumentException("classExpressions null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+			Set<? extends OWLClassExpression> classExpressions,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (owlClass == null)
+			throw new IllegalArgumentException("owlClass null");
+		if (classExpressions == null)
+			throw new IllegalArgumentException("classExpressions null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		// owlClass, classExpressions and annotations are in Graph, if created
 		// by this Datafactory
 		OWLDisjointUnionAxiomHGDB axiom;
 		Set<HGHandle> classExpressionsHandles = getHandlesSetFor(classExpressions);
 		HGHandle owlClassHandle = graph.getHandle(owlClass);
-		axiom = new OWLDisjointUnionAxiomHGDB(owlClassHandle, classExpressionsHandles, annotations);
+		axiom = new OWLDisjointUnionAxiomHGDB(owlClassHandle,
+				classExpressionsHandles, annotations);
 		axiom.setHyperGraph(graph);
 		return axiom;
 		// return new OWLDisjointUnionAxiomImpl(this, owlClass,
@@ -1759,49 +2494,74 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	}
 
 	public OWLDisjointUnionAxiom getOWLDisjointUnionAxiom(OWLClass owlClass,
-			Set<? extends OWLClassExpression> classExpressions) {
-		return getOWLDisjointUnionAxiom(owlClass, classExpressions, EMPTY_ANNOTATIONS_SET);
+			Set<? extends OWLClassExpression> classExpressions)
+	{
+		return getOWLDisjointUnionAxiom(owlClass, classExpressions,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
 	public OWLEquivalentObjectPropertiesAxiom getOWLEquivalentObjectPropertiesAxiom(
-			Set<? extends OWLObjectPropertyExpression> properties, Set<? extends OWLAnnotation> annotations) {
-		if (properties == null) throw new IllegalArgumentException("property null");
+			Set<? extends OWLObjectPropertyExpression> properties,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (properties == null)
+			throw new IllegalArgumentException("property null");
+		else if (annotations == null)
+			throw new IllegalArgumentException(" annotations is null ");
 		OWLEquivalentObjectPropertiesAxiomHGDB axiom;
 		Set<HGHandle> propertiesHandles = getHandlesSetFor(properties);
-		axiom = new OWLEquivalentObjectPropertiesAxiomHGDB(propertiesHandles, annotations);
+		axiom = new OWLEquivalentObjectPropertiesAxiomHGDB(propertiesHandles,
+				annotations);
 		axiom.setHyperGraph(graph);
-		return axiom;				
-		//return new OWLEquivalentObjectPropertiesAxiomImpl(this, properties, annotations);
+		return axiom;
+		// return new OWLEquivalentObjectPropertiesAxiomImpl(this, properties,
+		// annotations);
 	}
 
-	public OWLObjectPropertyAssertionAxiom getOWLObjectPropertyAssertionAxiom(OWLObjectPropertyExpression property,
-			OWLIndividual individual, OWLIndividual object, Set<? extends OWLAnnotation> annotations) {
-		if (property == null) throw new IllegalArgumentException("property null");
-		if (individual == null)	throw new IllegalArgumentException("individual null");
-		if (object == null)	throw new IllegalArgumentException("object null");
-		if (annotations == null) throw new IllegalArgumentException("annotations null");
+	public OWLObjectPropertyAssertionAxiom getOWLObjectPropertyAssertionAxiom(
+			OWLObjectPropertyExpression property, OWLIndividual individual,
+			OWLIndividual object, Set<? extends OWLAnnotation> annotations)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("property null");
+		if (individual == null)
+			throw new IllegalArgumentException("individual null");
+		if (object == null)
+			throw new IllegalArgumentException("object null");
+		if (annotations == null)
+			throw new IllegalArgumentException("annotations null");
 		OWLObjectPropertyAssertionAxiomHGDB axiom;
 		HGHandle propertyHandle = graph.getHandle(property);
 		HGHandle individualHandle = graph.getHandle(individual);
 		HGHandle objectHandle = graph.getHandle(object);
-		if (propertyHandle == null || individualHandle == null || objectHandle == null) {
-			throw new IllegalStateException("No Handle for property, individual AND/OR object "+
-					propertyHandle + "," + individualHandle + "," + objectHandle + 
-					" -- " + property + "," + individual + "," + object);
+		if (propertyHandle == null || individualHandle == null
+				|| objectHandle == null)
+		{
+			throw new IllegalStateException(
+					"No Handle for property, individual AND/OR object "
+							+ propertyHandle + "," + individualHandle + ","
+							+ objectHandle + " -- " + property + ","
+							+ individual + "," + object);
 		}
-		axiom = new OWLObjectPropertyAssertionAxiomHGDB(individualHandle, propertyHandle, objectHandle, annotations);
+		axiom = new OWLObjectPropertyAssertionAxiomHGDB(individualHandle,
+				propertyHandle, objectHandle, annotations);
 		axiom.setHyperGraph(graph);
 		return axiom;
-		//return new OWLObjectPropertyAssertionAxiomImpl(this, individual, property, object, annotations);
+		// return new OWLObjectPropertyAssertionAxiomImpl(this, individual,
+		// property, object, annotations);
 	}
 
-	public OWLSubAnnotationPropertyOfAxiom getOWLSubAnnotationPropertyOfAxiom(OWLAnnotationProperty sub,
-			OWLAnnotationProperty sup) {
-		return getOWLSubAnnotationPropertyOfAxiom(sub, sup, EMPTY_ANNOTATIONS_SET);
+	public OWLSubAnnotationPropertyOfAxiom getOWLSubAnnotationPropertyOfAxiom(
+			OWLAnnotationProperty sub, OWLAnnotationProperty sup)
+	{
+		return getOWLSubAnnotationPropertyOfAxiom(sub, sup,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLSubAnnotationPropertyOfAxiom getOWLSubAnnotationPropertyOfAxiom(OWLAnnotationProperty sub,
-			OWLAnnotationProperty sup, Set<? extends OWLAnnotation> annotations) {
+	public OWLSubAnnotationPropertyOfAxiom getOWLSubAnnotationPropertyOfAxiom(
+			OWLAnnotationProperty sub, OWLAnnotationProperty sup,
+			Set<? extends OWLAnnotation> annotations)
+	{
 		if (sub == null)
 			throw new IllegalArgumentException("subClass null");
 		if (sup == null)
@@ -1811,10 +2571,13 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		OWLSubAnnotationPropertyOfAxiomHGDB axiom;
 		HGHandle subHandle = getOrFindOWLEntityHandleInGraph(sub);
 		HGHandle supHandle = getOrFindOWLEntityHandleInGraph(sup);
-		if (subHandle == null || supHandle == null) {
-			throw new IllegalStateException("No Handle for subProperty or superProperty");
+		if (subHandle == null || supHandle == null)
+		{
+			throw new IllegalStateException(
+					"No Handle for subProperty or superProperty");
 		}
-		axiom = new OWLSubAnnotationPropertyOfAxiomHGDB(subHandle, supHandle, annotations);
+		axiom = new OWLSubAnnotationPropertyOfAxiomHGDB(subHandle, supHandle,
+				annotations);
 		axiom.setHyperGraph(graph);
 		return axiom;
 	}
@@ -1822,7 +2585,10 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	// ////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Annotations
 
-	public OWLAnnotationProperty getOWLAnnotationProperty(IRI iri) {
+	public OWLAnnotationProperty getOWLAnnotationProperty(IRI iri)
+	{
+		if (iri == null)
+			throw new IllegalArgumentException("No iri - null");						
 		return data.getOWLAnnotationProperty(iri);
 	}
 
@@ -1835,7 +2601,9 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *            The annotation value
 	 * @return The annotation on the specified property with the specified value
 	 */
-	public OWLAnnotation getOWLAnnotation(OWLAnnotationProperty property, OWLAnnotationValue value) {
+	public OWLAnnotation getOWLAnnotation(OWLAnnotationProperty property,
+			OWLAnnotationValue value)
+	{		
 		return getOWLAnnotation(property, value, EMPTY_ANNOTATIONS_SET);
 	}
 
@@ -1850,43 +2618,59 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *            Annotations on the annotation
 	 * @return The annotation on the specified property with the specified value
 	 */
-	public OWLAnnotation getOWLAnnotation(OWLAnnotationProperty property, OWLAnnotationValue value,
-			Set<? extends OWLAnnotation> annotations) {
-		if (property == null) {
-			throw new NullPointerException("Annotation property is null");
-		}
-		if (value == null) {
-			throw new NullPointerException("Annotation value is null");
-		}
+	public OWLAnnotation getOWLAnnotation(OWLAnnotationProperty property,
+			OWLAnnotationValue value, Set<? extends OWLAnnotation> annotations)
+	{
+		if (property == null)
+			throw new IllegalArgumentException("Annotation property is null");
+		else if (value == null)
+			throw new IllegalArgumentException("Annotation value is null");
+		else if (annotations == null)
+			throw new IllegalArgumentException("Annotation annotations is null");
 		HGHandle propertyHandle = graph.getHandle(property);
 		// value might be IRI, OWLAnonymousIndividual or OWLLiteral
-		// If it's an IRI, it was not created in the DF and we need to check,  
+		// If it's an IRI, it was not created in the DF and we need to check,
 		// whether we have it in the graph already.
-		HGHandle valueHandle; 
-		if (value instanceof IRI) {
-			valueHandle = data.findOrAddIRIHandle((IRI)value);
-		} else {
-			valueHandle = graph.getHandle(value);
-		}		
-		Set<HGHandle> annotationsHandles = getHandlesSetFor(annotations);
-		if (propertyHandle == null) {
-			throw new NullPointerException("Annotation propertyhandle is null for property " + property);
+		HGHandle valueHandle;
+		if (value instanceof IRI)
+		{
+			valueHandle = data.findOrAddIRIHandle((IRI) value);
 		}
-		if (valueHandle == null) {
-			throw new NullPointerException("Annotation valueHandle is null for value " + value);
-		}		
-		OWLAnnotationHGDB a = new OWLAnnotationHGDB(propertyHandle, valueHandle, annotationsHandles);
-//<<<<<<< .mine
-		graph.add(a); //TODO 2012.07.10 DO NOT ADD HERE or reuse!!! as a simple ax.getOWLAnnotation will cause this.
-//=======
-//		a.setHyperGraph(graph);
-		//graph.add(a);
-//>>>>>>> .r2579
+		else
+		{
+			valueHandle = graph.getHandle(value);
+		}
+		Set<HGHandle> annotationsHandles = getHandlesSetFor(annotations);
+		if (propertyHandle == null)
+		{
+			throw new NullPointerException(
+					"Annotation propertyhandle is null for property "
+							+ property);
+		}
+		if (valueHandle == null)
+		{
+			throw new NullPointerException(
+					"Annotation valueHandle is null for value " + value);
+		}
+		OWLAnnotationHGDB a = new OWLAnnotationHGDB(propertyHandle,
+				valueHandle, annotationsHandles);
+		// <<<<<<< .mine
+		graph.add(a); // TODO 2012.07.10 DO NOT ADD HERE or reuse!!! as a simple
+						// ax.getOWLAnnotation will cause this.
+		// =======
+		// a.setHyperGraph(graph);
+		// graph.add(a);
+		// >>>>>>> .r2579
 		return a;
 	}
 
-	public OWLAnnotationAssertionAxiom getOWLAnnotationAssertionAxiom(OWLAnnotationSubject subject,
-			OWLAnnotation annotation) {
+	public OWLAnnotationAssertionAxiom getOWLAnnotationAssertionAxiom(
+			OWLAnnotationSubject subject, OWLAnnotation annotation)
+	{
+		if (subject == null)
+			throw new IllegalArgumentException("subject is null");
+		else if (annotation == null)
+			throw new IllegalArgumentException("annotation is null");		
 		// PATCH: return
 		// getOWLAnnotationAssertionAxiom(annotation.getProperty(), subject,
 		// annotation.getValue(), annotation.getAnnotations());
@@ -1894,59 +2678,85 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		// subject, annotation.getValue());
 		// The patch makes a difference for the owl, owlfs, rdfxml and turtle
 		// serializations of Annotation2.
-		return getOWLAnnotationAssertionAxiom(annotation.getProperty(), subject, annotation.getValue(),
-				annotation.getAnnotations());
+		return getOWLAnnotationAssertionAxiom(annotation.getProperty(),
+				subject, annotation.getValue(), annotation.getAnnotations());
 	}
 
-	public OWLAnnotationAssertionAxiom getOWLAnnotationAssertionAxiom(OWLAnnotationSubject subject,
-			OWLAnnotation annotation, Set<? extends OWLAnnotation> annotations) {
-		return getOWLAnnotationAssertionAxiom(annotation.getProperty(), subject, annotation.getValue(), annotations);
+	public OWLAnnotationAssertionAxiom getOWLAnnotationAssertionAxiom(
+			OWLAnnotationSubject subject, OWLAnnotation annotation,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (annotation == null)
+			throw new IllegalArgumentException("annotation is null");				
+		return getOWLAnnotationAssertionAxiom(annotation.getProperty(),
+				subject, annotation.getValue(), annotations);
 	}
 
-	public OWLAnnotationAssertionAxiom getOWLAnnotationAssertionAxiom(OWLAnnotationProperty property,
-			OWLAnnotationSubject subject, OWLAnnotationValue value) {
-		return getOWLAnnotationAssertionAxiom(property, subject, value, EMPTY_ANNOTATIONS_SET);
+	public OWLAnnotationAssertionAxiom getOWLAnnotationAssertionAxiom(
+			OWLAnnotationProperty property, OWLAnnotationSubject subject,
+			OWLAnnotationValue value)
+	{
+		return getOWLAnnotationAssertionAxiom(property, subject, value,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLAnnotationAssertionAxiom getOWLAnnotationAssertionAxiom(OWLAnnotationProperty property,
-			OWLAnnotationSubject subject, OWLAnnotationValue value, Set<? extends OWLAnnotation> annotations) {
-		if (property == null) {
-			throw new NullPointerException("Annotation property is null");
-		}
-		if (subject == null) {
-			throw new NullPointerException("Annotation subject is null");
-		}
-		if (value == null) {
-			throw new NullPointerException("Annotation value is null");
-		}
+	public OWLAnnotationAssertionAxiom getOWLAnnotationAssertionAxiom(
+			OWLAnnotationProperty property, OWLAnnotationSubject subject,
+			OWLAnnotationValue value, Set<? extends OWLAnnotation> annotations)
+	{
+		if (subject == null)
+			throw new IllegalArgumentException("subject is null");
+		else if (property== null)
+			throw new IllegalArgumentException("property is null");		
+		else if (value == null)
+			throw new IllegalArgumentException("value is null");
+		else if (annotations == null)
+			throw new IllegalArgumentException("annotations is null");		
+		
 		HGHandle propertyHandle = graph.getHandle(property);
 		HGHandle subjectHandle;
 		// IRIs are not created by this Datafactory.
 		// therefore add them to graph here, so we can get a handle.
-		if (subject instanceof IRI) {
-			subjectHandle = data.findOrAddIRIHandle((IRI)subject);
-		} else {
+		if (subject instanceof IRI)
+		{
+			subjectHandle = data.findOrAddIRIHandle((IRI) subject);
+		}
+		else
+		{
 			subjectHandle = graph.getHandle(subject);
 		}
 		HGHandle valueHandle;
-		if (value instanceof IRI) {
-			valueHandle = data.findOrAddIRIHandle((IRI)value);
-		} else {
+		if (value instanceof IRI)
+		{
+			valueHandle = data.findOrAddIRIHandle((IRI) value);
+		}
+		else
+		{
 			valueHandle = graph.getHandle(value);
-		}		
-		if (propertyHandle == null) {
-			throw new NullPointerException("Annotation propertyhandle is null for property " + property + ".");
 		}
-		if (subjectHandle == null) {
-			throw new NullPointerException("Annotation subjectHandle is null for subject " + subject + ".");
+		if (propertyHandle == null)
+		{
+			throw new NullPointerException(
+					"Annotation propertyhandle is null for property "
+							+ property + ".");
 		}
-		if (valueHandle == null) {
-			throw new NullPointerException("Annotation valueHandle is null for value " + value + ".");
+		if (subjectHandle == null)
+		{
+			throw new NullPointerException(
+					"Annotation subjectHandle is null for subject " + subject
+							+ ".");
 		}
-		OWLAnnotationAssertionAxiomHGDB a = new OWLAnnotationAssertionAxiomHGDB(subjectHandle, propertyHandle, valueHandle, annotations);
+		if (valueHandle == null)
+		{
+			throw new NullPointerException(
+					"Annotation valueHandle is null for value " + value + ".");
+		}
+		OWLAnnotationAssertionAxiomHGDB a = new OWLAnnotationAssertionAxiomHGDB(
+				subjectHandle, propertyHandle, valueHandle, annotations);
 		a.setHyperGraph(graph);
-		return a; 
-		//return new OWLAnnotationAssertionAxiomHGDB(subject, property, value, annotations);	
+		return a;
+		// return new OWLAnnotationAssertionAxiomHGDB(subject, property, value,
+		// annotations);
 	}
 
 	/**
@@ -1960,50 +2770,85 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *            The IRI to be deprecated.
 	 * @return The annotation assertion that deprecates the specified IRI.
 	 */
-	public OWLAnnotationAssertionAxiom getDeprecatedOWLAnnotationAssertionAxiom(IRI subject) {
-		return getOWLAnnotationAssertionAxiom(getOWLDeprecated(), subject, getOWLLiteral(true));
+	public OWLAnnotationAssertionAxiom getDeprecatedOWLAnnotationAssertionAxiom(
+			IRI subject)
+	{
+		return getOWLAnnotationAssertionAxiom(getOWLDeprecated(), subject,
+				getOWLLiteral(true));
 	}
 
-	public OWLAnnotationPropertyDomainAxiom getOWLAnnotationPropertyDomainAxiom(OWLAnnotationProperty prop, IRI domain,
-			Set<? extends OWLAnnotation> annotations) {
+	public OWLAnnotationPropertyDomainAxiom getOWLAnnotationPropertyDomainAxiom(
+			OWLAnnotationProperty prop, IRI domain,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (prop == null)
+			throw new IllegalArgumentException("prop is null");
+		else if (domain == null)
+			throw new IllegalArgumentException("domain is null");		
+		else if (annotations == null)
+			throw new IllegalArgumentException("annotations is null");		
+		
 		HGHandle propertyHandle = graph.getHandle(prop);
 		HGHandle domainHandle;
-		if (propertyHandle == null) {
+		if (propertyHandle == null)
+		{
 			throw new NullPointerException("Annotation propertyHandle is null");
 		}
 		domainHandle = data.findOrAddIRIHandle(domain);
-		if (domainHandle == null) {
+		if (domainHandle == null)
+		{
 			throw new NullPointerException("Annotation domainHandle is null");
 		}
-		OWLAnnotationPropertyDomainAxiomHGDB a = new OWLAnnotationPropertyDomainAxiomHGDB(propertyHandle, domainHandle, annotations);
+		OWLAnnotationPropertyDomainAxiomHGDB a = new OWLAnnotationPropertyDomainAxiomHGDB(
+				propertyHandle, domainHandle, annotations);
 		a.setHyperGraph(graph);
 		return a;
-		// return new OWLAnnotationPropertyDomainAxiomImpl(this, prop, domain, annotations);
+		// return new OWLAnnotationPropertyDomainAxiomImpl(this, prop, domain,
+		// annotations);
 	}
 
-	public OWLAnnotationPropertyDomainAxiom getOWLAnnotationPropertyDomainAxiom(OWLAnnotationProperty prop, IRI domain) {
-		return getOWLAnnotationPropertyDomainAxiom(prop, domain, EMPTY_ANNOTATIONS_SET);
+	public OWLAnnotationPropertyDomainAxiom getOWLAnnotationPropertyDomainAxiom(
+			OWLAnnotationProperty prop, IRI domain)
+	{
+		return getOWLAnnotationPropertyDomainAxiom(prop, domain,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLAnnotationPropertyRangeAxiom getOWLAnnotationPropertyRangeAxiom(OWLAnnotationProperty prop, IRI range,
-			Set<? extends OWLAnnotation> annotations) {
+	public OWLAnnotationPropertyRangeAxiom getOWLAnnotationPropertyRangeAxiom(
+			OWLAnnotationProperty prop, IRI range,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		if (prop == null)
+			throw new IllegalArgumentException("prop is null");
+		else if (annotations == null)
+			throw new IllegalArgumentException("annotations is null");
+		else if (range == null)
+			throw new IllegalArgumentException("range is null");		
+		
 		HGHandle propertyHandle = graph.getHandle(prop);
 		HGHandle rangeHandle;
-		if (propertyHandle == null) {
+		if (propertyHandle == null)
+		{
 			throw new NullPointerException("Annotation propertyhandle is null");
 		}
 		rangeHandle = data.findOrAddIRIHandle(range);
-		if (rangeHandle == null) {
+		if (rangeHandle == null)
+		{
 			throw new NullPointerException("Annotation rangeHandle is null");
 		}
-		OWLAnnotationPropertyRangeAxiomHGDB a = new OWLAnnotationPropertyRangeAxiomHGDB(propertyHandle, rangeHandle, annotations);
+		OWLAnnotationPropertyRangeAxiomHGDB a = new OWLAnnotationPropertyRangeAxiomHGDB(
+				propertyHandle, rangeHandle, annotations);
 		a.setHyperGraph(graph);
 		return a;
-		//return new OWLAnnotationPropertyRangeAxiomImpl(this, prop, range, annotations);
+		// return new OWLAnnotationPropertyRangeAxiomImpl(this, prop, range,
+		// annotations);
 	}
 
-	public OWLAnnotationPropertyRangeAxiom getOWLAnnotationPropertyRangeAxiom(OWLAnnotationProperty prop, IRI range) {
-		return getOWLAnnotationPropertyRangeAxiom(prop, range, EMPTY_ANNOTATIONS_SET);
+	public OWLAnnotationPropertyRangeAxiom getOWLAnnotationPropertyRangeAxiom(
+			OWLAnnotationProperty prop, IRI range)
+	{
+		return getOWLAnnotationPropertyRangeAxiom(prop, range,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
 	// ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2026,9 +2871,12 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *             instead. Gets a SWRL rule which is named with a URI
 	 */
 	@Deprecated
-	public SWRLRule getSWRLRule(IRI iri, Set<? extends SWRLAtom> body, Set<? extends SWRLAtom> head) {
+	public SWRLRule getSWRLRule(IRI iri, Set<? extends SWRLAtom> body,
+			Set<? extends SWRLAtom> head)
+	{
 		Set<OWLAnnotation> annos = new HashSet<OWLAnnotation>(2);
-		annos.add(getOWLAnnotation(getOWLAnnotationProperty(IRI.create("http://www.semanticweb.org/owlapi#iri")),
+		annos.add(getOWLAnnotation(getOWLAnnotationProperty(IRI
+				.create("http://www.semanticweb.org/owlapi#iri")),
 				getOWLLiteral(iri.toQuotedString())));
 		return getSWRLRuleImpl(body, head, annos);
 	}
@@ -2046,9 +2894,12 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *             instead.
 	 */
 	@Deprecated
-	public SWRLRule getSWRLRule(NodeID nodeID, Set<? extends SWRLAtom> body, Set<? extends SWRLAtom> head) {
+	public SWRLRule getSWRLRule(NodeID nodeID, Set<? extends SWRLAtom> body,
+			Set<? extends SWRLAtom> head)
+	{
 		Set<OWLAnnotation> annos = new HashSet<OWLAnnotation>(2);
-		annos.add(getOWLAnnotation(getOWLAnnotationProperty(IRI.create("http://www.semanticweb.org/owlapi#nodeID")),
+		annos.add(getOWLAnnotation(getOWLAnnotationProperty(IRI
+				.create("http://www.semanticweb.org/owlapi#nodeID")),
 				getOWLLiteral(nodeID.toString())));
 		return getSWRLRuleImpl(body, head, annos);
 	}
@@ -2064,8 +2915,9 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *            The annotations for the rule (may be an empty set)
 	 * @return An anonymous rule with the specified body and head
 	 */
-	public SWRLRule getSWRLRule(Set<? extends SWRLAtom> body, Set<? extends SWRLAtom> head,
-			Set<OWLAnnotation> annotations) {
+	public SWRLRule getSWRLRule(Set<? extends SWRLAtom> body,
+			Set<? extends SWRLAtom> head, Set<OWLAnnotation> annotations)
+	{
 		return getSWRLRuleImpl(body, head, annotations);
 	}
 
@@ -2077,18 +2929,22 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 * @param consequent
 	 *            The atoms that make up the consequent
 	 */
-	public SWRLRule getSWRLRule(Set<? extends SWRLAtom> antecedent, Set<? extends SWRLAtom> consequent) {
+	public SWRLRule getSWRLRule(Set<? extends SWRLAtom> antecedent,
+			Set<? extends SWRLAtom> consequent)
+	{
 		return getSWRLRuleImpl(antecedent, consequent, EMPTY_ANNOTATIONS_SET);
 	}
-	
-	protected SWRLRule getSWRLRuleImpl(Set<? extends SWRLAtom> body, Set<? extends SWRLAtom> head, Set<? extends OWLAnnotation> annos) {
+
+	protected SWRLRule getSWRLRuleImpl(Set<? extends SWRLAtom> body,
+			Set<? extends SWRLAtom> head, Set<? extends OWLAnnotation> annos)
+	{
 		Set<HGHandle> bodyHandles = getHandlesSetFor(body);
 		Set<HGHandle> headHandles = getHandlesSetFor(head);
 		SWRLBody swrlBody = new SWRLBody(bodyHandles);
 		SWRLHead swrlHead = new SWRLHead(headHandles);
 		HGHandle bodyHandle = graph.add(swrlBody);
-		HGHandle headHandle = graph.add(swrlHead);		
-		graph.add(bodyHandle); //TODO THIS SEEMS WRONG!!!!
+		HGHandle headHandle = graph.add(swrlHead);
+		graph.add(bodyHandle); // TODO THIS SEEMS WRONG!!!!
 		graph.add(headHandle);
 		SWRLRuleHGDB ruleAxiom = new SWRLRuleHGDB(bodyHandle, headHandle, annos);
 		ruleAxiom.setHyperGraph(graph);
@@ -2104,15 +2960,19 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 * @param arg
 	 *            The argument (x)
 	 */
-	public SWRLClassAtom getSWRLClassAtom(OWLClassExpression predicate, SWRLIArgument arg) {
+	public SWRLClassAtom getSWRLClassAtom(OWLClassExpression predicate,
+			SWRLIArgument arg)
+	{
 		HGHandle predicateH = graph.getHandle(predicate);
 		HGHandle argH = graph.getHandle(arg);
-		if (predicateH == null) throw new IllegalStateException();
-		if (argH == null) throw new IllegalStateException();
+		if (predicateH == null)
+			throw new IllegalStateException();
+		if (argH == null)
+			throw new IllegalStateException();
 		SWRLClassAtomHGDB classAtom = new SWRLClassAtomHGDB(predicateH, argH);
 		graph.add(classAtom);
 		return classAtom;
-		//return new SWRLClassAtomImpl(this, predicate, arg);
+		// return new SWRLClassAtomImpl(this, predicate, arg);
 	}
 
 	/**
@@ -2124,11 +2984,15 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 * @param arg
 	 *            The argument (x)
 	 */
-	public SWRLDataRangeAtom getSWRLDataRangeAtom(OWLDataRange predicate, SWRLDArgument arg) {
+	public SWRLDataRangeAtom getSWRLDataRangeAtom(OWLDataRange predicate,
+			SWRLDArgument arg)
+	{
 		HGHandle predicateH = graph.getHandle(predicate);
 		HGHandle argH = graph.getHandle(arg);
-		if (predicateH == null) throw new IllegalStateException();
-		if (argH == null) throw new IllegalStateException();
+		if (predicateH == null)
+			throw new IllegalStateException();
+		if (argH == null)
+			throw new IllegalStateException();
 		SWRLDataRangeAtomHGDB atom = new SWRLDataRangeAtomHGDB(predicateH, argH);
 		graph.add(atom);
 		return atom;
@@ -2147,17 +3011,23 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 * @param arg1
 	 *            The second argument (y)
 	 */
-	public SWRLObjectPropertyAtom getSWRLObjectPropertyAtom(OWLObjectPropertyExpression property, SWRLIArgument arg0,
-			SWRLIArgument arg1) {
+	public SWRLObjectPropertyAtom getSWRLObjectPropertyAtom(
+			OWLObjectPropertyExpression property, SWRLIArgument arg0,
+			SWRLIArgument arg1)
+	{
 		HGHandle propertyH = graph.getHandle(property);
 		HGHandle arg0H = graph.getHandle(arg0);
 		HGHandle arg1H = graph.getHandle(arg1);
-		if (propertyH == null) throw new IllegalStateException("not in graph: " + property); 
-		if (arg0H == null) throw new IllegalStateException("not in graph: " + arg0); 
-		if (arg1H == null) throw new IllegalStateException("not in graph: " + arg1); 
-		SWRLObjectPropertyAtomHGDB atom = new SWRLObjectPropertyAtomHGDB(propertyH, arg0H, arg1H);
+		if (propertyH == null)
+			throw new IllegalStateException("not in graph: " + property);
+		if (arg0H == null)
+			throw new IllegalStateException("not in graph: " + arg0);
+		if (arg1H == null)
+			throw new IllegalStateException("not in graph: " + arg1);
+		SWRLObjectPropertyAtomHGDB atom = new SWRLObjectPropertyAtomHGDB(
+				propertyH, arg0H, arg1H);
 		graph.add(atom);
-		return atom;		
+		return atom;
 		// return new SWRLObjectPropertyAtomImpl(this, property, arg0, arg1);
 	}
 
@@ -2173,17 +3043,23 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 * @param arg1
 	 *            The second argument (y)
 	 */
-	public SWRLDataPropertyAtom getSWRLDataPropertyAtom(OWLDataPropertyExpression property, SWRLIArgument arg0,
-			SWRLDArgument arg1) {
+	public SWRLDataPropertyAtom getSWRLDataPropertyAtom(
+			OWLDataPropertyExpression property, SWRLIArgument arg0,
+			SWRLDArgument arg1)
+	{
 		HGHandle propertyH = graph.getHandle(property);
 		HGHandle arg0H = graph.getHandle(arg0);
 		HGHandle arg1H = graph.getHandle(arg1);
-		if (propertyH == null) throw new IllegalStateException("not in graph: " + property); 
-		if (arg0H == null) throw new IllegalStateException("not in graph: " + arg0); 
-		if (arg1H == null) throw new IllegalStateException("not in graph: " + arg1); 
-		SWRLDataPropertyAtomHGDB atom = new SWRLDataPropertyAtomHGDB(propertyH, arg0H, arg1H);
+		if (propertyH == null)
+			throw new IllegalStateException("not in graph: " + property);
+		if (arg0H == null)
+			throw new IllegalStateException("not in graph: " + arg0);
+		if (arg1H == null)
+			throw new IllegalStateException("not in graph: " + arg1);
+		SWRLDataPropertyAtomHGDB atom = new SWRLDataPropertyAtomHGDB(propertyH,
+				arg0H, arg1H);
 		graph.add(atom);
-		return atom;				
+		return atom;
 		// return new SWRLDataPropertyAtomImpl(this, property, arg0, arg1);
 	}
 
@@ -2195,13 +3071,15 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 * @param args
 	 *            A non-empty set of SWRL D-Objects
 	 */
-	public SWRLBuiltInAtom getSWRLBuiltInAtom(IRI builtInIRI, List<SWRLDArgument> args) {
+	public SWRLBuiltInAtom getSWRLBuiltInAtom(IRI builtInIRI,
+			List<SWRLDArgument> args)
+	{
 		HGHandle builtInIRIH = assertIRI(builtInIRI);
 		List<HGHandle> argsH = getHandlesListFor(args);
 		SWRLBuiltInAtomHGDB atom = new SWRLBuiltInAtomHGDB(builtInIRIH, argsH);
 		graph.add(atom);
-		return atom;				
-		//return new SWRLBuiltInAtomImpl(this, builtInIRI, args);
+		return atom;
+		// return new SWRLBuiltInAtomImpl(this, builtInIRI, args);
 	}
 
 	/**
@@ -2211,26 +3089,31 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *            The id (IRI) of the variable
 	 * @return A SWRLVariable that has the name specified by the IRI
 	 */
-	public SWRLVariable getSWRLVariable(final IRI var) {
+	public SWRLVariable getSWRLVariable(final IRI var)
+	{
 		HGHandle varH = assertIRI(var);
 		SWRLVariableHGDB atom = new SWRLVariableHGDB(varH);
 		graph.add(atom);
-		return atom;				
+		return atom;
 	}
-	
+
 	/**
 	 * Gets a SWRL individual object.
 	 * 
 	 * @param individual
 	 *            The individual that is the object argument
 	 */
-	public SWRLIndividualArgument getSWRLIndividualArgument(OWLIndividual individual) {
+	public SWRLIndividualArgument getSWRLIndividualArgument(
+			OWLIndividual individual)
+	{
 		HGHandle h = graph.getHandle(individual);
-		if (h == null) throw new IllegalArgumentException("Individual handle not found: " + individual);
+		if (h == null)
+			throw new IllegalArgumentException("Individual handle not found: "
+					+ individual);
 		SWRLIndividualArgumentHGDB atom = new SWRLIndividualArgumentHGDB(h);
 		graph.add(atom);
 		return atom;
-		//return new SWRLIndividualArgumentImpl(this, individual);
+		// return new SWRLIndividualArgumentImpl(this, individual);
 	}
 
 	/**
@@ -2239,51 +3122,76 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 * @param literal
 	 *            The constant that is the object argument
 	 */
-	public SWRLLiteralArgument getSWRLLiteralArgument(OWLLiteral literal) {
+	public SWRLLiteralArgument getSWRLLiteralArgument(OWLLiteral literal)
+	{
 		HGHandle literalH = graph.getHandle(literal);
-		if (literalH == null) throw new IllegalArgumentException("Literal handle not found: " + literal);
+		if (literalH == null)
+			throw new IllegalArgumentException("Literal handle not found: "
+					+ literal);
 		SWRLLiteralArgument atom = new SWRLLiteralArgumentHGDB(literalH);
 		graph.add(atom);
 		return atom;
-		//return new SWRLLiteralArgumentImpl(this, literal);
+		// return new SWRLLiteralArgumentImpl(this, literal);
 	}
 
-	public SWRLDifferentIndividualsAtom getSWRLDifferentIndividualsAtom(SWRLIArgument arg0, SWRLIArgument arg1) {
-		OWLObjectProperty property = getOWLObjectProperty(OWLRDFVocabulary.OWL_DIFFERENT_FROM.getIRI());
+	public SWRLDifferentIndividualsAtom getSWRLDifferentIndividualsAtom(
+			SWRLIArgument arg0, SWRLIArgument arg1)
+	{
+		OWLObjectProperty property = getOWLObjectProperty(OWLRDFVocabulary.OWL_DIFFERENT_FROM
+				.getIRI());
 		HGHandle propertyH = graph.getHandle(property);
 		HGHandle arg0H = graph.getHandle(arg0);
 		HGHandle arg1H = graph.getHandle(arg1);
-		if (propertyH == null) throw new IllegalStateException("not in graph: constant: " + propertyH); 
-		if (arg0H == null) throw new IllegalStateException("not in graph: " + arg0); 
-		if (arg1H == null) throw new IllegalStateException("not in graph: " + arg1); 
-		SWRLDifferentIndividualsAtom atom = new SWRLDifferentIndividualsAtomHGDB(propertyH, arg0H, arg1H);
+		if (propertyH == null)
+			throw new IllegalStateException("not in graph: constant: "
+					+ propertyH);
+		if (arg0H == null)
+			throw new IllegalStateException("not in graph: " + arg0);
+		if (arg1H == null)
+			throw new IllegalStateException("not in graph: " + arg1);
+		SWRLDifferentIndividualsAtom atom = new SWRLDifferentIndividualsAtomHGDB(
+				propertyH, arg0H, arg1H);
 		graph.add(atom);
 		return atom;
-		//return new SWRLDifferentIndividualsAtomImpl(this, arg0, arg1);
+		// return new SWRLDifferentIndividualsAtomImpl(this, arg0, arg1);
 	}
 
-	public SWRLSameIndividualAtom getSWRLSameIndividualAtom(SWRLIArgument arg0, SWRLIArgument arg1) {
-		OWLObjectProperty property = getOWLObjectProperty(OWLRDFVocabulary.OWL_SAME_AS.getIRI());
+	public SWRLSameIndividualAtom getSWRLSameIndividualAtom(SWRLIArgument arg0,
+			SWRLIArgument arg1)
+	{
+		OWLObjectProperty property = getOWLObjectProperty(OWLRDFVocabulary.OWL_SAME_AS
+				.getIRI());
 		HGHandle propertyH = graph.getHandle(property);
 		HGHandle arg0H = graph.getHandle(arg0);
 		HGHandle arg1H = graph.getHandle(arg1);
-		if (propertyH == null) throw new IllegalStateException("not in graph: constant: " + property); 
-		if (arg0H == null) throw new IllegalStateException("not in graph: " + arg0); 
-		if (arg1H == null) throw new IllegalStateException("not in graph: " + arg1); 
-		SWRLSameIndividualAtom atom = new SWRLSameIndividualAtomHGDB(propertyH, arg0H, arg1H);
+		if (propertyH == null)
+			throw new IllegalStateException("not in graph: constant: "
+					+ property);
+		if (arg0H == null)
+			throw new IllegalStateException("not in graph: " + arg0);
+		if (arg1H == null)
+			throw new IllegalStateException("not in graph: " + arg1);
+		SWRLSameIndividualAtom atom = new SWRLSameIndividualAtomHGDB(propertyH,
+				arg0H, arg1H);
 		graph.add(atom);
 		return atom;
-		//return new SWRLSameIndividualAtomImpl(this, arg0, arg1);
+		// return new SWRLSameIndividualAtomImpl(this, arg0, arg1);
 	}
 
-	private static Set<OWLAnnotation> EMPTY_ANNOTATIONS_SET = Collections.emptySet();
+	private static Set<OWLAnnotation> EMPTY_ANNOTATIONS_SET = Collections
+			.emptySet();
 
-	public OWLDatatypeDefinitionAxiom getOWLDatatypeDefinitionAxiom(OWLDatatype datatype, OWLDataRange dataRange) {
-		return getOWLDatatypeDefinitionAxiom(datatype, dataRange, EMPTY_ANNOTATIONS_SET);
+	public OWLDatatypeDefinitionAxiom getOWLDatatypeDefinitionAxiom(
+			OWLDatatype datatype, OWLDataRange dataRange)
+	{
+		return getOWLDatatypeDefinitionAxiom(datatype, dataRange,
+				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLDatatypeDefinitionAxiom getOWLDatatypeDefinitionAxiom(OWLDatatype datatype, OWLDataRange dataRange,
-			Set<? extends OWLAnnotation> annotations) {
+	public OWLDatatypeDefinitionAxiom getOWLDatatypeDefinitionAxiom(
+			OWLDatatype datatype, OWLDataRange dataRange,
+			Set<? extends OWLAnnotation> annotations)
+	{
 		if (datatype == null)
 			throw new IllegalArgumentException("datatype null");
 		if (dataRange == null)
@@ -2293,40 +3201,47 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 		OWLDatatypeDefinitionAxiomHGDB axiom;
 		HGHandle datatypeHandle = getOrFindOWLEntityHandleInGraph(datatype);
 		HGHandle dataRangeHandle = graph.getHandle(dataRange);
-		if (datatypeHandle == null || dataRangeHandle == null) {
-			throw new IllegalStateException("No Handle for datatypeHandle or dataRangeHandle");
+		if (datatypeHandle == null || dataRangeHandle == null)
+		{
+			throw new IllegalStateException(
+					"No Handle for datatypeHandle or dataRangeHandle");
 		}
-		axiom = new OWLDatatypeDefinitionAxiomHGDB(datatypeHandle, dataRangeHandle, annotations);
+		axiom = new OWLDatatypeDefinitionAxiomHGDB(datatypeHandle,
+				dataRangeHandle, annotations);
 		axiom.setHyperGraph(graph);
 		return axiom;
-		//return new OWLDatatypeDefinitionAxiomImpl(this, datatype, dataRange, annotations);
+		// return new OWLDatatypeDefinitionAxiomImpl(this, datatype, dataRange,
+		// annotations);
 	}
-
 
 	//
 	// IRI methods
 	//
-	
+
 	/**
 	 * Asserts that a given IRI is in the graph.
+	 * 
 	 * @param iri
 	 * @return
 	 */
-	public HGHandle assertIRI(IRI iri) {
+	public HGHandle assertIRI(IRI iri)
+	{
 		return data.findOrAddIRIHandle(iri);
 	}
 
 	//
 	// Hypergraph
 	//
-	public void setHyperGraph(HyperGraph graph) {
+	public void setHyperGraph(HyperGraph graph)
+	{
 		if (graph == null)
 			throw new IllegalArgumentException("Attempt to set graph null");
 		this.graph = graph;
 		data.initialize();
 	}
 
-	public HyperGraph getHyperGraph() {
+	public HyperGraph getHyperGraph()
+	{
 		return graph;
 	}
 
@@ -2340,10 +3255,13 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 * @param e
 	 * @return
 	 */
-	protected HGHandle getOrFindOWLEntityHandleInGraph(OWLEntity e) {
+	protected HGHandle getOrFindOWLEntityHandleInGraph(OWLEntity e)
+	{
 		HGHandle eHandle = graph.getHandle(e);
-		if (eHandle == null) {
-			eHandle = hg.findOne(graph, hg.and(hg.type(e.getClass()), hg.eq("IRI", e.getIRI())));
+		if (eHandle == null)
+		{
+			eHandle = hg.findOne(graph,
+					hg.and(hg.type(e.getClass()), hg.eq("IRI", e.getIRI())));
 		}
 		return eHandle;
 	}
@@ -2355,14 +3273,21 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *            a set of atoms implementing OWLObject and stored in HG.
 	 * @return a set of handles (no null, same size as s)
 	 */
-	private Set<HGHandle> getHandlesSetFor(Set<? extends OWLObject> s) {
+	private Set<HGHandle> getHandlesSetFor(Set<? extends OWLObject> s)
+	{
 		Set<HGHandle> sHandles = new TreeSet<HGHandle>();
 		HGHandle h;
-		for (OWLObject o : s) {
+		for (OWLObject o : s)
+		{
 			h = graph.getHandle(o);
-			if (h == null) {
-				throw new IllegalArgumentException("s contained an object that we could not get a handle for: " + o);
-			} else {
+			if (h == null)
+			{
+				throw new IllegalArgumentException(
+						"s contained an object that we could not get a handle for: "
+								+ o);
+			}
+			else
+			{
 				if (!sHandles.add(h))
 					throw new IllegalStateException("we got a duplicate handle");
 			}
@@ -2378,18 +3303,25 @@ public class OWLDataFactoryHGDB implements OWLDataFactory {
 	 *            a set of atoms implementing OWLObject and stored in HG.
 	 * @return a set of handles (no null, same size as s)
 	 */
-	private List<HGHandle> getHandlesListFor(List<? extends OWLObject> l) {
+	private List<HGHandle> getHandlesListFor(List<? extends OWLObject> l)
+	{
 		List<HGHandle> lHandles = new ArrayList<HGHandle>(5);
 		HGHandle h;
-		for (OWLObject o : l) {
+		for (OWLObject o : l)
+		{
 			h = graph.getHandle(o);
-			if (h == null) {
-				throw new IllegalArgumentException("l contained an object that we could not get a handle for: " + o);
-			} else {
+			if (h == null)
+			{
+				throw new IllegalArgumentException(
+						"l contained an object that we could not get a handle for: "
+								+ o);
+			}
+			else
+			{
 				lHandles.add(h);
 			}
 		}
 		return lHandles;
 	}
-	
+
 }

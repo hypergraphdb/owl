@@ -24,7 +24,7 @@ Export-Package: org.hypergraphdb.app.owl.repair;uses:="org.hypergraphd
  util,org.hypergraphdb.app.owl.model.classexpr.restrict,org.hypergraph
  db.util,org.hypergraphdb.type,org.hypergraphdb,org.semanticweb.owlapi
  .change,org.hypergraphdb.app.owl.model.swrl,org.hypergraphdb.app.owl.
- model,uk.ac.manchester.cs.owl.owlapi,org.semanticweb.owlapi.vocab,org
+ model,org.semanticweb.owlapi.vocab,uk.ac.manchester.cs.owl.owlapi,org
  .hypergraphdb.app.owl.type.link,org.hypergraphdb.atom,org.semanticweb
  .owlapi.io,org.hypergraphdb.transaction,org.hypergraphdb.annotation,o
  rg.hypergraphdb.app.owl.model.axioms,org.hypergraphdb.app.owl,org.hyp
@@ -119,7 +119,7 @@ Bundle-Name: HypergraphDB Owl-API Backend
 Created-By: Apache Maven Bundle Plugin
 Build-Jdk: 1.6.0_31
 Bundle-Version: 1.7.0
-Bnd-LastModified: 1411705964343
+Bnd-LastModified: 1411794440482
 Bundle-ManifestVersion: 2
 Bundle-Description: An implementation of the OWLAPI backed by HyperGra
  phDB for transparent and automatic persistence of OWL ontologies. Eac
