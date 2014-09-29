@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
@@ -19,7 +20,10 @@ import org.semanticweb.owlapi.util.SWRLVariableExtractor;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 9, 2011
  */
-public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLink {
+public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule,
+		HGLink
+{
+	private static final long serialVersionUID = 1L;
 	private HGHandle bodyHandle;
 	private HGHandle headHandle;
 
@@ -27,49 +31,61 @@ public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLin
 	private Boolean containsAnonymousClassExpressions = null;
 	private Set<OWLClassExpression> classAtomsPredicates;
 
-	public SWRLRuleHGDB(HGHandle... args) {
+	public SWRLRuleHGDB(HGHandle... args)
+	{
 		super(Collections.<OWLAnnotation> emptySet());
-		assert args.length == 2 : new IllegalArgumentException("Expecting 2 targets to SWRLRuleHGDB");
+		assert args.length == 2 : new IllegalArgumentException(
+				"Expecting 2 targets to SWRLRuleHGDB");
 		bodyHandle = args[0];
 		headHandle = args[1];
 	}
 
-	public SWRLRuleHGDB(HGHandle body, HGHandle head, Set<? extends OWLAnnotation> annotations) {
-		//SWRLBody body, SWRLHead head.
+	public SWRLRuleHGDB(HGHandle body, HGHandle head,
+			Set<? extends OWLAnnotation> annotations)
+	{
+		// SWRLBody body, SWRLHead head.
 		super(annotations);
-		if (body == null) throw new IllegalArgumentException();
-		if (head == null) throw new IllegalArgumentException();
+		if (body == null)
+			throw new IllegalArgumentException();
+		if (head == null)
+			throw new IllegalArgumentException();
 		this.bodyHandle = body;
-		this.headHandle = head;				
+		this.headHandle = head;
 	}
-	
-	public SWRLHead getHeadAtom() {
+
+	public SWRLHead getHeadAtom()
+	{
 		return getHyperGraph().get(headHandle);
 	}
 
-	public SWRLBody getBodyAtom() {
+	public SWRLBody getBodyAtom()
+	{
 		return getHyperGraph().get(bodyHandle);
 	}
 
-	public void addConclusion(HGHandle conclusion) {
+	public void addConclusion(HGHandle conclusion)
+	{
 		SWRLHead H = getHeadAtom();
 		ArrayList<HGHandle> L = new ArrayList<HGHandle>(H.asCollection());
 		L.add(conclusion);
 		getHyperGraph().replace(headHandle, new SWRLHead(L));
 	}
 
-	public void addPremise(HGHandle premise) {
+	public void addPremise(HGHandle premise)
+	{
 		SWRLBody H = getBodyAtom();
 		ArrayList<HGHandle> L = new ArrayList<HGHandle>(H.asCollection());
 		L.add(premise);
 		getHyperGraph().replace(bodyHandle, new SWRLBody(L));
 	}
 
-	public int getArity() {
+	public int getArity()
+	{
 		return 2;
 	}
 
-	public HGHandle getTargetAt(int i) {
+	public HGHandle getTargetAt(int i)
+	{
 		if (i == 0)
 			return bodyHandle;
 		else if (i == 1)
@@ -78,7 +94,8 @@ public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLin
 			throw new IllegalArgumentException("i != 0 or 1");
 	}
 
-	public void notifyTargetHandleUpdate(int i, HGHandle handle) {
+	public void notifyTargetHandleUpdate(int i, HGHandle handle)
+	{
 		if (i == 0)
 			bodyHandle = handle;
 		else if (i == 1)
@@ -87,7 +104,8 @@ public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLin
 			throw new IllegalArgumentException("i != 0 or 1");
 	}
 
-	public void notifyTargetRemoved(int i) {
+	public void notifyTargetRemoved(int i)
+	{
 		if (i == 0)
 			bodyHandle = getHyperGraph().getHandleFactory().nullHandle();
 		else if (i == 1)
@@ -95,19 +113,24 @@ public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLin
 		// throw new UnsupportedOperationException();
 	}
 
-	public SWRLRule getAxiomWithoutAnnotations() {
-		if (!isAnnotated()) {
+	public SWRLRule getAxiomWithoutAnnotations()
+	{
+		if (!isAnnotated())
+		{
 			return this;
 		}
 		return getOWLDataFactory().getSWRLRule(getBody(), getHead());
 	}
 
-	public OWLAxiom getAnnotatedAxiom(Set<OWLAnnotation> annotations) {
+	public OWLAxiom getAnnotatedAxiom(Set<OWLAnnotation> annotations)
+	{
 		return getOWLDataFactory().getSWRLRule(getBody(), getHead());
 	}
 
-	public Set<SWRLVariable> getVariables() {
-		if (variables == null) {
+	public Set<SWRLVariable> getVariables()
+	{
+		if (variables == null)
+		{
 			Set<SWRLVariable> vars = new HashSet<SWRLVariable>();
 			SWRLVariableExtractor extractor = new SWRLVariableExtractor();
 			accept(extractor);
@@ -117,21 +140,30 @@ public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLin
 		return variables;
 	}
 
-	public boolean containsAnonymousClassExpressions() {
-		if (containsAnonymousClassExpressions == null) {
+	public boolean containsAnonymousClassExpressions()
+	{
+		if (containsAnonymousClassExpressions == null)
+		{
 			containsAnonymousClassExpressions = false;
-			for (SWRLAtom atom : getHead()) {
-				if (atom instanceof SWRLClassAtom) {
-					if (((SWRLClassAtom) atom).getPredicate().isAnonymous()) {
+			for (SWRLAtom atom : getHead())
+			{
+				if (atom instanceof SWRLClassAtom)
+				{
+					if (((SWRLClassAtom) atom).getPredicate().isAnonymous())
+					{
 						containsAnonymousClassExpressions = true;
 						break;
 					}
 				}
 			}
-			if (containsAnonymousClassExpressions == null) {
-				for (SWRLAtom atom : getBody()) {
-					if (atom instanceof SWRLClassAtom) {
-						if (((SWRLClassAtom) atom).getPredicate().isAnonymous()) {
+			if (containsAnonymousClassExpressions == null)
+			{
+				for (SWRLAtom atom : getBody())
+				{
+					if (atom instanceof SWRLClassAtom)
+					{
+						if (((SWRLClassAtom) atom).getPredicate().isAnonymous())
+						{
 							containsAnonymousClassExpressions = true;
 							break;
 						}
@@ -142,16 +174,22 @@ public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLin
 		return containsAnonymousClassExpressions;
 	}
 
-	public Set<OWLClassExpression> getClassAtomPredicates() {
-		if (classAtomsPredicates == null) {
+	public Set<OWLClassExpression> getClassAtomPredicates()
+	{
+		if (classAtomsPredicates == null)
+		{
 			Set<OWLClassExpression> predicates = new HashSet<OWLClassExpression>();
-			for (SWRLAtom atom : getHead()) {
-				if (atom instanceof SWRLClassAtom) {
+			for (SWRLAtom atom : getHead())
+			{
+				if (atom instanceof SWRLClassAtom)
+				{
 					predicates.add(((SWRLClassAtom) atom).getPredicate());
 				}
 			}
-			for (SWRLAtom atom : getBody()) {
-				if (atom instanceof SWRLClassAtom) {
+			for (SWRLAtom atom : getBody())
+			{
+				if (atom instanceof SWRLClassAtom)
+				{
 					predicates.add(((SWRLClassAtom) atom).getPredicate());
 				}
 			}
@@ -160,19 +198,23 @@ public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLin
 		return classAtomsPredicates;
 	}
 
-	public void accept(OWLObjectVisitor visitor) {
+	public void accept(OWLObjectVisitor visitor)
+	{
 		visitor.visit(this);
 	}
 
-	public <O> O accept(OWLObjectVisitorEx<O> visitor) {
+	public <O> O accept(OWLObjectVisitorEx<O> visitor)
+	{
 		return visitor.visit(this);
 	}
 
-	public void accept(SWRLObjectVisitor visitor) {
+	public void accept(SWRLObjectVisitor visitor)
+	{
 		visitor.visit(this);
 	}
 
-	public <O> O accept(SWRLObjectVisitorEx<O> visitor) {
+	public <O> O accept(SWRLObjectVisitorEx<O> visitor)
+	{
 		return visitor.visit(this);
 	}
 
@@ -182,10 +224,12 @@ public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLin
 	 * @return A set of <code>SWRLAtom</code>s, which represent the atoms in the
 	 *         antecedent of the rule.
 	 */
-	public Set<SWRLAtom> getBody() {
+	public Set<SWRLAtom> getBody()
+	{
 		SWRLConjuction C = getHyperGraph().get(bodyHandle);
-		HashSet<SWRLAtom> S = new HashSet<SWRLAtom>();
-		for (int i = 0; i < C.getArity(); i++) {
+		TreeSet<SWRLAtom> S = new TreeSet<SWRLAtom>();
+		for (int i = 0; i < C.getArity(); i++)
+		{
 			SWRLAtom a = getHyperGraph().get(C.getTargetAt(i));
 			S.add(a);
 		}
@@ -198,21 +242,25 @@ public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLin
 	 * @return A set of <code>SWRLAtom</code>s, which represent the atoms in the
 	 *         consequent of the rule
 	 */
-	public Set<SWRLAtom> getHead() {
+	public Set<SWRLAtom> getHead()
+	{
 		SWRLConjuction C = getHyperGraph().get(headHandle);
-		HashSet<SWRLAtom> S = new HashSet<SWRLAtom>();
-		for (int i = 0; i < C.getArity(); i++) {
+		TreeSet<SWRLAtom> S = new TreeSet<SWRLAtom>();
+		for (int i = 0; i < C.getArity(); i++)
+		{
 			SWRLAtom a = getHyperGraph().get(C.getTargetAt(i));
 			S.add(a);
 		}
 		return S;
 	}
 
-	public void accept(OWLAxiomVisitor visitor) {
+	public void accept(OWLAxiomVisitor visitor)
+	{
 		visitor.visit(this);
 	}
 
-	public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
+	public <O> O accept(OWLAxiomVisitorEx<O> visitor)
+	{
 		return visitor.visit(this);
 	}
 
@@ -225,7 +273,8 @@ public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLin
 	 * @return The rule such that any atoms of the form inverseOf(p)(x, y) are
 	 *         transformed to p(x, y).
 	 */
-	public SWRLRule getSimplified() {
+	public SWRLRule getSimplified()
+	{
 		return (SWRLRule) this.accept(ATOM_SIMPLIFIER);
 	}
 
@@ -237,27 +286,34 @@ public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLin
 	 * @return <code>true</code> if the axiom is a logical axiom,
 	 *         <code>false</code> if the axiom is not a logical axiom.
 	 */
-	public boolean isLogicalAxiom() {
+	public boolean isLogicalAxiom()
+	{
 		return true;
 	}
 
-	public boolean equals(Object obj) {
-		if (!(obj instanceof SWRLRule)) {
+	public boolean equals(Object obj)
+	{
+		if (!(obj instanceof SWRLRule))
+		{
 			return false;
 		}
 		SWRLRule other = (SWRLRule) obj;
-		return other.getBody().equals(getBody()) && other.getHead().equals(getHead());
+		return other.getBody().equals(getBody())
+				&& other.getHead().equals(getHead());
 	}
 
-	public AxiomType<SWRLRule> getAxiomType() {
+	public AxiomType<SWRLRule> getAxiomType()
+	{
 		return AxiomType.SWRL_RULE;
 	}
 
-	protected int compareObjectOfSameType(OWLObject object) {
+	protected int compareObjectOfSameType(OWLObject object)
+	{
 		SWRLRule other = (SWRLRule) object;
 
 		int diff = ImplUtils.compareSets(getBody(), other.getBody());
-		if (diff == 0) {
+		if (diff == 0)
+		{
 			diff = ImplUtils.compareSets(getHead(), other.getHead());
 		}
 		return diff;
@@ -266,57 +322,72 @@ public class SWRLRuleHGDB extends OWLLogicalAxiomHGDB implements SWRLRule, HGLin
 
 	protected AtomSimplifier ATOM_SIMPLIFIER = new AtomSimplifier();
 
-	protected class AtomSimplifier implements SWRLObjectVisitorEx<SWRLObject> {
+	protected class AtomSimplifier implements SWRLObjectVisitorEx<SWRLObject>
+	{
 
-		public SWRLRule visit(SWRLRule node) {
+		public SWRLRule visit(SWRLRule node)
+		{
 			Set<SWRLAtom> body = new HashSet<SWRLAtom>();
-			for (SWRLAtom atom : node.getBody()) {
+			for (SWRLAtom atom : node.getBody())
+			{
 				body.add((SWRLAtom) atom.accept(this));
 			}
 			Set<SWRLAtom> head = new HashSet<SWRLAtom>();
-			for (SWRLAtom atom : node.getHead()) {
+			for (SWRLAtom atom : node.getHead())
+			{
 				head.add((SWRLAtom) atom.accept(this));
 			}
 			return getOWLDataFactory().getSWRLRule(body, head);
 		}
 
-		public SWRLClassAtom visit(SWRLClassAtom node) {
+		public SWRLClassAtom visit(SWRLClassAtom node)
+		{
 			return node;
 		}
 
-		public SWRLDataRangeAtom visit(SWRLDataRangeAtom node) {
+		public SWRLDataRangeAtom visit(SWRLDataRangeAtom node)
+		{
 			return node;
 		}
 
-		public SWRLObjectPropertyAtom visit(SWRLObjectPropertyAtom node) {
+		public SWRLObjectPropertyAtom visit(SWRLObjectPropertyAtom node)
+		{
 			return node.getSimplified();
 		}
 
-		public SWRLDataPropertyAtom visit(SWRLDataPropertyAtom node) {
+		public SWRLDataPropertyAtom visit(SWRLDataPropertyAtom node)
+		{
 			return node;
 		}
 
-		public SWRLBuiltInAtom visit(SWRLBuiltInAtom node) {
+		public SWRLBuiltInAtom visit(SWRLBuiltInAtom node)
+		{
 			return node;
 		}
 
-		public SWRLVariable visit(SWRLVariable node) {
+		public SWRLVariable visit(SWRLVariable node)
+		{
 			return node;
 		}
 
-		public SWRLIndividualArgument visit(SWRLIndividualArgument node) {
+		public SWRLIndividualArgument visit(SWRLIndividualArgument node)
+		{
 			return node;
 		}
 
-		public SWRLLiteralArgument visit(SWRLLiteralArgument node) {
+		public SWRLLiteralArgument visit(SWRLLiteralArgument node)
+		{
 			return node;
 		}
 
-		public SWRLSameIndividualAtom visit(SWRLSameIndividualAtom node) {
+		public SWRLSameIndividualAtom visit(SWRLSameIndividualAtom node)
+		{
 			return node;
 		}
 
-		public SWRLDifferentIndividualsAtom visit(SWRLDifferentIndividualsAtom node) {
+		public SWRLDifferentIndividualsAtom visit(
+				SWRLDifferentIndividualsAtom node)
+		{
 			return node;
 		}
 	}

@@ -12,6 +12,7 @@ import org.semanticweb.owlapi.model.SWRLObjectVisitorEx;
 
 /**
  * SWRLDataRangeAtomHGDB.
+ * 
  * @author Boris Iordanov (CIAO/Miami-Dade County)
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 9, 2011
@@ -19,16 +20,18 @@ import org.semanticweb.owlapi.model.SWRLObjectVisitorEx;
 public class SWRLDataRangeAtomHGDB extends SWRLUnaryAtomHGDB<SWRLDArgument>
 		implements SWRLDataRangeAtom
 {
-	
-	public SWRLDataRangeAtomHGDB(HGHandle...args) {
+	private static final long serialVersionUID = 1L;
+
+	public SWRLDataRangeAtomHGDB(HGHandle... args)
+	{
 		super(args);
 	}
 
 	public SWRLDataRangeAtomHGDB(OWLDataRange predicate, SWRLDArgument arg)
 	{
-		throw new UnsupportedOperationException();	
+		throw new UnsupportedOperationException();
 	}
-	
+
 	public SWRLDataRangeAtomHGDB(HGHandle predicate, HGHandle arg)
 	{
 		super(predicate, arg);
