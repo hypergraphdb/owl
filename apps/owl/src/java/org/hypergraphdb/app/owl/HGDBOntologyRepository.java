@@ -37,346 +37,478 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
  * 
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  */
-public class HGDBOntologyRepository {	
-			
+public class HGDBOntologyRepository
+{
 	private static boolean DBG = false;
-	
-	private HyperGraph graph; 
-	
-    /**
+
+	private HyperGraph graph;
+
+	/**
 	 * @param graph
 	 */
-	public HGDBOntologyRepository(String hypergraphDBLocation) {
+	public HGDBOntologyRepository(String hypergraphDBLocation)
+	{
 		this.graph = ImplUtils.owldb(hypergraphDBLocation);
 	}
 
-	public HGDBOntologyRepository(HyperGraph graph) {
+	public HGDBOntologyRepository(HyperGraph graph)
+	{
 		this.graph = graph;
 	}
-	
+
 	/**
-	 * Creates an Ontology and adds it to the graph, if an Ontology with the same ontologyID does not yet exist.
-	 * The graph will create an Internals object.
-	 * @param ontologyID not null
-	 * @param documentIRI not null
+	 * Creates an Ontology and adds it to the graph, if an Ontology with the
+	 * same ontologyID does not yet exist. The graph will create an Internals
+	 * object.
+	 * 
+	 * @param ontologyID
+	 *            not null
+	 * @param documentIRI
+	 *            not null
 	 * @return created ontology
-	 * @throws HGDBOntologyAlreadyExistsByDocumentIRIException 
-	 * @throws HGDBOntologyAlreadyExistsByOntologyIDException 
+	 * @throws HGDBOntologyAlreadyExistsByDocumentIRIException
+	 * @throws HGDBOntologyAlreadyExistsByOntologyIDException
 	 */
 	public HGDBOntology createOWLOntology(OWLOntologyID ontologyID,
-			IRI documentIRI) throws HGDBOntologyAlreadyExistsByDocumentIRIException, HGDBOntologyAlreadyExistsByOntologyIDException {
-		if (ontologyID == null || documentIRI == null) throw new IllegalArgumentException();
-		if (existsOntologyByDocumentIRI(documentIRI)) throw new HGDBOntologyAlreadyExistsByDocumentIRIException(documentIRI);
-		if (existsOntology(ontologyID)) throw new HGDBOntologyAlreadyExistsByOntologyIDException(ontologyID);
+			IRI documentIRI)
+			throws HGDBOntologyAlreadyExistsByDocumentIRIException,
+			HGDBOntologyAlreadyExistsByOntologyIDException
+	{
+		if (ontologyID == null || documentIRI == null)
+			throw new IllegalArgumentException();
+		if (existsOntologyByDocumentIRI(documentIRI))
+			throw new HGDBOntologyAlreadyExistsByDocumentIRIException(
+					documentIRI);
+		if (existsOntology(ontologyID))
+			throw new HGDBOntologyAlreadyExistsByOntologyIDException(ontologyID);
 
 		HGDBOntology o;
 		o = new HGDBOntologyImpl(ontologyID, documentIRI, graph);
-		addOntology(o);			
+		addOntology(o);
 		return o;
 	}
 
 	/**
-	 * Creates an Ontology and adds it to the graph, if an Ontology with the same ontologyID does not yet exist.
-	 * The graph will create an Internals object.
-	 * @param ontologyID not null
-	 * @param documentIRI not null
+	 * Creates an Ontology and adds it to the graph, if an Ontology with the
+	 * same ontologyID does not yet exist. The graph will create an Internals
+	 * object.
+	 * 
+	 * @param ontologyID
+	 *            not null
+	 * @param documentIRI
+	 *            not null
 	 * @return created ontology
-	 * @throws HGDBOntologyAlreadyExistsByDocumentIRIException 
-	 * @throws HGDBOntologyAlreadyExistsByOntologyIDException 
-	 * @throws HGDBOntologyAlreadyExistsByOntologyUUIDException 
+	 * @throws HGDBOntologyAlreadyExistsByDocumentIRIException
+	 * @throws HGDBOntologyAlreadyExistsByOntologyIDException
+	 * @throws HGDBOntologyAlreadyExistsByOntologyUUIDException
 	 */
 	public HGDBOntology createOWLOntology(OWLOntologyID ontologyID,
-			IRI documentIRI, HGPersistentHandle ontologyUUID) throws HGDBOntologyAlreadyExistsByDocumentIRIException, HGDBOntologyAlreadyExistsByOntologyIDException, HGDBOntologyAlreadyExistsByOntologyUUIDException {
-		if (ontologyID == null || documentIRI == null) throw new IllegalArgumentException();
-		if (existsOntologyByDocumentIRI(documentIRI)) throw new HGDBOntologyAlreadyExistsByDocumentIRIException(documentIRI);
-		if (existsOntology(ontologyID)) throw new HGDBOntologyAlreadyExistsByOntologyIDException(ontologyID);
-		if (graph.get(ontologyUUID) != null) throw new HGDBOntologyAlreadyExistsByOntologyUUIDException(ontologyUUID);
+			IRI documentIRI, HGPersistentHandle ontologyUUID)
+			throws HGDBOntologyAlreadyExistsByDocumentIRIException,
+			HGDBOntologyAlreadyExistsByOntologyIDException,
+			HGDBOntologyAlreadyExistsByOntologyUUIDException
+	{
+		if (ontologyID == null || documentIRI == null)
+			throw new IllegalArgumentException();
+		if (existsOntologyByDocumentIRI(documentIRI))
+			throw new HGDBOntologyAlreadyExistsByDocumentIRIException(
+					documentIRI);
+		if (existsOntology(ontologyID))
+			throw new HGDBOntologyAlreadyExistsByOntologyIDException(ontologyID);
+		if (graph.get(ontologyUUID) != null)
+			throw new HGDBOntologyAlreadyExistsByOntologyUUIDException(
+					ontologyUUID);
 		HGDBOntology o;
 		o = new HGDBOntologyImpl(ontologyID, documentIRI, graph);
-		graph.define(ontologyUUID, o);			
+		graph.define(ontologyUUID, o);
 		return o;
 	}
-	
-	public List<HGDBOntology> getOntologies() {
-		//2011.12.01 HGException: Transaction configured as read-only was used to modify data!
-		//Therefore wrapped in normal transaction.
-		return graph.getTransactionManager().ensureTransaction(new Callable<List<HGDBOntology>>() {
-			public List<HGDBOntology>call() {
-				//2011.12.20 added condition OntologyId not null.
-				//2012.04.03 return hg.getAll(graph, hg.and(hg.type(HGDBOntologyImpl.class), hg.not(hg.eq("ontologyID", null))));
-				return hg.getAll(graph, hg.and(hg.type(HGDBOntologyImpl.class), hg.not(hg.eq("documentIRI", null))));
-			}
-		}, HGTransactionConfig.DEFAULT);
-		// USE: HGTransactionConfig.READONLY); and ensure >0 ontos in graph to see HGException
+
+	public List<HGDBOntology> getOntologies()
+	{
+		// 2011.12.01 HGException: Transaction configured as read-only was used
+		// to modify data!
+		// Therefore wrapped in normal transaction.
+		return graph.getTransactionManager().ensureTransaction(
+				new Callable<List<HGDBOntology>>()
+				{
+					public List<HGDBOntology> call()
+					{
+						// 2011.12.20 added condition OntologyId not null.
+						// 2012.04.03 return hg.getAll(graph,
+						// hg.and(hg.type(HGDBOntologyImpl.class),
+						// hg.not(hg.eq("ontologyID", null))));
+						return hg.getAll(
+								graph,
+								hg.and(hg.type(HGDBOntologyImpl.class),
+										hg.not(hg.eq("documentIRI", null))));
+					}
+				}, HGTransactionConfig.DEFAULT);
+		// USE: HGTransactionConfig.READONLY); and ensure >0 ontos in graph to
+		// see HGException
 		// Transaction configured as read-only was used to modify data!
 	}
 
-	public List<HGDBOntology> getDeletedOntologies() {
-		//for cleanup
-		return graph.getTransactionManager().ensureTransaction(new Callable<List<HGDBOntology>>() {
-			public List<HGDBOntology>call() {
-				//2012.04.03 Allow equal OIDs if docIRIS are null to emulate in memory behaviour before GC. 
-				//return hg.getAll(graph, hg.and(hg.type(HGDBOntologyImpl.class), hg.eq("ontologyID", null)));
-				return hg.getAll(graph, hg.and(hg.type(HGDBOntologyImpl.class), hg.eq("documentIRI", null)));
-			}
-		}, HGTransactionConfig.DEFAULT);
+	public List<HGDBOntology> getDeletedOntologies()
+	{
+		// for cleanup
+		return graph.getTransactionManager().ensureTransaction(
+				new Callable<List<HGDBOntology>>()
+				{
+					public List<HGDBOntology> call()
+					{
+						// 2012.04.03 Allow equal OIDs if docIRIS are null to
+						// emulate in memory behaviour before GC.
+						// return hg.getAll(graph,
+						// hg.and(hg.type(HGDBOntologyImpl.class),
+						// hg.eq("ontologyID", null)));
+						return hg.getAll(
+								graph,
+								hg.and(hg.type(HGDBOntologyImpl.class),
+										hg.eq("documentIRI", null)));
+					}
+				}, HGTransactionConfig.DEFAULT);
 	}
-	
+
 	/**
 	 * Gets one Ontology by OWLOntologyID.
+	 * 
 	 * @param ontologyIRI
 	 * @return ontology or null if not found.
-	 * @throws IllegalStateException, if more than one Ontology found.
+	 * @throws IllegalStateException
+	 *             , if more than one Ontology found.
 	 */
-	public HGDBOntology getOntologyByID(OWLOntologyID ontologyId) {
-		//2012.04.03 HGQueryCondition queryCondition = hg.and(hg.type(HGDBOntologyImpl.class), hg.eq("ontologyID", ontologyId));
-		HGQueryCondition queryCondition = hg.and(hg.type(HGDBOntologyImpl.class), 
-											hg.eq("ontologyID", ontologyId), 
-											hg.not(hg.eq("documentIRI", null)));
+	public HGDBOntology getOntologyByID(OWLOntologyID ontologyId)
+	{
+		// 2012.04.03 HGQueryCondition queryCondition =
+		// hg.and(hg.type(HGDBOntologyImpl.class), hg.eq("ontologyID",
+		// ontologyId));
+		HGQueryCondition queryCondition = hg.and(
+				hg.type(HGDBOntologyImpl.class),
+				hg.eq("ontologyID", ontologyId),
+				hg.not(hg.eq("documentIRI", null)));
 		List<HGDBOntologyImpl> l = hg.getAll(graph, queryCondition);
-		if (l.size() > 1) throw new IllegalStateException("Found more than one ontology by Id");
-		return (l.size() == 1? l.get(0): null);
+		if (l.size() > 1)
+			throw new IllegalStateException(
+					"Found more than one ontology by Id");
+		return (l.size() == 1 ? l.get(0) : null);
 	}
 
 	/**
 	 * Gets one Ontology by Document IRI.
+	 * 
 	 * @param ontologyIRI
 	 * @return ontology or null if not found.
-	 * @throws IllegalStateException, if more than one Ontology found.
+	 * @throws IllegalStateException
+	 *             , if more than one Ontology found.
 	 */
-	public HGDBOntology getOntologyByDocumentIRI(IRI documentIRI) {
-		//2012.04.03 need to throw on null docIRI
-		if (documentIRI == null) throw new IllegalArgumentException("DocumentIRI must not be null. Null docIRI is a marker for deleted ontolgies. ");
-		HGQueryCondition queryCondition = hg.and(hg.type(HGDBOntologyImpl.class), hg.eq("documentIRI", documentIRI));
+	public HGDBOntology getOntologyByDocumentIRI(IRI documentIRI)
+	{
+		// 2012.04.03 need to throw on null docIRI
+		if (documentIRI == null)
+			throw new IllegalArgumentException(
+					"DocumentIRI must not be null. Null docIRI is a marker for deleted ontolgies. ");
+		HGQueryCondition queryCondition = hg.and(
+				hg.type(HGDBOntologyImpl.class),
+				hg.eq("documentIRI", documentIRI));
 		List<HGDBOntologyImpl> l = hg.getAll(graph, queryCondition);
-		if (l.size() > 1) throw new IllegalStateException("Found more than one ontology by Id");
-		return (l.size() == 1? l.get(0): null);
+		if (l.size() > 1)
+			throw new IllegalStateException(
+					"Found more than one ontology by Id");
+		return (l.size() == 1 ? l.get(0) : null);
 	}
-	
-	public boolean existsOntologyByDocumentIRI(IRI documentIRI) {		
+
+	public boolean existsOntologyByDocumentIRI(IRI documentIRI)
+	{
 		return getOntologyByDocumentIRI(documentIRI) != null;
 	}
 
 	/**
 	 * Gets one Ontology HAndle by OWLOntology IRI.
+	 * 
 	 * @param ontologyIRI
 	 * @return ontology or null if not found.
-	 * @throws IllegalStateException, if more than one Ontology found.
+	 * @throws IllegalStateException
+	 *             , if more than one Ontology found.
 	 */
-	public HGHandle getOntologyHandleByID(OWLOntologyID ontologyId) {
-		//2012.04.03 docIRI is null on marked for deletion ontos HGQueryCondition queryCondition = hg.and(hg.type(HGDBOntologyImpl.class), hg.eq("ontologyID", ontologyId));
-		HGQueryCondition queryCondition = hg.and(hg.type(HGDBOntologyImpl.class), 
-											hg.eq("ontologyID", ontologyId),
-											hg.not(hg.eq("documentIRI", null)));
+	public HGHandle getOntologyHandleByID(OWLOntologyID ontologyId)
+	{
+		// 2012.04.03 docIRI is null on marked for deletion ontos
+		// HGQueryCondition queryCondition =
+		// hg.and(hg.type(HGDBOntologyImpl.class), hg.eq("ontologyID",
+		// ontologyId));
+		HGQueryCondition queryCondition = hg.and(
+				hg.type(HGDBOntologyImpl.class),
+				hg.eq("ontologyID", ontologyId),
+				hg.not(hg.eq("documentIRI", null)));
 		List<HGHandle> l = hg.findAll(graph, queryCondition);
-		if (l.size() > 1) throw new IllegalStateException("Found more than one ontology by Id");
-		return (l.size() == 1? l.get(0): null);
+		if (l.size() > 1)
+			throw new IllegalStateException(
+					"Found more than one ontology by Id");
+		return (l.size() == 1 ? l.get(0) : null);
 	}
-	
-	public boolean existsOntology(OWLOntologyID ontologyId) {
+
+	public boolean existsOntology(OWLOntologyID ontologyId)
+	{
 		return getOntologyByID(ontologyId) != null;
 	}
 
 	/**
-	 * Deletes all ontologies, by marking them for deletion and allowing 
-	 * the GC to collect them later.
+	 * Deletes all ontologies, by marking them for deletion and allowing the GC
+	 * to collect them later.
 	 */
-	public void deleteAllOntologies(){
+	public void deleteAllOntologies()
+	{
 		List<HGDBOntology> ontologies = getOntologies();
-		for (HGDBOntology onto : ontologies) {
+		for (HGDBOntology onto : ontologies)
+		{
 			deleteOntology(onto.getOntologyID());
 		}
 	}
+
 	/**
 	 * Marks an Ontology for deletion.
+	 * 
 	 * @param ontologyId
 	 * @return
 	 */
-	public boolean deleteOntology(final OWLOntologyID ontologyId) {
-		// 2011.12.20 hilpold we just set the ontology ID and DocumentIRI to null 
-		// so cleanup can remove it later and we remain responsive. 
-		//2012.04.03 We only set documentIRI null, OID must remain.  
-		// OWL-API TestClass OWLImportsClosureTestCase fails with ERROR if set OID null on onto
+	public boolean deleteOntology(final OWLOntologyID ontologyId)
+	{
+		// 2011.12.20 hilpold we just set the ontology ID and DocumentIRI to
+		// null
+		// so cleanup can remove it later and we remain responsive.
+		// 2012.04.03 We only set documentIRI null, OID must remain.
+		// OWL-API TestClass OWLImportsClosureTestCase fails with ERROR if set
+		// OID null on onto
 		// marked for deletion. This is to emulate in memory behaviour.
-		//2012.04.04 we also need to change the PersistentStorage handle for the ontology, so a 
+		// 2012.04.04 we also need to change the PersistentStorage handle for
+		// the ontology, so a
 		// test for UUID fails.
-		return graph.getTransactionManager().ensureTransaction(new Callable<Boolean>() {
-			public Boolean call() {
-				boolean ontologyFound;
-				HGHandle ontologyHandle = getOntologyHandleByID(ontologyId);
-				ontologyFound = ontologyHandle != null;
-				if (ontologyFound) {
-					HGDBOntology o = graph.get(ontologyHandle);
-					//o.setOntologyID(null);
-					o.setDocumentIRI(null);
-					graph.replace(ontologyHandle, o);
-					//graph.
-				}
-				return ontologyFound;
-			}});
+		return graph.getTransactionManager().ensureTransaction(
+				new Callable<Boolean>()
+				{
+					public Boolean call()
+					{
+						boolean ontologyFound;
+						HGHandle ontologyHandle = getOntologyHandleByID(ontologyId);
+						ontologyFound = ontologyHandle != null;
+						if (ontologyFound)
+						{
+							HGDBOntology o = graph.get(ontologyHandle);
+							// o.setOntologyID(null);
+							o.setDocumentIRI(null);
+							graph.replace(ontologyHandle, o);
+							// graph.
+						}
+						return ontologyFound;
+					}
+				});
 	}
 
-	public HGHandle addOntology(HGDBOntology ontology) {
-		if (DBG) printAllOntologies();
+	public HGHandle addOntology(HGDBOntology ontology)
+	{
+		if (DBG)
+			printAllOntologies();
 		return graph.add(ontology);
 	}
-	
-//	public GarbageCollectorStatistics runGarbageCollector() {
-//		return garbageCollector.runGarbageCollection();		
-//	}
-//
-//	public GarbageCollector getGarbageCollector() {
-//		return garbageCollector;		
-//	}
-	
-	public void printStatistics() {
+
+	// public GarbageCollectorStatistics runGarbageCollector() {
+	// return garbageCollector.runGarbageCollection();
+	// }
+	//
+	// public GarbageCollector getGarbageCollector() {
+	// return garbageCollector;
+	// }
+
+	public void printStatistics()
+	{
 		printStatistics(new PrintWriter(System.out));
 	}
 
-	public void printStatistics(PrintWriter w) {
+	public void printStatistics(PrintWriter w)
+	{
 		Date now = new Date();
 		DecimalFormat f = new DecimalFormat("##########");
 		w.println("*************** HYPERGRAPH STATISTICS ***************");
 		w.println("* Location     : " + graph.getLocation());
-		w.println("* Now is       : " + DateFormat.getDateTimeInstance().format(now));
+		w.println("* Now is       : "
+				+ DateFormat.getDateTimeInstance().format(now));
 		w.println("*       LINKS  : " + f.format(getNrOfLinks()));
 		w.println("* NoLink ATOMS : " + f.format(getNrOfNonLinkAtoms()));
 		w.println("* TOTAL ATOMS  : " + f.format(getNrOfAtoms()));
 		w.println("*                                                   ");
-		w.println("*      AXIOMS  : " + f.format(getNrOfAtomsByTypePlus(OWLAxiom.class)));
-		w.println("*    ENTITIES  : " + f.format(getNrOfAtomsByTypePlus(OWLEntity.class)));
-		w.println("*****************************************************");	
+		w.println("*      AXIOMS  : "
+				+ f.format(getNrOfAtomsByTypePlus(OWLAxiom.class)));
+		w.println("*    ENTITIES  : "
+				+ f.format(getNrOfAtomsByTypePlus(OWLEntity.class)));
+		w.println("*****************************************************");
 		w.flush();
 	}
-	
-	public void printEntityCacheStats(PrintWriter w) {
+
+	public void printEntityCacheStats(PrintWriter w)
+	{
 		w.println("----------------------------");
 		w.println("- BUILTIN ENTITY CACHE STATS -");
 		w.println("- Cache Put : " + OWLDataFactoryInternalsHGDB.CACHE_PUT);
 		w.println("- Cache Hit : " + OWLDataFactoryInternalsHGDB.CACHE_HIT);
 		w.println("- Cache Miss: " + OWLDataFactoryInternalsHGDB.CACHE_MISS);
 		int hitPromille = (int) (OWLDataFactoryInternalsHGDB.CACHE_HIT * 1000.0f / (OWLDataFactoryInternalsHGDB.CACHE_HIT + OWLDataFactoryInternalsHGDB.CACHE_MISS));
-		w.println("- Cache Hit%: " + hitPromille / 10.0f  );
+		w.println("- Cache Hit%: " + hitPromille / 10.0f);
 		w.println("----------------------------");
 		w.flush();
 	}
 
-	public void printPerformanceStatistics(PrintWriter w) {
+	public void printPerformanceStatistics(PrintWriter w)
+	{
 		w.println(HGDBOntologyInternalsImpl.toStringPerfCounters());
 	}
 
-	public void printAllOntologies() {
+	public void printAllOntologies()
+	{
 		List<HGDBOntology> l = getOntologies();
-		System.out.println("************* ONTOLOGIES IN HYPERGRAPH REPOSITORY " + graph.getLocation() + "*************");		
-		for (HGDBOntology hgdbMutableOntology : l) {
+		System.out.println("************* ONTOLOGIES IN HYPERGRAPH REPOSITORY "
+				+ graph.getLocation() + "*************");
+		for (HGDBOntology hgdbMutableOntology : l)
+		{
 			printOntology(hgdbMutableOntology);
-		}			
+		}
 	}
-		
-	public void printOntology(HGDBOntology hgdbMutableOntology ) {
-		System.out.println("----------------------------------------------------------------------");		
-		System.out.println("DD IRI " + hgdbMutableOntology.getOntologyID().getDefaultDocumentIRI());
-		System.out.println("ON IRI " + hgdbMutableOntology.getOntologyID().getOntologyIRI());
-		System.out.println("V  IRI " + hgdbMutableOntology.getOntologyID().getVersionIRI());		
-		System.out.println("DOCIRI " + hgdbMutableOntology.getDocumentIRI());		
+
+	public void printOntology(HGDBOntology hgdbMutableOntology)
+	{
+		System.out
+				.println("----------------------------------------------------------------------");
+		System.out.println("DD IRI "
+				+ hgdbMutableOntology.getOntologyID().getDefaultDocumentIRI());
+		System.out.println("ON IRI "
+				+ hgdbMutableOntology.getOntologyID().getOntologyIRI());
+		System.out.println("V  IRI "
+				+ hgdbMutableOntology.getOntologyID().getVersionIRI());
+		System.out.println("DOCIRI " + hgdbMutableOntology.getDocumentIRI());
 	}
-	
+
 	/**
 	 * Disposes of the repository and closes the hypergraph database.
 	 */
-	public void dispose() {
+	public void dispose()
+	{
 		graph.close();
 	}
-	
-	public HyperGraph getHyperGraph() {
+
+	public HyperGraph getHyperGraph()
+	{
 		return graph;
 	}
-	
+
 	/**
-	 * Gets the Number of Atoms (including Links) in the graph. 
+	 * Gets the Number of Atoms (including Links) in the graph.
+	 * 
 	 * @return
 	 */
-	public long getNrOfAtoms() {
+	public long getNrOfAtoms()
+	{
 		return graph.count(hg.all());
 	}
 
 	/**
-	 * Gets the Number of Atoms in the graph that are of a given type.  
+	 * Gets the Number of Atoms in the graph that are of a given type.
+	 * 
 	 * @return
 	 */
-	public long getNrOfAtomsByType(Class<?> clazz) {
+	public long getNrOfAtomsByType(Class<?> clazz)
+	{
 		return graph.count(hg.type(clazz));
 	}
 
 	/**
-	 * Gets the Number of Atoms in the graph that are of a given type.  
+	 * Gets the Number of Atoms in the graph that are of a given type.
+	 * 
 	 * @return
 	 */
-	public long getNrOfAtomsByTypePlus(Class<?> clazz) {
+	public long getNrOfAtomsByTypePlus(Class<?> clazz)
+	{
 		return graph.count(hg.typePlus(clazz));
 	}
 
 	/**
-	 * Gets the Number of Links in the graph. 
+	 * Gets the Number of Links in the graph.
+	 * 
 	 * @return
 	 */
-	public long getNrOfLinks() {
+	public long getNrOfLinks()
+	{
 		return graph.count(hg.typePlus(HGLink.class));
 	}
 
 	/**
-	 * Gets the Number of Atoms (excluding Links) in the graph. 
+	 * Gets the Number of Atoms (excluding Links) in the graph.
+	 * 
 	 * @return
 	 */
-	public long getNrOfNonLinkAtoms() {
+	public long getNrOfNonLinkAtoms()
+	{
 		return getNrOfAtoms() - getNrOfLinks();
 	}
-	
+
 	private int recLevel;
-	
+
 	/**
 	 * Tests, if for a given Entity, ClassExpression, ObjectPropExopression or
-	 * Datarange the given axiom can be reached by traversing incidence sets and returns the path to it.
+	 * Datarange the given axiom can be reached by traversing incidence sets and
+	 * returns the path to it.
 	 * 
 	 * !! Does not return if cycle in graph starting atomHandle. !!
 	 * 
 	 * Call within Transaction!
 	 * 
-	 * @param atomHandle non null.
-	 * @param path a path that will be filled with all objects on the path including the axiom or unchanged if not found.
-	 * @param axiom an axiom that is equal to the axiom to be found. May be outside of any ontology and outside the hypergraph. 
+	 * @param atomHandle
+	 *            non null.
+	 * @param path
+	 *            a path that will be filled with all objects on the path
+	 *            including the axiom or unchanged if not found.
+	 * @param axiom
+	 *            an axiom that is equal to the axiom to be found. May be
+	 *            outside of any ontology and outside the hypergraph.
 	 * @return true if the axiom is found.
 	 */
-	private boolean pathToAxiomRecursive(HGHandle atomHandle, Path path, OWLAxiom axiom) {
-		//TODO make cycle safe.
-		if (DBG) System.out.print("*" + recLevel);
+	private boolean pathToAxiomRecursive(HGHandle atomHandle, Path path,
+			OWLAxiom axiom)
+	{
+		// TODO make cycle safe.
+		if (DBG)
+			System.out.print("*" + recLevel);
 		Object atom = graph.get(atomHandle);
 		path.addAtom(atom);
 		// Terminal condition 1: ax found
-		if (atom instanceof OWLAxiom && axiom.equals(atom)) {
+		if (atom instanceof OWLAxiom && axiom.equals(atom))
+		{
 			if (DBG)
 				System.out.println("\r\nFound axiom match: " + atom);
-				return true;
-		}		
-		HGRandomAccessResult<HGHandle> iSetRAR = graph.getIncidenceSet(atomHandle).getSearchResult();
+			return true;
+		}
+		HGRandomAccessResult<HGHandle> iSetRAR = graph.getIncidenceSet(
+				atomHandle).getSearchResult();
 		// Terminal condition 2: empty incident set.
-		while (iSetRAR.hasNext()) {
+		while (iSetRAR.hasNext())
+		{
 			HGHandle incidentAtomHandle = iSetRAR.next();
 			Object o = graph.get(incidentAtomHandle);
-			if (o != null) {
+			if (o != null)
+			{
 				// we have no cycles up incidence sets starting
 				// on an entity.
-				if (!(o instanceof OWLAxiom
-						|| o instanceof OWLClassExpression 
-						|| o instanceof OWLObjectPropertyExpression 
-						|| o instanceof OWLDataRange 
-						|| o instanceof OWLLiteral 
-						|| o instanceof OWLFacetRestriction)) {
-					throw new IllegalStateException("We encountered an unexpected object in an incidenceset:" + o);
+				if (!(o instanceof OWLAxiom || o instanceof OWLClassExpression
+						|| o instanceof OWLObjectPropertyExpression
+						|| o instanceof OWLDataRange || o instanceof OWLLiteral || o instanceof OWLFacetRestriction))
+				{
+					throw new IllegalStateException(
+							"We encountered an unexpected object in an incidenceset:"
+									+ o);
 				}
 				recLevel++;
 				// Recursive descent
-				if (pathToAxiomRecursive(incidentAtomHandle, path , axiom)) {
+				if (pathToAxiomRecursive(incidentAtomHandle, path, axiom))
+				{
 					recLevel--;
 					return true;
 				}
@@ -387,23 +519,32 @@ public class HGDBOntologyRepository {
 		path.removeLast();
 		return false;
 	}
-	
+
 	/**
-	 * Tries to find a simple path from an Owl object (usually entity) to an axiom traversing incidence sets.
-	 * Neither has to be member of any ontology.
-	 * Might not return if a cycle can be reached from owlObject.
+	 * Tries to find a simple path from an Owl object (usually entity) to an
+	 * axiom traversing incidence sets. Neither has to be member of any
+	 * ontology. Might not return if a cycle can be reached from owlObject.
 	 * 
-	 * @param owlObject an OWLObject that is in the graph. 
-	 * @param axiom an axiom (May not be in the graph, compares by equals.)
+	 * @param owlObject
+	 *            an OWLObject that is in the graph.
+	 * @param axiom
+	 *            an axiom (May not be in the graph, compares by equals.)
 	 * @return the path including owlObject and axiom, null if axiom not found.
 	 */
-	public Path getPathFromOWLObjectToAxiom(final OWLObject owlObject, final OWLAxiom axiom) {
-		return graph.getTransactionManager().ensureTransaction(new Callable<Path>() {
-			public Path call() {
-				Path p = new Path();
-				pathToAxiomRecursive(graph.getHandle(owlObject), p, axiom);
-				return p;
-			}}, HGTransactionConfig.READONLY);
+	public Path getPathFromOWLObjectToAxiom(final OWLObject owlObject,
+			final OWLAxiom axiom)
+	{
+		return graph.getTransactionManager().ensureTransaction(
+				new Callable<Path>()
+				{
+					public Path call()
+					{
+						Path p = new Path();
+						pathToAxiomRecursive(graph.getHandle(owlObject), p,
+								axiom);
+						return p;
+					}
+				}, HGTransactionConfig.READONLY);
 	}
-	
+
 }

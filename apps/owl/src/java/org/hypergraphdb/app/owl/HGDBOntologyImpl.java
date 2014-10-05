@@ -110,16 +110,18 @@ import org.semanticweb.owlapi.util.OWLEntityCollector;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 /**
- * HGDBOntology, a graph database backed OWLOntology implementation. 
+ * HGDBOntology, a graph database backed OWLOntology implementation.
  * 
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  */
-public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology, HGGraphHolder,
-		HGHandleHolder {
-	
-    private static final long serialVersionUID = 1L;
+public class HGDBOntologyImpl extends OWLSubgraphObject implements
+		HGDBOntology, HGGraphHolder, HGHandleHolder
+{
 
-    public static boolean DBG = false; //Switches LOG string creation on or off.
+	private static final long serialVersionUID = 1L;
+
+	public static boolean DBG = false; // Switches LOG string creation on or
+										// off.
 
 	protected Logger log = Logger.getLogger(this.getClass().getCanonicalName());
 
@@ -143,11 +145,13 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 
 	// private OWLEntityReferenceChecker entityReferenceChecker = new
 	// OWLEntityReferenceChecker();
-	public HGDBOntologyImpl() {
-		this(null, null, null);
+	public HGDBOntologyImpl()
+	{
 	}
 
-	public HGDBOntologyImpl(OWLOntologyID ontologyID, IRI documentIRI, HyperGraph graph) {
+	public HGDBOntologyImpl(OWLOntologyID ontologyID, IRI documentIRI,
+			HyperGraph graph)
+	{
 		// set later (runtime problem!) this.manager = manager;
 		this.ontologyID = ontologyID;
 		setDocumentIRI(documentIRI);
@@ -157,36 +161,44 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		// as soon as we have a graph, we'll have internals.
 	}
 
-	public void ensureInternals() {
-		if (graph == null || handle == null) throw new IllegalStateException("Must have graph and handle");
+	public void ensureInternals()
+	{
+		if (graph == null || handle == null)
+			throw new IllegalStateException("Must have graph and handle");
 		internals = new HGDBOntologyInternalsImpl();
-		((HGGraphHolder)internals).setHyperGraph(graph);
+		((HGGraphHolder) internals).setHyperGraph(graph);
 		internals.setOntologyHyperNode(this);
 	}
 
 	@HGIgnore
-	public OWLOntologyManager getOWLOntologyManager() {
+	public OWLOntologyManager getOWLOntologyManager()
+	{
 		return manager;
 	}
 
-	public OWLOntologyID getOntologyID() {
+	public OWLOntologyID getOntologyID()
+	{
 		return ontologyID;
 	}
 
-	public boolean isAnonymous() {
+	public boolean isAnonymous()
+	{
 		return ontologyID.isAnonymous();
 	}
 
 	@Override
-	protected int compareObjectOfSameType(OWLObject object) {
-		if (object == this) {
+	protected int compareObjectOfSameType(OWLObject object)
+	{
+		if (object == this)
+		{
 			return 0;
 		}
 		OWLOntology other = (OWLOntology) object;
 		return ontologyID.compareTo(other.getOntologyID());
 	}
 
-	public boolean isEmpty() {
+	public boolean isEmpty()
+	{
 		return internals.isEmpty();
 	}
 
@@ -202,30 +214,37 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 * @return The number of the specified types of axioms in this ontology
 	 */
 	public <T extends OWLAxiom> int getAxiomCount(AxiomType<T> axiomType,
-			boolean includeImportsClosure) {
-		if (!includeImportsClosure) {
+			boolean includeImportsClosure)
+	{
+		if (!includeImportsClosure)
+		{
 			return getAxiomCount(axiomType);
 		}
 		int result = 0;
-		for (OWLOntology ont : getImportsClosure()) {
+		for (OWLOntology ont : getImportsClosure())
+		{
 			result += ont.getAxiomCount(axiomType);
 		}
 		return result;
 	}
 
-	public boolean containsAxiom(OWLAxiom axiom) {
+	public boolean containsAxiom(OWLAxiom axiom)
+	{
 		return internals.containsAxiom(axiom);
 	}
 
-	public int getAxiomCount() {
+	public int getAxiomCount()
+	{
 		return internals.getAxiomCount();
 	}
 
-	public Set<OWLAxiom> getAxioms() {
+	public Set<OWLAxiom> getAxioms()
+	{
 		return internals.getAxioms();
 	}
 
-	public <T extends OWLAxiom> Set<T> getAxioms(AxiomType<T> axiomType) {
+	public <T extends OWLAxiom> Set<T> getAxioms(AxiomType<T> axiomType)
+	{
 		return internals.getAxioms(axiomType);
 	}
 
@@ -246,72 +265,90 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 *         changes.
 	 */
 	public <T extends OWLAxiom> Set<T> getAxioms(AxiomType<T> axiomType,
-			boolean includeImportsClosure) {
-		return internals.getAxioms(axiomType, includeImportsClosure ? getImportsClosure() : null);
+			boolean includeImportsClosure)
+	{
+		return internals.getAxioms(axiomType,
+				includeImportsClosure ? getImportsClosure() : null);
 	}
 
-	public Set<OWLAxiom> getTBoxAxioms(boolean includeImportsClosure) {
+	public Set<OWLAxiom> getTBoxAxioms(boolean includeImportsClosure)
+	{
 		Set<OWLAxiom> toReturn = new HashSet<OWLAxiom>();
-		for (AxiomType<?> type : AxiomType.TBoxAxiomTypes) {
+		for (AxiomType<?> type : AxiomType.TBoxAxiomTypes)
+		{
 			toReturn.addAll(getAxioms(type, includeImportsClosure));
 		}
 		return toReturn;
 	}
 
-	public Set<OWLAxiom> getABoxAxioms(boolean includeImportsClosure) {
+	public Set<OWLAxiom> getABoxAxioms(boolean includeImportsClosure)
+	{
 		Set<OWLAxiom> toReturn = new HashSet<OWLAxiom>();
-		for (AxiomType<?> type : AxiomType.ABoxAxiomTypes) {
+		for (AxiomType<?> type : AxiomType.ABoxAxiomTypes)
+		{
 			toReturn.addAll(getAxioms(type, includeImportsClosure));
 		}
 		return toReturn;
 	}
 
-	public Set<OWLAxiom> getRBoxAxioms(boolean includeImportsClosure) {
+	public Set<OWLAxiom> getRBoxAxioms(boolean includeImportsClosure)
+	{
 		Set<OWLAxiom> toReturn = new HashSet<OWLAxiom>();
-		for (AxiomType<?> type : AxiomType.RBoxAxiomTypes) {
+		for (AxiomType<?> type : AxiomType.RBoxAxiomTypes)
+		{
 			toReturn.addAll(getAxioms(type, includeImportsClosure));
 		}
 		return toReturn;
 	}
 
-	public <T extends OWLAxiom> int getAxiomCount(AxiomType<T> axiomType) {
+	public <T extends OWLAxiom> int getAxiomCount(AxiomType<T> axiomType)
+	{
 		return internals.getAxiomCount(axiomType);
 	}
 
-	public Set<OWLLogicalAxiom> getLogicalAxioms() {
+	public Set<OWLLogicalAxiom> getLogicalAxioms()
+	{
 		return internals.getLogicalAxioms();
 	}
 
-	public int getLogicalAxiomCount() {
+	public int getLogicalAxiomCount()
+	{
 		return internals.getLogicalAxiomCount();
 	}
 
-	public Set<OWLAnnotation> getAnnotations() {
+	public Set<OWLAnnotation> getAnnotations()
+	{
 		return internals.getOntologyAnnotations();
 	}
 
-	public Set<OWLDeclarationAxiom> getDeclarationAxioms(OWLEntity entity) {
+	public Set<OWLDeclarationAxiom> getDeclarationAxioms(OWLEntity entity)
+	{
 		return internals.getDeclarationAxioms(entity);
 	}
 
 	public Set<OWLAnnotationAssertionAxiom> getAnnotationAssertionAxioms(
-			OWLAnnotationSubject subject) {
-		//Set<OWLAnnotationAssertionAxiom> axioms = createSet();
-		//axioms.addAll(internals.getAnnotationAssertionAxiomsBySubject(subject));
-		//return axioms;
-		//TODO cache this
+			OWLAnnotationSubject subject)
+	{
+		// Set<OWLAnnotationAssertionAxiom> axioms = createSet();
+		// axioms.addAll(internals.getAnnotationAssertionAxiomsBySubject(subject));
+		// return axioms;
+		// TODO cache this
 		return internals.getAnnotationAssertionAxiomsBySubject(subject);
 	}
 
-	public Set<OWLAnnotationAssertionAxiom> getAnnotationAssertionAxioms(IRI subject) {
+	public Set<OWLAnnotationAssertionAxiom> getAnnotationAssertionAxioms(
+			IRI subject)
+	{
 		return internals.getAnnotationAssertionAxiomsBySubject(subject);
 	}
 
-	public Set<OWLClassAxiom> getGeneralClassAxioms() {
+	public Set<OWLClassAxiom> getGeneralClassAxioms()
+	{
 		return internals.getGeneralClassAxioms();
 	}
 
-	public Set<OWLSubPropertyChainOfAxiom> getPropertyChainSubPropertyAxioms() {
+	public Set<OWLSubPropertyChainOfAxiom> getPropertyChainSubPropertyAxioms()
+	{
 		return internals.getPropertyChainSubPropertyAxioms();
 	}
 
@@ -329,12 +366,16 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 *         or <code>false</code> if the ontology doesn't contain the
 	 *         specified axiom.
 	 */
-	public boolean containsAxiom(OWLAxiom axiom, boolean includeImportsClosure) {
-		if (!includeImportsClosure) {
+	public boolean containsAxiom(OWLAxiom axiom, boolean includeImportsClosure)
+	{
+		if (!includeImportsClosure)
+		{
 			return containsAxiom(axiom);
 		}
-		for (OWLOntology ont : getImportsClosure()) {
-			if (ont.containsAxiom(axiom)) {
+		for (OWLOntology ont : getImportsClosure())
+		{
+			if (ont.containsAxiom(axiom))
+			{
 				return true;
 			}
 		}
@@ -350,13 +391,20 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 * @return <code>true</code> if this ontology contains this axiom with or
 	 *         without annotations.
 	 */
-	public boolean containsAxiomIgnoreAnnotations(OWLAxiom axiom) {
-		if (axiom.isAnnotated()) {
-			//2011.11.23 return internals.containsLogicalAxiom2AnnotatedAxiomMap(axiom);
+	public boolean containsAxiomIgnoreAnnotations(OWLAxiom axiom)
+	{
+		if (axiom.isAnnotated())
+		{
+			// 2011.11.23 return
+			// internals.containsLogicalAxiom2AnnotatedAxiomMap(axiom);
 			return internals.containsAxiomIgnoreAnnotations(axiom);
-		} else {
-			//return containsAxiom(axiom) || internals.containsLogicalAxiom2AnnotatedAxiomMap(axiom);
-			return containsAxiom(axiom) || internals.containsAxiomIgnoreAnnotations(axiom);
+		}
+		else
+		{
+			// return containsAxiom(axiom) ||
+			// internals.containsLogicalAxiom2AnnotatedAxiomMap(axiom);
+			return containsAxiom(axiom)
+					|| internals.containsAxiomIgnoreAnnotations(axiom);
 		}
 	}
 
@@ -373,12 +421,19 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 * @return <code>true</code> if this ontology contains this axiom with or
 	 *         without annotations.
 	 */
-	public boolean containsAxiomIgnoreAnnotations(OWLAxiom axiom, boolean includeImportsClosure) {
-		if (!includeImportsClosure) {
+	public boolean containsAxiomIgnoreAnnotations(OWLAxiom axiom,
+			boolean includeImportsClosure)
+	{
+		if (!includeImportsClosure)
+		{
 			return containsAxiomIgnoreAnnotations(axiom);
-		} else {
-			for (OWLOntology ont : getImportsClosure()) {
-				if (ont.containsAxiomIgnoreAnnotations(axiom)) {
+		}
+		else
+		{
+			for (OWLOntology ont : getImportsClosure())
+			{
+				if (ont.containsAxiomIgnoreAnnotations(axiom))
+				{
 					return true;
 				}
 			}
@@ -399,14 +454,18 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 *         <code>axiomB.getAxiomWithoutAnnotations()</code>. The specified
 	 *         axiom will be contained in the set.
 	 */
-	public Set<OWLAxiom> getAxiomsIgnoreAnnotations(OWLAxiom axiom) {
+	public Set<OWLAxiom> getAxiomsIgnoreAnnotations(OWLAxiom axiom)
+	{
 		Set<OWLAxiom> result = createSet();
-		if (containsAxiom(axiom)) {
+		if (containsAxiom(axiom))
+		{
 			result.add(axiom);
 		}
-		//2011.11.23 Set<OWLAxiom> annotated = internals.getLogicalAxiom2AnnotatedAxiom(axiom);
+		// 2011.11.23 Set<OWLAxiom> annotated =
+		// internals.getLogicalAxiom2AnnotatedAxiom(axiom);
 		Set<OWLAxiom> annotated = internals.getAxiomsIgnoreAnnotations(axiom);
-		if (annotated != null) {
+		if (annotated != null)
+		{
 			result.addAll(annotated);
 		}
 		return result;
@@ -430,74 +489,109 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 *         <code>axiomB.getAxiomWithoutAnnotations()</code>. The specified
 	 *         axiom will be contained in the set.
 	 */
-	public Set<OWLAxiom> getAxiomsIgnoreAnnotations(OWLAxiom axiom, boolean includeImportsClosure) {
-		if (!includeImportsClosure) {
+	public Set<OWLAxiom> getAxiomsIgnoreAnnotations(OWLAxiom axiom,
+			boolean includeImportsClosure)
+	{
+		if (!includeImportsClosure)
+		{
 			return getAxiomsIgnoreAnnotations(axiom);
 		}
 		Set<OWLAxiom> result = createSet();
-		for (OWLOntology ont : getImportsClosure()) {
+		for (OWLOntology ont : getImportsClosure())
+		{
 			result.addAll(ont.getAxiomsIgnoreAnnotations(axiom));
 		}
 		return result;
 	}
 
-	public boolean containsClassInSignature(IRI owlClassIRI) {
-		//return internals.containsOwlClassReferences(getOWLDataFactory().getOWLClass(owlClassIRI));
-		return internals.containsOwlClass(getOWLDataFactory().getOWLClass(owlClassIRI));
+	public boolean containsClassInSignature(IRI owlClassIRI)
+	{
+		// return
+		// internals.containsOwlClassReferences(getOWLDataFactory().getOWLClass(owlClassIRI));
+		return internals.containsOwlClass(getOWLDataFactory().getOWLClass(
+				owlClassIRI));
 	}
 
-	public boolean containsClassInSignature(IRI owlClassIRI, boolean includeImportsClosure) {
-		for (OWLOntology ont : manager.getImportsClosure(this)) {
-			if (ont.containsClassInSignature(owlClassIRI)) {
+	public boolean containsClassInSignature(IRI owlClassIRI,
+			boolean includeImportsClosure)
+	{
+		for (OWLOntology ont : manager.getImportsClosure(this))
+		{
+			if (ont.containsClassInSignature(owlClassIRI))
+			{
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public boolean containsObjectPropertyInSignature(IRI propIRI) {
-//		return internals.containsOwlObjectPropertyReferences(getOWLDataFactory()
-//				.getOWLObjectProperty(propIRI));
-		return internals.containsOwlObjectProperty(getOWLDataFactory().getOWLObjectProperty(propIRI));
+	public boolean containsObjectPropertyInSignature(IRI propIRI)
+	{
+		// return
+		// internals.containsOwlObjectPropertyReferences(getOWLDataFactory()
+		// .getOWLObjectProperty(propIRI));
+		return internals.containsOwlObjectProperty(getOWLDataFactory()
+				.getOWLObjectProperty(propIRI));
 	}
 
-	public boolean containsObjectPropertyInSignature(IRI propIRI, boolean includeImportsClosure) {
-		for (OWLOntology ont : manager.getImportsClosure(this)) {
-			if (ont.containsObjectPropertyInSignature(propIRI)) {
+	public boolean containsObjectPropertyInSignature(IRI propIRI,
+			boolean includeImportsClosure)
+	{
+		for (OWLOntology ont : manager.getImportsClosure(this))
+		{
+			if (ont.containsObjectPropertyInSignature(propIRI))
+			{
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public boolean containsDataPropertyInSignature(IRI propIRI) {
-		return internals.containsOwlDataProperty(getOWLDataFactory().getOWLDataProperty(propIRI));
-//		return internals.containsOwlDataPropertyReferences(getOWLDataFactory().getOWLDataProperty(
-//				propIRI));
+	public boolean containsDataPropertyInSignature(IRI propIRI)
+	{
+		return internals.containsOwlDataProperty(getOWLDataFactory()
+				.getOWLDataProperty(propIRI));
+		// return
+		// internals.containsOwlDataPropertyReferences(getOWLDataFactory().getOWLDataProperty(
+		// propIRI));
 	}
 
-	public boolean containsDataPropertyInSignature(IRI propIRI, boolean includeImportsClosure) {
-		for (OWLOntology ont : manager.getImportsClosure(this)) {
-			if (ont.containsDataPropertyInSignature(propIRI)) {
+	public boolean containsDataPropertyInSignature(IRI propIRI,
+			boolean includeImportsClosure)
+	{
+		for (OWLOntology ont : manager.getImportsClosure(this))
+		{
+			if (ont.containsDataPropertyInSignature(propIRI))
+			{
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public boolean containsAnnotationPropertyInSignature(IRI propIRI) {
-		//TODO Check, if we actually refer to it; for now:
-		if (OWLRDFVocabulary.BUILT_IN_ANNOTATION_PROPERTY_IRIS.contains(propIRI)) {
-			System.out.println("containsAnnotationPropertyInSignature: BUILTIN " + propIRI);
+	public boolean containsAnnotationPropertyInSignature(IRI propIRI)
+	{
+		// TODO Check, if we actually refer to it; for now:
+		if (OWLRDFVocabulary.BUILT_IN_ANNOTATION_PROPERTY_IRIS
+				.contains(propIRI))
+		{
+			System.out
+					.println("containsAnnotationPropertyInSignature: BUILTIN "
+							+ propIRI);
 			return true;
 		}
 		boolean b = internals.containsOwlAnnotationProperty(getOWLDataFactory()
 				.getOWLAnnotationProperty(propIRI));
-		if (b) {
+		if (b)
+		{
 			return true;
-		} else {
-			for (OWLAnnotation anno : internals.getOntologyAnnotations()) {
-				if (anno.getProperty().getIRI().equals(propIRI)) {
+		}
+		else
+		{
+			for (OWLAnnotation anno : internals.getOntologyAnnotations())
+			{
+				if (anno.getProperty().getIRI().equals(propIRI))
+				{
 					return true;
 				}
 			}
@@ -505,40 +599,57 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		return false;
 	}
 
-	public boolean containsAnnotationPropertyInSignature(IRI propIRI, boolean includeImportsClosure) {
-		for (OWLOntology ont : manager.getImportsClosure(this)) {
-			if (ont.containsAnnotationPropertyInSignature(propIRI)) {
+	public boolean containsAnnotationPropertyInSignature(IRI propIRI,
+			boolean includeImportsClosure)
+	{
+		for (OWLOntology ont : manager.getImportsClosure(this))
+		{
+			if (ont.containsAnnotationPropertyInSignature(propIRI))
+			{
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public boolean containsIndividualInSignature(IRI individualIRI) {
+	public boolean containsIndividualInSignature(IRI individualIRI)
+	{
 		return internals.containsOwlNamedIndividual(individualIRI);
-		//old return internals.containsOwlIndividualReferences(getOWLDataFactory().getOWLNamedIndividual(
-		//		individualIRI));
+		// old return
+		// internals.containsOwlIndividualReferences(getOWLDataFactory().getOWLNamedIndividual(
+		// individualIRI));
 	}
 
-	public boolean containsIndividualInSignature(IRI individualIRI, boolean includeImportsClosure) {
+	public boolean containsIndividualInSignature(IRI individualIRI,
+			boolean includeImportsClosure)
+	{
 		// XXX imports closure should be taken into account
-		for (OWLOntology ont : manager.getImportsClosure(this)) {
-			if (ont.containsIndividualInSignature(individualIRI)) {
+		for (OWLOntology ont : manager.getImportsClosure(this))
+		{
+			if (ont.containsIndividualInSignature(individualIRI))
+			{
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public boolean containsDatatypeInSignature(IRI datatypeIRI) {
-		return internals.containsOwlDatatype(getOWLDataFactory().getOWLDatatype(datatypeIRI));
-//		return internals.containsOwlDatatypeReferences(getOWLDataFactory().getOWLDatatype(
-//				datatypeIRI));
+	public boolean containsDatatypeInSignature(IRI datatypeIRI)
+	{
+		return internals.containsOwlDatatype(getOWLDataFactory()
+				.getOWLDatatype(datatypeIRI));
+		// return
+		// internals.containsOwlDatatypeReferences(getOWLDataFactory().getOWLDatatype(
+		// datatypeIRI));
 	}
 
-	public boolean containsDatatypeInSignature(IRI datatypeIRI, boolean includeImportsClosure) {
-		for (OWLOntology ont : manager.getImportsClosure(this)) {
-			if (ont.containsDatatypeInSignature(datatypeIRI)) {
+	public boolean containsDatatypeInSignature(IRI datatypeIRI,
+			boolean includeImportsClosure)
+	{
+		for (OWLOntology ont : manager.getImportsClosure(this))
+		{
+			if (ont.containsDatatypeInSignature(datatypeIRI))
+			{
 				return true;
 			}
 		}
@@ -556,25 +667,33 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 *         entities in the signature of this ontology with the specified
 	 *         IRI.
 	 */
-	public Set<OWLEntity> getEntitiesInSignature(IRI iri) {
+	public Set<OWLEntity> getEntitiesInSignature(IRI iri)
+	{
 		Set<OWLEntity> result = createSet(6);
-		if (containsClassInSignature(iri)) {
+		if (containsClassInSignature(iri))
+		{
 			result.add(manager.getOWLDataFactory().getOWLClass(iri));
 		}
-		if (containsObjectPropertyInSignature(iri)) {
+		if (containsObjectPropertyInSignature(iri))
+		{
 			result.add(manager.getOWLDataFactory().getOWLObjectProperty(iri));
 		}
-		if (containsDataPropertyInSignature(iri)) {
+		if (containsDataPropertyInSignature(iri))
+		{
 			result.add(manager.getOWLDataFactory().getOWLDataProperty(iri));
 		}
-		if (containsIndividualInSignature(iri)) {
+		if (containsIndividualInSignature(iri))
+		{
 			result.add(manager.getOWLDataFactory().getOWLNamedIndividual(iri));
 		}
-		if (containsDatatypeInSignature(iri)) {
+		if (containsDatatypeInSignature(iri))
+		{
 			result.add(manager.getOWLDataFactory().getOWLDatatype(iri));
 		}
-		if (containsAnnotationPropertyInSignature(iri)) {
-			result.add(manager.getOWLDataFactory().getOWLAnnotationProperty(iri));
+		if (containsAnnotationPropertyInSignature(iri))
+		{
+			result.add(manager.getOWLDataFactory()
+					.getOWLAnnotationProperty(iri));
 		}
 		return result;
 	}
@@ -593,84 +712,113 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 *         will be empty if there are no entities in the signature of this
 	 *         ontology and possibly its imports closure with the specified IRI.
 	 */
-	public Set<OWLEntity> getEntitiesInSignature(IRI iri, boolean includeImportsClosure) {
-		if (!includeImportsClosure) {
+	public Set<OWLEntity> getEntitiesInSignature(IRI iri,
+			boolean includeImportsClosure)
+	{
+		if (!includeImportsClosure)
+		{
 			return getEntitiesInSignature(iri);
-		} else {
+		}
+		else
+		{
 			Set<OWLEntity> result = createSet(6);
-			for (OWLOntology ont : getImportsClosure()) {
+			for (OWLOntology ont : getImportsClosure())
+			{
 				result.addAll(ont.getEntitiesInSignature(iri));
 			}
 			return result;
 		}
 	}
 
-	public boolean containsReference(OWLClass owlClass) {
+	public boolean containsReference(OWLClass owlClass)
+	{
 		return internals.containsOwlClass(owlClass);
-//		return internals.containsOwlClassReferences(owlClass);
+		// return internals.containsOwlClassReferences(owlClass);
 	}
 
-	public boolean containsReference(OWLObjectProperty prop) {
+	public boolean containsReference(OWLObjectProperty prop)
+	{
 		return internals.containsOwlObjectProperty(prop);
-//		return internals.containsOwlObjectPropertyReferences(prop);
+		// return internals.containsOwlObjectPropertyReferences(prop);
 	}
 
-	public boolean containsReference(OWLDataProperty prop) {
+	public boolean containsReference(OWLDataProperty prop)
+	{
 		return internals.containsOwlDataProperty(prop);
-//		return internals.containsOwlDataPropertyReferences(prop);
+		// return internals.containsOwlDataPropertyReferences(prop);
 	}
 
-	public boolean containsReference(OWLNamedIndividual ind) {
+	public boolean containsReference(OWLNamedIndividual ind)
+	{
 		return internals.containsOwlNamedIndividual(ind.getIRI());
-//		return internals.containsOwlIndividual(ind.getIRI());
+		// return internals.containsOwlIndividual(ind.getIRI());
 	}
 
-	public boolean containsReference(OWLDatatype dt) {
+	public boolean containsReference(OWLDatatype dt)
+	{
 		return internals.containsOwlDatatype(dt);
-//		return internals.containsOwlDatatypeReferences(dt);
+		// return internals.containsOwlDatatypeReferences(dt);
 	}
 
-	public boolean containsReference(OWLAnnotationProperty property) {
-		//TODO Check, if we actually refer to it; for now:
-		if (OWLRDFVocabulary.BUILT_IN_ANNOTATION_PROPERTY_IRIS.contains(property.getIRI())) {
-			System.out.println("containsAnnotationPropertyInSignature: BUILTIN " + property.getIRI());
+	public boolean containsReference(OWLAnnotationProperty property)
+	{
+		// TODO Check, if we actually refer to it; for now:
+		if (OWLRDFVocabulary.BUILT_IN_ANNOTATION_PROPERTY_IRIS
+				.contains(property.getIRI()))
+		{
+			System.out
+					.println("containsAnnotationPropertyInSignature: BUILTIN "
+							+ property.getIRI());
 			return true;
 		}
 		return internals.containsOwlAnnotationProperty(property);
-//		return internals.containsOwlAnnotationPropertyReferences(property);
+		// return internals.containsOwlAnnotationPropertyReferences(property);
 	}
 
-	public boolean isDeclared(OWLEntity entity) {
-		return internals.isDeclared(getOWLDataFactory().getOWLDeclarationAxiom(entity));
+	public boolean isDeclared(OWLEntity entity)
+	{
+		return internals.isDeclared(getOWLDataFactory().getOWLDeclarationAxiom(
+				entity));
 	}
 
-	public Set<OWLDatatypeDefinitionAxiom> getDatatypeDefinitions(OWLDatatype datatype) {
+	public Set<OWLDatatypeDefinitionAxiom> getDatatypeDefinitions(
+			OWLDatatype datatype)
+	{
 		return internals.getDatatypeDefinitions(datatype);
 	}
 
 	public Set<OWLSubAnnotationPropertyOfAxiom> getSubAnnotationPropertyOfAxioms(
-			OWLAnnotationProperty subProperty) {
+			OWLAnnotationProperty subProperty)
+	{
 		return internals.getSubAnnotationPropertyOfAxioms(subProperty);
 	}
 
 	public Set<OWLAnnotationPropertyDomainAxiom> getAnnotationPropertyDomainAxioms(
-			OWLAnnotationProperty property) {
+			OWLAnnotationProperty property)
+	{
 		return internals.getAnnotationPropertyDomainAxioms(property);
 	}
 
 	public Set<OWLAnnotationPropertyRangeAxiom> getAnnotationPropertyRangeAxioms(
-			OWLAnnotationProperty property) {
+			OWLAnnotationProperty property)
+	{
 		return internals.getAnnotationPropertyRangeAxioms(property);
 	}
 
-	public boolean isDeclared(OWLEntity owlEntity, boolean includeImportsClosure) {
-		if (isDeclared(owlEntity)) {
+	public boolean isDeclared(OWLEntity owlEntity, boolean includeImportsClosure)
+	{
+		if (isDeclared(owlEntity))
+		{
 			return true;
 		}
-		if (includeImportsClosure) {
-			for (OWLOntology ont : manager.getImportsClosure(this)) {
-				if (!ont.equals(this)) {
-					if (ont.isDeclared(owlEntity)) {
+		if (includeImportsClosure)
+		{
+			for (OWLOntology ont : manager.getImportsClosure(this))
+			{
+				if (!ont.equals(this))
+				{
+					if (ont.isDeclared(owlEntity))
+					{
 						return true;
 					}
 				}
@@ -679,7 +827,8 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		return false;
 	}
 
-	public boolean containsEntityInSignature(OWLEntity owlEntity) {
+	public boolean containsEntityInSignature(OWLEntity owlEntity)
+	{
 		OWLEntityReferenceChecker entityReferenceChecker = new OWLEntityReferenceChecker();
 		return entityReferenceChecker.containsReference(owlEntity);
 	}
@@ -699,53 +848,71 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 *         changes. It is therefore safe to apply changes to this ontology
 	 *         while iterating over this set.
 	 */
-	public boolean containsEntityInSignature(OWLEntity owlEntity, boolean includeImportsClosure) {
-		if (!includeImportsClosure) {
+	public boolean containsEntityInSignature(OWLEntity owlEntity,
+			boolean includeImportsClosure)
+	{
+		if (!includeImportsClosure)
+		{
 			return containsEntityInSignature(owlEntity);
 		}
-		for (OWLOntology ont : getImportsClosure()) {
-			if (ont.containsEntityInSignature(owlEntity)) {
+		for (OWLOntology ont : getImportsClosure())
+		{
+			if (ont.containsEntityInSignature(owlEntity))
+			{
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public boolean containsEntityInSignature(IRI entityIRI) {
-		if (containsClassInSignature(entityIRI)) {
+	public boolean containsEntityInSignature(IRI entityIRI)
+	{
+		if (containsClassInSignature(entityIRI))
+		{
 			return true;
 		}
-		if (containsObjectPropertyInSignature(entityIRI)) {
+		if (containsObjectPropertyInSignature(entityIRI))
+		{
 			return true;
 		}
-		if (containsDataPropertyInSignature(entityIRI)) {
+		if (containsDataPropertyInSignature(entityIRI))
+		{
 			return true;
 		}
-		if (containsIndividualInSignature(entityIRI)) {
+		if (containsIndividualInSignature(entityIRI))
+		{
 			return true;
 		}
-		if (containsDatatypeInSignature(entityIRI)) {
+		if (containsDatatypeInSignature(entityIRI))
+		{
 			return true;
 		}
-		if (containsAnnotationPropertyInSignature(entityIRI)) {
+		if (containsAnnotationPropertyInSignature(entityIRI))
+		{
 			return true;
 		}
 		return false;
 	}
 
-	public boolean containsEntityInSignature(IRI entityIRI, boolean includeImportsClosure) {
-		if (!includeImportsClosure) {
+	public boolean containsEntityInSignature(IRI entityIRI,
+			boolean includeImportsClosure)
+	{
+		if (!includeImportsClosure)
+		{
 			return containsEntityInSignature(entityIRI);
 		}
-		for (OWLOntology ont : getImportsClosure()) {
-			if (ont.containsEntityInSignature(entityIRI)) {
+		for (OWLOntology ont : getImportsClosure())
+		{
+			if (ont.containsEntityInSignature(entityIRI))
+			{
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public Set<OWLAxiom> getReferencingAxioms(OWLEntity owlEntity) {
+	public Set<OWLAxiom> getReferencingAxioms(OWLEntity owlEntity)
+	{
 		return internals.getReferencingAxioms(owlEntity);
 	}
 
@@ -767,12 +934,16 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 *         the ontology changes. It is therefore safe to apply changes to
 	 *         this ontology while iterating over this set.
 	 */
-	public Set<OWLAxiom> getReferencingAxioms(OWLEntity owlEntity, boolean includeImportsClosure) {
-		if (!includeImportsClosure) {
+	public Set<OWLAxiom> getReferencingAxioms(OWLEntity owlEntity,
+			boolean includeImportsClosure)
+	{
+		if (!includeImportsClosure)
+		{
 			return getReferencingAxioms(owlEntity);
 		}
 		Set<OWLAxiom> result = createSet();
-		for (OWLOntology ont : getImportsClosure()) {
+		for (OWLOntology ont : getImportsClosure())
+		{
 			result.addAll(ont.getReferencingAxioms(owlEntity));
 		}
 		return result;
@@ -785,111 +956,129 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 *            The individual
 	 * @return The axioms that reference the specified anonymous individual
 	 */
-	public Set<OWLAxiom> getReferencingAxioms(OWLAnonymousIndividual individual) {
+	public Set<OWLAxiom> getReferencingAxioms(OWLAnonymousIndividual individual)
+	{
 		return internals.getReferencingAxioms(individual);
 	}
 
-	public Set<OWLClassAxiom> getAxioms(final OWLClass cls) {
+	public Set<OWLClassAxiom> getAxioms(final OWLClass cls)
+	{
 		return internals.getOWLClassAxioms(cls);
 	}
 
-	public Set<OWLObjectPropertyAxiom> getAxioms(final OWLObjectPropertyExpression prop) {
+	public Set<OWLObjectPropertyAxiom> getAxioms(
+			final OWLObjectPropertyExpression prop)
+	{
 		return internals.getOWLObjectPropertyExpressionAxioms(prop);
-//		final Set<OWLObjectPropertyAxiom> result = createSet(50);
-//
-//		result.addAll(getAsymmetricObjectPropertyAxioms(prop));
-//		result.addAll(getReflexiveObjectPropertyAxioms(prop));
-//		result.addAll(getSymmetricObjectPropertyAxioms(prop));
-//		result.addAll(getIrreflexiveObjectPropertyAxioms(prop));
-//		result.addAll(getTransitiveObjectPropertyAxioms(prop));
-//		result.addAll(getInverseFunctionalObjectPropertyAxioms(prop));
-//		result.addAll(getFunctionalObjectPropertyAxioms(prop));
-//		result.addAll(getInverseObjectPropertyAxioms(prop));
-//		result.addAll(getObjectPropertyDomainAxioms(prop));
-//		result.addAll(getEquivalentObjectPropertiesAxioms(prop));
-//		result.addAll(getDisjointObjectPropertiesAxioms(prop));
-//		result.addAll(getObjectPropertyRangeAxioms(prop));
-//		result.addAll(getObjectSubPropertyAxiomsForSubProperty(prop));
-//		return result;
+		// final Set<OWLObjectPropertyAxiom> result = createSet(50);
+		//
+		// result.addAll(getAsymmetricObjectPropertyAxioms(prop));
+		// result.addAll(getReflexiveObjectPropertyAxioms(prop));
+		// result.addAll(getSymmetricObjectPropertyAxioms(prop));
+		// result.addAll(getIrreflexiveObjectPropertyAxioms(prop));
+		// result.addAll(getTransitiveObjectPropertyAxioms(prop));
+		// result.addAll(getInverseFunctionalObjectPropertyAxioms(prop));
+		// result.addAll(getFunctionalObjectPropertyAxioms(prop));
+		// result.addAll(getInverseObjectPropertyAxioms(prop));
+		// result.addAll(getObjectPropertyDomainAxioms(prop));
+		// result.addAll(getEquivalentObjectPropertiesAxioms(prop));
+		// result.addAll(getDisjointObjectPropertiesAxioms(prop));
+		// result.addAll(getObjectPropertyRangeAxioms(prop));
+		// result.addAll(getObjectSubPropertyAxiomsForSubProperty(prop));
+		// return result;
 	}
 
-	public Set<OWLAnnotationAxiom> getAxioms(final OWLAnnotationProperty prop) {
+	public Set<OWLAnnotationAxiom> getAxioms(final OWLAnnotationProperty prop)
+	{
 		return internals.getOWLAnnotationPropertyAxioms(prop);
-//		Set<OWLAnnotationAxiom> result = createSet();
-//		for (OWLSubAnnotationPropertyOfAxiom ax : getAxioms(AxiomType.SUB_ANNOTATION_PROPERTY_OF)) {
-//			if (ax.getSubProperty().equals(prop)) {
-//				result.add(ax);
-//			}
-//		}
-//		for (OWLAnnotationPropertyRangeAxiom ax : getAxioms(AxiomType.ANNOTATION_PROPERTY_RANGE)) {
-//			if (ax.getProperty().equals(prop)) {
-//				result.add(ax);
-//			}
-//		}
-//		for (OWLAnnotationPropertyDomainAxiom ax : getAxioms(AxiomType.ANNOTATION_PROPERTY_DOMAIN)) {
-//			if (ax.getProperty().equals(prop)) {
-//				result.add(ax);
-//			}
-//		}
-//		return result;
+		// Set<OWLAnnotationAxiom> result = createSet();
+		// for (OWLSubAnnotationPropertyOfAxiom ax :
+		// getAxioms(AxiomType.SUB_ANNOTATION_PROPERTY_OF)) {
+		// if (ax.getSubProperty().equals(prop)) {
+		// result.add(ax);
+		// }
+		// }
+		// for (OWLAnnotationPropertyRangeAxiom ax :
+		// getAxioms(AxiomType.ANNOTATION_PROPERTY_RANGE)) {
+		// if (ax.getProperty().equals(prop)) {
+		// result.add(ax);
+		// }
+		// }
+		// for (OWLAnnotationPropertyDomainAxiom ax :
+		// getAxioms(AxiomType.ANNOTATION_PROPERTY_DOMAIN)) {
+		// if (ax.getProperty().equals(prop)) {
+		// result.add(ax);
+		// }
+		// }
+		// return result;
 	}
 
-	public Set<OWLDataPropertyAxiom> getAxioms(final OWLDataProperty prop) {
+	public Set<OWLDataPropertyAxiom> getAxioms(final OWLDataProperty prop)
+	{
 		return internals.getOWLDataPropertyAxioms(prop);
-//		final Set<OWLDataPropertyAxiom> result = createSet();
-//		result.addAll(getDataPropertyDomainAxioms(prop));
-//		result.addAll(getEquivalentDataPropertiesAxioms(prop));
-//		result.addAll(getDisjointDataPropertiesAxioms(prop));
-//		result.addAll(getDataPropertyRangeAxioms(prop));
-//		result.addAll(getFunctionalDataPropertyAxioms(prop));
-//		result.addAll(getDataSubPropertyAxiomsForSubProperty(prop));
-//		return result;
+		// final Set<OWLDataPropertyAxiom> result = createSet();
+		// result.addAll(getDataPropertyDomainAxioms(prop));
+		// result.addAll(getEquivalentDataPropertiesAxioms(prop));
+		// result.addAll(getDisjointDataPropertiesAxioms(prop));
+		// result.addAll(getDataPropertyRangeAxioms(prop));
+		// result.addAll(getFunctionalDataPropertyAxioms(prop));
+		// result.addAll(getDataSubPropertyAxiomsForSubProperty(prop));
+		// return result;
 	}
 
-	public Set<OWLIndividualAxiom> getAxioms(final OWLIndividual individual) {
+	public Set<OWLIndividualAxiom> getAxioms(final OWLIndividual individual)
+	{
 		return internals.getOWLIndividualAxioms(individual);
-//2011.12.05 optimized
-//		final Set<OWLIndividualAxiom> result = createSet();
-//		result.addAll(getClassAssertionAxioms(individual));
-//		result.addAll(getObjectPropertyAssertionAxioms(individual));
-//		result.addAll(getDataPropertyAssertionAxioms(individual));
-//		result.addAll(getNegativeObjectPropertyAssertionAxioms(individual));
-//		result.addAll(getNegativeDataPropertyAssertionAxioms(individual));
-//		result.addAll(getSameIndividualAxioms(individual));
-//		result.addAll(getDifferentIndividualAxioms(individual));
-//		return result;
+		// 2011.12.05 optimized
+		// final Set<OWLIndividualAxiom> result = createSet();
+		// result.addAll(getClassAssertionAxioms(individual));
+		// result.addAll(getObjectPropertyAssertionAxioms(individual));
+		// result.addAll(getDataPropertyAssertionAxioms(individual));
+		// result.addAll(getNegativeObjectPropertyAssertionAxioms(individual));
+		// result.addAll(getNegativeDataPropertyAssertionAxioms(individual));
+		// result.addAll(getSameIndividualAxioms(individual));
+		// result.addAll(getDifferentIndividualAxioms(individual));
+		// return result;
 	}
 
-	public Set<OWLDatatypeDefinitionAxiom> getAxioms(OWLDatatype datatype) {
+	public Set<OWLDatatypeDefinitionAxiom> getAxioms(OWLDatatype datatype)
+	{
 		return getDatatypeDefinitions(datatype);
 	}
 
-	public Set<OWLNamedObject> getReferencedObjects() {
+	public Set<OWLNamedObject> getReferencedObjects()
+	{
 		Set<OWLNamedObject> result = createSet();
 		result.addAll(internals.getOwlClasses());
-		//result.addAll(internals.getOwlClassReferences().keySet());
+		// result.addAll(internals.getOwlClassReferences().keySet());
 		// Consider doing this in a more efficient way (although typically, the
 		// number of
 		// properties in an ontology isn't large)
-		for (OWLObjectPropertyExpression prop : internals.getOwlObjectProperties()) {
-			if (!prop.isAnonymous()) {
+		for (OWLObjectPropertyExpression prop : internals
+				.getOwlObjectProperties())
+		{
+			if (!prop.isAnonymous())
+			{
 				result.add((OWLObjectProperty) prop);
 			}
 		}
-//		for (OWLObjectPropertyExpression prop : internals.getOwlObjectPropertyReferences().keySet()) {
-//			if (!prop.isAnonymous()) {
-//				result.add((OWLObjectProperty) prop);
-//			}
-//		}
+		// for (OWLObjectPropertyExpression prop :
+		// internals.getOwlObjectPropertyReferences().keySet()) {
+		// if (!prop.isAnonymous()) {
+		// result.add((OWLObjectProperty) prop);
+		// }
+		// }
 		result.addAll(internals.getOwlDataProperties());
-//		result.addAll(internals.getOwlDataPropertyReferences().keySet());
+		// result.addAll(internals.getOwlDataPropertyReferences().keySet());
 		result.addAll(internals.getOwlNamedIndividuals());
-		//hilpold old result.addAll(internals.getOwlIndividualReferences().keySet());
+		// hilpold old
+		// result.addAll(internals.getOwlIndividualReferences().keySet());
 		return result;
 	}
 
 	@Override
-	public Set<OWLEntity> getSignature() {
+	public Set<OWLEntity> getSignature()
+	{
 		// We might want to cache this for performance reasons,
 		// but I'm not sure right now.
 		Set<OWLEntity> entities = createSet();
@@ -902,11 +1091,15 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		return entities;
 	}
 
-	public Set<OWLEntity> getSignature(boolean includeImportsClosure) {
+	public Set<OWLEntity> getSignature(boolean includeImportsClosure)
+	{
 		Set<OWLEntity> entities = getSignature();
-		if (includeImportsClosure) {
-			for (OWLOntology ont : getImportsClosure()) {
-				if (!ont.equals(this)) {
+		if (includeImportsClosure)
+		{
+			for (OWLOntology ont : getImportsClosure())
+			{
+				if (!ont.equals(this))
+				{
 					entities.addAll(ont.getSignature());
 				}
 			}
@@ -915,26 +1108,33 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	}
 
 	@Override
-	public Set<OWLClass> getClassesInSignature() {
+	public Set<OWLClass> getClassesInSignature()
+	{
 		return internals.getReturnSet(internals.getOwlClasses());
-//		return internals.getReturnSet(internals.getOwlClassReferences().keySet());
+		// return
+		// internals.getReturnSet(internals.getOwlClassReferences().keySet());
 	}
 
 	@Override
-	public Set<OWLDataProperty> getDataPropertiesInSignature() {
+	public Set<OWLDataProperty> getDataPropertiesInSignature()
+	{
 		return internals.getReturnSet(internals.getOwlDataProperties());
-//		return internals.getReturnSet(internals.getOwlDataPropertyReferences().keySet());
+		// return
+		// internals.getReturnSet(internals.getOwlDataPropertyReferences().keySet());
 	}
 
 	@Override
-	public Set<OWLObjectProperty> getObjectPropertiesInSignature() {
+	public Set<OWLObjectProperty> getObjectPropertiesInSignature()
+	{
 		return internals.getOwlObjectProperties();
-//		return internals.getOwlObjectPropertyReferences().keySet();
+		// return internals.getOwlObjectPropertyReferences().keySet();
 	}
 
 	@Override
-	public Set<OWLNamedIndividual> getIndividualsInSignature() {
-		//hilpold old return internals.getReturnSet(internals.getOwlIndividualReferences().keySet());
+	public Set<OWLNamedIndividual> getIndividualsInSignature()
+	{
+		// hilpold old return
+		// internals.getReturnSet(internals.getOwlIndividualReferences().keySet());
 		return internals.getOwlNamedIndividuals();
 	}
 
@@ -946,9 +1146,11 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 *         object.
 	 */
 	@Override
-	public Set<OWLDatatype> getDatatypesInSignature() {
+	public Set<OWLDatatype> getDatatypesInSignature()
+	{
 		return internals.getReturnSet(internals.getOwlDatatypes());
-//		return internals.getReturnSet(internals.getOwlDatatypeReferences().keySet());
+		// return
+		// internals.getReturnSet(internals.getOwlDatatypeReferences().keySet());
 	}
 
 	/**
@@ -966,12 +1168,15 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 *         updated if the ontology changes. It is therefore safe to apply
 	 *         changes to this ontology while iterating over this set.
 	 */
-	public Set<OWLClass> getClassesInSignature(boolean includeImportsClosure) {
-		if (!includeImportsClosure) {
+	public Set<OWLClass> getClassesInSignature(boolean includeImportsClosure)
+	{
+		if (!includeImportsClosure)
+		{
 			return getClassesInSignature();
 		}
 		Set<OWLClass> results = createSet();
-		for (OWLOntology ont : getImportsClosure()) {
+		for (OWLOntology ont : getImportsClosure())
+		{
 			results.addAll(ont.getClassesInSignature());
 		}
 		return results;
@@ -993,12 +1198,16 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 *         be updated if the ontology changes. It is therefore safe to apply
 	 *         changes to this ontology while iterating over this set.
 	 */
-	public Set<OWLObjectProperty> getObjectPropertiesInSignature(boolean includeImportsClosure) {
-		if (!includeImportsClosure) {
+	public Set<OWLObjectProperty> getObjectPropertiesInSignature(
+			boolean includeImportsClosure)
+	{
+		if (!includeImportsClosure)
+		{
 			return getObjectPropertiesInSignature();
 		}
 		Set<OWLObjectProperty> results = createSet();
-		for (OWLOntology ont : getImportsClosure()) {
+		for (OWLOntology ont : getImportsClosure())
+		{
 			results.addAll(ont.getObjectPropertiesInSignature());
 		}
 		return results;
@@ -1020,12 +1229,16 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 *         be updated if the ontology changes. It is therefore safe to apply
 	 *         changes to this ontology while iterating over this set.
 	 */
-	public Set<OWLDataProperty> getDataPropertiesInSignature(boolean includeImportsClosure) {
-		if (!includeImportsClosure) {
+	public Set<OWLDataProperty> getDataPropertiesInSignature(
+			boolean includeImportsClosure)
+	{
+		if (!includeImportsClosure)
+		{
 			return getDataPropertiesInSignature();
 		}
 		Set<OWLDataProperty> results = createSet();
-		for (OWLOntology ont : getImportsClosure()) {
+		for (OWLOntology ont : getImportsClosure())
+		{
 			results.addAll(ont.getDataPropertiesInSignature());
 		}
 		return results;
@@ -1047,12 +1260,16 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 *         be updated if the ontology changes. It is therefore safe to apply
 	 *         changes to this ontology while iterating over this set.
 	 */
-	public Set<OWLNamedIndividual> getIndividualsInSignature(boolean includeImportsClosure) {
-		if (!includeImportsClosure) {
+	public Set<OWLNamedIndividual> getIndividualsInSignature(
+			boolean includeImportsClosure)
+	{
+		if (!includeImportsClosure)
+		{
 			return getIndividualsInSignature();
 		}
 		Set<OWLNamedIndividual> results = createSet();
-		for (OWLOntology ont : getImportsClosure()) {
+		for (OWLOntology ont : getImportsClosure())
+		{
 			results.addAll(ont.getIndividualsInSignature());
 		}
 		return results;
@@ -1063,9 +1280,11 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 * 
 	 * @return The set of referenced anonymous individuals
 	 */
-	public Set<OWLAnonymousIndividual> getReferencedAnonymousIndividuals() {
+	public Set<OWLAnonymousIndividual> getReferencedAnonymousIndividuals()
+	{
 		return internals.getReturnSet(internals.getOwlAnonymousIndividuals());
-		//return internals.getReturnSet(internals.getOwlAnonymousIndividualReferences().keySet());
+		// return
+		// internals.getReturnSet(internals.getOwlAnonymousIndividualReferences().keySet());
 	}
 
 	/**
@@ -1082,40 +1301,52 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 * @return The set of datatypes that are referenced by axioms in this
 	 *         ontology and possibly its imports closure
 	 */
-	public Set<OWLDatatype> getDatatypesInSignature(boolean includeImportsClosure) {
-		if (!includeImportsClosure) {
+	public Set<OWLDatatype> getDatatypesInSignature(
+			boolean includeImportsClosure)
+	{
+		if (!includeImportsClosure)
+		{
 			return getDatatypesInSignature();
 		}
 		Set<OWLDatatype> results = createSet();
-		for (OWLOntology ont : getImportsClosure()) {
+		for (OWLOntology ont : getImportsClosure())
+		{
 			results.addAll(ont.getDatatypesInSignature());
 		}
 		return results;
 	}
 
-	public Set<OWLAnnotationProperty> getAnnotationPropertiesInSignature() {
-		Set<OWLAnnotationProperty> props = createSet(internals.getOwlAnnotationProperties());
-//		Set<OWLAnnotationProperty> props = createSet(internals.getOwlAnnotationPropertyReferences()
-//				.keySet());
-		for (OWLAnnotation anno : internals.getOntologyAnnotations()) {
+	public Set<OWLAnnotationProperty> getAnnotationPropertiesInSignature()
+	{
+		Set<OWLAnnotationProperty> props = createSet(internals
+				.getOwlAnnotationProperties());
+		// Set<OWLAnnotationProperty> props =
+		// createSet(internals.getOwlAnnotationPropertyReferences()
+		// .keySet());
+		for (OWLAnnotation anno : internals.getOntologyAnnotations())
+		{
 			props.add(anno.getProperty());
 		}
 		return internals.getReturnSet(props);
 	}
 
 	public Set<OWLAnnotationProperty> getReferencedAnnotationProperties(
-			boolean includeImportsClosure) {
-		if (!includeImportsClosure) {
+			boolean includeImportsClosure)
+	{
+		if (!includeImportsClosure)
+		{
 			return getAnnotationPropertiesInSignature();
 		}
 		Set<OWLAnnotationProperty> results = createSet();
-		for (OWLOntology ont : getImportsClosure()) {
+		for (OWLOntology ont : getImportsClosure())
+		{
 			results.addAll(ont.getAnnotationPropertiesInSignature());
 		}
 		return results;
 	}
 
-	public Set<OWLImportsDeclaration> getImportsDeclarations() {
+	public Set<OWLImportsDeclaration> getImportsDeclarations()
+	{
 		return internals.getImportsDeclarations();
 	}
 
@@ -1131,7 +1362,9 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 *             If this ontology is no longer managed by its manager because
 	 *             it was removed from the manager.
 	 */
-	public Set<IRI> getDirectImportsDocuments() throws UnknownOWLOntologyException {
+	public Set<IRI> getDirectImportsDocuments()
+			throws UnknownOWLOntologyException
+	{
 		Set<IRI> result = createSet();
 
 		// List<IRI> imports = hg.getAll(getHyperGraph(),
@@ -1142,13 +1375,16 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		//
 		// graph.add(new HGValueLink("importsLink", ontologyHandle, iriHandle));
 
-		for (OWLImportsDeclaration importsDeclaration : internals.getImportsDeclarations()) {
+		for (OWLImportsDeclaration importsDeclaration : internals
+				.getImportsDeclarations())
+		{
 			result.add(importsDeclaration.getIRI());
 		}
 		return result;
 	}
 
-	public Set<OWLOntology> getImports() throws UnknownOWLOntologyException {
+	public Set<OWLOntology> getImports() throws UnknownOWLOntologyException
+	{
 		return manager.getImports(this);
 	}
 
@@ -1169,178 +1405,224 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 *             If this ontology is no longer managed by its manager because
 	 *             it was removed from the manager.
 	 */
-	public Set<OWLOntology> getDirectImports() throws UnknownOWLOntologyException {
+	public Set<OWLOntology> getDirectImports()
+			throws UnknownOWLOntologyException
+	{
 		return manager.getDirectImports(this);
 	}
 
-	public Set<OWLOntology> getImportsClosure() throws UnknownOWLOntologyException {
+	public Set<OWLOntology> getImportsClosure()
+			throws UnknownOWLOntologyException
+	{
 		return getOWLOntologyManager().getImportsClosure(this);
 	}
 
-	public Set<OWLSubClassOfAxiom> getSubClassAxiomsForSubClass(OWLClass cls) {
+	public Set<OWLSubClassOfAxiom> getSubClassAxiomsForSubClass(OWLClass cls)
+	{
 		return internals.getSubClassAxiomsForSubClass(cls);
 	}
 
-	public Set<OWLSubClassOfAxiom> getSubClassAxiomsForSuperClass(OWLClass cls) {
+	public Set<OWLSubClassOfAxiom> getSubClassAxiomsForSuperClass(OWLClass cls)
+	{
 		return internals.getSubClassAxiomsForSuperClass(cls);
 	}
 
-	public Set<OWLEquivalentClassesAxiom> getEquivalentClassesAxioms(OWLClass cls) {
+	public Set<OWLEquivalentClassesAxiom> getEquivalentClassesAxioms(
+			OWLClass cls)
+	{
 		return internals.getEquivalentClassesAxioms(cls);
 	}
 
-	public Set<OWLDisjointClassesAxiom> getDisjointClassesAxioms(OWLClass cls) {
+	public Set<OWLDisjointClassesAxiom> getDisjointClassesAxioms(OWLClass cls)
+	{
 		return internals.getDisjointClassesAxioms(cls);
 	}
 
-	public Set<OWLDisjointUnionAxiom> getDisjointUnionAxioms(OWLClass owlClass) {
+	public Set<OWLDisjointUnionAxiom> getDisjointUnionAxioms(OWLClass owlClass)
+	{
 		return internals.getDisjointUnionAxioms(owlClass);
 	}
 
-	public Set<OWLHasKeyAxiom> getHasKeyAxioms(OWLClass cls) {
+	public Set<OWLHasKeyAxiom> getHasKeyAxioms(OWLClass cls)
+	{
 		return internals.getHasKeyAxioms(cls);
 	}
 
 	// Object properties
 
 	public Set<OWLSubObjectPropertyOfAxiom> getObjectSubPropertyAxiomsForSubProperty(
-			OWLObjectPropertyExpression property) {
+			OWLObjectPropertyExpression property)
+	{
 		return internals.getObjectSubPropertyAxiomsForSubProperty(property);
 	}
 
 	public Set<OWLSubObjectPropertyOfAxiom> getObjectSubPropertyAxiomsForSuperProperty(
-			OWLObjectPropertyExpression property) {
+			OWLObjectPropertyExpression property)
+	{
 		return internals.getObjectSubPropertyAxiomsForSuperProperty(property);
 	}
 
 	public Set<OWLObjectPropertyDomainAxiom> getObjectPropertyDomainAxioms(
-			OWLObjectPropertyExpression property) {
+			OWLObjectPropertyExpression property)
+	{
 		return internals.getObjectPropertyDomainAxioms(property);
 	}
 
 	public Set<OWLObjectPropertyRangeAxiom> getObjectPropertyRangeAxioms(
-			OWLObjectPropertyExpression property) {
+			OWLObjectPropertyExpression property)
+	{
 		return internals.getObjectPropertyRangeAxioms(property);
 	}
 
 	public Set<OWLInverseObjectPropertiesAxiom> getInverseObjectPropertyAxioms(
-			OWLObjectPropertyExpression property) {
+			OWLObjectPropertyExpression property)
+	{
 		return internals.getInverseObjectPropertyAxioms(property);
 	}
 
 	public Set<OWLEquivalentObjectPropertiesAxiom> getEquivalentObjectPropertiesAxioms(
-			OWLObjectPropertyExpression property) {
+			OWLObjectPropertyExpression property)
+	{
 		return internals.getEquivalentObjectPropertiesAxioms(property);
 	}
 
 	public Set<OWLDisjointObjectPropertiesAxiom> getDisjointObjectPropertiesAxioms(
-			OWLObjectPropertyExpression property) {
+			OWLObjectPropertyExpression property)
+	{
 		return internals.getDisjointObjectPropertiesAxioms(property);
 	}
 
 	public Set<OWLFunctionalObjectPropertyAxiom> getFunctionalObjectPropertyAxioms(
-			OWLObjectPropertyExpression property) {
+			OWLObjectPropertyExpression property)
+	{
 		return internals.getFunctionalObjectPropertyAxioms(property);
 	}
 
 	public Set<OWLInverseFunctionalObjectPropertyAxiom> getInverseFunctionalObjectPropertyAxioms(
-			OWLObjectPropertyExpression property) {
+			OWLObjectPropertyExpression property)
+	{
 		return internals.getInverseFunctionalObjectPropertyAxioms(property);
 	}
 
 	public Set<OWLSymmetricObjectPropertyAxiom> getSymmetricObjectPropertyAxioms(
-			OWLObjectPropertyExpression property) {
+			OWLObjectPropertyExpression property)
+	{
 		return internals.getSymmetricObjectPropertyAxioms(property);
 	}
 
 	public Set<OWLAsymmetricObjectPropertyAxiom> getAsymmetricObjectPropertyAxioms(
-			OWLObjectPropertyExpression property) {
+			OWLObjectPropertyExpression property)
+	{
 		return internals.getAsymmetricObjectPropertyAxioms(property);
 	}
 
 	public Set<OWLReflexiveObjectPropertyAxiom> getReflexiveObjectPropertyAxioms(
-			OWLObjectPropertyExpression property) {
+			OWLObjectPropertyExpression property)
+	{
 		return internals.getReflexiveObjectPropertyAxioms(property);
 	}
 
 	public Set<OWLIrreflexiveObjectPropertyAxiom> getIrreflexiveObjectPropertyAxioms(
-			OWLObjectPropertyExpression property) {
+			OWLObjectPropertyExpression property)
+	{
 		return internals.getIrreflexiveObjectPropertyAxioms(property);
 	}
 
 	public Set<OWLTransitiveObjectPropertyAxiom> getTransitiveObjectPropertyAxioms(
-			OWLObjectPropertyExpression property) {
+			OWLObjectPropertyExpression property)
+	{
 		return internals.getTransitiveObjectPropertyAxioms(property);
 	}
 
 	public Set<OWLFunctionalDataPropertyAxiom> getFunctionalDataPropertyAxioms(
-			OWLDataPropertyExpression property) {
+			OWLDataPropertyExpression property)
+	{
 		return internals.getFunctionalDataPropertyAxioms(property);
 	}
 
 	public Set<OWLSubDataPropertyOfAxiom> getDataSubPropertyAxiomsForSubProperty(
-			OWLDataProperty lhsProperty) {
+			OWLDataProperty lhsProperty)
+	{
 		return internals.getDataSubPropertyAxiomsForSubProperty(lhsProperty);
 	}
 
 	public Set<OWLSubDataPropertyOfAxiom> getDataSubPropertyAxiomsForSuperProperty(
-			OWLDataPropertyExpression property) {
+			OWLDataPropertyExpression property)
+	{
 		return internals.getDataSubPropertyAxiomsForSuperProperty(property);
 	}
 
-	public Set<OWLDataPropertyDomainAxiom> getDataPropertyDomainAxioms(OWLDataProperty property) {
+	public Set<OWLDataPropertyDomainAxiom> getDataPropertyDomainAxioms(
+			OWLDataProperty property)
+	{
 		return internals.getDataPropertyDomainAxioms(property);
 	}
 
-	public Set<OWLDataPropertyRangeAxiom> getDataPropertyRangeAxioms(OWLDataProperty property) {
+	public Set<OWLDataPropertyRangeAxiom> getDataPropertyRangeAxioms(
+			OWLDataProperty property)
+	{
 		return internals.getDataPropertyRangeAxioms(property);
 	}
 
 	public Set<OWLEquivalentDataPropertiesAxiom> getEquivalentDataPropertiesAxioms(
-			OWLDataProperty property) {
+			OWLDataProperty property)
+	{
 		return internals.getEquivalentDataPropertiesAxioms(property);
 	}
 
 	public Set<OWLDisjointDataPropertiesAxiom> getDisjointDataPropertiesAxioms(
-			OWLDataProperty property) {
+			OWLDataProperty property)
+	{
 		return internals.getDisjointDataPropertiesAxioms(property);
 	}
 
 	// //
 
-	public Set<OWLClassAssertionAxiom> getClassAssertionAxioms(OWLIndividual individual) {
+	public Set<OWLClassAssertionAxiom> getClassAssertionAxioms(
+			OWLIndividual individual)
+	{
 		return internals.getClassAssertionAxioms(individual);
 	}
 
-	public Set<OWLClassAssertionAxiom> getClassAssertionAxioms(OWLClassExpression type) {
+	public Set<OWLClassAssertionAxiom> getClassAssertionAxioms(
+			OWLClassExpression type)
+	{
 		return internals.getClassAssertionAxioms(type);
 	}
 
 	public Set<OWLDataPropertyAssertionAxiom> getDataPropertyAssertionAxioms(
-			OWLIndividual individual) {
+			OWLIndividual individual)
+	{
 		return internals.getDataPropertyAssertionAxioms(individual);
 	}
 
 	public Set<OWLObjectPropertyAssertionAxiom> getObjectPropertyAssertionAxioms(
-			OWLIndividual individual) {
+			OWLIndividual individual)
+	{
 		return internals.getObjectPropertyAssertionAxioms(individual);
 	}
 
 	public Set<OWLNegativeObjectPropertyAssertionAxiom> getNegativeObjectPropertyAssertionAxioms(
-			OWLIndividual individual) {
+			OWLIndividual individual)
+	{
 		return internals.getNegativeObjectPropertyAssertionAxioms(individual);
 	}
 
 	public Set<OWLNegativeDataPropertyAssertionAxiom> getNegativeDataPropertyAssertionAxioms(
-			OWLIndividual individual) {
+			OWLIndividual individual)
+	{
 		return internals.getNegativeDataPropertyAssertionAxioms(individual);
 	}
 
-	public Set<OWLSameIndividualAxiom> getSameIndividualAxioms(OWLIndividual individual) {
+	public Set<OWLSameIndividualAxiom> getSameIndividualAxioms(
+			OWLIndividual individual)
+	{
 		return internals.getSameIndividualAxioms(individual);
 	}
 
-	public Set<OWLDifferentIndividualsAxiom> getDifferentIndividualAxioms(OWLIndividual individual) {
+	public Set<OWLDifferentIndividualsAxiom> getDifferentIndividualAxioms(
+			OWLIndividual individual)
+	{
 		return internals.getDifferentIndividualAxioms(individual);
 	}
 
@@ -1352,25 +1634,36 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	// ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	public synchronized List<OWLOntologyChange> applyChange(OWLOntologyChange change) {
-		List<OWLOntologyChange> appliedChanges = new ArrayList<OWLOntologyChange>(2);
+	public synchronized List<OWLOntologyChange> applyChange(
+			OWLOntologyChange change)
+	{
+		List<OWLOntologyChange> appliedChanges = new ArrayList<OWLOntologyChange>(
+				2);
 		OWLOntologyChangeFilter changeFilter = new OWLOntologyChangeFilter();
-		if (DBG) printChange(change);
+		if (DBG)
+			printChange(change);
 		change.accept(changeFilter);
 		List<OWLOntologyChange> applied = changeFilter.getAppliedChanges();
-		if (applied.size() == 1) {
+		if (applied.size() == 1)
+		{
 			appliedChanges.add(change);
-		} else {
+		}
+		else
+		{
 			appliedChanges.addAll(applied);
 		}
 		return appliedChanges;
 	}
 
-	public synchronized List<OWLOntologyChange> applyChanges(List<OWLOntologyChange> changes) {
+	public synchronized List<OWLOntologyChange> applyChanges(
+			List<OWLOntologyChange> changes)
+	{
 		List<OWLOntologyChange> appliedChanges = new ArrayList<OWLOntologyChange>();
 		OWLOntologyChangeFilter changeFilter = new OWLOntologyChangeFilter();
-		for (OWLOntologyChange change : changes) {
-			if(DBG) printChange(change);
+		for (OWLOntologyChange change : changes)
+		{
+			if (DBG)
+				printChange(change);
 			change.accept(changeFilter);
 			appliedChanges.addAll(changeFilter.getAppliedChanges());
 			changeFilter.reset();
@@ -1378,30 +1671,39 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 		return appliedChanges;
 	}
 
-	public void printChange(OWLOntologyChange c) {
+	public void printChange(OWLOntologyChange c)
+	{
 		log.info("OWLOntoChange: " + c.toString());
 	}
 
-	protected class OWLOntologyChangeFilter implements HGDBOntologyChangeVisitor {
+	protected class OWLOntologyChangeFilter implements
+			HGDBOntologyChangeVisitor
+	{
 
 		private List<OWLOntologyChange> appliedChanges;
 
-		public OWLOntologyChangeFilter() {
+		public OWLOntologyChangeFilter()
+		{
 			appliedChanges = new ArrayList<OWLOntologyChange>();
 		}
 
-		public List<OWLOntologyChange> getAppliedChanges() {
+		public List<OWLOntologyChange> getAppliedChanges()
+		{
 			return appliedChanges;
 		}
 
-		public void reset() {
+		public void reset()
+		{
 			appliedChanges.clear();
 		}
 
-		public void visit(AddAxiom change) {
+		public void visit(AddAxiom change)
+		{
 			OWLAxiom axiom = change.getAxiom();
-			if (!containsAxiom(axiom)) {
-				//TODO Define transaction here. Use AbortACtion to revert appliedchanges.add)				
+			if (!containsAxiom(axiom))
+			{
+				// TODO Define transaction here. Use AbortACtion to revert
+				// appliedchanges.add)
 				OWLAxiomVisitor changeVisitor = getAxiomVisitor(true);
 				axiom.accept(changeVisitor);
 				appliedChanges.add(change);
@@ -1409,10 +1711,13 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 			}
 		}
 
-		public void visit(RemoveAxiom change) {
-			OWLAxiom axiom = change.getAxiom();			
-			if (containsAxiom(axiom)) {
-				//TODO Define transaction here. Use AbortACtion to revert appliedchanges.add)				
+		public void visit(RemoveAxiom change)
+		{
+			OWLAxiom axiom = change.getAxiom();
+			if (containsAxiom(axiom))
+			{
+				// TODO Define transaction here. Use AbortACtion to revert
+				// appliedchanges.add)
 				OWLAxiomVisitor changeVisitor = getAxiomVisitor(false);
 				axiom.accept(changeVisitor);
 				appliedChanges.add(change);
@@ -1420,77 +1725,109 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 			}
 		}
 
-		public void visit(SetOntologyID change) {
+		public void visit(SetOntologyID change)
+		{
 			OWLOntologyID id = change.getNewOntologyID();
-			if (!id.equals(ontologyID)) {
+			if (!id.equals(ontologyID))
+			{
 				appliedChanges.add(change);
 				ontologyID = id;
 				graph.update(HGDBOntologyImpl.this);
 			}
 		}
 
-		public void visit(AddImport change) {
+		public void visit(AddImport change)
+		{
 			// TODO change this to be done inside
-			if (internals.addImportsDeclaration(change.getImportDeclaration())) {
+			if (internals.addImportsDeclaration(change.getImportDeclaration()))
+			{
 				appliedChanges.add(change);
 			}
 		}
 
-		public void visit(RemoveImport change) {
-			if (internals.removeImportsDeclaration(change.getImportDeclaration())) {
+		public void visit(RemoveImport change)
+		{
+			if (internals.removeImportsDeclaration(change
+					.getImportDeclaration()))
+			{
 				appliedChanges.add(change);
 
 			}
 		}
 
-		public void visit(AddOntologyAnnotation change) {
-			if (internals.addOntologyAnnotation(change.getAnnotation())) {
+		public void visit(AddOntologyAnnotation change)
+		{
+			if (internals.addOntologyAnnotation(change.getAnnotation()))
+			{
 				appliedChanges.add(change);
 			}
 		}
 
-		public void visit(RemoveOntologyAnnotation change) {
-			if (internals.removeOntologyAnnotation(change.getAnnotation())) {
+		public void visit(RemoveOntologyAnnotation change)
+		{
+			if (internals.removeOntologyAnnotation(change.getAnnotation()))
+			{
 				appliedChanges.add(change);
 			}
 		}
 
-		/* (non-Javadoc)
-		 * @see org.hypergraphdb.app.owl.core.HGDBOntologyChangeVisitor#visit(org.hypergraphdb.app.owl.core.AddPrefixChange)
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see
+		 * org.hypergraphdb.app.owl.core.HGDBOntologyChangeVisitor#visit(org
+		 * .hypergraphdb.app.owl.core.AddPrefixChange)
 		 */
 		@Override
-		public void visit(AddPrefixChange change) {
+		public void visit(AddPrefixChange change)
+		{
 			String prefixName = change.getPrefixNameToPrefix().getFirst();
 			String namespace = change.getPrefixNameToPrefix().getSecond();
-			if (prefixName == null) throw new IllegalArgumentException();
-			if (namespace == null) throw new IllegalArgumentException();
+			if (prefixName == null)
+				throw new IllegalArgumentException();
+			if (namespace == null)
+				throw new IllegalArgumentException();
 			String oldNamespace = internals.setPrefix(prefixName, namespace);
-			if (oldNamespace == null || !oldNamespace.equals(namespace)) {
+			if (oldNamespace == null || !oldNamespace.equals(namespace))
+			{
 				appliedChanges.add(change);
-				if (manager != null) {
-					//Keep format synchronized
-					HGDBOntologyFormat hgdbf = (HGDBOntologyFormat)manager.getOntologyFormat(HGDBOntologyImpl.this);
-					if (hgdbf != null && !hgdbf.isFiringChange()) {
+				if (manager != null)
+				{
+					// Keep format synchronized
+					HGDBOntologyFormat hgdbf = (HGDBOntologyFormat) manager
+							.getOntologyFormat(HGDBOntologyImpl.this);
+					if (hgdbf != null && !hgdbf.isFiringChange())
+					{
 						hgdbf.addPrefixQuiet(prefixName, namespace);
 					}
 				}
 			}
 		}
 
-		/* (non-Javadoc)
-		 * @see org.hypergraphdb.app.owl.core.HGDBOntologyChangeVisitor#visit(org.hypergraphdb.app.owl.core.RemovePrefixChange)
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see
+		 * org.hypergraphdb.app.owl.core.HGDBOntologyChangeVisitor#visit(org
+		 * .hypergraphdb.app.owl.core.RemovePrefixChange)
 		 */
 		@Override
-		public void visit(RemovePrefixChange change) {
+		public void visit(RemovePrefixChange change)
+		{
 			String prefixName = change.getPrefixNameToPrefix().getFirst();
-			if (prefixName == null) throw new IllegalArgumentException();
+			if (prefixName == null)
+				throw new IllegalArgumentException();
 			String oldPrefix = internals.removePrefix(prefixName);
-			if (oldPrefix != null) {
+			if (oldPrefix != null)
+			{
 				appliedChanges.add(change);
-				if (manager != null) {
-					//Keep format synchronized
-					HGDBOntologyFormat hgdbf = (HGDBOntologyFormat)manager.getOntologyFormat(HGDBOntologyImpl.this);
-					if (hgdbf != null && !hgdbf.isFiringChange()) {
+				if (manager != null)
+				{
+					// Keep format synchronized
+					HGDBOntologyFormat hgdbf = (HGDBOntologyFormat) manager
+							.getOntologyFormat(HGDBOntologyImpl.this);
+					if (hgdbf != null && !hgdbf.isFiringChange())
+					{
 						hgdbf.removePrefixQuiet(prefixName);
 					}
 				}
@@ -1509,77 +1846,115 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	// private OWLNamedObjectReferenceAdder referenceAdder = new
 	// OWLNamedObjectReferenceAdder();
 
-	private void handleAxiomAdded(OWLAxiom axiom) {
+	private void handleAxiomAdded(OWLAxiom axiom)
+	{
 		Set<OWLEntity> sig = new HashSet<OWLEntity>();
 		Set<OWLAnonymousIndividual> anons = new HashSet<OWLAnonymousIndividual>();
 		OWLEntityCollector entityCollector = new OWLEntityCollector(sig, anons);
 		// OWLNamedObjectReferenceAdder referenceAdder = getReferenceAdder();
 		axiom.accept(entityCollector);
-		for (OWLEntity object : sig) {
+		for (OWLEntity object : sig)
+		{
 			// if it's not a member of our onto and we refer to it, add it,
 			// including builtin Entities, as they can be in many ontologies.
-			//2010.10.12 if (!object.isBuiltIn()) {
-				HGHandle objectHandle = graph.getHandle(object);
-				if (objectHandle != null) {
-					if  (!this.isMember(objectHandle)) {
-						this.add(objectHandle);
-					} //else {
-					// Just added an axiom that refers to an entity that's already a member of our ontology. 
-					//}
-				} else {
-					throw new IllegalStateException("getHandle(entity) for entity in memory returned null. Implement find?");
-				}
-//			} else {
-//				// builtin not added to onto.
-//				if (DBG) log.info("handleAxiomAdded: found builtin entity in Axiom signature: " + object);
-//			}
+			// 2010.10.12 if (!object.isBuiltIn()) {
+			HGHandle objectHandle = graph.getHandle(object);
+			if (objectHandle != null)
+			{
+				if (!this.isMember(objectHandle))
+				{
+					this.add(objectHandle);
+				} // else {
+					// Just added an axiom that refers to an entity that's
+					// already a member of our ontology.
+					// }
+			}
+			else
+			{
+				throw new IllegalStateException(
+						"getHandle(entity) for entity in memory returned null. Implement find?");
+			}
+			// } else {
+			// // builtin not added to onto.
+			// if (DBG)
+			// log.info("handleAxiomAdded: found builtin entity in Axiom signature: "
+			// + object);
+			// }
 		}
 		// hilpold referenceAdder.setAxiom(axiom);
 		// object.accept(referenceAdder);
-		
-		for (OWLAnonymousIndividual anon : anons) {			
+
+		for (OWLAnonymousIndividual anon : anons)
+		{
 			HGHandle anonHandle = graph.getHandle(anon);
-			//this handle might be outside our ontology.
-			if (anonHandle != null) {
-				if  (!this.isMember(anonHandle)) {
-					//ensure unique within ontology (ID); might have duplicates in graph!
-					if (!internals.containsOwlAnonymousIndividual(anon)) {
+			// this handle might be outside our ontology.
+			if (anonHandle != null)
+			{
+				if (!this.isMember(anonHandle))
+				{
+					// ensure unique within ontology (ID); might have duplicates
+					// in graph!
+					if (!internals.containsOwlAnonymousIndividual(anon))
+					{
 						this.add(anonHandle);
-					} else {
-						//ensure that all links pointing to the individual already in ontology.
-						HGHandle existingAnonHandle = internals.findAnonymousIndividual(anon);
+					}
+					else
+					{
+						// ensure that all links pointing to the individual
+						// already in ontology.
+						HGHandle existingAnonHandle = internals
+								.findAnonymousIndividual(anon);
 						assert (existingAnonHandle != null);
-						HGRandomAccessResult<HGHandle> isRAR = graph.getIncidenceSet(anonHandle).getSearchResult();
-						while (isRAR.hasNext()) {
+						HGRandomAccessResult<HGHandle> isRAR = graph
+								.getIncidenceSet(anonHandle).getSearchResult();
+						while (isRAR.hasNext())
+						{
 							HGHandle incident = isRAR.next();
 							Object incidentObject = graph.get(incident);
-							if (incidentObject instanceof HGLink) {
-								//TODO for now we want the following cast, to find the objects who should implement HGChangeableLink
+							if (incidentObject instanceof HGLink)
+							{
+								// TODO for now we want the following cast, to
+								// find the objects who should implement
+								// HGChangeableLink
 								HGChangeableLink incidentObjectLink = (HGChangeableLink) incidentObject;
-								for (int i = 0; i < incidentObjectLink.getArity(); i++) {
-									if (incidentObjectLink.getTargetAt(i) == anonHandle) {
-										incidentObjectLink.setTargetAt(i, existingAnonHandle);
+								for (int i = 0; i < incidentObjectLink
+										.getArity(); i++)
+								{
+									if (incidentObjectLink.getTargetAt(i) == anonHandle)
+									{
+										incidentObjectLink.setTargetAt(i,
+												existingAnonHandle);
 										graph.update(incidentObjectLink);
 									}
 								}
 							}
 						}
 						isRAR.close();
-						if (DBG) log.info("Anonymous Individual already in ontology " + anon
-									+ "\r\n All links now pointing to existing anon handle: " + existingAnonHandle + " replaced handle: " + anonHandle);
-					} // if 
-				} //else {
-				// Just added an axiom that refers to an entity that's already a member of our ontology. 
-				//}
-			} else {
-				throw new IllegalStateException("getHandle(entity) for entity in memory returned null. Implement find?");
+						if (DBG)
+							log.info("Anonymous Individual already in ontology "
+									+ anon
+									+ "\r\n All links now pointing to existing anon handle: "
+									+ existingAnonHandle
+									+ " replaced handle: "
+									+ anonHandle);
+					} // if
+				} // else {
+					// Just added an axiom that refers to an entity that's
+					// already a member of our ontology.
+					// }
 			}
-			//internals.addOwlAnonymousIndividualReferences(ind, axiom);
+			else
+			{
+				throw new IllegalStateException(
+						"getHandle(entity) for entity in memory returned null. Implement find?");
+			}
+			// internals.addOwlAnonymousIndividualReferences(ind, axiom);
 		}
-//		if (axiom.isAnnotated()) {
-//			internals.addLogicalAxiom2AnnotatedAxiomMap(axiom);
-//		}
-		if (DBG) printGraphStats("After HandleAxAdded");		
+		// if (axiom.isAnnotated()) {
+		// internals.addLogicalAxiom2AnnotatedAxiomMap(axiom);
+		// }
+		if (DBG)
+			printGraphStats("After HandleAxAdded");
 	}
 
 	// protected OWLNamedObjectReferenceAdder getReferenceAdder() {
@@ -1593,68 +1968,106 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	// private OWLNamedObjectReferenceRemover referenceRemover = new
 	// OWLNamedObjectReferenceRemover();
 
-	private void handleAxiomRemoved(OWLAxiom axiom) {
+	private void handleAxiomRemoved(OWLAxiom axiom)
+	{
 		Set<OWLEntity> sig = new HashSet<OWLEntity>();
 		Set<OWLAnonymousIndividual> anons = new HashSet<OWLAnonymousIndividual>();
 		OWLEntityCollector entityCollector = new OWLEntityCollector(sig, anons);
-		//old OWLNamedObjectReferenceRemover referenceRemover = getReferenceRemover();
+		// old OWLNamedObjectReferenceRemover referenceRemover =
+		// getReferenceRemover();
 		axiom.accept(entityCollector);
-		for (OWLEntity object : sig) {
+		for (OWLEntity object : sig)
+		{
 			HGHandle objectHandle = graph.getHandle(object);
-				if (objectHandle != null) {				
-					if (this.isMember(objectHandle)) {
-						// Get onto incidence set of atoms that are members.
-						IncidenceSet is = this.getIncidenceSet(objectHandle);
-						if (DBG) printIncidenceSets(objectHandle);
-						// REMOVE IF NO MORE AXIOM IN THE ONTO POINTS TO IT DIRECTLY OR INDIRECTLY
-						//TODO need to check far more here: size is not an indicator for removal if we have dangling ClassExpressions in the graph that are not in any axiom.
-						//2012.02.09 too expensive: if (is.size() == 0) {
-						// isEmpty false will be less costly now, looking for first.
-						if (is.isEmpty()) {
-							//Might still have an axiom that indirectly refers to the object.
-							if (!internals.hasReferencingAxioms(objectHandle)) {
-								this.remove(objectHandle);
-							}
-							// 2011.10.11 DO NOT REMOVE Entity without references from graph,
-							// because it change propagation might want to refer to it.
-							// graph.remove(objectHandle);							
-						}
-					} else {
-						throw new IllegalStateException("Just removed an axiom that did refer to an entity outside our ontology:" + object + " axiom: " + axiom);
-					}
-				} else {
-					//We assume here that no
-					throw new IllegalStateException("getHandle(entity) for entity in memory returned null. Implement find? " + object + " axiom: " + axiom);
-				}
-//			} else {
-//				if (DBG) log.info("handleAxiomRemoved: found builtin entity in Axiom signature: " + object);
-//			}
-		//old referenceRemover.setAxiom(axiom);
-		//old object.accept(referenceRemover);
-		}
-		for (OWLAnonymousIndividual ind : anons) {
-			HGHandle objectHandle = graph.getHandle(ind);
-			if (objectHandle != null) {				
-				if (this.isMember(objectHandle)) {
+			if (objectHandle != null)
+			{
+				if (this.isMember(objectHandle))
+				{
+					// Get onto incidence set of atoms that are members.
 					IncidenceSet is = this.getIncidenceSet(objectHandle);
-					if (DBG) printIncidenceSets(objectHandle);
-					if (is.size() == 0) {
-						if (!internals.hasReferencingAxioms(objectHandle)) {
+					if (DBG)
+						printIncidenceSets(objectHandle);
+					// REMOVE IF NO MORE AXIOM IN THE ONTO POINTS TO IT DIRECTLY
+					// OR INDIRECTLY
+					// TODO need to check far more here: size is not an
+					// indicator for removal if we have dangling
+					// ClassExpressions in the graph that are not in any axiom.
+					// 2012.02.09 too expensive: if (is.size() == 0) {
+					// isEmpty false will be less costly now, looking for first.
+					if (is.isEmpty())
+					{
+						// Might still have an axiom that indirectly refers to
+						// the object.
+						if (!internals.hasReferencingAxioms(objectHandle))
+						{
+							this.remove(objectHandle);
+						}
+						// 2011.10.11 DO NOT REMOVE Entity without references
+						// from graph,
+						// because it change propagation might want to refer to
+						// it.
+						// graph.remove(objectHandle);
+					}
+				}
+				else
+				{
+					throw new IllegalStateException(
+							"Just removed an axiom that did refer to an entity outside our ontology:"
+									+ object + " axiom: " + axiom);
+				}
+			}
+			else
+			{
+				// We assume here that no
+				throw new IllegalStateException(
+						"getHandle(entity) for entity in memory returned null. Implement find? "
+								+ object + " axiom: " + axiom);
+			}
+			// } else {
+			// if (DBG)
+			// log.info("handleAxiomRemoved: found builtin entity in Axiom signature: "
+			// + object);
+			// }
+			// old referenceRemover.setAxiom(axiom);
+			// old object.accept(referenceRemover);
+		}
+		for (OWLAnonymousIndividual ind : anons)
+		{
+			HGHandle objectHandle = graph.getHandle(ind);
+			if (objectHandle != null)
+			{
+				if (this.isMember(objectHandle))
+				{
+					IncidenceSet is = this.getIncidenceSet(objectHandle);
+					if (DBG)
+						printIncidenceSets(objectHandle);
+					if (is.size() == 0)
+					{
+						if (!internals.hasReferencingAxioms(objectHandle))
+						{
 							this.remove(objectHandle);
 						}
 					}
-				} else {
-					throw new IllegalStateException("Just removed an axiom that did refer to an anonymous individual outside our ontology:" + ind);
 				}
-			} else {
-				throw new IllegalStateException("getHandle(entity) for anonymous individual in memory returned null. Implement find?");
+				else
+				{
+					throw new IllegalStateException(
+							"Just removed an axiom that did refer to an anonymous individual outside our ontology:"
+									+ ind);
+				}
 			}
-			//internals.removeOwlAnonymousIndividualReferences(ind, axiom);
+			else
+			{
+				throw new IllegalStateException(
+						"getHandle(entity) for anonymous individual in memory returned null. Implement find?");
+			}
+			// internals.removeOwlAnonymousIndividualReferences(ind, axiom);
 		}
-//		if (axiom.isAnnotated()) {
-//			internals.removeLogicalAxiom2AnnotatedAxiomMap(axiom);
-//		}
-		if (DBG) printGraphStats("After HandleAxRemoved");
+		// if (axiom.isAnnotated()) {
+		// internals.removeLogicalAxiom2AnnotatedAxiomMap(axiom);
+		// }
+		if (DBG)
+			printGraphStats("After HandleAxRemoved");
 	}
 
 	// //////////////////////////////////////////////////////////////////////////////////////////////
@@ -1665,67 +2078,77 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	//
 	// //////////////////////////////////////////////////////////////////////////////////////////////
 
-	public void printGraphStats() {
+	public void printGraphStats()
+	{
 		printGraphStats("");
 	}
 
-	public void printGraphStats(String label) {
-		System.out.println(label  
-				+ "\t Ontology Atoms(non link): " + getNrOfNonLinkAtoms()
-				+ "\t Links : " + getNrOfLinks()  
-				+ "\t Total : " + getNrOfAtoms()  
-				+ "\t Graph Total : " + hg.count(graph, hg.all())
-				);
-		//printOntoOWLObjects();
+	public void printGraphStats(String label)
+	{
+		System.out.println(label + "\t Ontology Atoms(non link): "
+				+ getNrOfNonLinkAtoms() + "\t Links : " + getNrOfLinks()
+				+ "\t Total : " + getNrOfAtoms() + "\t Graph Total : "
+				+ hg.count(graph, hg.all()));
+		// printOntoOWLObjects();
 	}
 
-		public void printOntoOWLObjects() { 
+	public void printOntoOWLObjects()
+	{
 		List<HGHandle> l = this.findAll(hg.all());
 		int i = 1;
-		for (HGHandle h : l) {
+		for (HGHandle h : l)
+		{
 			Object o = graph.get(h);
 			System.out.println("" + i + " : " + o);
 			printIncidenceSets(h);
-			i ++;
-		}		
+			i++;
+		}
 	}
-	
+
 	/**
 	 * @param is
 	 */
-	private void printIncidenceSets(HGHandle atomHandle) {
+	private void printIncidenceSets(HGHandle atomHandle)
+	{
 		Object o = graph.get(atomHandle);
 		IncidenceSet ontoIS = this.getIncidenceSet(atomHandle);
 		IncidenceSet graphIS = graph.getIncidenceSet(atomHandle);
 		printIncidenceSet("Ontology Incidence for " + o, ontoIS);
-		printIncidenceSet("Graph Incidence for " + o, graphIS);		
+		printIncidenceSet("Graph Incidence for " + o, graphIS);
 	}
 
-	private void printIncidenceSet(String header, IncidenceSet iSet) {
+	private void printIncidenceSet(String header, IncidenceSet iSet)
+	{
 		System.out.println("" + header + " size: " + iSet.size());
 		HGRandomAccessResult<HGHandle> isRAR = iSet.getSearchResult();
-		while(isRAR.hasNext()) {
+		while (isRAR.hasNext())
+		{
 			HGHandle h = isRAR.next();
 			Object o = graph.get(h);
-			System.out.println("    " + o);			
-		}	
+			System.out.println("    " + o);
+		}
 		isRAR.close();
 	}
 
-	protected OWLAxiomVisitor getAxiomVisitor(boolean add) {
-		ChangeAxiomVisitorHGDB toReturn = new ChangeAxiomVisitorHGDB(internals, add);
+	protected OWLAxiomVisitor getAxiomVisitor(boolean add)
+	{
+		ChangeAxiomVisitorHGDB toReturn = new ChangeAxiomVisitorHGDB(internals,
+				add);
 		return toReturn;
 	}
 
-	public void accept(OWLObjectVisitor visitor) {
+	public void accept(OWLObjectVisitor visitor)
+	{
 		visitor.visit(this);
 	}
 
-	public void accept(OWLNamedObjectVisitor visitor) {
+	public void accept(OWLNamedObjectVisitor visitor)
+	{
 		visitor.visit(this);
 	}
 
-	public <O> O accept(OWLObjectVisitorEx<O> visitor) {
+	public <O> O accept(OWLObjectVisitorEx<O> visitor)
+	{
 		return visitor.visit(this);
 	}
 
@@ -1738,11 +2161,14 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	// //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	@Override
-	public boolean equals(Object obj) {
-		if (obj == this) {
+	public boolean equals(Object obj)
+	{
+		if (obj == this)
+		{
 			return true;
 		}
-		if (!(obj instanceof OWLOntology)) {
+		if (!(obj instanceof OWLOntology))
+		{
 			return false;
 		}
 		OWLOntology other = (OWLOntology) obj;
@@ -1750,41 +2176,50 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	}
 
 	@Override
-	public int hashCode() {
+	public int hashCode()
+	{
 		return ontologyID.hashCode();
 	}
 
-	private class OWLEntityReferenceChecker implements OWLEntityVisitor {
+	private class OWLEntityReferenceChecker implements OWLEntityVisitor
+	{
 
 		private boolean ref;
 
-		public boolean containsReference(OWLEntity entity) {
+		public boolean containsReference(OWLEntity entity)
+		{
 			ref = false;
 			entity.accept(this);
 			return ref;
 		}
 
-		public void visit(OWLClass cls) {
+		public void visit(OWLClass cls)
+		{
 			ref = HGDBOntologyImpl.this.containsReference(cls);
 		}
 
-		public void visit(OWLDatatype datatype) {
+		public void visit(OWLDatatype datatype)
+		{
 			ref = HGDBOntologyImpl.this.containsReference(datatype);
 		}
 
-		public void visit(OWLNamedIndividual individual) {
+		public void visit(OWLNamedIndividual individual)
+		{
 			ref = HGDBOntologyImpl.this.containsReference(individual);
 		}
 
-		public void visit(OWLDataProperty property) {
+		public void visit(OWLDataProperty property)
+		{
 			ref = HGDBOntologyImpl.this.containsReference(property);
 		}
 
-		public void visit(OWLObjectProperty property) {
+		public void visit(OWLObjectProperty property)
+		{
 			ref = HGDBOntologyImpl.this.containsReference(property);
 		}
 
-		public void visit(OWLAnnotationProperty property) {
+		public void visit(OWLAnnotationProperty property)
+		{
 			ref = HGDBOntologyImpl.this.containsReference(property);
 		}
 	}
@@ -1801,7 +2236,8 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 * .owlapi.model.OWLOntologyID)
 	 */
 	@Override
-	public void setOntologyID(OWLOntologyID id) {
+	public void setOntologyID(OWLOntologyID id)
+	{
 		ontologyID = id;
 	}
 
@@ -1814,7 +2250,8 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 */
 	@HGIgnore
 	@Override
-	public void setOWLOntologyManager(OWLOntologyManager manager) {
+	public void setOWLOntologyManager(OWLOntologyManager manager)
+	{
 		// TODO check out what HG does here if (manager != null) throw new
 		// IllegalStateException("Cannot overwrite");
 		this.manager = manager;
@@ -1828,7 +2265,8 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 * .owlapi.model.IRI)
 	 */
 	@Override
-	public void setDocumentIRI(IRI documentIRI) {
+	public void setDocumentIRI(IRI documentIRI)
+	{
 		this.documentIRI = documentIRI;
 	}
 
@@ -1838,7 +2276,8 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 * @see org.hypergraphdb.app.owl.HGDBMutableOntology#getDocumentIRI()
 	 */
 	@Override
-	public IRI getDocumentIRI() {
+	public IRI getDocumentIRI()
+	{
 		return documentIRI;
 	}
 
@@ -1853,12 +2292,14 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	/**
 	 * Sets the graph and sets AtomHandle also, if graph non null.
 	 */
-	public void setHyperGraph(HyperGraph graph) {
+	public void setHyperGraph(HyperGraph graph)
+	{
 		// old from Boris manager = hg.getOne(graph,
 		// hg.type(PHGDBOntologyManagerImpl.class));
 		super.setHyperGraph(graph);
 		this.graph = graph;
-		if (graph != null) {
+		if (graph != null)
+		{
 			setAtomHandle(graph.getHandle(this));
 		}
 	}
@@ -1869,7 +2310,8 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 * @see org.hypergraphdb.HGHandleHolder#getAtomHandle()
 	 */
 	@Override
-	public HGHandle getAtomHandle() {
+	public HGHandle getAtomHandle()
+	{
 		return handle;
 	}
 
@@ -1880,35 +2322,46 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	 * org.hypergraphdb.HGHandleHolder#setAtomHandle(org.hypergraphdb.HGHandle)
 	 */
 	@Override
-	public void setAtomHandle(HGHandle handle) {
+	public void setAtomHandle(HGHandle handle)
+	{
 		super.setAtomHandle(handle);
 		this.handle = handle;
-		if (handle != null) {
+		if (handle != null)
+		{
 			ensureInternals();
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.app.owl.HGDBOntology#getNrOfAtoms()
 	 */
 	@Override
-	public long getNrOfAtoms() {
+	public long getNrOfAtoms()
+	{
 		return this.count(hg.all());
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.app.owl.HGDBOntology#getNrOfLinks()
 	 */
 	@Override
-	public long getNrOfLinks() {
+	public long getNrOfLinks()
+	{
 		return this.count(hg.typePlus(HGLink.class));
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.app.owl.HGDBOntology#getNrOfNonLinkAtoms()
 	 */
 	@Override
-	public long getNrOfNonLinkAtoms() {
+	public long getNrOfNonLinkAtoms()
+	{
 		return getNrOfAtoms() - getNrOfLinks();
 	}
 
@@ -1917,46 +2370,51 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements HGDBOntology,
 	// ----------------------------------------------------------------------
 
 	@Override
-	public String toString() {
-		return "Ontology(" + getOntologyID() + ")"; 
+	public String toString()
+	{
+		return "Ontology(" + getOntologyID() + ")";
 	}
 
 	// --------------------------------------------------------
 	// PREFIXES
-	// 
-	/* (non-Javadoc)
+	//
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.app.owl.HGDBOntology#getPrefixMap()
 	 */
 	@Override
 	@HGIgnore
-	public Map<String, String> getPrefixes() {
+	public Map<String, String> getPrefixes()
+	{
 		return internals.getPrefixes();
 	}
-	
+
 	/**
-	 * Sets a Map of PrefixNames to Prefixes.
-	 * Internal use only for setting prefixes quietly after load. 
+	 * Sets a Map of PrefixNames to Prefixes. Internal use only for setting
+	 * prefixes quietly after load.
 	 * 
 	 * @return
 	 */
-	public void setPrefixesFrom(Map<String, String> prefixMap) {
+	public void setPrefixesFrom(Map<String, String> prefixMap)
+	{
 		internals.setPrefixesFrom(prefixMap);
 	}
 
-    @Override
-    public Set<OWLAnonymousIndividual> getAnonymousIndividuals()
-    {
-        // TODO Auto-generated method stub
-        
-        // this a new method in OWLAPI 3.4, to be implemented!
-        return null;
-    }
+	@Override
+	public Set<OWLAnonymousIndividual> getAnonymousIndividuals()
+	{
+		// TODO Auto-generated method stub
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public List<HGHandle> findAll(HGQueryCondition condition)
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
+		// this a new method in OWLAPI 3.4, to be implemented!
+		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<HGHandle> findAll(HGQueryCondition condition)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

@@ -1159,8 +1159,7 @@ public class OWLDataFactoryHGDB implements OWLDataFactory
 
 	public OWLObjectOneOf getOWLObjectOneOf(OWLIndividual... individuals)
 	{
-		Set<OWLIndividual> individualsSet = CollectionFactory
-				.createSet(individuals);
+		Set<OWLIndividual> individualsSet = CollectionFactory.createSet(individuals);
 		return getOWLObjectOneOf(individualsSet);
 	}
 
