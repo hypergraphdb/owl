@@ -120,7 +120,7 @@ Bundle-Name: HypergraphDB Owl-API Backend
 Created-By: Apache Maven Bundle Plugin
 Build-Jdk: 1.6.0_31
 Bundle-Version: 1.7.0
-Bnd-LastModified: 1412541700559
+Bnd-LastModified: 1412561648476
 Bundle-ManifestVersion: 2
 Bundle-Description: An implementation of the OWLAPI backed by HyperGra
  phDB for transparent and automatic persistence of OWL ontologies. Eac
