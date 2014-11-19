@@ -24,8 +24,8 @@ Export-Package: org.hypergraphdb.app.owl.repair;uses:="org.hypergraphd
  rg.semanticweb.owlapi.util,org.hypergraphdb.app.owl.model.classexpr.r
  estrict,org.hypergraphdb.util,org.hypergraphdb.type,org.hypergraphdb,
  org.semanticweb.owlapi.change,org.hypergraphdb.app.owl.model.swrl,org
- .hypergraphdb.app.owl.model,org.semanticweb.owlapi.vocab,uk.ac.manche
- ster.cs.owl.owlapi,org.hypergraphdb.app.owl.type.link,org.hypergraphd
+ .hypergraphdb.app.owl.model,uk.ac.manchester.cs.owl.owlapi,org.semant
+ icweb.owlapi.vocab,org.hypergraphdb.app.owl.type.link,org.hypergraphd
  b.atom,org.semanticweb.owlapi.io,org.hypergraphdb.transaction,org.hyp
  ergraphdb.annotation,org.hypergraphdb.app.owl.model.axioms,org.hyperg
  raphdb.app.owl,org.hypergraphdb.app.owl.model.classexpr,org.hypergrap
@@ -69,8 +69,8 @@ Export-Package: org.hypergraphdb.app.owl.repair;uses:="org.hypergraphd
  raphdb,org.hypergraphdb.app.owl.versioning.distributed.serialize.pars
  e,org.hypergraphdb.app.owl",org.hypergraphdb.app.owl.versioning.distr
  ibuted.activity;uses:="org.hypergraphdb.app.owl.versioning.change,org
- .hypergraphdb.peer,org.hypergraphdb.app.owl.exception,org.hypergraphd
- b.app.owl.core,org.hypergraphdb.app.owl.versioning,org.semanticweb.ow
+ .hypergraphdb.peer,org.hypergraphdb.app.owl.versioning,org.hypergraph
+ db.app.owl.exception,org.hypergraphdb.app.owl.core,org.semanticweb.ow
  lapi.model,org.hypergraphdb.peer.workflow,org.hypergraphdb.util,org.h
  ypergraphdb.app.owl.versioning.distributed,org.semanticweb.owlapi.io,
  org.hypergraphdb.app.owl.versioning.distributed.serialize,org.hypergr
@@ -88,8 +88,8 @@ Export-Package: org.hypergraphdb.app.owl.repair;uses:="org.hypergraphd
  hypergraphdb.query,org.semanticweb.owlapi.util,org.hypergraphdb.app.o
  wl.type,org.coode.owlapi.functionalparser,org.hypergraphdb.util,org.c
  oode.owlapi.owlxmlparser,org.hypergraphdb.indexing,org.coode.owlapi.r
- df.rdfxml,org.hypergraphdb.type,uk.ac.manchester.cs.owl.owlapi.turtle
- .parser,org.hypergraphdb.app.owl.versioning.distributed.serialize,org
+ df.rdfxml,org.hypergraphdb.type,org.hypergraphdb.app.owl.versioning.d
+ istributed.serialize,uk.ac.manchester.cs.owl.owlapi.turtle.parser,org
  .hypergraphdb.algorithms,org.hypergraphdb,org.hypergraphdb.app.owl.ve
  rsioning.distributed.activity,org.coode.owlapi.manchesterowlsyntax,uk
  .ac.manchester.cs.owl.owlapi.mansyntaxrenderer,org.hypergraphdb.app.o
@@ -118,9 +118,9 @@ Built-By: borislav
 Tool: Bnd-0.0.238
 Bundle-Name: HypergraphDB Owl-API Backend
 Created-By: Apache Maven Bundle Plugin
-Build-Jdk: 1.6.0_31
+Build-Jdk: 1.6.0_32
 Bundle-Version: 1.7.0
-Bnd-LastModified: 1412561648476
+Bnd-LastModified: 1416176628828
 Bundle-ManifestVersion: 2
 Bundle-Description: An implementation of the OWLAPI backed by HyperGra
  phDB for transparent and automatic persistence of OWL ontologies. Eac
