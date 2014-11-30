@@ -4,12 +4,7 @@
 "bootstrap" : [ {"class" : "org.hypergraphdb.peer.bootstrap.AffirmIdentityBootstrap", "config" : {}},
                 {"class" : "org.hypergraphdb.peer.bootstrap.CACTBootstrap", "config" : {}}
               ],
-"interfaceConfig" :
-{
-    "user" : "hg1",
-    "password" : "hg1",
-    "serverUrl"	: "W203-003.miamidade.gov",
-    "autoRegister" : true,
-    "ignoreRoster" : false
-}
+"interfaceConfig" : {
+    "autoRegister" : true
+  }
 }

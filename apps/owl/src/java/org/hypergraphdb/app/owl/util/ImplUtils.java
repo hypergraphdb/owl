@@ -35,47 +35,53 @@ import org.semanticweb.owlapi.model.OWLOntology;
 
 public class ImplUtils
 {
-	
-	/** 
+
+	/**
 	 * Ensures a HypergraphDB at the HYPERGRAPH_DB_LOCATION.
 	 */
-	static HyperGraph openHypergraph(String location) {
+	static HyperGraph openHypergraph(String location)
+	{
 		HGConfiguration config = new HGConfiguration();
 		config.setClassLoader(HGDBOntologyRepository.class.getClassLoader());
 		config.setUseSystemAtomAttributes(false);
-		// Avoid counting incidence sets and cache all of them, since there's no representation that
-		// risks having very large incidence sets, we're using sub-graphs for those cases.
+		// Avoid counting incidence sets and cache all of them, since there's no
+		// representation that
+		// risks having very large incidence sets, we're using sub-graphs for
+		// those cases.
 		config.setMaxCachedIncidenceSetSize(Integer.MAX_VALUE);
-		SequentialUUIDHandleFactory handleFactory =
-            new SequentialUUIDHandleFactory(System.currentTimeMillis(), 0);
-		config.setHandleFactory(handleFactory);	
+		SequentialUUIDHandleFactory handleFactory = new SequentialUUIDHandleFactory(System.currentTimeMillis(), 0);
+		config.setHandleFactory(handleFactory);
 		return HGEnvironment.get(location, config);
 	}
 
 	/**
-	 * Same role as {@link HGEnvironment.get}, except it also
-	 * ensure the graph is properly initialized with OWL model.
-	 * This extra step is costly and it's only done the first time
-	 * the graph is requested.
+	 * Same role as {@link HGEnvironment.get}, except it also ensure the graph
+	 * is properly initialized with OWL model. This extra step is costly and
+	 * it's only done the first time the graph is requested.
 	 * 
-	 * @param location The database location
-	 * @return 
+	 * @param location
+	 *            The database location
+	 * @return
 	 */
 	static HashMap<String, HyperGraph> owlGraphs = new HashMap<String, HyperGraph>();
-	public static HyperGraph owldb(String location) {
-		synchronized (owlGraphs) {
+
+	public static HyperGraph owldb(String location)
+	{
+		synchronized (owlGraphs)
+		{
 			HyperGraph graph = owlGraphs.get(location);
-			if (graph == null) {
+			if (graph == null)
+			{
 				if (!HGEnvironment.isOpen(location))
 					graph = openHypergraph(location);
 				else
 					graph = HGEnvironment.get(location);
-				HGManagement.ensureInstalled(graph, new HGDBApplication());	
+				HGManagement.ensureInstalled(graph, new HGDBApplication());
 			}
 			return graph;
 		}
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	public static Collection<HGIndexer> getIRIIndexers(HyperGraph graph)
 	{
@@ -85,22 +91,21 @@ public class ImplUtils
 				graph.getTypeSystem().getTypeHandle(OWLAnnotationPropertyHGDB.class),
 				graph.getTypeSystem().getTypeHandle(OWLDataPropertyHGDB.class),
 				graph.getTypeSystem().getTypeHandle(OWLObjectPropertyHGDB.class),
-				graph.getTypeSystem().getTypeHandle(OWLNamedIndividualHGDB.class)
-		};		
+				graph.getTypeSystem().getTypeHandle(OWLNamedIndividualHGDB.class) };
 		ArrayList<HGIndexer> L = new ArrayList<HGIndexer>();
 		for (HGHandle typeHandle : typeHandlesNamedObjectsWithIRIDimension)
 			L.add(new ByPartIndexer(typeHandle, "IRI"));
 		return L;
 	}
-			
+
 	@SuppressWarnings("rawtypes")
-	public static HGIndexer getAxiomByHashCodeIndexer(HyperGraph graph ) {
+	public static HGIndexer getAxiomByHashCodeIndexer(HyperGraph graph)
+	{
 		HGHandle typeHandle = graph.getTypeSystem().getTypeHandle(OWLAxiomHGDB.class);
 		return new ByPartIndexer(typeHandle, "hashCode");
 	}
-	
-	public static Set<OWLAnnotationAssertionAxiom> getAnnotationAxioms(
-			OWLEntity entity, Set<OWLOntology> ontologies)
+
+	public static Set<OWLAnnotationAssertionAxiom> getAnnotationAxioms(OWLEntity entity, Set<OWLOntology> ontologies)
 	{
 		Set<OWLAnnotationAssertionAxiom> result = new HashSet<OWLAnnotationAssertionAxiom>();
 		for (OWLOntology ont : ontologies)
@@ -110,25 +115,21 @@ public class ImplUtils
 		return result;
 	}
 
-	public static Set<OWLAnnotation> getAnnotations(OWLEntity entity,
-			Set<OWLOntology> ontologies)
+	public static Set<OWLAnnotation> getAnnotations(OWLEntity entity, Set<OWLOntology> ontologies)
 	{
 		Set<OWLAnnotation> result = new HashSet<OWLAnnotation>();
-		for (OWLAnnotationAssertionAxiom ax : getAnnotationAxioms(entity,
-				ontologies))
+		for (OWLAnnotationAssertionAxiom ax : getAnnotationAxioms(entity, ontologies))
 		{
 			result.add(ax.getAnnotation());
 		}
 		return result;
 	}
 
-	public static Set<OWLAnnotation> getAnnotations(OWLEntity entity,
-			OWLAnnotationProperty annotationProperty,
+	public static Set<OWLAnnotation> getAnnotations(OWLEntity entity, OWLAnnotationProperty annotationProperty,
 			Set<OWLOntology> ontologies)
 	{
 		Set<OWLAnnotation> result = new HashSet<OWLAnnotation>();
-		for (OWLAnnotationAssertionAxiom ax : getAnnotationAxioms(entity,
-				ontologies))
+		for (OWLAnnotationAssertionAxiom ax : getAnnotationAxioms(entity, ontologies))
 		{
 			if (ax.getAnnotation().getProperty().equals(annotationProperty))
 			{
@@ -138,14 +139,14 @@ public class ImplUtils
 		return result;
 	}
 
-	public static int compareSets(Set<? extends OWLObject> set1,
-			Set<? extends OWLObject> set2)
+	public static int compareSets(Set<? extends OWLObject> set1, Set<? extends OWLObject> set2)
 	{
 		SortedSet<? extends OWLObject> ss1;
 		if (set1 instanceof SortedSet)
 		{
 			ss1 = (SortedSet<? extends OWLObject>) set1;
-		} else
+		}
+		else
 		{
 			ss1 = new TreeSet<OWLObject>(set1);
 		}
@@ -153,7 +154,8 @@ public class ImplUtils
 		if (set2 instanceof SortedSet)
 		{
 			ss2 = (SortedSet<? extends OWLObject>) set2;
-		} else
+		}
+		else
 		{
 			ss2 = new TreeSet<OWLObject>(set2);
 		}

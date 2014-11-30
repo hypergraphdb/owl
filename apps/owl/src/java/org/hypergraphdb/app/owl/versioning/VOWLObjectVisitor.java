@@ -9,13 +9,15 @@ import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLRenderCo
 
 /**
  * VOWLObjectVisitor.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Feb 24, 2012
  */
-public interface VOWLObjectVisitor  {
+public interface VOWLObjectVisitor
+{
 
 	public void visit(VersionedOntology ontology);
-	
+
 	public void visit(Revision revision);
 
 	public void visit(ChangeSet changeSet);
@@ -25,11 +27,11 @@ public interface VOWLObjectVisitor  {
 	public void visit(VImportChange change);
 
 	public void visit(VOntologyAnnotationChange change);
-	
+
 	public void visit(VModifyOntologyIDChange change);
 
 	public void visit(VPrefixChange change);
 
 	public void visit(VOWLXMLRenderConfiguration configuration);
-	
+
 }

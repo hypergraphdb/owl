@@ -8,19 +8,27 @@ import org.hypergraphdb.HGHandle;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Aug 23, 2012
  */
-public class ServerCentralizedOntology extends DistributedOntology {
+public class ServerCentralizedOntology extends DistributedOntology
+{
 
-	//TODO known clients?, client revisions?
-	public ServerCentralizedOntology() {
-	}	
-	
-	public ServerCentralizedOntology(HGHandle...args) {
+	// TODO known clients?, client revisions?
+	public ServerCentralizedOntology()
+	{
+	}
+
+	public ServerCentralizedOntology(HGHandle... args)
+	{
 		super(args);
-    }
-	public String toString() {
-		if (getVersionedOntology() != null) {
+	}
+
+	public String toString()
+	{
+		if (getVersionedOntology() != null)
+		{
 			return getVersionedOntology().toString() + " (Server)";
-		} else {
+		}
+		else
+		{
 			return super.toString();
 		}
 	}
