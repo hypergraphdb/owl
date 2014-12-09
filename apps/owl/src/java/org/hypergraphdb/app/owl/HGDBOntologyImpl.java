@@ -125,8 +125,8 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 
 	protected Logger log = Logger.getLogger(this.getClass().getCanonicalName());
 
-	protected HGHandle handle;
-	protected HyperGraph graph;
+//	protected HGHandle handle;
+//	protected HyperGraph graph;
 
 	// hilpold private final OWLOntologyManager manager;
 	private OWLOntologyManager manager; // stick to it until HGDBOM is
@@ -163,7 +163,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 
 	public void ensureInternals()
 	{
-		if (graph == null || handle == null)
+		if (graph == null || thisHandle == null)
 			throw new IllegalStateException("Must have graph and handle");
 		internals = new HGDBOntologyInternalsImpl();
 		((HGGraphHolder) internals).setHyperGraph(graph);
@@ -2312,7 +2312,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 	@Override
 	public HGHandle getAtomHandle()
 	{
-		return handle;
+		return thisHandle;
 	}
 
 	/*
@@ -2325,7 +2325,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 	public void setAtomHandle(HGHandle handle)
 	{
 		super.setAtomHandle(handle);
-		this.handle = handle;
+		this.thisHandle = handle;
 		if (handle != null)
 		{
 			ensureInternals();
@@ -2410,11 +2410,9 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 		return null;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public List<HGHandle> findAll(HGQueryCondition condition)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		return graph.findAll(hg.and(condition, hg.memberOf(thisHandle)));
 	}
 }
