@@ -1,7 +1,5 @@
 package org.hypergraphdb.app.owl.test;
 
-
-
 import java.io.File;
 import java.util.Date;
 
@@ -16,23 +14,26 @@ import org.junit.Test;
 
 /**
  * HypergraphSimpleTest.
+ * 
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  * @created Oct 7, 2011
  */
-public class HypergraphSimpleTest {
+public class HypergraphSimpleTest
+{
 
 	StopWatch s = new StopWatch();
-	
-	//String prefix = "012345678901234567890";
+
+	// String prefix = "012345678901234567890";
 	HyperGraph graph;
 
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@Before
-	public void setUp() throws Exception {
-		HGDBOntologyRepository r = new HGDBOntologyRepository(
-				System.getProperty("java.io.tmpdir") + File.pathSeparator + "hgdbtest");
+	public void setUp() throws Exception
+	{
+		HGDBOntologyRepository r = new HGDBOntologyRepository(System.getProperty("java.io.tmpdir") + File.separator
+				+ "hgdbtest");
 		graph = r.getHyperGraph();
 	}
 
@@ -40,53 +41,64 @@ public class HypergraphSimpleTest {
 	 * @throws java.lang.Exception
 	 */
 	@After
-	public void tearDown() throws Exception {
+	public void tearDown() throws Exception
+	{
 		graph.close();
 	}
-	
+
 	@Test
-	public void simpleTest() {
+	public void simpleTest()
+	{
 		int n = 100;
-		while (n < 1E8) {
+		while (n < 1E8)
+		{
 			System.out.println("----------------------------------------");
 			System.out.println("--" + new Date());
 			System.out.println("Graph has: " + graph.count(hg.all()) + " Atoms ");
-			long startT = System.nanoTime();		
+			long startT = System.nanoTime();
 			addSimpleIfNotFound(n);
 			findRemoveAll(n);
 			s.stop("-Add/Remove took: ", startT);
 			n = 2 * n;
-		}		
+		}
 	}
-	
-	public void addSimpleIfNotFound(int n) {
+
+	public void addSimpleIfNotFound(int n)
+	{
 		System.out.println("Adding n randoms, if not found. n = " + n);
 		s.start();
 		int found = 0;
-		for (int i =0; i < n; i++) {
-			Integer in = new Integer((int)(Math.random() * n));			
-			if (graph.getOne(hg.eq(in)) == null) {
+		for (int i = 0; i < n; i++)
+		{
+			Integer in = new Integer((int) (Math.random() * n));
+			if (graph.getOne(hg.eq(in)) == null)
+			{
 				graph.add(in);
-			} else {
-				found ++;
+			}
+			else
+			{
+				found++;
 			}
 		}
-		System.out.println("Added: " + (n - found) + " Add Ratio: " + ((n - found) /(double)n));
-		s.stop("-addSimpleIfNotFound : ");		
+		System.out.println("Added: " + (n - found) + " Add Ratio: " + ((n - found) / (double) n));
+		s.stop("-addSimpleIfNotFound : ");
 	}
 
-	public void findRemoveAll(int n) {
+	public void findRemoveAll(int n)
+	{
 		System.out.println("Removing each in range 0..n, if found.");
 		s.start();
 		int found = 0;
-		for (int i =0; i < n; i++) {
+		for (int i = 0; i < n; i++)
+		{
 			HGHandle inH = graph.findOne(hg.eq(new Integer(i)));
-			if (inH != null) {
-				found ++;
+			if (inH != null)
+			{
+				found++;
 				graph.remove(inH);
 			}
 		}
-		System.out.println("Removed: " + found + " Rem Ratio: " + (found/(double)n));
+		System.out.println("Removed: " + found + " Rem Ratio: " + (found / (double) n));
 		s.stop("-findRemoveAll : ");
 	}
 
