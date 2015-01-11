@@ -12,73 +12,100 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 
 /**
  * OWLObjectPropertyCharacteristicAxiomHGDB.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 4, 2011
  */
-public abstract class OWLObjectPropertyCharacteristicAxiomHGDB extends OWLPropertyAxiomHGDB implements HGLink, OWLObjectPropertyCharacteristicAxiom {
-    
+public abstract class OWLObjectPropertyCharacteristicAxiomHGDB extends OWLPropertyAxiomHGDB implements HGLink,
+		OWLObjectPropertyCharacteristicAxiom
+{
 	private HGHandle propertyHandle;
-	//private OWLObjectPropertyExpression property;
 
-    public OWLObjectPropertyCharacteristicAxiomHGDB(HGHandle property, Collection<? extends OWLAnnotation> annotations) {
-    	//OWLObjectPropertyExpression property, Collection<? extends OWLAnnotation> annotations
-        super(annotations);
-        propertyHandle = property;
-    	if (property == null) throw new IllegalArgumentException("property was null");        
-    }
+	// private OWLObjectPropertyExpression property;
 
-    public OWLObjectPropertyExpression getProperty() {
-        return getHyperGraph().get(propertyHandle);
-    }
+	public OWLObjectPropertyCharacteristicAxiomHGDB(HGHandle property, Collection<? extends OWLAnnotation> annotations)
+	{
+		// OWLObjectPropertyExpression property, Collection<? extends
+		// OWLAnnotation> annotations
+		super(annotations);
+		propertyHandle = property;
+		if (property == null)
+			throw new IllegalArgumentException("property was null");
+	}
 
-    @Override
-	public boolean equals(Object obj) {
-        if (super.equals(obj)) {
-            if (!(obj instanceof OWLObjectPropertyCharacteristicAxiom)) {
-                return false;
-            }
-            return ((OWLObjectPropertyCharacteristicAxiom) obj).getProperty().equals(getProperty());
-        }
-        return false;
-    }
+	public OWLObjectPropertyExpression getProperty()
+	{
+		return getHyperGraph().get(propertyHandle);
+	}
 
-    @Override
-	final protected int compareObjectOfSameType(OWLObject object) {
-        return getProperty().compareTo(((OWLObjectPropertyCharacteristicAxiom) object).getProperty());
-    }
-    
-	/* (non-Javadoc)
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (super.equals(obj))
+		{
+			if (!(obj instanceof OWLObjectPropertyCharacteristicAxiom))
+			{
+				return false;
+			}
+			return ((OWLObjectPropertyCharacteristicAxiom) obj).getProperty().equals(getProperty());
+		}
+		return false;
+	}
+
+	@Override
+	final protected int compareObjectOfSameType(OWLObject object)
+	{
+		return getProperty().compareTo(((OWLObjectPropertyCharacteristicAxiom) object).getProperty());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getArity()
 	 */
 	@Override
-	public int getArity() {
+	public int getArity()
+	{
 		return 1;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getTargetAt(int)
 	 */
 	@Override
-	public HGHandle getTargetAt(int i) {
-		if (i != 0) throw new HGException("Index i must be 0");
+	public HGHandle getTargetAt(int i)
+	{
+		if (i != 0)
+			throw new HGException("Index i must be 0");
 		return propertyHandle;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int, org.hypergraphdb.HGHandle)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int,
+	 * org.hypergraphdb.HGHandle)
 	 */
 	@Override
-	public void notifyTargetHandleUpdate(int i, HGHandle handle) {
-		if (i != 0) throw new HGException("Index i must be 0");
-		propertyHandle = handle;		
+	public void notifyTargetHandleUpdate(int i, HGHandle handle)
+	{
+		if (i != 0)
+			throw new HGException("Index i must be 0");
+		propertyHandle = handle;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#notifyTargetRemoved(int)
 	 */
 	@Override
-	public void notifyTargetRemoved(int i) {
-		if (i != 0) throw new HGException("Index i must be 0");		
+	public void notifyTargetRemoved(int i)
+	{
+		if (i != 0)
+			throw new HGException("Index i must be 0");
 		propertyHandle = getHyperGraph().getHandleFactory().nullHandle();
 	}
 }

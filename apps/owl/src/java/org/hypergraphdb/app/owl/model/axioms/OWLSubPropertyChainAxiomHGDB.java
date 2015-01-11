@@ -19,177 +19,232 @@ import org.semanticweb.owlapi.model.OWLObjectVisitor;
 import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
 import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
 
-
 /**
  * OWLSubPropertyChainAxiomHGDB.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 4, 2011
  */
-public class OWLSubPropertyChainAxiomHGDB extends OWLPropertyAxiomHGDB implements HGLink, OWLSubPropertyChainOfAxiom {
-    
+public class OWLSubPropertyChainAxiomHGDB extends OWLPropertyAxiomHGDB implements HGLink, OWLSubPropertyChainOfAxiom
+{
 	private List<HGHandle> propertyHandlesChain;
-	//private List<OWLObjectPropertyExpression> propertyChain;
+	// private List<OWLObjectPropertyExpression> propertyChain;
 
-    private HGHandle superPropertyHandle;
-    //private OWLObjectPropertyExpression superProperty;
+	private HGHandle superPropertyHandle;
 
-    public OWLSubPropertyChainAxiomHGDB(HGHandle...args) {    
-        //TODO assert arg[0...length-1] type OWLObjectPropertyExpression
-    	super(Collections.<OWLAnnotation>emptySet());    	
-    	assert (args.length >= 2);
-    	//2012.04.06 hilpold BUGFIX propertyHandlesChainFromArgs was HashSet, but must be ordered.
-    	List<HGHandle> propertyHandlesChainFromArgs = new ArrayList<HGHandle>();
-    	for(int i = 1; i < args.length; i++) {
-    		propertyHandlesChainFromArgs.add(args[i]);
-    	}
-        this.superPropertyHandle = args[0];
-        this.propertyHandlesChain = propertyHandlesChainFromArgs;    	
-    }
+	// private OWLObjectPropertyExpression superProperty;
 
-    public OWLSubPropertyChainAxiomHGDB(List<HGHandle> propertyChain, HGHandle superProperty, Collection<? extends OWLAnnotation> annotations) {
-        //List<? extends OWLObjectPropertyExpression> propertyChain, OWLObjectPropertyExpression superProperty, Collection<? extends OWLAnnotation> annotations
-    	super(annotations);
-        propertyHandlesChain = propertyChain; // new ArrayList<OWLObjectPropertyExpression>(propertyChain);
-        superPropertyHandle = superProperty; //index 0
-    }
+	public OWLSubPropertyChainAxiomHGDB(HGHandle... args)
+	{
+		// TODO assert arg[0...length-1] type OWLObjectPropertyExpression
+		super(Collections.<OWLAnnotation> emptySet());
+		assert (args.length >= 2);
+		// 2012.04.06 hilpold BUGFIX propertyHandlesChainFromArgs was HashSet,
+		// but must be ordered.
+		List<HGHandle> propertyHandlesChainFromArgs = new ArrayList<HGHandle>();
+		for (int i = 1; i < args.length; i++)
+		{
+			propertyHandlesChainFromArgs.add(args[i]);
+		}
+		this.superPropertyHandle = args[0];
+		this.propertyHandlesChain = propertyHandlesChainFromArgs;
+	}
 
-    public OWLSubPropertyChainOfAxiom getAnnotatedAxiom(Set<OWLAnnotation> annotations) {
-        return getOWLDataFactory().getOWLSubPropertyChainOfAxiom(getPropertyChain(), getSuperProperty(), mergeAnnos(annotations));
-    }
+	public OWLSubPropertyChainAxiomHGDB(List<HGHandle> propertyChain, HGHandle superProperty,
+			Collection<? extends OWLAnnotation> annotations)
+	{
+		// List<? extends OWLObjectPropertyExpression> propertyChain,
+		// OWLObjectPropertyExpression superProperty, Collection<? extends
+		// OWLAnnotation> annotations
+		super(annotations);
+		propertyHandlesChain = propertyChain; // new
+												// ArrayList<OWLObjectPropertyExpression>(propertyChain);
+		superPropertyHandle = superProperty; // index 0
+	}
 
-    public OWLSubPropertyChainOfAxiom getAxiomWithoutAnnotations() {
-        if (!isAnnotated()) {
-            return this;
-        }
-        return getOWLDataFactory().getOWLSubPropertyChainOfAxiom(getPropertyChain(), getSuperProperty());
-    }
+	public OWLSubPropertyChainOfAxiom getAnnotatedAxiom(Set<OWLAnnotation> annotations)
+	{
+		return getOWLDataFactory().getOWLSubPropertyChainOfAxiom(getPropertyChain(), getSuperProperty(), mergeAnnos(annotations));
+	}
 
-    public List<OWLObjectPropertyExpression> getPropertyChain() {
-    	HyperGraph g = getHyperGraph();
-    	List<OWLObjectPropertyExpression> s = new ArrayList<OWLObjectPropertyExpression>();
-    	for (HGHandle h : propertyHandlesChain) {
-    		s.add((OWLObjectPropertyExpression) g.get(h));    		
-    	}
-    	return s;
-        //return new ArrayList<OWLObjectPropertyExpression>(propertyChain);
-    }
+	public OWLSubPropertyChainOfAxiom getAxiomWithoutAnnotations()
+	{
+		if (!isAnnotated())
+		{
+			return this;
+		}
+		return getOWLDataFactory().getOWLSubPropertyChainOfAxiom(getPropertyChain(), getSuperProperty());
+	}
 
-    public OWLObjectPropertyExpression getSuperProperty() {
-        return getHyperGraph().get(superPropertyHandle);
-    }
+	public List<OWLObjectPropertyExpression> getPropertyChain()
+	{
+		HyperGraph g = getHyperGraph();
+		List<OWLObjectPropertyExpression> s = new ArrayList<OWLObjectPropertyExpression>();
+		for (HGHandle h : propertyHandlesChain)
+		{
+			s.add((OWLObjectPropertyExpression) g.get(h));
+		}
+		return s;
+		// return new ArrayList<OWLObjectPropertyExpression>(propertyChain);
+	}
 
-    public boolean isEncodingOfTransitiveProperty() {
-    	OWLObjectPropertyExpression a,b;
-        if (propertyHandlesChain.size() == 2) {
-        	a = getHyperGraph().get(propertyHandlesChain.get(0));
-        	b = getHyperGraph().get(propertyHandlesChain.get(1));
-        	return getSuperProperty().equals(a) && getSuperProperty().equals(b);
-            //return superProperty.equals(propertyChain.get(0)) && superProperty.equals(propertyChain.get(1));
-       }
-        else {
-            return false;
-        }
-    }
+	public OWLObjectPropertyExpression getSuperProperty()
+	{
+		return getHyperGraph().get(superPropertyHandle);
+	}
 
-    public void accept(OWLObjectVisitor visitor) {
-        visitor.visit(this);
-    }
+	public boolean isEncodingOfTransitiveProperty()
+	{
+		OWLObjectPropertyExpression a, b;
+		if (propertyHandlesChain.size() == 2)
+		{
+			a = getHyperGraph().get(propertyHandlesChain.get(0));
+			b = getHyperGraph().get(propertyHandlesChain.get(1));
+			return getSuperProperty().equals(a) && getSuperProperty().equals(b);
+			// return superProperty.equals(propertyChain.get(0)) &&
+			// superProperty.equals(propertyChain.get(1));
+		}
+		else
+		{
+			return false;
+		}
+	}
 
+	public void accept(OWLObjectVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public void accept(OWLAxiomVisitor visitor) {
-        visitor.visit(this);
-    }
+	public void accept(OWLAxiomVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
+	public <O> O accept(OWLAxiomVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
+	public <O> O accept(OWLObjectVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
-    public <O> O accept(OWLObjectVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (!super.equals(obj))
+		{
+			return false;
+		}
+		if (!(obj instanceof OWLSubPropertyChainOfAxiom))
+		{
+			return false;
+		}
+		OWLSubPropertyChainOfAxiom other = (OWLSubPropertyChainOfAxiom) obj;
+		return other.getPropertyChain().equals(getPropertyChain()) && other.getSuperProperty().equals(getSuperProperty());
+	}
 
-    @Override
-	public boolean equals(Object obj) {
-        if (!super.equals(obj)) {
-            return false;
-        }
-        if (!(obj instanceof OWLSubPropertyChainOfAxiom)) {
-            return false;
-        }
-        OWLSubPropertyChainOfAxiom other = (OWLSubPropertyChainOfAxiom) obj;
-        return other.getPropertyChain().equals(getPropertyChain()) && other.getSuperProperty().equals(getSuperProperty());
-    }
+	public AxiomType<?> getAxiomType()
+	{
+		return AxiomType.SUB_PROPERTY_CHAIN_OF;
+	}
 
-    public AxiomType<?> getAxiomType() {
-        return AxiomType.SUB_PROPERTY_CHAIN_OF;
-    }
+	@Override
+	protected int compareObjectOfSameType(OWLObject object)
+	{
+		OWLSubPropertyChainOfAxiom other = (OWLSubPropertyChainOfAxiom) object;
+		OWLObjectPropertyExpression superProperty = getSuperProperty();
+		List<OWLObjectPropertyExpression> propertyChain = getPropertyChain();
+		for (int i = 0; i < propertyHandlesChain.size() && i < other.getPropertyChain().size(); i++)
+		{
+			int diff = propertyChain.get(i).compareTo(other.getPropertyChain().get(i));
+			if (diff != 0)
+			{
+				return diff;
+			}
+			i++;
+		}
+		int diff = propertyChain.size() - other.getPropertyChain().size();
+		if (diff != 0)
+		{
+			return diff;
+		}
+		return superProperty.compareTo(other.getSuperProperty());
+	}
 
-    @Override
-	protected int compareObjectOfSameType(OWLObject object) {
-        OWLSubPropertyChainOfAxiom other = (OWLSubPropertyChainOfAxiom) object;
-        OWLObjectPropertyExpression superProperty = getSuperProperty();
-        List<OWLObjectPropertyExpression> propertyChain = getPropertyChain(); 
-        for (int i = 0; i < propertyHandlesChain.size() && i < other.getPropertyChain().size(); i++) {
-            int diff = propertyChain.get(i).compareTo(other.getPropertyChain().get(i));
-            if (diff != 0) {
-                return diff;
-            }
-            i++;
-        }
-        int diff = propertyChain.size() - other.getPropertyChain().size();
-        if (diff != 0) {
-            return diff;
-        }
-        return superProperty.compareTo(other.getSuperProperty());
-    }
-
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getArity()
 	 */
 	@Override
-	public int getArity() {
+	public int getArity()
+	{
 		return 1 + propertyHandlesChain.size();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getTargetAt(int)
 	 */
 	@Override
-	public HGHandle getTargetAt(int i) {
-		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity());
-		if (i == 0) {
+	public HGHandle getTargetAt(int i)
+	{
+		if (!(i >= 0 && i < getArity()))
+			throw new IllegalArgumentException("Index has to be 0 and less than " + getArity());
+		if (i == 0)
+		{
 			return superPropertyHandle;
-		} else {
+		}
+		else
+		{
 			return propertyHandlesChain.get(i - 1);
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int, org.hypergraphdb.HGHandle)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int,
+	 * org.hypergraphdb.HGHandle)
 	 */
 	@Override
-	public void notifyTargetHandleUpdate(int i, HGHandle handle) {
-		//assert(getHyperGraph().get(handle) instanceof OWLClassExpression);
-		
-		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
-		if (handle == null) throw new IllegalArgumentException("handle null"); 
-		if (i == 0) {
+	public void notifyTargetHandleUpdate(int i, HGHandle handle)
+	{
+		// assert(getHyperGraph().get(handle) instanceof OWLClassExpression);
+
+		if (!(i >= 0 && i < getArity()))
+			throw new IllegalArgumentException("Index has to be 0 and less than " + getArity());
+		if (handle == null)
+			throw new IllegalArgumentException("handle null");
+		if (i == 0)
+		{
 			superPropertyHandle = handle;
-		} else {
+		}
+		else
+		{
 			propertyHandlesChain.set(i - 1, handle);
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#notifyTargetRemoved(int)
 	 */
 	@Override
-	public void notifyTargetRemoved(int i) {
-		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
-		if (i == 0) {
+	public void notifyTargetRemoved(int i)
+	{
+		if (!(i >= 0 && i < getArity()))
+			throw new IllegalArgumentException("Index has to be 0 and less than " + getArity());
+		if (i == 0)
+		{
 			superPropertyHandle = getHyperGraph().getHandleFactory().nullHandle();
-		} else {
+		}
+		else
+		{
 			propertyHandlesChain.remove(i - 1);
 		}
 	}

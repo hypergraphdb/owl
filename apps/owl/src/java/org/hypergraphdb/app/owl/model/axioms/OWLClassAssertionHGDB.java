@@ -20,151 +20,204 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
 /**
  * OWLClassAssertionHGDB.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 8, 2011
  */
-public class OWLClassAssertionHGDB extends OWLIndividualAxiomHGDB implements HGChangeableLink, OWLClassAssertionAxiom {
+public class OWLClassAssertionHGDB extends OWLIndividualAxiomHGDB implements HGChangeableLink, OWLClassAssertionAxiom
+{
 
-    //private OWLIndividual individual;
+	// private OWLIndividual individual;
 
-    //private OWLClassExpression classExpression;
-	
+	// private OWLClassExpression classExpression;
+
 	private HGHandle individualHandle; // index 0
 
-    private HGHandle classExpressionHandle; // index 1
+	private HGHandle classExpressionHandle; // index 1
 
-    public OWLClassAssertionHGDB(HGHandle...args) {
-    	this(args[0], args[1], Collections.<OWLAnnotation>emptySet());
-    }
+	public OWLClassAssertionHGDB(HGHandle... args)
+	{
+		this(args[0], args[1], Collections.<OWLAnnotation> emptySet());
+	}
 
-    public OWLClassAssertionHGDB(HGHandle individual, HGHandle classExpression, Collection<? extends OWLAnnotation> annotations) {
-    	//OWLIndividual individual, OWLClassExpression classExpression, Collection<? extends OWLAnnotation> annotations
-        super(annotations);
-        individualHandle = individual;
-        classExpressionHandle = classExpression;
-    }
+	public OWLClassAssertionHGDB(HGHandle individual, HGHandle classExpression, Collection<? extends OWLAnnotation> annotations)
+	{
+		// OWLIndividual individual, OWLClassExpression classExpression,
+		// Collection<? extends OWLAnnotation> annotations
+		super(annotations);
+		individualHandle = individual;
+		classExpressionHandle = classExpression;
+	}
 
-    public OWLClassAssertionAxiom getAxiomWithoutAnnotations() {
-        if (!isAnnotated()) {
-            return this;
-        }
-        return getOWLDataFactory().getOWLClassAssertionAxiom(getClassExpression(), getIndividual());
-    }
+	public OWLClassAssertionAxiom getAxiomWithoutAnnotations()
+	{
+		if (!isAnnotated())
+		{
+			return this;
+		}
+		return getOWLDataFactory().getOWLClassAssertionAxiom(getClassExpression(), getIndividual());
+	}
 
-    public OWLClassAssertionAxiom getAnnotatedAxiom(Set<OWLAnnotation> annotations) {
-        return getOWLDataFactory().getOWLClassAssertionAxiom(getClassExpression(), getIndividual(), mergeAnnos(annotations));
-    }
+	public OWLClassAssertionAxiom getAnnotatedAxiom(Set<OWLAnnotation> annotations)
+	{
+		return getOWLDataFactory().getOWLClassAssertionAxiom(getClassExpression(), getIndividual(), mergeAnnos(annotations));
+	}
 
-    public OWLClassExpression getClassExpression() {
-        return getHyperGraph().get(classExpressionHandle);
-    }
+	public OWLClassExpression getClassExpression()
+	{
+		return getHyperGraph().get(classExpressionHandle);
+	}
 
-    public OWLIndividual getIndividual() {
-        return getHyperGraph().get(individualHandle);
-    }
+	public OWLIndividual getIndividual()
+	{
+		return getHyperGraph().get(individualHandle);
+	}
 
-    @Override
-	public boolean equals(Object obj) {
-        if (super.equals(obj)) {
-            if (!(obj instanceof OWLClassAssertionAxiom)) {
-                return false;
-            }
-            OWLClassAssertionAxiom other = (OWLClassAssertionAxiom) obj;
-            return other.getIndividual().equals(getIndividual()) && other.getClassExpression().equals(getClassExpression());
-        }
-        return false;
-    }
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (super.equals(obj))
+		{
+			if (!(obj instanceof OWLClassAssertionAxiom))
+			{
+				return false;
+			}
+			OWLClassAssertionAxiom other = (OWLClassAssertionAxiom) obj;
+			return other.getIndividual().equals(getIndividual()) && other.getClassExpression().equals(getClassExpression());
+		}
+		return false;
+	}
 
-    public OWLSubClassOfAxiom asOWLSubClassOfAxiom() {
-        return getOWLDataFactory().getOWLSubClassOfAxiom(getOWLDataFactory().getOWLObjectOneOf(getIndividual()), getClassExpression());
-    }
+	public OWLSubClassOfAxiom asOWLSubClassOfAxiom()
+	{
+		return getOWLDataFactory().getOWLSubClassOfAxiom(getOWLDataFactory().getOWLObjectOneOf(getIndividual()),
+				getClassExpression());
+	}
 
-    public void accept(OWLAxiomVisitor visitor) {
-        visitor.visit(this);
-    }
+	public void accept(OWLAxiomVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public void accept(OWLObjectVisitor visitor) {
-        visitor.visit(this);
-    }
+	public void accept(OWLObjectVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
+	public <O> O accept(OWLAxiomVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
+	public <O> O accept(OWLObjectVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
-    public <O> O accept(OWLObjectVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
+	public AxiomType<?> getAxiomType()
+	{
+		return AxiomType.CLASS_ASSERTION;
+	}
 
-    public AxiomType<?> getAxiomType() {
-        return AxiomType.CLASS_ASSERTION;
-    }
+	@Override
+	protected int compareObjectOfSameType(OWLObject object)
+	{
+		OWLClassAssertionAxiom otherAx = (OWLClassAssertionAxiom) object;
+		int diff = getIndividual().compareTo(otherAx.getIndividual());
+		if (diff != 0)
+		{
+			return diff;
+		}
+		else
+		{
+			return getClassExpression().compareTo(otherAx.getClassExpression());
+		}
+	}
 
-    @Override
-	protected int compareObjectOfSameType(OWLObject object) {
-        OWLClassAssertionAxiom otherAx = (OWLClassAssertionAxiom) object;
-        int diff = getIndividual().compareTo(otherAx.getIndividual());
-        if (diff != 0) {
-            return diff;
-        }
-        else {
-            return getClassExpression().compareTo(otherAx.getClassExpression());
-        }
-    }
-    
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getArity()
 	 */
 	@Override
-	public int getArity() {
+	public int getArity()
+	{
 		return 2;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getTargetAt(int)
 	 */
 	@Override
-	public HGHandle getTargetAt(int i) {
-		if (i != 0 && i != 1) throw new IllegalArgumentException("Index has to be 0 or 1"); 
-		return (i == 0)? individualHandle: classExpressionHandle;  
+	public HGHandle getTargetAt(int i)
+	{
+		if (i != 0 && i != 1)
+			throw new IllegalArgumentException("Index has to be 0 or 1");
+		return (i == 0) ? individualHandle : classExpressionHandle;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int, org.hypergraphdb.HGHandle)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int,
+	 * org.hypergraphdb.HGHandle)
 	 */
 	@Override
-	public void notifyTargetHandleUpdate(int i, HGHandle handle) {
-		if (i != 0 && i != 1) throw new IllegalArgumentException("Index has to be 0 or 1"); 
-		if (handle == null) throw new IllegalArgumentException("handle null"); 
-		if (i == 0) {
+	public void notifyTargetHandleUpdate(int i, HGHandle handle)
+	{
+		if (i != 0 && i != 1)
+			throw new IllegalArgumentException("Index has to be 0 or 1");
+		if (handle == null)
+			throw new IllegalArgumentException("handle null");
+		if (i == 0)
+		{
 			individualHandle = handle;
-		} else {
+		}
+		else
+		{
 			classExpressionHandle = handle;
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#notifyTargetRemoved(int)
 	 */
 	@Override
-	public void notifyTargetRemoved(int i) {
-		if (i != 0 && i != 1) throw new IllegalArgumentException("Index has to be 0 or 1"); 
-		if (i == 0) {
+	public void notifyTargetRemoved(int i)
+	{
+		if (i != 0 && i != 1)
+			throw new IllegalArgumentException("Index has to be 0 or 1");
+		if (i == 0)
+		{
 			individualHandle = getHyperGraph().getHandleFactory().nullHandle();
-		} else {
+		}
+		else
+		{
 			classExpressionHandle = getHyperGraph().getHandleFactory().nullHandle();
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.app.owl.core.HGChangeableLink#setTargetAt(int, org.hypergraphdb.HGHandle)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.hypergraphdb.app.owl.core.HGChangeableLink#setTargetAt(int,
+	 * org.hypergraphdb.HGHandle)
 	 */
 	@Override
-	public void setTargetAt(int i, HGHandle handle) {
-		if (i != 0 && i != 1) throw new IllegalArgumentException("Index has to be 0 or 1"); 
-		if (i == 0) {
+	public void setTargetAt(int i, HGHandle handle)
+	{
+		if (i != 0 && i != 1)
+			throw new IllegalArgumentException("Index has to be 0 or 1");
+		if (i == 0)
+		{
 			individualHandle = handle;
-		} else {
+		}
+		else
+		{
 			classExpressionHandle = handle;
 		}
 	}

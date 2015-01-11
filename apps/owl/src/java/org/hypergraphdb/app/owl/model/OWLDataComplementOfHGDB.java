@@ -19,124 +19,151 @@ import org.semanticweb.owlapi.model.OWLRuntimeException;
 
 /**
  * OWLDataComplementOfHGDB.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Oct 31, 2011
  */
-public class OWLDataComplementOfHGDB extends OWLObjectHGDB implements HGLink, OWLDataComplementOf {
-    
+public class OWLDataComplementOfHGDB extends OWLObjectHGDB implements HGLink, OWLDataComplementOf
+{
 	private HGHandle dataRangeHandle;
-	//private OWLDataRange dataRange;
 
+	// private OWLDataRange dataRange;
 
-	public OWLDataComplementOfHGDB(HGHandle...args)
-    {
-    	this(args[0]);
-    }
+	public OWLDataComplementOfHGDB(HGHandle... args)
+	{
+		this(args[0]);
+	}
 
-    public OWLDataComplementOfHGDB(HGHandle dataRange) {
-    	//OWLDataRange dataRange
-        dataRangeHandle = dataRange;
-    }
+	public OWLDataComplementOfHGDB(HGHandle dataRange)
+	{
+		// OWLDataRange dataRange
+		dataRangeHandle = dataRange;
+	}
 
-    public DataRangeType getDataRangeType() {
-        return DataRangeType.DATA_COMPLEMENT_OF;
-    }
+	public DataRangeType getDataRangeType()
+	{
+		return DataRangeType.DATA_COMPLEMENT_OF;
+	}
 
-    public boolean isDatatype() {
-        return false;
-    }
+	public boolean isDatatype()
+	{
+		return false;
+	}
 
+	public boolean isTopDatatype()
+	{
+		return false;
+	}
 
-    public boolean isTopDatatype() {
-        return false;
-    }
+	public OWLDataRange getDataRange()
+	{
+		return getHyperGraph().get(dataRangeHandle);
+	}
 
+	public OWLDatatype asOWLDatatype()
+	{
+		throw new OWLRuntimeException("Not a data type!");
+	}
 
-    public OWLDataRange getDataRange() {
-        return getHyperGraph().get(dataRangeHandle);
-    }
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (super.equals(obj))
+		{
+			if (!(obj instanceof OWLDataComplementOf))
+			{
+				return false;
+			}
+			return ((OWLDataComplementOf) obj).getDataRange().equals(getDataRange());
+		}
+		return false;
+	}
 
+	public void accept(OWLDataVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public OWLDatatype asOWLDatatype() {
-        throw new OWLRuntimeException("Not a data type!");
-    }
+	public void accept(OWLObjectVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
+	public <O> O accept(OWLDataVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
-    @Override
-	public boolean equals(Object obj) {
-        if (super.equals(obj)) {
-            if (!(obj instanceof OWLDataComplementOf)) {
-                return false;
-            }
-            return ((OWLDataComplementOf) obj).getDataRange().equals(getDataRange());
-        }
-        return false;
-    }
+	public <O> O accept(OWLObjectVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
+	public void accept(OWLDataRangeVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public void accept(OWLDataVisitor visitor) {
-        visitor.visit(this);
-    }
+	public <O> O accept(OWLDataRangeVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
+	@Override
+	protected int compareObjectOfSameType(OWLObject object)
+	{
+		OWLDataComplementOf other = (OWLDataComplementOf) object;
+		return getDataRange().compareTo(other.getDataRange());
+	}
 
-    public void accept(OWLObjectVisitor visitor) {
-        visitor.visit(this);
-    }
-
-    public <O> O accept(OWLDataVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
-
-
-    public <O> O accept(OWLObjectVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
-
-    public void accept(OWLDataRangeVisitor visitor) {
-        visitor.visit(this);
-    }
-
-    public <O> O accept(OWLDataRangeVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
-
-    @Override
-	protected int compareObjectOfSameType(OWLObject object) {
-        OWLDataComplementOf other = (OWLDataComplementOf) object;
-        return getDataRange().compareTo(other.getDataRange());
-    }
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getArity()
 	 */
 	@Override
-	public int getArity() {
-		return dataRangeHandle == null? 0 : 1;
+	public int getArity()
+	{
+		return dataRangeHandle == null ? 0 : 1;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getTargetAt(int)
 	 */
 	@Override
-	public HGHandle getTargetAt(int i) {
-		if (i != 0) throw new HGException("Index i must be 0");
+	public HGHandle getTargetAt(int i)
+	{
+		if (i != 0)
+			throw new HGException("Index i must be 0");
 		return dataRangeHandle;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int, org.hypergraphdb.HGHandle)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int,
+	 * org.hypergraphdb.HGHandle)
 	 */
 	@Override
-	public void notifyTargetHandleUpdate(int i, HGHandle handle) {
-		if (i != 0) throw new HGException("Index i must be 0");
-		dataRangeHandle = handle;		
+	public void notifyTargetHandleUpdate(int i, HGHandle handle)
+	{
+		if (i != 0)
+			throw new HGException("Index i must be 0");
+		dataRangeHandle = handle;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#notifyTargetRemoved(int)
 	 */
 	@Override
-	public void notifyTargetRemoved(int i) {
-		if (i != 0) throw new HGException("Index i must be 0");		
+	public void notifyTargetRemoved(int i)
+	{
+		if (i != 0)
+			throw new HGException("Index i must be 0");
 		dataRangeHandle = null;
 	}
 }

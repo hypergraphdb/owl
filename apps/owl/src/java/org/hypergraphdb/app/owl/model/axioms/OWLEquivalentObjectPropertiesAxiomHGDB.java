@@ -21,69 +21,87 @@ import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
 
 /**
  * OWLEquivalentObjectPropertiesAxiomImpl.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 4, 2011
  */
-public class OWLEquivalentObjectPropertiesAxiomHGDB extends OWLNaryPropertyAxiomHGDB<OWLObjectPropertyExpression> implements OWLEquivalentObjectPropertiesAxiom {
-    
-    public OWLEquivalentObjectPropertiesAxiomHGDB(HGHandle...args){
-    	this(new HashSet<HGHandle>(Arrays.asList(args)), Collections.<OWLAnnotation>emptySet());
-    	if (new HashSet<HGHandle>(Arrays.asList(args)).size() != args.length) throw new IllegalArgumentException();
-    }
+public class OWLEquivalentObjectPropertiesAxiomHGDB extends OWLNaryPropertyAxiomHGDB<OWLObjectPropertyExpression> implements
+		OWLEquivalentObjectPropertiesAxiom
+{
+	public OWLEquivalentObjectPropertiesAxiomHGDB(HGHandle... args)
+	{
+		this(new HashSet<HGHandle>(Arrays.asList(args)), Collections.<OWLAnnotation> emptySet());
+		if (new HashSet<HGHandle>(Arrays.asList(args)).size() != args.length)
+			throw new IllegalArgumentException();
+	}
 
-	public OWLEquivalentObjectPropertiesAxiomHGDB(Set<HGHandle> properties, Collection<? extends OWLAnnotation> annotations) {
-		//Set<? extends OWLObjectPropertyExpression> properties, Collection<? extends OWLAnnotation> annotations
-        super(properties, annotations);
-    }
+	public OWLEquivalentObjectPropertiesAxiomHGDB(Set<HGHandle> properties, Collection<? extends OWLAnnotation> annotations)
+	{
+		// Set<? extends OWLObjectPropertyExpression> properties, Collection<?
+		// extends OWLAnnotation> annotations
+		super(properties, annotations);
+	}
 
-    public OWLEquivalentObjectPropertiesAxiom getAxiomWithoutAnnotations() {
-        if (!isAnnotated()) {
-            return this;
-        }
-        return getOWLDataFactory().getOWLEquivalentObjectPropertiesAxiom(getProperties());
-    }
+	public OWLEquivalentObjectPropertiesAxiom getAxiomWithoutAnnotations()
+	{
+		if (!isAnnotated())
+		{
+			return this;
+		}
+		return getOWLDataFactory().getOWLEquivalentObjectPropertiesAxiom(getProperties());
+	}
 
-    public OWLEquivalentObjectPropertiesAxiom getAnnotatedAxiom(Set<OWLAnnotation> annotations) {
-        return getOWLDataFactory().getOWLEquivalentObjectPropertiesAxiom(getProperties(), mergeAnnos(annotations));
-    }
+	public OWLEquivalentObjectPropertiesAxiom getAnnotatedAxiom(Set<OWLAnnotation> annotations)
+	{
+		return getOWLDataFactory().getOWLEquivalentObjectPropertiesAxiom(getProperties(), mergeAnnos(annotations));
+	}
 
-    @Override
-	public boolean equals(Object obj) {
-        if (super.equals(obj)) {
-            return obj instanceof OWLEquivalentObjectPropertiesAxiom;
-        }
-        return false;
-    }
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (super.equals(obj))
+		{
+			return obj instanceof OWLEquivalentObjectPropertiesAxiom;
+		}
+		return false;
+	}
 
-    public void accept(OWLAxiomVisitor visitor) {
-        visitor.visit(this);
-    }
+	public void accept(OWLAxiomVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public void accept(OWLObjectVisitor visitor) {
-        visitor.visit(this);
-    }
+	public void accept(OWLObjectVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
+	public <O> O accept(OWLAxiomVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
+	public <O> O accept(OWLObjectVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
-    public <O> O accept(OWLObjectVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
+	public AxiomType<?> getAxiomType()
+	{
+		return AxiomType.EQUIVALENT_OBJECT_PROPERTIES;
+	}
 
-    public AxiomType<?> getAxiomType() {
-        return AxiomType.EQUIVALENT_OBJECT_PROPERTIES;
-    }
-
-    public Set<OWLSubObjectPropertyOfAxiom> asSubObjectPropertyOfAxioms() {
-        List<OWLObjectPropertyExpression> props = new ArrayList<OWLObjectPropertyExpression>(getProperties());
-        Set<OWLSubObjectPropertyOfAxiom> axs = new HashSet<OWLSubObjectPropertyOfAxiom>();
-        for (int i = 0; i < props.size() - 1; i++) {
-            for (int j = i + 1; j < props.size(); j++) {
-                axs.add(getOWLDataFactory().getOWLSubObjectPropertyOfAxiom(props.get(i), props.get(j)));
-            }
-        }
-        return axs;
-    }
+	public Set<OWLSubObjectPropertyOfAxiom> asSubObjectPropertyOfAxioms()
+	{
+		List<OWLObjectPropertyExpression> props = new ArrayList<OWLObjectPropertyExpression>(getProperties());
+		Set<OWLSubObjectPropertyOfAxiom> axs = new HashSet<OWLSubObjectPropertyOfAxiom>();
+		for (int i = 0; i < props.size() - 1; i++)
+		{
+			for (int j = i + 1; j < props.size(); j++)
+			{
+				axs.add(getOWLDataFactory().getOWLSubObjectPropertyOfAxiom(props.get(i), props.get(j)));
+			}
+		}
+		return axs;
+	}
 }

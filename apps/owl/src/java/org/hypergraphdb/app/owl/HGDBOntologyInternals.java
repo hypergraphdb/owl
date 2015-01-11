@@ -75,7 +75,8 @@ import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  * @created Sep 26, 2011
  */
-public interface HGDBOntologyInternals {
+public interface HGDBOntologyInternals
+{
 
 	void setOntologyHyperNode(HGDBOntology ontology);
 
@@ -108,27 +109,26 @@ public interface HGDBOntologyInternals {
 
 	public void removeAxiomsByType(AxiomType<?> type, OWLAxiom axiom);
 
-	//2011.11.17 Map<OWLAxiom, Set<OWLAxiom>> getLogicalAxiom2AnnotatedAxiomMap();
+	// 2011.11.17 Map<OWLAxiom, Set<OWLAxiom>>
+	// getLogicalAxiom2AnnotatedAxiomMap();
 
-	//2011.11.23 boolean containsLogicalAxiom2AnnotatedAxiomMap(OWLAxiom ax);
-	
-	//2011.11.23 Set<OWLAxiom> getLogicalAxiom2AnnotatedAxiom(OWLAxiom ax);
+	// 2011.11.23 boolean containsLogicalAxiom2AnnotatedAxiomMap(OWLAxiom ax);
+
+	// 2011.11.23 Set<OWLAxiom> getLogicalAxiom2AnnotatedAxiom(OWLAxiom ax);
 
 	boolean containsAxiomIgnoreAnnotations(OWLAxiom ax);
 
 	Set<OWLAxiom> getAxiomsIgnoreAnnotations(OWLAxiom ax);
 
+	// void addLogicalAxiom2AnnotatedAxiomMap(OWLAxiom ax);
 
-	//void addLogicalAxiom2AnnotatedAxiomMap(OWLAxiom ax);
-
-	//void removeLogicalAxiom2AnnotatedAxiomMap(OWLAxiom ax);
-
+	// void removeLogicalAxiom2AnnotatedAxiomMap(OWLAxiom ax);
 
 	Set<OWLClassAxiom> getGeneralClassAxioms();
 
-	//2011.11.21 void addGeneralClassAxioms(OWLClassAxiom ax);
+	// 2011.11.21 void addGeneralClassAxioms(OWLClassAxiom ax);
 
-	//2011.11.21 void removeGeneralClassAxioms(OWLClassAxiom ax);
+	// 2011.11.21 void removeGeneralClassAxioms(OWLClassAxiom ax);
 
 	Set<OWLSubPropertyChainOfAxiom> getPropertyChainSubPropertyAxioms();
 
@@ -268,7 +268,8 @@ public interface HGDBOntologyInternals {
 	// Set<OWLEquivalentObjectPropertiesAxiom>>
 	// getEquivalentObjectPropertyAxiomsByProperty();
 
-	//Map<OWLObjectPropertyExpression, Set<OWLDisjointObjectPropertiesAxiom>> getDisjointObjectPropertyAxiomsByProperty();
+	// Map<OWLObjectPropertyExpression, Set<OWLDisjointObjectPropertiesAxiom>>
+	// getDisjointObjectPropertyAxiomsByProperty();
 
 	// 2011.10.07 Map<OWLObjectPropertyExpression,
 	// Set<OWLObjectPropertyDomainAxiom>>
@@ -320,7 +321,9 @@ public interface HGDBOntologyInternals {
 	// Set<OWLEquivalentDataPropertiesAxiom>>
 	// getEquivalentDataPropertyAxiomsByProperty();
 
-	// 2011.11.07 Map<OWLDataPropertyExpression, Set<OWLDisjointDataPropertiesAxiom>> getDisjointDataPropertyAxiomsByProperty();
+	// 2011.11.07 Map<OWLDataPropertyExpression,
+	// Set<OWLDisjointDataPropertiesAxiom>>
+	// getDisjointDataPropertyAxiomsByProperty();
 
 	// 2011.10.07 Map<OWLDataPropertyExpression,
 	// Set<OWLDataPropertyDomainAxiom>> getDataPropertyDomainAxiomsByProperty();
@@ -328,25 +331,37 @@ public interface HGDBOntologyInternals {
 	// 2011.10.07 Map<OWLDataPropertyExpression, Set<OWLDataPropertyRangeAxiom>>
 	// getDataPropertyRangeAxiomsByProperty();
 
-	// 2011.11.07  Map<OWLDataPropertyExpression, Set<OWLFunctionalDataPropertyAxiom>> getFunctionalDataPropertyAxiomsByProperty();
+	// 2011.11.07 Map<OWLDataPropertyExpression,
+	// Set<OWLFunctionalDataPropertyAxiom>>
+	// getFunctionalDataPropertyAxiomsByProperty();
 
-	// 2011.11.08 Map<OWLIndividual, Set<OWLClassAssertionAxiom>> getClassAssertionAxiomsByIndividual();
+	// 2011.11.08 Map<OWLIndividual, Set<OWLClassAssertionAxiom>>
+	// getClassAssertionAxiomsByIndividual();
 
-	// 2011.11.08	Map<OWLClassExpression, Set<OWLClassAssertionAxiom>> getClassAssertionAxiomsByClass();
+	// 2011.11.08 Map<OWLClassExpression, Set<OWLClassAssertionAxiom>>
+	// getClassAssertionAxiomsByClass();
 
-	// 2011.11.08	Map<OWLIndividual, Set<OWLObjectPropertyAssertionAxiom>> getObjectPropertyAssertionsByIndividual();
+	// 2011.11.08 Map<OWLIndividual, Set<OWLObjectPropertyAssertionAxiom>>
+	// getObjectPropertyAssertionsByIndividual();
 
-	// 2011.11.08	Map<OWLIndividual, Set<OWLDataPropertyAssertionAxiom>> getDataPropertyAssertionsByIndividual();
+	// 2011.11.08 Map<OWLIndividual, Set<OWLDataPropertyAssertionAxiom>>
+	// getDataPropertyAssertionsByIndividual();
 
-	// 2011.11.08	Map<OWLIndividual, Set<OWLNegativeObjectPropertyAssertionAxiom>> getNegativeObjectPropertyAssertionAxiomsByIndividual();
+	// 2011.11.08 Map<OWLIndividual,
+	// Set<OWLNegativeObjectPropertyAssertionAxiom>>
+	// getNegativeObjectPropertyAssertionAxiomsByIndividual();
 
-	// 2011.11.08	Map<OWLIndividual, Set<OWLNegativeDataPropertyAssertionAxiom>> getNegativeDataPropertyAssertionAxiomsByIndividual();
+	// 2011.11.08 Map<OWLIndividual, Set<OWLNegativeDataPropertyAssertionAxiom>>
+	// getNegativeDataPropertyAssertionAxiomsByIndividual();
 
-	// 2011.11.08 Map<OWLIndividual, Set<OWLDifferentIndividualsAxiom>> getDifferentIndividualsAxiomsByIndividual();
+	// 2011.11.08 Map<OWLIndividual, Set<OWLDifferentIndividualsAxiom>>
+	// getDifferentIndividualsAxiomsByIndividual();
 
-	// 2011.11.08 Map<OWLIndividual, Set<OWLSameIndividualAxiom>> getSameIndividualsAxiomsByIndividual();
+	// 2011.11.08 Map<OWLIndividual, Set<OWLSameIndividualAxiom>>
+	// getSameIndividualsAxiomsByIndividual();
 
-	// 2011.11.14 Map<OWLAnnotationSubject, Set<OWLAnnotationAssertionAxiom>> getAnnotationAssertionAxiomsBySubject();
+	// 2011.11.14 Map<OWLAnnotationSubject, Set<OWLAnnotationAssertionAxiom>>
+	// getAnnotationAssertionAxiomsBySubject();
 
 	boolean isDeclared(OWLDeclarationAxiom ax);
 
@@ -369,9 +384,9 @@ public interface HGDBOntologyInternals {
 	 *            The set of axioms that the axiom should be added to. May be
 	 *            <code>null</code>.
 	 */
-	//<K extends OWLAxiom> void addAxiomToSet(K axiom, Set<K> axioms);
+	// <K extends OWLAxiom> void addAxiomToSet(K axiom, Set<K> axioms);
 
-	//<K extends OWLAxiom> void removeAxiomFromSet(K axiom, Set<K> axioms);
+	// <K extends OWLAxiom> void removeAxiomFromSet(K axiom, Set<K> axioms);
 
 	/**
 	 * Adds an axiom to a set contained in a map, which maps some key (e.g. an
@@ -385,7 +400,8 @@ public interface HGDBOntologyInternals {
 	 * @param axiom
 	 *            The axiom to be added
 	 */
-	//<K, V extends OWLAxiom> void addToIndexedSet(K key, Map<K, Set<V>> map, V axiom);
+	// <K, V extends OWLAxiom> void addToIndexedSet(K key, Map<K, Set<V>> map, V
+	// axiom);
 
 	/**
 	 * Removes an axiom from a set of axioms, which is the value for a specified
@@ -401,11 +417,13 @@ public interface HGDBOntologyInternals {
 	 *            Specifies whether or not the indexed set should be removed
 	 *            from the map if it is empty after removing the specified axiom
 	 */
-	//<K, V extends OWLAxiom> void removeAxiomFromSet(K key, Map<K, Set<V>> map, V axiom, boolean removeSetIfEmpty);
+	// <K, V extends OWLAxiom> void removeAxiomFromSet(K key, Map<K, Set<V>>
+	// map, V axiom, boolean removeSetIfEmpty);
 
 	<E> Set<E> getReturnSet(Set<E> set);
 
-	//<K extends OWLObject, V extends OWLAxiom> Set<V> getAxioms(K key, Map<K, Set<V>> map);
+	// <K extends OWLObject, V extends OWLAxiom> Set<V> getAxioms(K key, Map<K,
+	// Set<V>> map);
 
 	Set<OWLDeclarationAxiom> getDeclarationAxioms(OWLEntity entity);
 
@@ -456,8 +474,7 @@ public interface HGDBOntologyInternals {
 
 	Set<OWLFunctionalObjectPropertyAxiom> getFunctionalObjectPropertyAxioms(OWLObjectPropertyExpression property);
 
-	Set<OWLInverseFunctionalObjectPropertyAxiom> getInverseFunctionalObjectPropertyAxioms(
-			OWLObjectPropertyExpression property);
+	Set<OWLInverseFunctionalObjectPropertyAxiom> getInverseFunctionalObjectPropertyAxioms(OWLObjectPropertyExpression property);
 
 	Set<OWLSymmetricObjectPropertyAxiom> getSymmetricObjectPropertyAxioms(OWLObjectPropertyExpression property);
 
@@ -524,30 +541,30 @@ public interface HGDBOntologyInternals {
 	 * @return
 	 */
 	Set<OWLIndividualAxiom> getOWLIndividualAxioms(OWLIndividual individual);
-	
+
 	//
 	// 2011.12.29 Axioms for various OWLEntities
 	//
-	
+
 	/**
 	 * Finds defining axioms in incidence Set for the given entity
 	 */
-	
+
 	Set<OWLDataPropertyAxiom> getOWLDataPropertyAxioms(OWLDataProperty prop);
-	
+
 	Set<OWLAnnotationAxiom> getOWLAnnotationPropertyAxioms(OWLAnnotationProperty prop);
-	
+
 	Set<OWLObjectPropertyAxiom> getOWLObjectPropertyExpressionAxioms(OWLObjectPropertyExpression prop);
-	
+
 	// 2012.10.02 Prefixes
 	Map<String, String> getPrefixes();
-	
+
 	void setPrefixesFrom(Map<String, String> prefixMap);
 
 	String getPrefix(String prefixName);
-	
+
 	String setPrefix(String prefixName, String prefix);
-	
+
 	String removePrefix(String prefixName);
-	
+
 }

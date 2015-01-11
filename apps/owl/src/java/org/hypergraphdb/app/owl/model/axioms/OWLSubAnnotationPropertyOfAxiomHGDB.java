@@ -19,144 +19,179 @@ import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 
 /**
  * OWLSubAnnotationPropertyOfAxiomHGDB.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Oct 12, 2011
  */
-public class OWLSubAnnotationPropertyOfAxiomHGDB extends OWLAxiomHGDB implements OWLSubAnnotationPropertyOfAxiom, HGLink {
-    
+public class OWLSubAnnotationPropertyOfAxiomHGDB extends OWLAxiomHGDB implements OWLSubAnnotationPropertyOfAxiom, HGLink
+{
 	private HGHandle subPropertyHandle;
-    private HGHandle superPropertyHandle;
+	private HGHandle superPropertyHandle;
 
+	public OWLSubAnnotationPropertyOfAxiomHGDB(HGHandle... args)
+	{
+		this(args[0], args[1], Collections.<OWLAnnotation> emptySet());
+	}
 
-    public OWLSubAnnotationPropertyOfAxiomHGDB(HGHandle...args)
-    {
-    	this(args[0], args[1], Collections.<OWLAnnotation>emptySet());
-    }
+	public OWLSubAnnotationPropertyOfAxiomHGDB(HGHandle subProperty, HGHandle superProperty,
+			Collection<? extends OWLAnnotation> annotations)
+	{
+		super(annotations);
+		// TODO ensure type OWLAnnotationProperty
+		this.notifyTargetHandleUpdate(0, subProperty);
+		this.notifyTargetHandleUpdate(1, superProperty);
+	}
 
-    public OWLSubAnnotationPropertyOfAxiomHGDB(HGHandle subProperty, HGHandle superProperty, Collection<? extends OWLAnnotation> annotations) {
-        super(annotations);
-        //TODO ensure type OWLAnnotationProperty
-        this.notifyTargetHandleUpdate(0, subProperty);
-        this.notifyTargetHandleUpdate(1, superProperty);
-    }
+	public OWLSubAnnotationPropertyOfAxiom getAnnotatedAxiom(Set<OWLAnnotation> annotations)
+	{
+		return getOWLDataFactory()
+				.getOWLSubAnnotationPropertyOfAxiom(getSubProperty(), getSuperProperty(), mergeAnnos(annotations));
+	}
 
-    public OWLSubAnnotationPropertyOfAxiom getAnnotatedAxiom(Set<OWLAnnotation> annotations) {
-        return getOWLDataFactory().getOWLSubAnnotationPropertyOfAxiom(getSubProperty(), getSuperProperty(), mergeAnnos(annotations));
-    }
+	public OWLSubAnnotationPropertyOfAxiom getAxiomWithoutAnnotations()
+	{
+		if (!isAnnotated())
+		{
+			return this;
+		}
+		return getOWLDataFactory().getOWLSubAnnotationPropertyOfAxiom(getSubProperty(), getSuperProperty());
+	}
 
-    public OWLSubAnnotationPropertyOfAxiom getAxiomWithoutAnnotations() {
-        if (!isAnnotated()) {
-            return this;
-        }
-        return getOWLDataFactory().getOWLSubAnnotationPropertyOfAxiom(getSubProperty(), getSuperProperty());
-    }
+	public OWLAnnotationProperty getSubProperty()
+	{
+		return getHyperGraph().get(subPropertyHandle);
+	}
 
-    public OWLAnnotationProperty getSubProperty() {
-        return getHyperGraph().get(subPropertyHandle);
-    }
+	public OWLAnnotationProperty getSuperProperty()
+	{
+		return getHyperGraph().get(superPropertyHandle);
+	}
 
+	public void accept(OWLAxiomVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public OWLAnnotationProperty getSuperProperty() {
-        return getHyperGraph().get(superPropertyHandle);
-    }
+	public <O> O accept(OWLAxiomVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
+	public boolean isLogicalAxiom()
+	{
+		return false;
+	}
 
-    public void accept(OWLAxiomVisitor visitor) {
-        visitor.visit(this);
-    }
+	public boolean isAnnotationAxiom()
+	{
+		return true;
+	}
 
+	public AxiomType<?> getAxiomType()
+	{
+		return AxiomType.SUB_ANNOTATION_PROPERTY_OF;
+	}
 
-    public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
+	public void accept(OWLObjectVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
+	public <O> O accept(OWLObjectVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
-    public boolean isLogicalAxiom() {
-        return false;
-    }
+	@Override
+	protected int compareObjectOfSameType(OWLObject object)
+	{
+		OWLSubAnnotationPropertyOfAxiom other = (OWLSubAnnotationPropertyOfAxiom) object;
+		int diff = getSubProperty().compareTo(other.getSubProperty());
+		if (diff != 0)
+		{
+			return diff;
+		}
+		return getSuperProperty().compareTo(other.getSuperProperty());
+	}
 
-    public boolean isAnnotationAxiom() {
-        return true;
-    }
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (obj == this)
+		{
+			return true;
+		}
+		if (!(obj instanceof OWLSubAnnotationPropertyOfAxiom))
+		{
+			return false;
+		}
+		OWLSubAnnotationPropertyOfAxiom other = (OWLSubAnnotationPropertyOfAxiom) obj;
+		return getSubProperty().equals(other.getSubProperty()) && getSuperProperty().equals(other.getSuperProperty());
+	}
 
-    public AxiomType<?> getAxiomType() {
-        return AxiomType.SUB_ANNOTATION_PROPERTY_OF;
-    }
-
-
-    public void accept(OWLObjectVisitor visitor) {
-        visitor.visit(this);
-    }
-
-
-    public <O> O accept(OWLObjectVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
-
-
-    @Override
-	protected int compareObjectOfSameType(OWLObject object) {
-        OWLSubAnnotationPropertyOfAxiom other = (OWLSubAnnotationPropertyOfAxiom) object;
-        int diff = getSubProperty().compareTo(other.getSubProperty());
-        if (diff != 0) {
-            return diff;
-        }
-        return getSuperProperty().compareTo(other.getSuperProperty());
-    }
-
-
-    @Override
-	public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (!(obj instanceof OWLSubAnnotationPropertyOfAxiom)) {
-            return false;
-        }
-        OWLSubAnnotationPropertyOfAxiom other = (OWLSubAnnotationPropertyOfAxiom) obj;
-        return getSubProperty().equals(other.getSubProperty()) && getSuperProperty().equals(other.getSuperProperty());
-    }
-
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getArity()
 	 */
 	@Override
-	public int getArity() {
+	public int getArity()
+	{
 		return 2;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getTargetAt(int)
 	 */
 	@Override
-	public HGHandle getTargetAt(int i) {
-		if (i != 0 && i != 1) throw new IllegalArgumentException("Index has to be 0 or 1"); 
-		return (i == 0)? subPropertyHandle: superPropertyHandle;  
+	public HGHandle getTargetAt(int i)
+	{
+		if (i != 0 && i != 1)
+			throw new IllegalArgumentException("Index has to be 0 or 1");
+		return (i == 0) ? subPropertyHandle : superPropertyHandle;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int, org.hypergraphdb.HGHandle)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int,
+	 * org.hypergraphdb.HGHandle)
 	 */
 	@Override
-	public void notifyTargetHandleUpdate(int i, HGHandle handle) {
-		if (i != 0 && i != 1) throw new IllegalArgumentException("Index has to be 0 or 1"); 
-		if (handle == null) throw new IllegalArgumentException("handle null"); 
-		if (i == 0) {
+	public void notifyTargetHandleUpdate(int i, HGHandle handle)
+	{
+		if (i != 0 && i != 1)
+			throw new IllegalArgumentException("Index has to be 0 or 1");
+		if (handle == null)
+			throw new IllegalArgumentException("handle null");
+		if (i == 0)
+		{
 			subPropertyHandle = handle;
-		} else {
+		}
+		else
+		{
 			superPropertyHandle = handle;
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#notifyTargetRemoved(int)
 	 */
 	@Override
-	public void notifyTargetRemoved(int i) {
-		if (i != 0 && i != 1) throw new IllegalArgumentException("Index has to be 0 or 1"); 
-		if (i == 0) {
+	public void notifyTargetRemoved(int i)
+	{
+		if (i != 0 && i != 1)
+			throw new IllegalArgumentException("Index has to be 0 or 1");
+		if (i == 0)
+		{
 			subPropertyHandle = getHyperGraph().getHandleFactory().nullHandle();
-		} else {
+		}
+		else
+		{
 			superPropertyHandle = getHyperGraph().getHandleFactory().nullHandle();
 		}
 	}

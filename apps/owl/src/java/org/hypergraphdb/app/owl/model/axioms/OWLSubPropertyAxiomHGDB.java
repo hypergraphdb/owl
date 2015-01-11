@@ -12,102 +12,133 @@ import org.semanticweb.owlapi.model.OWLSubPropertyAxiom;
 
 /**
  * OWLSubPropertyAxiomHGDB.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Oct 7, 2011
  */
-public abstract class OWLSubPropertyAxiomHGDB<P extends OWLPropertyExpression<?,?>> extends OWLPropertyAxiomHGDB implements OWLSubPropertyAxiom<P>, HGLink {
+public abstract class OWLSubPropertyAxiomHGDB<P extends OWLPropertyExpression<?, ?>> extends OWLPropertyAxiomHGDB implements
+		OWLSubPropertyAxiom<P>, HGLink
+{
+	private HGHandle subPropertyHandle; // 0
 
-    private HGHandle subPropertyHandle; //0
+	private HGHandle superPropertyHandle; // 1
 
-    private HGHandle superPropertyHandle; //1
+	public OWLSubPropertyAxiomHGDB(HGHandle... args)
+	{
+		this(args[0], args[1], Collections.<OWLAnnotation> emptySet());
+	}
 
-    public OWLSubPropertyAxiomHGDB(HGHandle...args)
-    {
-    	this(args[0], args[1], Collections.<OWLAnnotation>emptySet());
-    }
+	public OWLSubPropertyAxiomHGDB(HGHandle subProperty, HGHandle superProperty, Collection<? extends OWLAnnotation> annotations)
+	{
+		// assert type of HGHandle OWLPropertyExpression
+		super(annotations);
+		this.notifyTargetHandleUpdate(0, subProperty);
+		this.notifyTargetHandleUpdate(1, superProperty);
+	}
 
-    public OWLSubPropertyAxiomHGDB(HGHandle subProperty, HGHandle superProperty, Collection<? extends OWLAnnotation> annotations) {
-    	//assert type of HGHandle OWLPropertyExpression
-    	super(annotations);
-        this.notifyTargetHandleUpdate(0, subProperty);
-        this.notifyTargetHandleUpdate(1, superProperty);
-    }
+	public P getSubProperty()
+	{
+		return getHyperGraph().<P> get(subPropertyHandle);
+	}
 
+	public P getSuperProperty()
+	{
+		return getHyperGraph().<P> get(superPropertyHandle);
+	}
 
-    public P getSubProperty() {
-        return getHyperGraph().<P>get(subPropertyHandle);
-    }
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (super.equals(obj))
+		{
+			if (!(obj instanceof OWLSubPropertyAxiom))
+			{
+				return false;
+			}
+			OWLSubPropertyAxiom<?> other = (OWLSubPropertyAxiom<?>) obj;
+			return other.getSubProperty().equals(getSubProperty()) && other.getSuperProperty().equals(getSuperProperty());
+			// return other.getSubProperty().equals(subProperty) &&
+			// other.getSuperProperty().equals(superProperty);
+		}
+		return false;
+	}
 
+	@Override
+	protected int compareObjectOfSameType(OWLObject object)
+	{
+		OWLSubPropertyAxiom<?> other = (OWLSubPropertyAxiom<?>) object;
+		int diff = getSubProperty().compareTo(other.getSubProperty());
+		if (diff != 0)
+		{
+			return diff;
+		}
+		return getSuperProperty().compareTo(other.getSuperProperty());
+	}
 
-    public P getSuperProperty() {
-        return getHyperGraph().<P>get(superPropertyHandle);
-    }
-
-
-    @Override
-	public boolean equals(Object obj) {
-        if (super.equals(obj)) {
-            if (!(obj instanceof OWLSubPropertyAxiom)) {
-                return false;
-            }
-            OWLSubPropertyAxiom<?> other = (OWLSubPropertyAxiom<?>) obj;
-            return other.getSubProperty().equals(getSubProperty()) && other.getSuperProperty().equals(getSuperProperty());
-            //return other.getSubProperty().equals(subProperty) && other.getSuperProperty().equals(superProperty);
-        }
-        return false;
-    }
-
-
-    @Override
-	protected int compareObjectOfSameType(OWLObject object) {
-        OWLSubPropertyAxiom<?> other = (OWLSubPropertyAxiom<?>) object;
-        int diff = getSubProperty().compareTo(other.getSubProperty());
-        if (diff != 0) {
-            return diff;
-        }
-        return getSuperProperty().compareTo(other.getSuperProperty());
-    }
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getArity()
 	 */
-    
+
 	@Override
-	public int getArity() {
+	public int getArity()
+	{
 		return 2;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getTargetAt(int)
 	 */
 	@Override
-	public HGHandle getTargetAt(int i) {
-		if (i != 0 && i != 1) throw new IllegalArgumentException("Index has to be 0 or 1"); 
-		return (i == 0)? subPropertyHandle: superPropertyHandle;  
+	public HGHandle getTargetAt(int i)
+	{
+		if (i != 0 && i != 1)
+			throw new IllegalArgumentException("Index has to be 0 or 1");
+		return (i == 0) ? subPropertyHandle : superPropertyHandle;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int, org.hypergraphdb.HGHandle)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int,
+	 * org.hypergraphdb.HGHandle)
 	 */
 	@Override
-	public void notifyTargetHandleUpdate(int i, HGHandle handle) {
-		if (i != 0 && i != 1) throw new IllegalArgumentException("Index has to be 0 or 1"); 
-		if (handle == null) throw new IllegalArgumentException("handle null"); 
-		if (i == 0) {
+	public void notifyTargetHandleUpdate(int i, HGHandle handle)
+	{
+		if (i != 0 && i != 1)
+			throw new IllegalArgumentException("Index has to be 0 or 1");
+		if (handle == null)
+			throw new IllegalArgumentException("handle null");
+		if (i == 0)
+		{
 			subPropertyHandle = handle;
-		} else {
+		}
+		else
+		{
 			superPropertyHandle = handle;
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#notifyTargetRemoved(int)
 	 */
 	@Override
-	public void notifyTargetRemoved(int i) {
-		if (i != 0 && i != 1) throw new IllegalArgumentException("Index has to be 0 or 1"); 
-		if (i == 0) {
+	public void notifyTargetRemoved(int i)
+	{
+		if (i != 0 && i != 1)
+			throw new IllegalArgumentException("Index has to be 0 or 1");
+		if (i == 0)
+		{
 			subPropertyHandle = getHyperGraph().getHandleFactory().nullHandle();
-		} else {
+		}
+		else
+		{
 			superPropertyHandle = getHyperGraph().getHandleFactory().nullHandle();
 		}
 	}

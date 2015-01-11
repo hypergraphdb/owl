@@ -19,96 +19,121 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
 /**
  * OWLDifferentIndividualsAxiomHGDB.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 8, 2011
  */
-public class OWLDifferentIndividualsAxiomHGDB extends OWLNaryIndividualAxiomHGDB implements OWLDifferentIndividualsAxiom {
+public class OWLDifferentIndividualsAxiomHGDB extends OWLNaryIndividualAxiomHGDB implements OWLDifferentIndividualsAxiom
+{
+	public OWLDifferentIndividualsAxiomHGDB(HGHandle... args)
+	{
+		super(args);
+	}
 
-    public OWLDifferentIndividualsAxiomHGDB(HGHandle...args) {
-    	super(args);
-    }
+	public OWLDifferentIndividualsAxiomHGDB(Set<? extends HGHandle> individuals, Set<? extends OWLAnnotation> annotations)
+	{
+		// Set<? extends OWLIndividual> individuals, Set<? extends
+		// OWLAnnotation> annotations
+		super(individuals, annotations);
+	}
 
-    public OWLDifferentIndividualsAxiomHGDB(Set<? extends HGHandle> individuals, Set<? extends OWLAnnotation> annotations) {
-    	//Set<? extends OWLIndividual> individuals, Set<? extends OWLAnnotation> annotations
-        super(individuals, annotations);
-    }
+	public OWLDifferentIndividualsAxiom getAxiomWithoutAnnotations()
+	{
+		if (!isAnnotated())
+		{
+			return this;
+		}
+		return getOWLDataFactory().getOWLDifferentIndividualsAxiom(getIndividuals());
+	}
 
-    public OWLDifferentIndividualsAxiom getAxiomWithoutAnnotations() {
-        if (!isAnnotated()) {
-            return this;
-        }
-        return getOWLDataFactory().getOWLDifferentIndividualsAxiom(getIndividuals());
-    }
+	public OWLDifferentIndividualsAxiom getAnnotatedAxiom(Set<OWLAnnotation> annotations)
+	{
+		return getOWLDataFactory().getOWLDifferentIndividualsAxiom(getIndividuals(), mergeAnnos(annotations));
+	}
 
-    public OWLDifferentIndividualsAxiom getAnnotatedAxiom(Set<OWLAnnotation> annotations) {
-        return getOWLDataFactory().getOWLDifferentIndividualsAxiom(getIndividuals(), mergeAnnos(annotations));
-    }
+	public Set<OWLDifferentIndividualsAxiom> asPairwiseAxioms()
+	{
+		List<OWLIndividual> individuals = getIndividualsAsList();
+		Set<OWLDifferentIndividualsAxiom> result = new HashSet<OWLDifferentIndividualsAxiom>();
+		for (int i = 0; i < individuals.size() - 1; i++)
+		{
+			for (int j = i + 1; j < individuals.size(); j++)
+			{
+				OWLIndividual indI = individuals.get(i);
+				OWLIndividual indJ = individuals.get(j);
+				result.add(getOWLDataFactory().getOWLDifferentIndividualsAxiom(indI, indJ));
+			}
+		}
+		return result;
+	}
 
-    public Set<OWLDifferentIndividualsAxiom> asPairwiseAxioms() {
-        List<OWLIndividual> individuals = getIndividualsAsList();
-        Set<OWLDifferentIndividualsAxiom> result = new HashSet<OWLDifferentIndividualsAxiom>();
-        for (int i = 0; i < individuals.size() - 1; i++) {
-            for (int j = i + 1; j < individuals.size(); j++) {
-                OWLIndividual indI = individuals.get(i);
-                OWLIndividual indJ = individuals.get(j);
-                result.add(getOWLDataFactory().getOWLDifferentIndividualsAxiom(indI, indJ));
-            }
-        }
-        return result;
-    }
+	/**
+	 * Determines whether this axiom contains anonymous individuals. Anonymous
+	 * individuals are not allowed in different individuals axioms.
+	 * 
+	 * @return <code>true</code> if this axioms contains anonymous individual
+	 *         axioms
+	 */
+	public boolean containsAnonymousIndividuals()
+	{
+		for (OWLIndividual ind : getIndividuals())
+		{
+			if (ind.isAnonymous())
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 
-    /**
-     * Determines whether this axiom contains anonymous individuals.  Anonymous individuals are not allowed in
-     * different individuals axioms.
-     * @return <code>true</code> if this axioms contains anonymous individual axioms
-     */
-    public boolean containsAnonymousIndividuals() {
-        for (OWLIndividual ind : getIndividuals()) {
-            if (ind.isAnonymous()) {
-                return true;
-            }
-        }
-        return false;
-    }
+	@Override
+	public boolean equals(Object obj)
+	{
+		return super.equals(obj) && obj instanceof OWLDifferentIndividualsAxiom;
+	}
 
-    @Override
-	public boolean equals(Object obj) {
-        return super.equals(obj) && obj instanceof OWLDifferentIndividualsAxiom;
-    }
+	public Set<OWLSubClassOfAxiom> asOWLSubClassOfAxioms()
+	{
+		List<OWLClassExpression> nominalsList = new ArrayList<OWLClassExpression>();
+		for (OWLIndividual individual : getIndividuals())
+		{
+			nominalsList.add(getOWLDataFactory().getOWLObjectOneOf(individual));
+		}
+		Set<OWLSubClassOfAxiom> result = new HashSet<OWLSubClassOfAxiom>();
+		for (int i = 0; i < nominalsList.size() - 1; i++)
+		{
+			for (int j = i + 1; j < nominalsList.size(); j++)
+			{
+				OWLClassExpression ceI = nominalsList.get(i);
+				OWLClassExpression ceJ = nominalsList.get(j).getObjectComplementOf();
+				result.add(getOWLDataFactory().getOWLSubClassOfAxiom(ceI, ceJ));
+			}
+		}
+		return result;
+	}
 
-    public Set<OWLSubClassOfAxiom> asOWLSubClassOfAxioms() {
-        List<OWLClassExpression> nominalsList = new ArrayList<OWLClassExpression>();
-        for (OWLIndividual individual : getIndividuals()) {
-            nominalsList.add(getOWLDataFactory().getOWLObjectOneOf(individual));
-        }
-        Set<OWLSubClassOfAxiom> result = new HashSet<OWLSubClassOfAxiom>();
-        for (int i = 0; i < nominalsList.size() - 1; i++) {
-            for (int j = i + 1; j < nominalsList.size(); j++) {
-                OWLClassExpression ceI = nominalsList.get(i);
-                OWLClassExpression ceJ = nominalsList.get(j).getObjectComplementOf();
-                result.add(getOWLDataFactory().getOWLSubClassOfAxiom(ceI, ceJ));
-            }
-        }
-        return result;
-    }
+	public void accept(OWLAxiomVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public void accept(OWLAxiomVisitor visitor) {
-        visitor.visit(this);
-    }
+	public void accept(OWLObjectVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public void accept(OWLObjectVisitor visitor) {
-        visitor.visit(this);
-    }
+	public <O> O accept(OWLAxiomVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
-    public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
+	public <O> O accept(OWLObjectVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
-    public <O> O accept(OWLObjectVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
-
-    public AxiomType<?> getAxiomType() {
-        return AxiomType.DIFFERENT_INDIVIDUALS;
-    }
+	public AxiomType<?> getAxiomType()
+	{
+		return AxiomType.DIFFERENT_INDIVIDUALS;
+	}
 }

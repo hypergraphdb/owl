@@ -27,67 +27,78 @@ import org.semanticweb.owlapi.util.CollectionFactory;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Oct 18, 2011
  */
-public class OWLObjectOneOfHGDB extends OWLAnonymousClassExpressionHGDB implements OWLObjectOneOf, HGChangeableLink {
-
+public class OWLObjectOneOfHGDB extends OWLAnonymousClassExpressionHGDB implements OWLObjectOneOf, HGChangeableLink
+{
 	// private Set<OWLIndividual> values;
 	private List<HGHandle> valueHandles;
 
-	public OWLObjectOneOfHGDB(HGHandle... args) {
+	public OWLObjectOneOfHGDB(HGHandle... args)
+	{
 		// no duplicates allowed
 		assert (new TreeSet<HGHandle>(Arrays.asList(args)).size() == args.length);
 		valueHandles = new ArrayList<HGHandle>(Arrays.asList(args));
 		// valueHandles = new ArrayList<HGHandle>(Arrays.asList(args));
 	}
 
-	public OWLObjectOneOfHGDB(Set<? extends HGHandle> values) {
+	public OWLObjectOneOfHGDB(Set<? extends HGHandle> values)
+	{
 		// TODO check for type OWLIndividual
 		// two equal objects should be mapped to the latter, just as in a
 		// HashSet.
 		this.valueHandles = new ArrayList<HGHandle>(values);
 	}
 
-//	/**
-//	 * This checks valueHandles for duplicate OWLIndividuals and removes the
-//	 * first find. The order of the original valueHandles is not maintained.
-//	 */
-//	private void enforceSetCondition() {
-//		Set<OWLIndividual> uniqueIndividuals = getIndividuals();
-//		List<HGHandle> uniqueIndividualHandles = new ArrayList<HGHandle>();
-//		for (OWLIndividual i : uniqueIndividuals) {
-//			uniqueIndividualHandles.add(getHyperGraph().getHandle(i));
-//		}
-//		valueHandles = uniqueIndividualHandles;
-//	}
+	// /**
+	// * This checks valueHandles for duplicate OWLIndividuals and removes the
+	// * first find. The order of the original valueHandles is not maintained.
+	// */
+	// private void enforceSetCondition() {
+	// Set<OWLIndividual> uniqueIndividuals = getIndividuals();
+	// List<HGHandle> uniqueIndividualHandles = new ArrayList<HGHandle>();
+	// for (OWLIndividual i : uniqueIndividuals) {
+	// uniqueIndividualHandles.add(getHyperGraph().getHandle(i));
+	// }
+	// valueHandles = uniqueIndividualHandles;
+	// }
 
 	/**
 	 * Gets the class expression type for this class expression
 	 * 
 	 * @return The class expression type
 	 */
-	public ClassExpressionType getClassExpressionType() {
+	public ClassExpressionType getClassExpressionType()
+	{
 		return ClassExpressionType.OBJECT_ONE_OF;
 	}
 
-	public Set<OWLIndividual> getIndividuals() {
+	public Set<OWLIndividual> getIndividuals()
+	{
 		HyperGraph g = getHyperGraph();
 		Set<OWLIndividual> s = new TreeSet<OWLIndividual>();
-		for (HGHandle h : valueHandles) {
+		for (HGHandle h : valueHandles)
+		{
 			s.add((OWLIndividual) g.get(h));
 		}
 		return CollectionFactory.getCopyOnRequestSet(s);
 		// return CollectionFactory.getCopyOnRequestSet(values);
 	}
 
-	public boolean isClassExpressionLiteral() {
+	public boolean isClassExpressionLiteral()
+	{
 		return false;
 	}
 
-	public OWLClassExpression asObjectUnionOf() {
-		if (valueHandles.size() == 1) {
+	public OWLClassExpression asObjectUnionOf()
+	{
+		if (valueHandles.size() == 1)
+		{
 			return this;
-		} else {
+		}
+		else
+		{
 			Set<OWLClassExpression> ops = new HashSet<OWLClassExpression>();
-			for (OWLIndividual ind : getIndividuals()) {
+			for (OWLIndividual ind : getIndividuals())
+			{
 				ops.add(getOWLDataFactory().getOWLObjectOneOf(ind));
 			}
 			return getOWLDataFactory().getOWLObjectUnionOf(ops);
@@ -95,9 +106,12 @@ public class OWLObjectOneOfHGDB extends OWLAnonymousClassExpressionHGDB implemen
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (super.equals(obj)) {
-			if (!(obj instanceof OWLObjectOneOf)) {
+	public boolean equals(Object obj)
+	{
+		if (super.equals(obj))
+		{
+			if (!(obj instanceof OWLObjectOneOf))
+			{
 				return false;
 			}
 			return ((OWLObjectOneOf) obj).getIndividuals().equals(getIndividuals());
@@ -105,24 +119,29 @@ public class OWLObjectOneOfHGDB extends OWLAnonymousClassExpressionHGDB implemen
 		return false;
 	}
 
-	public void accept(OWLClassExpressionVisitor visitor) {
+	public void accept(OWLClassExpressionVisitor visitor)
+	{
 		visitor.visit(this);
 	}
 
-	public void accept(OWLObjectVisitor visitor) {
+	public void accept(OWLObjectVisitor visitor)
+	{
 		visitor.visit(this);
 	}
 
-	public <O> O accept(OWLClassExpressionVisitorEx<O> visitor) {
+	public <O> O accept(OWLClassExpressionVisitorEx<O> visitor)
+	{
 		return visitor.visit(this);
 	}
 
-	public <O> O accept(OWLObjectVisitorEx<O> visitor) {
+	public <O> O accept(OWLObjectVisitorEx<O> visitor)
+	{
 		return visitor.visit(this);
 	}
 
 	@Override
-	protected int compareObjectOfSameType(OWLObject object) {
+	protected int compareObjectOfSameType(OWLObject object)
+	{
 		return compareSets(getIndividuals(), ((OWLObjectOneOf) object).getIndividuals());
 	}
 
@@ -132,7 +151,8 @@ public class OWLObjectOneOfHGDB extends OWLAnonymousClassExpressionHGDB implemen
 	 * @see org.hypergraphdb.HGLink#getArity()
 	 */
 	@Override
-	public int getArity() {
+	public int getArity()
+	{
 		return valueHandles.size();
 	}
 
@@ -142,7 +162,8 @@ public class OWLObjectOneOfHGDB extends OWLAnonymousClassExpressionHGDB implemen
 	 * @see org.hypergraphdb.HGLink#getTargetAt(int)
 	 */
 	@Override
-	public HGHandle getTargetAt(int i) {
+	public HGHandle getTargetAt(int i)
+	{
 		if (!(i >= 0 && i < getArity()))
 			throw new IllegalArgumentException("Index has to be 0 and less than " + getArity());
 		return valueHandles.get(i);
@@ -155,7 +176,8 @@ public class OWLObjectOneOfHGDB extends OWLAnonymousClassExpressionHGDB implemen
 	 * org.hypergraphdb.HGHandle)
 	 */
 	@Override
-	public void notifyTargetHandleUpdate(int i, HGHandle handle) {
+	public void notifyTargetHandleUpdate(int i, HGHandle handle)
+	{
 		assert (getHyperGraph().get(handle) instanceof OWLClassExpression);
 
 		if (!(i >= 0 && i < getArity()))
@@ -171,18 +193,23 @@ public class OWLObjectOneOfHGDB extends OWLAnonymousClassExpressionHGDB implemen
 	 * @see org.hypergraphdb.HGLink#notifyTargetRemoved(int)
 	 */
 	@Override
-	public void notifyTargetRemoved(int i) {
+	public void notifyTargetRemoved(int i)
+	{
 		if (!(i >= 0 && i < getArity()))
 			throw new IllegalArgumentException("Index has to be 0 and less than " + getArity());
-		//valueHandles.set(i, null);
+		// valueHandles.set(i, null);
 		valueHandles.remove(i);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.app.owl.core.HGChangeableLink#setTargetAt(int, org.hypergraphdb.HGHandle)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.hypergraphdb.app.owl.core.HGChangeableLink#setTargetAt(int,
+	 * org.hypergraphdb.HGHandle)
 	 */
 	@Override
-	public void setTargetAt(int i, HGHandle handle) {
+	public void setTargetAt(int i, HGHandle handle)
+	{
 		if (!(i >= 0 && i < getArity()))
 			throw new IllegalArgumentException("Index has to be 0 and less than " + getArity());
 		valueHandles.set(i, handle);

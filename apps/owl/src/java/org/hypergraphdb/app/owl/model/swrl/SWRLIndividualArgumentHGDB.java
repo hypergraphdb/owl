@@ -15,95 +15,124 @@ import org.semanticweb.owlapi.model.SWRLObjectVisitorEx;
 
 /**
  * SWRLIndividualArgumentHGDB.
+ * 
  * @author Boris Iordanov (CIAO/Miami-Dade County)
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 9, 2011
  */
 public class SWRLIndividualArgumentHGDB extends OWLObjectHGDB implements HGLink, SWRLIndividualArgument
 {
-	//private OWLIndividual individual;
+	// private OWLIndividual individual;
 	private HGHandle individualHandle;
-	
-    public SWRLIndividualArgumentHGDB(HGHandle... args) {
-    	// OWLIndividual individual
-        this(args[0]);
-        if (args.length != 1) throw new IllegalArgumentException("args.length != 1, but " + args.length);
-    }
 
-    public SWRLIndividualArgumentHGDB(HGHandle individual) {
-    	// OWLIndividual individual
-        individualHandle = individual;
-    }
+	public SWRLIndividualArgumentHGDB(HGHandle... args)
+	{
+		// OWLIndividual individual
+		this(args[0]);
+		if (args.length != 1)
+			throw new IllegalArgumentException("args.length != 1, but " + args.length);
+	}
 
-    public OWLIndividual getIndividual() {
-        return getHyperGraph().get(individualHandle);
-    }
+	public SWRLIndividualArgumentHGDB(HGHandle individual)
+	{
+		// OWLIndividual individual
+		individualHandle = individual;
+	}
 
-    public void accept(OWLObjectVisitor visitor) {
-        visitor.visit(this);
-    }
+	public OWLIndividual getIndividual()
+	{
+		return getHyperGraph().get(individualHandle);
+	}
 
-    public void accept(SWRLObjectVisitor visitor) {
-        visitor.visit(this);
-    }
+	public void accept(OWLObjectVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public <O> O accept(SWRLObjectVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
+	public void accept(SWRLObjectVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public <O> O accept(OWLObjectVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
+	public <O> O accept(SWRLObjectVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
-    @Override
-	public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (!(obj instanceof SWRLIndividualArgument)) {
-            return false;
-        }
-        SWRLIndividualArgument other = (SWRLIndividualArgument) obj;
-        return other.getIndividual().equals(getIndividual());
-    }
+	public <O> O accept(OWLObjectVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
-    @Override
-	protected int compareObjectOfSameType(OWLObject object) {
-        return getIndividual().compareTo(((SWRLIndividualArgument) object).getIndividual());
-    }
-    
-	/* (non-Javadoc)
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (obj == this)
+		{
+			return true;
+		}
+		if (!(obj instanceof SWRLIndividualArgument))
+		{
+			return false;
+		}
+		SWRLIndividualArgument other = (SWRLIndividualArgument) obj;
+		return other.getIndividual().equals(getIndividual());
+	}
+
+	@Override
+	protected int compareObjectOfSameType(OWLObject object)
+	{
+		return getIndividual().compareTo(((SWRLIndividualArgument) object).getIndividual());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getArity()
 	 */
 	@Override
-	public int getArity() {
-		return individualHandle == null? 0 : 1;
+	public int getArity()
+	{
+		return individualHandle == null ? 0 : 1;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getTargetAt(int)
 	 */
 	@Override
-	public HGHandle getTargetAt(int i) {
-		if (i != 0) throw new HGException("Index i must be 0");
+	public HGHandle getTargetAt(int i)
+	{
+		if (i != 0)
+			throw new HGException("Index i must be 0");
 		return individualHandle;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int, org.hypergraphdb.HGHandle)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int,
+	 * org.hypergraphdb.HGHandle)
 	 */
 	@Override
-	public void notifyTargetHandleUpdate(int i, HGHandle handle) {
-		if (i != 0) throw new HGException("Index i must be 0");
-		individualHandle = handle;		
+	public void notifyTargetHandleUpdate(int i, HGHandle handle)
+	{
+		if (i != 0)
+			throw new HGException("Index i must be 0");
+		individualHandle = handle;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#notifyTargetRemoved(int)
 	 */
 	@Override
-	public void notifyTargetRemoved(int i) {
-		if (i != 0) throw new HGException("Index i must be 0");		
+	public void notifyTargetRemoved(int i)
+	{
+		if (i != 0)
+			throw new HGException("Index i must be 0");
 		individualHandle = null;
-	}    
+	}
 }

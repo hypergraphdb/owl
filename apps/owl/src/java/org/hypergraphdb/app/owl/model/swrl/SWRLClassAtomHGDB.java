@@ -12,13 +12,15 @@ import org.semanticweb.owlapi.model.SWRLObjectVisitorEx;
 
 /**
  * SWRLClassAtomHGDB.
+ * 
  * @author Boris Iordanov (CIAO/Miami-Dade County)
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 9, 2011
  */
-public class SWRLClassAtomHGDB extends SWRLUnaryAtomHGDB<SWRLIArgument>	implements SWRLClassAtom
+public class SWRLClassAtomHGDB extends SWRLUnaryAtomHGDB<SWRLIArgument> implements SWRLClassAtom
 {
-	public SWRLClassAtomHGDB(HGHandle...args) {
+	public SWRLClassAtomHGDB(HGHandle... args)
+	{
 		super(args);
 	}
 
@@ -26,7 +28,7 @@ public class SWRLClassAtomHGDB extends SWRLUnaryAtomHGDB<SWRLIArgument>	implemen
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
 	public SWRLClassAtomHGDB(HGHandle predicate, HGHandle arg)
 	{
 		super(predicate, arg);
@@ -68,8 +70,7 @@ public class SWRLClassAtomHGDB extends SWRLUnaryAtomHGDB<SWRLIArgument>	implemen
 			return false;
 		}
 		SWRLClassAtom other = (SWRLClassAtom) obj;
-		return other.getArgument().equals(getArgument())
-				&& other.getPredicate().equals(getPredicate());
+		return other.getArgument().equals(getArgument()) && other.getPredicate().equals(getPredicate());
 	}
 
 	protected int compareObjectOfSameType(OWLObject object)

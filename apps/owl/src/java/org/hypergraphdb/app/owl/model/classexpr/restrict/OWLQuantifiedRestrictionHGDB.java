@@ -49,7 +49,10 @@ public abstract class OWLQuantifiedRestrictionHGDB<R extends OWLPropertyRange, P
 	}
 	public int hashCode()
 	{
-		return HashCodeUtil.hash(super.hashCode(), HGUtils.hashIt(this.getFiller()));
+		if (this.getHashCodeInt() == 0)
+			this.setHashCodeInt(HashCodeUtil.hash(
+					super.hashCode(), HGUtils.hashIt(this.getFiller())));
+		return this.getHashCodeInt();
 	}
 	
 	/*

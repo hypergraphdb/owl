@@ -101,7 +101,9 @@ public class OWLDataOneOfHGDB extends OWLObjectHGDB implements HGLink,
 
 	public int hashCode()
 	{
-		return HashCodeUtil.hash(super.hashCode(), getValues());
+		if (this.getHashCodeInt() == 0)
+			this.setHashCodeInt(HashCodeUtil.hash(super.hashCode(), getValues()));
+		return this.getHashCodeInt();
 	}
 	
 	public void accept(OWLDataVisitor visitor)

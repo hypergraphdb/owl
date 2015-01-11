@@ -18,66 +18,79 @@ import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Oct 19, 2011
  */
-public class OWLDataHasValueHGDB extends OWLValueRestrictionHGDB<OWLDataRange, OWLDataPropertyExpression, OWLLiteral>
-		implements OWLDataHasValue {
-
-	
+public class OWLDataHasValueHGDB extends OWLValueRestrictionHGDB<OWLDataRange, OWLDataPropertyExpression, OWLLiteral> implements
+		OWLDataHasValue
+{
 	/**
-	 * @param args [0]...property, [1]...filler
+	 * @param args
+	 *            [0]...property, [1]...filler
 	 */
-    public OWLDataHasValueHGDB(HGHandle... args) {
-    	super(args[0], args[1]);
-    	if (args.length != 2) throw new IllegalArgumentException("Must be exactly 2 handles.");
-    }
-	
-    public OWLDataHasValueHGDB(HGHandle property, HGHandle value) {
-    	//TODO check types: OWLDataPropertyExpression property, OWLLiteral value
-        super(property, value);
-    }
+	public OWLDataHasValueHGDB(HGHandle... args)
+	{
+		super(args[0], args[1]);
+		if (args.length != 2)
+			throw new IllegalArgumentException("Must be exactly 2 handles.");
+	}
+
+	public OWLDataHasValueHGDB(HGHandle property, HGHandle value)
+	{
+		// TODO check types: OWLDataPropertyExpression property, OWLLiteral
+		// value
+		super(property, value);
+	}
 
 	/**
 	 * Gets the class expression type for this class expression
 	 * 
 	 * @return The class expression type
 	 */
-	public ClassExpressionType getClassExpressionType() {
+	public ClassExpressionType getClassExpressionType()
+	{
 		return ClassExpressionType.DATA_HAS_VALUE;
 	}
 
-	public boolean isObjectRestriction() {
+	public boolean isObjectRestriction()
+	{
 		return false;
 	}
 
-	public boolean isDataRestriction() {
+	public boolean isDataRestriction()
+	{
 		return true;
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (super.equals(obj)) {
+	public boolean equals(Object obj)
+	{
+		if (super.equals(obj))
+		{
 			return obj instanceof OWLDataHasValue;
 		}
 		return false;
 	}
 
-	public OWLClassExpression asSomeValuesFrom() {
-		return getOWLDataFactory().getOWLDataSomeValuesFrom(getProperty(),
-				getOWLDataFactory().getOWLDataOneOf(getValue()));
+	public OWLClassExpression asSomeValuesFrom()
+	{
+		return getOWLDataFactory().getOWLDataSomeValuesFrom(getProperty(), getOWLDataFactory().getOWLDataOneOf(getValue()));
 	}
 
-	public void accept(OWLClassExpressionVisitor visitor) {
+	public void accept(OWLClassExpressionVisitor visitor)
+	{
 		visitor.visit(this);
 	}
 
-	public void accept(OWLObjectVisitor visitor) {
+	public void accept(OWLObjectVisitor visitor)
+	{
 		visitor.visit(this);
 	}
 
-	public <O> O accept(OWLClassExpressionVisitorEx<O> visitor) {
+	public <O> O accept(OWLClassExpressionVisitorEx<O> visitor)
+	{
 		return visitor.visit(this);
 	}
 
-	public <O> O accept(OWLObjectVisitorEx<O> visitor) {
+	public <O> O accept(OWLObjectVisitorEx<O> visitor)
+	{
 		return visitor.visit(this);
 	}
 }

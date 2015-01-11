@@ -6,6 +6,7 @@ import java.io.IOException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyUUIDException;
+import org.hypergraphdb.app.owl.newver.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.OWLOntologyChangeException;
@@ -18,23 +19,27 @@ import org.semanticweb.owlapi.model.UnloadableImportException;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public interface HGDBOntologyManager extends OWLOntologyManager {
+public interface HGDBOntologyManager extends OWLOntologyManager
+{
 
 	/**
 	 * @return the dbRepository
 	 */
-	public abstract HGDBOntologyRepository getOntologyRepository();
+	HGDBOntologyRepository getOntologyRepository();
+
+	VersionManager getVersionManager();	
 
 	/**
 	 * Determines if at least one In Memory ontology is managed.
 	 * 
 	 * @return
 	 */
-	public abstract boolean hasInMemoryOntology();
+	boolean hasInMemoryOntology();
 
 	/**
-	 * Imports a versioned Ontology from a VOWLXMLFormat saved file into the repository.
-	 * All revisions, changesets and the full workingset will be stored.
+	 * Imports a versioned Ontology from a VOWLXMLFormat saved file into the
+	 * repository. All revisions, changesets and the full workingset will be
+	 * stored.
 	 * 
 	 * @param vowlxmlFile
 	 * @return
@@ -46,10 +51,10 @@ public interface HGDBOntologyManager extends OWLOntologyManager {
 	 * @throws OWLParserException
 	 * @throws IOException
 	 */
-	public VersionedOntology importVersionedOntology(File vowlxmlFile) throws OWLOntologyChangeException,
+	VersionedOntology importVersionedOntology(File vowlxmlFile) throws OWLOntologyChangeException,
 			UnloadableImportException, HGDBOntologyAlreadyExistsByDocumentIRIException,
-			HGDBOntologyAlreadyExistsByOntologyIDException, HGDBOntologyAlreadyExistsByOntologyUUIDException,
-			OWLParserException, IOException;
+			HGDBOntologyAlreadyExistsByOntologyIDException, HGDBOntologyAlreadyExistsByOntologyUUIDException, OWLParserException,
+			IOException;
 
 	/**
 	 * Gets the current long task Size for saveAs and open. This is thread safe.
@@ -57,13 +62,12 @@ public interface HGDBOntologyManager extends OWLOntologyManager {
 	 * 
 	 * @return
 	 */
-	public int getCurrentTaskSize();
+	int getCurrentTaskSize();
 
 	/**
 	 * Gets the current progress task value for saveAs and open.
 	 * 
 	 * @return a value that is lower or equal to CurrentTaskSize
 	 */
-	public int getCurrentTaskProgress();
-
+	int getCurrentTaskProgress();
 }

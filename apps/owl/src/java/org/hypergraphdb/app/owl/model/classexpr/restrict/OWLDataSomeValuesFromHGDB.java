@@ -57,11 +57,6 @@ public class OWLDataSomeValuesFromHGDB extends OWLQuantifiedDataRestrictionHGDB
 		return false;
 	}
 
-	public int hashCode()
-	{
-		return super.hashCode();
-	}
-	
 	public boolean isObjectRestriction()
 	{
 		return false;

@@ -211,13 +211,17 @@ public class OWLLiteralHGDB extends OWLObjectHGDB implements OWLLiteral, HGLink
 	@Override
 	public int hashCode()
 	{
-		final int prime = 31;
-		int result = 0;
-		result = prime * result
-				+ ((datatypeHandle == null) ? 0 : datatypeHandle.hashCode());
-		result = prime * result + ((lang == null) ? 0 : lang.hashCode());
-		result = prime * result + ((literal == null) ? 0 : literal.hashCode());
-		return result;
+		if (this.getHashCodeInt() == 0)
+		{
+			final int prime = 31;
+			int result = 0;
+			result = prime * result
+					+ ((datatypeHandle == null) ? 0 : datatypeHandle.hashCode());
+			result = prime * result + ((lang == null) ? 0 : lang.hashCode());
+			result = prime * result + ((literal == null) ? 0 : literal.hashCode());
+			this.setHashCodeInt(result);
+		}
+		return this.getHashCodeInt();
 	}
 
 	@Override

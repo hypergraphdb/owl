@@ -101,11 +101,15 @@ public abstract class OWLRestrictionHGDB<R extends OWLPropertyRange, P extends O
 	@Override
 	public int hashCode()
 	{
-		final int prime = 31;
-		int result = 0;
-		for (int i = 0; i < getArity(); i++)
-			result = prime * result + this.getHyperGraph().get(getTargetAt(i)).hashCode();
-		return result;
+		if (this.getHashCodeInt() == 0)
+		{
+			int result = 0;
+			final int prime = 31;
+			for (int i = 0; i < getArity(); i++)
+				result = prime * result + this.getHyperGraph().get(getTargetAt(i)).hashCode();
+			this.setHashCodeInt(result);
+		}
+		return this.getHashCodeInt();
 	}
 
 	@Override

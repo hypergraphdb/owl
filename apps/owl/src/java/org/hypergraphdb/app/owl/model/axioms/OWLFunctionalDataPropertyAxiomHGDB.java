@@ -18,70 +18,85 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
 /**
  * OWLFunctionalDataPropertyAxiomHGDB.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 7, 2011
  */
-public class OWLFunctionalDataPropertyAxiomHGDB extends OWLDataPropertyCharacteristicAxiomHGDB implements OWLFunctionalDataPropertyAxiom {
+public class OWLFunctionalDataPropertyAxiomHGDB extends OWLDataPropertyCharacteristicAxiomHGDB implements
+		OWLFunctionalDataPropertyAxiom
+{
+	public OWLFunctionalDataPropertyAxiomHGDB(HGHandle... args)
+	{
+		this(args[0], Collections.<OWLAnnotation> emptySet());
+		if (args[0] == null)
+			throw new IllegalArgumentException("args[0] was null");
+	}
 
-    public OWLFunctionalDataPropertyAxiomHGDB(HGHandle...args) {
-    	this(args[0], Collections.<OWLAnnotation>emptySet());
-    	if (args[0] == null) throw new IllegalArgumentException("args[0] was null");
-    }
+	public OWLFunctionalDataPropertyAxiomHGDB(HGHandle property, Collection<? extends OWLAnnotation> annotations)
+	{
+		// OWLDataPropertyExpression property, Collection<? extends
+		// OWLAnnotation> annotations
+		super(property, annotations);
+	}
 
-    public OWLFunctionalDataPropertyAxiomHGDB(HGHandle property, Collection<? extends OWLAnnotation> annotations) {
-    	//OWLDataPropertyExpression property, Collection<? extends OWLAnnotation> annotations
-        super(property, annotations);
-    }
+	public OWLFunctionalDataPropertyAxiom getAxiomWithoutAnnotations()
+	{
+		if (!isAnnotated())
+		{
+			return this;
+		}
+		return getOWLDataFactory().getOWLFunctionalDataPropertyAxiom(getProperty());
+	}
 
-    public OWLFunctionalDataPropertyAxiom getAxiomWithoutAnnotations() {
-        if (!isAnnotated()) {
-            return this;
-        }
-        return getOWLDataFactory().getOWLFunctionalDataPropertyAxiom(getProperty());
-    }
+	public OWLFunctionalDataPropertyAxiom getAnnotatedAxiom(Set<OWLAnnotation> annotations)
+	{
+		return getOWLDataFactory().getOWLFunctionalDataPropertyAxiom(getProperty(), mergeAnnos(annotations));
+	}
 
-    public OWLFunctionalDataPropertyAxiom getAnnotatedAxiom(Set<OWLAnnotation> annotations) {
-        return getOWLDataFactory().getOWLFunctionalDataPropertyAxiom(getProperty(), mergeAnnos(annotations));
-    }
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (super.equals(obj))
+		{
+			return obj instanceof OWLFunctionalDataPropertyAxiom;
+		}
+		return false;
+	}
 
-    @Override
-	public boolean equals(Object obj) {
-        if (super.equals(obj)) {
-            return obj instanceof OWLFunctionalDataPropertyAxiom;
-        }
-        return false;
-    }
+	public void accept(OWLAxiomVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public void accept(OWLAxiomVisitor visitor) {
-        visitor.visit(this);
-    }
+	public void accept(OWLObjectVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public void accept(OWLObjectVisitor visitor) {
-        visitor.visit(this);
-    }
+	public <O> O accept(OWLAxiomVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
-    public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
+	public <O> O accept(OWLObjectVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
+	public AxiomType<?> getAxiomType()
+	{
+		return AxiomType.FUNCTIONAL_DATA_PROPERTY;
+	}
 
-    public <O> O accept(OWLObjectVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
+	@Override
+	protected int compareObjectOfSameType(OWLObject object)
+	{
+		return getProperty().compareTo(((OWLFunctionalDataPropertyAxiom) object).getProperty());
+	}
 
-    public AxiomType<?> getAxiomType() {
-        return AxiomType.FUNCTIONAL_DATA_PROPERTY;
-    }
-
-
-    @Override
-	protected int compareObjectOfSameType(OWLObject object) {
-        return getProperty().compareTo(((OWLFunctionalDataPropertyAxiom) object).getProperty());
-    }
-
-
-    public OWLSubClassOfAxiom asOWLSubClassOfAxiom() {
-        OWLDataFactory df = getOWLDataFactory();
-        return df.getOWLSubClassOfAxiom(df.getOWLThing(), df.getOWLDataMaxCardinality(1, getProperty()));
-    }
+	public OWLSubClassOfAxiom asOWLSubClassOfAxiom()
+	{
+		OWLDataFactory df = getOWLDataFactory();
+		return df.getOWLSubClassOfAxiom(df.getOWLThing(), df.getOWLDataMaxCardinality(1, getProperty()));
+	}
 }

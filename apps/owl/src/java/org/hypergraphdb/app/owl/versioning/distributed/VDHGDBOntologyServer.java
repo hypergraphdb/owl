@@ -4,11 +4,8 @@ import java.io.File;
 
 import mjson.Json;
 
-import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.HGDBOWLManager;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
-import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
-import org.hypergraphdb.app.owl.util.ImplUtils;
+import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.PeerConfig;
@@ -63,10 +60,9 @@ public class VDHGDBOntologyServer
 
 			System.out.println("Starting ontology server peer at " + config.at(PeerConfig.LOCAL_DB) + " with peer name "
 					+ config.at(PeerConfig.PEER_NAME));
-			
-			HyperGraph graph = ImplUtils.owldb(config.at(PeerConfig.LOCAL_DB).asString());
-			HGDBOntologyManager manager = HGDBOWLManager.createOWLOntologyManager(OWLDataFactoryHGDB.get(graph),
-					new VDHGDBOntologyRepository(graph.getLocation()));
+
+			HGDBOntologyManager manager = new HGOntologyManagerFactory()
+				.getOntologyManager(config.at(PeerConfig.LOCAL_DB).asString());
 			dr = (VDHGDBOntologyRepository) manager.getOntologyRepository();
 			// dr.printAllOntologies();
 			dr.printStatistics();

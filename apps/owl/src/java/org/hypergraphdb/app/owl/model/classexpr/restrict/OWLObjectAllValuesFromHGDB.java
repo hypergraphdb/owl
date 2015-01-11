@@ -10,63 +10,79 @@ import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
 
 /**
  * OWLObjectAllValuesFromHGDB.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Oct 19, 2011
  */
-public class OWLObjectAllValuesFromHGDB extends OWLQuantifiedObjectRestrictionHGDB implements OWLObjectAllValuesFrom {
-    
+public class OWLObjectAllValuesFromHGDB extends OWLQuantifiedObjectRestrictionHGDB implements OWLObjectAllValuesFrom
+{
+
 	/**
-	 * @param args [0]...property, [1]...filler
+	 * @param args
+	 *            [0]...property, [1]...filler
 	 */
-    public OWLObjectAllValuesFromHGDB(HGHandle... args) {
-    	super(args[0], args[1]);
-    	if (args.length != 2) throw new IllegalArgumentException("Must be exactly 2 handles.");
-    }
-	
-    public OWLObjectAllValuesFromHGDB(HGHandle property, int cardinality, HGHandle filler) {
-    	//TODO check types: OWLObjectPropertyExpression property, OWLClassExpression filler
-        super(property, filler);
-    }
+	public OWLObjectAllValuesFromHGDB(HGHandle... args)
+	{
+		super(args[0], args[1]);
+		if (args.length != 2)
+			throw new IllegalArgumentException("Must be exactly 2 handles.");
+	}
 
-    /**
-     * Gets the class expression type for this class expression
-     * @return The class expression type
-     */
-    public ClassExpressionType getClassExpressionType() {
-        return ClassExpressionType.OBJECT_ALL_VALUES_FROM;
-    }
+	public OWLObjectAllValuesFromHGDB(HGHandle property, int cardinality, HGHandle filler)
+	{
+		// TODO check types: OWLObjectPropertyExpression property,
+		// OWLClassExpression filler
+		super(property, filler);
+	}
 
-    public boolean isObjectRestriction() {
-        return true;
-    }
+	/**
+	 * Gets the class expression type for this class expression
+	 * 
+	 * @return The class expression type
+	 */
+	public ClassExpressionType getClassExpressionType()
+	{
+		return ClassExpressionType.OBJECT_ALL_VALUES_FROM;
+	}
 
-    public boolean isDataRestriction() {
-        return false;
-    }
+	public boolean isObjectRestriction()
+	{
+		return true;
+	}
 
-    @Override
-	public boolean equals(Object obj) {
-        if (super.equals(obj)) {
-            return obj instanceof OWLObjectAllValuesFrom;
-        }
-        return false;
-    }
+	public boolean isDataRestriction()
+	{
+		return false;
+	}
 
-    public void accept(OWLClassExpressionVisitor visitor) {
-        visitor.visit(this);
-    }
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (super.equals(obj))
+		{
+			return obj instanceof OWLObjectAllValuesFrom;
+		}
+		return false;
+	}
 
-    public void accept(OWLObjectVisitor visitor) {
-        visitor.visit(this);
-    }
+	public void accept(OWLClassExpressionVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public <O> O accept(OWLClassExpressionVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
+	public void accept(OWLObjectVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
+	public <O> O accept(OWLClassExpressionVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
-    public <O> O accept(OWLObjectVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
+	public <O> O accept(OWLObjectVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
 }

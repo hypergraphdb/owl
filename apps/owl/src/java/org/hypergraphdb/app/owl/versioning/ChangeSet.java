@@ -86,59 +86,76 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 	 */
 	public void addChange(final VOWLChange change)
 	{
-		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
-			public Object call() {
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>()
+		{
+			public Object call()
+			{
 				HGHandle changeHandle = graph.add(change);
 				changes.add(changeHandle);
 				graph.update(ChangeSet.this);
 				return null;
-			}});
+			}
+		});
 	}
 
 	public void removeChange(final VOWLChange change)
 	{
-		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
-			public Object call() {
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>()
+		{
+			public Object call()
+			{
 				HGHandle changeHandle = graph.getHandle(change);
 				if (changeHandle == null)
 					throw new IllegalArgumentException("Can't remove change that's not in the database - " + change);
 				if (changes.remove(changeHandle))
 					graph.update(ChangeSet.this);
 				return null;
-			}});
+			}
+		});
 	}
 
 	/**
-	 * removes 
-	 * @param indices a sorted list of index positions that need to be removed.
+	 * removes
+	 * 
+	 * @param indices
+	 *            a sorted list of index positions that need to be removed.
 	 */
 	public void removeChangesAt(final SortedSet<Integer> indices)
 	{
-		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
-			public Object call() {
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>()
+		{
+			public Object call()
+			{
 				int removedChanges = 0;
-				for (int i : indices) {
+				for (int i : indices)
+				{
 					i = i - removedChanges;
 					changes.remove(i);
-					removedChanges ++;
+					removedChanges++;
 				}
 				graph.update(ChangeSet.this);
 				return null;
-			}});
+			}
+		});
 	}
 
-	public VOWLChange getChangeAt(int index) {
+	public VOWLChange getChangeAt(int index)
+	{
 		return graph.get(changes.get(index));
 	}
 
 	/**
 	 * Returns a list of changes at the specified indices.
+	 * 
 	 * @param indices
 	 * @return
 	 */
-	public List<VOWLChange> getChangesAt(final Set<Integer> indices) {
-		return graph.getTransactionManager().ensureTransaction(new Callable<List<VOWLChange>>() {
-			public List<VOWLChange> call() {
+	public List<VOWLChange> getChangesAt(final Set<Integer> indices)
+	{
+		return graph.getTransactionManager().ensureTransaction(new Callable<List<VOWLChange>>()
+		{
+			public List<VOWLChange> call()
+			{
 				List<VOWLChange> changesLoaded = new ArrayList<VOWLChange>(indices.size());
 				for (int i : indices)
 				{
@@ -154,13 +171,16 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 					}
 				}
 				return changesLoaded;
-			}}, HGTransactionConfig.READONLY);
+			}
+		}, HGTransactionConfig.READONLY);
 	}
 
 	public List<VOWLChange> getChanges()
 	{
-		return graph.getTransactionManager().ensureTransaction(new Callable<List<VOWLChange>>() {
-			public List<VOWLChange> call() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<List<VOWLChange>>()
+		{
+			public List<VOWLChange> call()
+			{
 				List<VOWLChange> changesLoaded = new ArrayList<VOWLChange>(size());
 				for (HGHandle h : changes)
 				{
@@ -188,7 +208,8 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 					}
 				}
 				return changesLoaded;
-			}}, HGTransactionConfig.READONLY);
+			}
+		}, HGTransactionConfig.READONLY);
 	}
 
 	/**
@@ -198,18 +219,21 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 	 */
 	void clear()
 	{
-		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
-			public Object call() {
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>()
+		{
+			public Object call()
+			{
 				List<HGHandle> changesCopy = new ArrayList<HGHandle>(changes);
-					for (HGHandle ch : changesCopy)
-					{
-						// we could check for incidence set size 1 here.
-						graph.remove(ch, true);
-					}
-					// changes.clear();
-					graph.update(ChangeSet.this);
-					return null;
-			}});
+				for (HGHandle ch : changesCopy)
+				{
+					// we could check for incidence set size 1 here.
+					graph.remove(ch, true);
+				}
+				// changes.clear();
+				graph.update(ChangeSet.this);
+				return null;
+			}
+		});
 	}
 
 	public boolean isEmpty()
@@ -236,12 +260,16 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 	}
 
 	/**
-	 * Applies the changes of this changeset, leaving out conflicting changes. This method ensures a
-	 * HGTransaction.
+	 * Applies the changes of this changeset, leaving out conflicting changes.
+	 * This method ensures a HGTransaction.
 	 * 
 	 * @param o
-	 * @param useManager if false, apply changes to ontology directly, not using it's owl ontology manager. Always use true if you're using a reasoner.
-	 * @return a sorted list of ascending indices of changes in this changeset that conflict with the given ontology o.
+	 * @param useManager
+	 *            if false, apply changes to ontology directly, not using it's
+	 *            owl ontology manager. Always use true if you're using a
+	 *            reasoner.
+	 * @return a sorted list of ascending indices of changes in this changeset
+	 *         that conflict with the given ontology o.
 	 */
 	public SortedSet<Integer> applyTo(final OWLMutableOntology o, final boolean useManager)
 	{
@@ -250,24 +278,30 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 			public SortedSet<Integer> call()
 			{
 				HGDBOntologyManager manager = null;
-				if (useManager) {
-					manager = (HGDBOntologyManager)o.getOWLOntologyManager();
-					((VDHGDBOntologyRepository)manager.getOntologyRepository()).ignoreChangeEvents(true);
+				if (useManager)
+				{
+					manager = (HGDBOntologyManager) o.getOWLOntologyManager();
+					((VDHGDBOntologyRepository) manager.getOntologyRepository()).ignoreChangeEvents(true);
 				}
 				SortedSet<Integer> conflicts = new TreeSet<Integer>();
-				//OWLChangeConflictDetector detector = new OWLChangeConflictDetector(o);
+				// OWLChangeConflictDetector detector = new
+				// OWLChangeConflictDetector(o);
 				try
 				{
 					int i = 0;
 					for (OWLOntologyChange oc : VOWLChangeFactory.create(getChanges(), o, graph))
-					{		
+					{
 						List<OWLOntologyChange> appliedChanges;
-						if (useManager) {
+						if (useManager)
+						{
 							appliedChanges = manager.applyChange(oc);
-						} else {
+						}
+						else
+						{
 							appliedChanges = o.applyChange(oc);
 						}
-						if (appliedChanges.isEmpty()) {
+						if (appliedChanges.isEmpty())
+						{
 							System.out.println("Conflict detected: " + i + " " + oc);
 							conflicts.add(i);
 						}
@@ -277,33 +311,35 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 				}
 				finally
 				{
-					if (useManager) 
-						((VDHGDBOntologyRepository)manager.getOntologyRepository()).ignoreChangeEvents(false);
+					if (useManager)
+						((VDHGDBOntologyRepository) manager.getOntologyRepository()).ignoreChangeEvents(false);
 				}
 			}
 		});
 	}
-	
+
 	/**
 	 * Applies the changes of this changeset, leaving out conflicting changes.
-	 * The changes will be applied through the manager to notify the reasoner. 
+	 * The changes will be applied through the manager to notify the reasoner.
 	 * 
 	 * This method ensures a HGTransaction.
 	 * 
 	 * @param o
-	 * @return a sorted list of ascending indices of changes in this changeset that conflict with the given ontology o.
+	 * @return a sorted list of ascending indices of changes in this changeset
+	 *         that conflict with the given ontology o.
 	 */
-	public SortedSet<Integer> applyTo(final OWLMutableOntology o)	
+	public SortedSet<Integer> applyTo(final OWLMutableOntology o)
 	{
 		return applyTo(o, true);
 	}
 
 	/**
 	 * Applies inverted changes of this changeset in inverse order (undo). The
-	 * changes are applied through the ontology's OwlOntologyManager.
-	 * Do not call this method, if the changeset are the workingsetchanges of a versioned ontology 
-	 * with working set conflicts as the history before this changeset might not match the state
-	 * of the ontology after applying workingsetchanges with conflicts. 
+	 * changes are applied through the ontology's OwlOntologyManager. Do not
+	 * call this method, if the changeset are the workingsetchanges of a
+	 * versioned ontology with working set conflicts as the history before this
+	 * changeset might not match the state of the ontology after applying
+	 * workingsetchanges with conflicts.
 	 * 
 	 * eg. ORIG: 1 add A, 2 modify A to A', 3 remove A' --> UNDO: 3 add A', 2
 	 * modify A' to A, 1 remove A
@@ -311,15 +347,17 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 	 * 
 	 * @param o
 	 */
-	public void reverseApplyTo(final OWLMutableOntology o) {
+	public void reverseApplyTo(final OWLMutableOntology o)
+	{
 		reverseApplyTo(o, new TreeSet<Integer>());
 	}
-	
+
 	/**
 	 * Reverse applies all changes, except those at the conflict indices.
 	 * 
 	 * @param o
-	 * @param conflicts a 
+	 * @param conflicts
+	 *            a
 	 */
 	public void reverseApplyTo(final OWLMutableOntology o, final SortedSet<Integer> conflicts)
 	{
@@ -327,22 +365,25 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 		{
 			public Object call()
 			{
-				HGDBOntologyManager manager = (HGDBOntologyManager)o.getOWLOntologyManager();
-				((VDHGDBOntologyRepository)manager.getOntologyRepository()).ignoreChangeEvents(true);
+				HGDBOntologyManager manager = (HGDBOntologyManager) o.getOWLOntologyManager();
+				((VDHGDBOntologyRepository) manager.getOntologyRepository()).ignoreChangeEvents(true);
 				try
-				{								
+				{
 					ListIterator<HGHandle> li = changes.listIterator(changes.size());
 					while (li.hasPrevious())
 					{
 						int index = li.previousIndex();
 						VOWLChange vc = graph.get(li.previous());
-						OWLOntologyChange c = VOWLChangeFactory.createInverse(vc,
-								o, graph);
-						//TODO add conflict detection
-						if (conflicts == null || !conflicts.contains(index)) {
+						OWLOntologyChange c = VOWLChangeFactory.createInverse(vc, o, graph);
+						// TODO add conflict detection
+						if (conflicts == null || !conflicts.contains(index))
+						{
 							o.getOWLOntologyManager().applyChange(c);
-						} else {
-							if (DBG_CONFLICTS) {
+						}
+						else
+						{
+							if (DBG_CONFLICTS)
+							{
 								System.out.println("Avoiding change: " + c + " idx: " + index);
 							}
 						}
@@ -351,7 +392,7 @@ public class ChangeSet implements HGLink, HGGraphHolder, VersioningObject
 				}
 				finally
 				{
-					((VDHGDBOntologyRepository)manager.getOntologyRepository()).ignoreChangeEvents(false);
+					((VDHGDBOntologyRepository) manager.getOntologyRepository()).ignoreChangeEvents(false);
 				}
 			}
 		});

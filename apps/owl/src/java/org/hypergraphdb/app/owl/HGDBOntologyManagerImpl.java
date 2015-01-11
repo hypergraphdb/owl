@@ -9,7 +9,8 @@ import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.hypergraphdb.app.owl.core.PrefixChange;
 import org.hypergraphdb.app.owl.core.PrefixChangeListener;
 import org.hypergraphdb.app.owl.core.RemovePrefixChange;
-import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
+import org.hypergraphdb.app.owl.newver.VersionManager;
+import org.hypergraphdb.app.owl.newver.VersioningChangeListener;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.ActivityUtils;
 import org.semanticweb.owlapi.io.FileDocumentSource;
@@ -21,11 +22,12 @@ import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 
 /**
  * HGDBOntologyManagerImpl.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Feb 3, 2012
  */
-public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements HGDBOntologyManager, PrefixChangeListener {
-
+public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements HGDBOntologyManager, PrefixChangeListener
+{
 	private static final long serialVersionUID = 1L;
 
 	public static boolean DBG = true;
@@ -36,144 +38,210 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 	 */
 	private static boolean deleteOntologiesOnRemove = false;
 
-	HGDBOntologyRepository ontologyRepository;	
-
+	HGDBOntologyRepository ontologyRepository;
+	VersionManager versionManager;
+	
 	/**
 	 * @return the deleteOntologiesOnRemove
 	 */
-	public static boolean isDeleteOntologiesOnRemove() {
+	public static boolean isDeleteOntologiesOnRemove()
+	{
 		return deleteOntologiesOnRemove;
 	}
 
 	/**
-	 * @param deleteOntologiesOnRemove the deleteOntologiesOnRemove to set
+	 * @param deleteOntologiesOnRemove
+	 *            the deleteOntologiesOnRemove to set
 	 */
-	public static void setDeleteOntologiesOnRemove(boolean deleteOntologiesOnRemove) {
+	public static void setDeleteOntologiesOnRemove(boolean deleteOntologiesOnRemove)
+	{
 		HGDBOntologyManagerImpl.deleteOntologiesOnRemove = deleteOntologiesOnRemove;
 	}
 
-	public HGDBOntologyManagerImpl(OWLDataFactoryHGDB dataFactory, HGDBOntologyRepository ontologyRepository) {
-		super(dataFactory);						
+	public HGDBOntologyManagerImpl(OWLDataFactoryHGDB dataFactory, HGDBOntologyRepository ontologyRepository)
+	{
+		super(dataFactory);
 		this.ontologyRepository = ontologyRepository;
-		if (ontologyRepository instanceof VHGDBOntologyRepository)
-			this.addOntologyChangeListener(((VHGDBOntologyRepository)ontologyRepository));
+		versionManager = new VersionManager(ontologyRepository.getHyperGraph(), "");
+		this.addOntologyChangeListener(new VersioningChangeListener(versionManager));
 		addIRIMapper(new HGDBIRIMapper(ontologyRepository));
 		dataFactory.setHyperGraph(ontologyRepository.getHyperGraph());
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.app.owl.HGDBOntologyManager#getOntologyRepository()
 	 */
 	@Override
-	public HGDBOntologyRepository getOntologyRepository() {
+	public HGDBOntologyRepository getOntologyRepository()
+	{
 		return ontologyRepository;
 	}
 	
-	/* (non-Javadoc)
+	public VersionManager getVersionManager()
+	{
+		return versionManager;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.app.owl.HGDBOntologyManager#hasInMemoryOntology()
 	 */
 	@Override
-	public boolean hasInMemoryOntology() {
-		for (OWLOntology onto : getOntologies()) {
-			if (!(onto instanceof HGDBOntology)) {
+	public boolean hasInMemoryOntology()
+	{
+		for (OWLOntology onto : getOntologies())
+		{
+			if (!(onto instanceof HGDBOntology))
+			{
 				return true;
 			}
 		}
 		return false;
 	}
-	
-	/* (non-Javadoc)
-	 * @see uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#removeOntology(org.semanticweb.owlapi.model.OWLOntology)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#removeOntology(
+	 * org.semanticweb.owlapi.model.OWLOntology)
 	 */
 	@Override
-	public void removeOntology(OWLOntology ontology) {
+	public void removeOntology(OWLOntology ontology)
+	{
 		super.removeOntology(ontology);
-		if (isDeleteOntologiesOnRemove()) {
+		if (isDeleteOntologiesOnRemove())
+		{
 			OWLOntologyID oid = ontology.getOntologyID();
-			if (ontologyRepository.existsOntology(oid)) {
+			if (ontologyRepository.existsOntology(oid))
+			{
+				versionManager.removeVersioning(ontologyRepository.getHyperGraph().getHandle(ontology));
 				boolean deleted = ontologyRepository.deleteOntology(ontology.getOntologyID());
-				if (DBG) {
-					if (deleted) {
+				if (DBG)
+				{
+					if (deleted)
+					{
 						System.out.println("Deleted on remove: " + ontology.getOntologyID());
-					} else {
+					}
+					else
+					{
 						System.out.println("Deleted on remove FAILED NOT FOUND: " + ontology.getOntologyID());
 					}
 				}
-			} else {
+			}
+			else
+			{
 				System.out.println("OID of to remove onto not found in repo: " + ontology.getOntologyID());
 			}
 		}
 	}
 
 	/**
-	 * Imports a full versionedOntology from a VOWLXMLFormat file.
-	 * Throws one of: 
-	 * OWLOntologyChangeException, UnloadableImportException, HGDBOntologyAlreadyExistsByDocumentIRIException, HGDBOntologyAlreadyExistsByOntologyIDException, HGDBOntologyAlreadyExistsByOntologyUUIDException, OWLParserException, IOException 
-	 * wrapped as cause of a RuntimeException.
+	 * Imports a full versionedOntology from a VOWLXMLFormat file. Throws one
+	 * of: OWLOntologyChangeException, UnloadableImportException,
+	 * HGDBOntologyAlreadyExistsByDocumentIRIException,
+	 * HGDBOntologyAlreadyExistsByOntologyIDException,
+	 * HGDBOntologyAlreadyExistsByOntologyUUIDException, OWLParserException,
+	 * IOException wrapped as cause of a RuntimeException.
 	 */
-	public VersionedOntology importVersionedOntology(File vowlxmlFile) throws RuntimeException {
-		if (!vowlxmlFile.exists()) throw new IllegalArgumentException("File does not exist: " + vowlxmlFile);
+	public VersionedOntology importVersionedOntology(File vowlxmlFile) throws RuntimeException
+	{
+		if (!vowlxmlFile.exists())
+			throw new IllegalArgumentException("File does not exist: " + vowlxmlFile);
 		final FileDocumentSource fds = new FileDocumentSource(vowlxmlFile);
 		HyperGraph graph = ontologyRepository.getHyperGraph();
-		return graph.getTransactionManager().ensureTransaction(new Callable<VersionedOntology>() {
-			public VersionedOntology call() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<VersionedOntology>()
+		{
+			public VersionedOntology call()
+			{
 				ActivityUtils utils = new ActivityUtils();
-				try {
+				try
+				{
 					return utils.storeVersionedOntology(fds, HGDBOntologyManagerImpl.this);
-				} catch (Exception e) {
+				}
+				catch (Exception e)
+				{
 					throw new RuntimeException(e);
 				}
-			}});
+			}
+		});
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.app.owl.HGDBOntologyManager#getCurrentTaskSize()
 	 */
 	@Override
-	public int getCurrentTaskSize() {
+	public int getCurrentTaskSize()
+	{
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.app.owl.HGDBOntologyManager#getCurrentTaskProgress()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.hypergraphdb.app.owl.HGDBOntologyManager#getCurrentTaskProgress()
 	 */
 	@Override
-	public int getCurrentTaskProgress() {
+	public int getCurrentTaskProgress()
+	{
 		// TODO Auto-generated method stub
 		return 0;
 	}
-	
-    public void setOntologyFormat(OWLOntology ontology, OWLOntologyFormat format) {
-    	if (format instanceof HGDBOntologyFormat) {
-    		((HGDBOntologyFormat)format).addPrefixChangeListener(this);
-    	}
-    	super.setOntologyFormat(ontology, format);
-    }
 
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.app.owl.core.PrefixChangeListener#prefixChanged(org.hypergraphdb.app.owl.core.PrefixChange)
+	public void setOntologyFormat(OWLOntology ontology, OWLOntologyFormat format)
+	{
+		if (format instanceof HGDBOntologyFormat)
+		{
+			((HGDBOntologyFormat) format).addPrefixChangeListener(this);
+		}
+		super.setOntologyFormat(ontology, format);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.hypergraphdb.app.owl.core.PrefixChangeListener#prefixChanged(org.
+	 * hypergraphdb.app.owl.core.PrefixChange)
 	 */
 	@Override
-	public void prefixChanged(PrefixChange e) {
-		//We get notfied here if anybody modifies prefixes.
-		//We will have to look up the ontology and call for a change to be applied
+	public void prefixChanged(PrefixChange e)
+	{
+		// We get notfied here if anybody modifies prefixes.
+		// We will have to look up the ontology and call for a change to be
+		// applied
 		HGDBOntology ho = getOntologyForFormat(e.getFormat());
-		if (e instanceof AddPrefixChange) {
+		if (e instanceof AddPrefixChange)
+		{
 			applyChange(new AddPrefixChange(ho, e.getPrefixName(), e.getPrefix()));
-		} else if (e instanceof RemovePrefixChange) {
+		}
+		else if (e instanceof RemovePrefixChange)
+		{
 			applyChange(new RemovePrefixChange(ho, e.getPrefixName(), e.getPrefix()));
-		} else {
+		}
+		else
+		{
 			throw new IllegalArgumentException("Unknown prefixchange: " + e + "" + e.getClass());
 		}
 	}
-	
-	public HGDBOntology getOntologyForFormat(HGDBOntologyFormat f) {
-		for (OWLOntology o : getOntologies()) {
-			if (o instanceof HGDBOntology) {
+
+	public HGDBOntology getOntologyForFormat(HGDBOntologyFormat f)
+	{
+		for (OWLOntology o : getOntologies())
+		{
+			if (o instanceof HGDBOntology)
+			{
 				OWLOntologyFormat candidate = getOntologyFormat(o);
-				if (f == candidate) {
-					return (HGDBOntology)o;
+				if (f == candidate)
+				{
+					return (HGDBOntology) o;
 				}
 			}
 		}

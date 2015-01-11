@@ -3,7 +3,15 @@ package org.hypergraphdb.app.owl.util;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
+/**
+ * Associate a "Context" with arbitrary objects. Then each context has a bunch
+ * of singletons that can be accessed, lazily created.
+ * 
+ * @author Borislav Iordanov
+ *
+ */
 public class Context 
 {
 	static Map<Object, Context> contexts = new IdentityHashMap<Object, Context>();
@@ -24,7 +32,7 @@ public class Context
 	
 	Map<Class<?>, Object> singletons = new HashMap<Class<?>, Object>();
 	
-	public <T> T singleton(Class<T> type)
+	public <T> T singleton(Class<T> type, Callable<T> factory)
 	{
 		synchronized (singletons)
 		{
@@ -33,7 +41,7 @@ public class Context
 			if (x == null)
 				try
 				{
-					x = type.newInstance();
+					x = factory.call();
 					singletons.put(type, x);
 				}
 				catch (Exception ex)
@@ -41,6 +49,16 @@ public class Context
 					throw new RuntimeException(ex);
 				}
 			return x;
-		}
+		}		
+	}
+	
+	public <T> T singleton(final Class<T> type)
+	{
+		return singleton(type, new Callable<T>() {
+			public T call() throws Exception
+			{
+				return type.newInstance();
+			}
+		});
 	}
 }

@@ -132,11 +132,12 @@ public class OWLSubClassOfAxiomHGDB extends OWLClassAxiomHGDB implements
 
 	public int hashCode()
 	{
-		int hashCode = HashCodeUtil.hash(
+		if (getHashCodeInt() == 0)
+			setHashCodeInt(HashCodeUtil.hash(
 				HashCodeUtil.hash(super.hashCode(),
 						HGUtils.hashIt(getSubClass())),
-				HGUtils.hashIt(getSuperClass()));
-		return hashCode;
+				HGUtils.hashIt(getSuperClass())));
+		return getHashCodeInt();
 	}
 
 	public void accept(OWLAxiomVisitor visitor)

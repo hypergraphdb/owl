@@ -14,74 +14,88 @@ import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
 
 /**
  * OWLObjectIntersectionOfHGDB.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Oct 18, 2011
  */
-public class OWLObjectIntersectionOfHGDB extends OWLNaryBooleanClassExpressionHGDB implements OWLObjectIntersectionOf {
-	
-    public OWLObjectIntersectionOfHGDB(HGHandle...args) {
-    	super(args);
-    }
+public class OWLObjectIntersectionOfHGDB extends OWLNaryBooleanClassExpressionHGDB implements OWLObjectIntersectionOf
+{
+	public OWLObjectIntersectionOfHGDB(HGHandle... args)
+	{
+		super(args);
+	}
 
-	public OWLObjectIntersectionOfHGDB(Set<? extends HGHandle> operands) {
-        super(operands);
-    }
+	public OWLObjectIntersectionOfHGDB(Set<? extends HGHandle> operands)
+	{
+		super(operands);
+	}
 
-    /**
-     * Gets the class expression type for this class expression
-     * @return The class expression type
-     */
-    public ClassExpressionType getClassExpressionType() {
-        return ClassExpressionType.OBJECT_INTERSECTION_OF;
-    }
+	/**
+	 * Gets the class expression type for this class expression
+	 * 
+	 * @return The class expression type
+	 */
+	public ClassExpressionType getClassExpressionType()
+	{
+		return ClassExpressionType.OBJECT_INTERSECTION_OF;
+	}
 
-    @Override
-	public boolean equals(Object obj) {
-        if (super.equals(obj)) {
-            return obj instanceof OWLObjectIntersectionOf;
-        }
-        return false;
-    }
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (super.equals(obj))
+		{
+			return obj instanceof OWLObjectIntersectionOf;
+		}
+		return false;
+	}
 
-    public void accept(OWLClassExpressionVisitor visitor) {
-        visitor.visit(this);
-    }
+	public void accept(OWLClassExpressionVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public void accept(OWLObjectVisitor visitor) {
-        visitor.visit(this);
-    }
+	public void accept(OWLObjectVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
+	public <O> O accept(OWLObjectVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
-    public <O> O accept(OWLObjectVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
+	public <O> O accept(OWLClassExpressionVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
-    public <O> O accept(OWLClassExpressionVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
+	@Override
+	public Set<OWLClassExpression> asConjunctSet()
+	{
+		Set<OWLClassExpression> conjuncts = new HashSet<OWLClassExpression>();
+		for (OWLClassExpression op : getOperands())
+		{
+			conjuncts.addAll(op.asConjunctSet());
+		}
+		return conjuncts;
+	}
 
-
-    @Override
-	public Set<OWLClassExpression> asConjunctSet() {
-        Set<OWLClassExpression> conjuncts = new HashSet<OWLClassExpression>();
-        for (OWLClassExpression op : getOperands()) {
-            conjuncts.addAll(op.asConjunctSet());
-        }
-        return conjuncts;
-    }
-
-
-    @Override
-    public boolean containsConjunct(OWLClassExpression ce) {
-        if (ce.equals(this)) {
-            return true;
-        }
-        for (OWLClassExpression op : getOperands()) {
-            if (op.containsConjunct(ce)) {
-                return true;
-            }
-        }
-        return false;
-    }
+	@Override
+	public boolean containsConjunct(OWLClassExpression ce)
+	{
+		if (ce.equals(this))
+		{
+			return true;
+		}
+		for (OWLClassExpression op : getOperands())
+		{
+			if (op.containsConjunct(ce))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 
 }

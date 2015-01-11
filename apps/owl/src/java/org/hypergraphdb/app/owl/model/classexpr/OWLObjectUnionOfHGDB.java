@@ -15,63 +15,73 @@ import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
 
 /**
  * OWLObjectUnionOfHGDB.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Oct 18, 2011
  */
-public class OWLObjectUnionOfHGDB extends OWLNaryBooleanClassExpressionHGDB implements OWLObjectUnionOf {
+public class OWLObjectUnionOfHGDB extends OWLNaryBooleanClassExpressionHGDB implements OWLObjectUnionOf
+{
+	public OWLObjectUnionOfHGDB(HGHandle... args)
+	{
+		super(args);
+		// no duplicates allowed
+		assert (new HashSet<HGHandle>(Arrays.asList(args)).size() == args.length);
+	}
 
-    public OWLObjectUnionOfHGDB(HGHandle...args) {
-    	super(args);
-    	// no duplicates allowed
-    	assert(new HashSet<HGHandle>(Arrays.asList(args)).size() == args.length);
-    }
+	public OWLObjectUnionOfHGDB(Set<? extends HGHandle> operands)
+	{
+		super(operands);
+	}
 
-    public OWLObjectUnionOfHGDB(Set<? extends HGHandle> operands) {
-        super(operands);
-    }
+	/**
+	 * Gets the class expression type for this class expression
+	 * 
+	 * @return The class expression type
+	 */
+	public ClassExpressionType getClassExpressionType()
+	{
+		return ClassExpressionType.OBJECT_UNION_OF;
+	}
 
-    /**
-     * Gets the class expression type for this class expression
-     * @return The class expression type
-     */
-    public ClassExpressionType getClassExpressionType() {
-        return ClassExpressionType.OBJECT_UNION_OF;
-    }
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (super.equals(obj))
+		{
+			return obj instanceof OWLObjectUnionOf;
+		}
+		return false;
+	}
 
-    @Override
-	public boolean equals(Object obj) {
-        if (super.equals(obj)) {
-            return obj instanceof OWLObjectUnionOf;
-        }
-        return false;
-    }
+	@Override
+	public Set<OWLClassExpression> asDisjunctSet()
+	{
+		Set<OWLClassExpression> disjuncts = new HashSet<OWLClassExpression>();
+		for (OWLClassExpression op : getOperands())
+		{
+			disjuncts.addAll(op.asDisjunctSet());
+		}
+		return disjuncts;
+	}
 
+	public void accept(OWLClassExpressionVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    @Override
-	public Set<OWLClassExpression> asDisjunctSet() {
-        Set<OWLClassExpression> disjuncts = new HashSet<OWLClassExpression>();
-        for (OWLClassExpression op : getOperands()) {
-            disjuncts.addAll(op.asDisjunctSet());
-        }
-        return disjuncts;
-    }
+	public void accept(OWLObjectVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
+	public <O> O accept(OWLClassExpressionVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
-    public void accept(OWLClassExpressionVisitor visitor) {
-        visitor.visit(this);
-    }
-
-    public void accept(OWLObjectVisitor visitor) {
-        visitor.visit(this);
-    }
-
-    public <O> O accept(OWLClassExpressionVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
-
-
-    public <O> O accept(OWLObjectVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
+	public <O> O accept(OWLObjectVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
 }

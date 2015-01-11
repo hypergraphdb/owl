@@ -19,64 +19,83 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
 /**
  * OWLDataPropertyDomainAxiomHGDB.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 7, 2011
  */
-public class OWLDataPropertyDomainAxiomHGDB extends OWLPropertyDomainAxiomHGDB<OWLDataPropertyExpression> implements OWLDataPropertyDomainAxiom {
-    
-	public OWLDataPropertyDomainAxiomHGDB(HGHandle...args) {    
-        //TODO assert arg[0] type OWLDataPropertyExpression, args[1] type OWLClassExpression
-    	super(args[0], args[1], Collections.<OWLAnnotation>emptySet());   
-    	if (args.length != 2) throw new IllegalArgumentException("args.length must be 2. Was " + args.length);
-    }
+public class OWLDataPropertyDomainAxiomHGDB extends OWLPropertyDomainAxiomHGDB<OWLDataPropertyExpression> implements
+		OWLDataPropertyDomainAxiom
+{
 
-    public OWLDataPropertyDomainAxiomHGDB(HGHandle property, HGHandle domain, Set<? extends OWLAnnotation> annotations) {
-    	//OWLDataPropertyExpression property, OWLClassExpression domain, Set<? extends OWLAnnotation> annotations    	
-        super(property, domain, annotations);
-    }
+	public OWLDataPropertyDomainAxiomHGDB(HGHandle... args)
+	{
+		// TODO assert arg[0] type OWLDataPropertyExpression, args[1] type
+		// OWLClassExpression
+		super(args[0], args[1], Collections.<OWLAnnotation> emptySet());
+		if (args.length != 2)
+			throw new IllegalArgumentException("args.length must be 2. Was " + args.length);
+	}
 
-    public OWLDataPropertyDomainAxiom getAxiomWithoutAnnotations() {
-        if (!isAnnotated()) {
-            return this;
-        }
-        return getOWLDataFactory().getOWLDataPropertyDomainAxiom(getProperty(), getDomain());
-    }
+	public OWLDataPropertyDomainAxiomHGDB(HGHandle property, HGHandle domain, Set<? extends OWLAnnotation> annotations)
+	{
+		// OWLDataPropertyExpression property, OWLClassExpression domain, Set<?
+		// extends OWLAnnotation> annotations
+		super(property, domain, annotations);
+	}
 
-    public OWLAxiom getAnnotatedAxiom(Set<OWLAnnotation> annotations) {
-        return getOWLDataFactory().getOWLDataPropertyDomainAxiom(getProperty(), getDomain(), mergeAnnos(annotations));
-    }
+	public OWLDataPropertyDomainAxiom getAxiomWithoutAnnotations()
+	{
+		if (!isAnnotated())
+		{
+			return this;
+		}
+		return getOWLDataFactory().getOWLDataPropertyDomainAxiom(getProperty(), getDomain());
+	}
 
-    @Override
-	public boolean equals(Object obj) {
-        if (super.equals(obj)) {
-            return obj instanceof OWLDataPropertyDomainAxiom;
-        }
-        return false;
-    }
+	public OWLAxiom getAnnotatedAxiom(Set<OWLAnnotation> annotations)
+	{
+		return getOWLDataFactory().getOWLDataPropertyDomainAxiom(getProperty(), getDomain(), mergeAnnos(annotations));
+	}
 
-    public void accept(OWLAxiomVisitor visitor) {
-        visitor.visit(this);
-    }
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (super.equals(obj))
+		{
+			return obj instanceof OWLDataPropertyDomainAxiom;
+		}
+		return false;
+	}
 
-    public void accept(OWLObjectVisitor visitor) {
-        visitor.visit(this);
-    }
+	public void accept(OWLAxiomVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
+	public void accept(OWLObjectVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public <O> O accept(OWLObjectVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
+	public <O> O accept(OWLAxiomVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
-    public AxiomType<?> getAxiomType() {
-        return AxiomType.DATA_PROPERTY_DOMAIN;
-    }
+	public <O> O accept(OWLObjectVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
-    public OWLSubClassOfAxiom asOWLSubClassOfAxiom() {
-        OWLDataFactory df = getOWLDataFactory();
-        OWLClassExpression sub = df.getOWLDataSomeValuesFrom(getProperty(), df.getTopDatatype());
-        return df.getOWLSubClassOfAxiom(sub, getDomain());
-    }
+	public AxiomType<?> getAxiomType()
+	{
+		return AxiomType.DATA_PROPERTY_DOMAIN;
+	}
+
+	public OWLSubClassOfAxiom asOWLSubClassOfAxiom()
+	{
+		OWLDataFactory df = getOWLDataFactory();
+		OWLClassExpression sub = df.getOWLDataSomeValuesFrom(getProperty(), df.getTopDatatype());
+		return df.getOWLSubClassOfAxiom(sub, getDomain());
+	}
 }

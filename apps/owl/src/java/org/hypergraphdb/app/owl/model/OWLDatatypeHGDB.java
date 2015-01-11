@@ -37,248 +37,311 @@ import uk.ac.manchester.cs.owl.owlapi.ImplUtils;
 
 /**
  * OWLDatatypeHGDB.
+ * 
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  * @created Oct 3, 2011
  */
-public class OWLDatatypeHGDB extends OWLObjectHGDB implements OWLDatatype {
+public class OWLDatatypeHGDB extends OWLObjectHGDB implements OWLDatatype
+{
+	private IRI iri;
 
-    private IRI iri;
+	private boolean top;
 
-    private boolean top;
+	private boolean builtin;
 
-    private boolean builtin;
+	public OWLDatatypeHGDB(IRI iri)
+	{
+		this.iri = iri;
+		top = iri.equals(OWLRDFVocabulary.RDFS_LITERAL.getIRI());
+		builtin = top || OWL2Datatype.isBuiltIn(iri) || iri.equals(OWLRDFVocabulary.RDF_PLAIN_LITERAL.getIRI());
+	}
 
-    public OWLDatatypeHGDB(IRI iri) {
-        this.iri = iri;
-        top = iri.equals(OWLRDFVocabulary.RDFS_LITERAL.getIRI());
-        builtin = top || OWL2Datatype.isBuiltIn(iri) || iri.equals(OWLRDFVocabulary.RDF_PLAIN_LITERAL.getIRI());
-    }
+	@Override
+	public boolean isTopEntity()
+	{
+		return top;
+	}
 
-    @Override
-	public boolean isTopEntity() {
-        return top;
-    }
+	@Override
+	public boolean isBottomEntity()
+	{
+		return false;
+	}
 
-    @Override
-	public boolean isBottomEntity() {
-        return false;
-    }
+	/**
+	 * Determines if this datatype has the IRI <code>rdf:PlainLiteral</code>
+	 * 
+	 * @return <code>true</code> if this datatype has the IRI
+	 *         <code>rdf:PlainLiteral</code> otherwise <code>false</code>
+	 */
+	public boolean isRDFPlainLiteral()
+	{
+		return iri.isPlainLiteral();
+	}
 
-    /**
-     * Determines if this datatype has the IRI <code>rdf:PlainLiteral</code>
-     * @return <code>true</code> if this datatype has the IRI <code>rdf:PlainLiteral</code> otherwise <code>false</code>
-     */
-    public boolean isRDFPlainLiteral() {
-        return iri.isPlainLiteral();
-    }
+	/**
+	 * Gets the entity type for this entity
+	 * 
+	 * @return The entity type
+	 */
+	public EntityType<?> getEntityType()
+	{
+		return EntityType.DATATYPE;
+	}
 
-    /**
-     * Gets the entity type for this entity
-     * @return The entity type
-     */
-    public EntityType<?> getEntityType() {
-        return EntityType.DATATYPE;
-    }
+	/**
+	 * Gets an entity that has the same IRI as this entity but is of the
+	 * specified type.
+	 * 
+	 * @param entityType
+	 *            The type of the entity to obtain. This entity is not affected
+	 *            in any way.
+	 * @return An entity that has the same IRI as this entity and is of the
+	 *         specified type
+	 */
+	public <E extends OWLEntity> E getOWLEntity(EntityType<E> entityType)
+	{
+		return getOWLDataFactory().getOWLEntity(entityType, iri);
+	}
 
-    /**
-     * Gets an entity that has the same IRI as this entity but is of the specified type.
-     * @param entityType The type of the entity to obtain.  This entity is not affected in any way.
-     * @return An entity that has the same IRI as this entity and is of the specified type
-     */
-    public <E extends OWLEntity> E getOWLEntity(EntityType<E> entityType) {
-        return getOWLDataFactory().getOWLEntity(entityType, iri);
-    }
+	/**
+	 * Tests to see if this entity is of the specified type
+	 * 
+	 * @param entityType
+	 *            The entity type
+	 * @return <code>true</code> if this entity is of the specified type,
+	 *         otherwise <code>false</code>.
+	 */
+	public boolean isType(EntityType<?> entityType)
+	{
+		return getEntityType().equals(entityType);
+	}
 
-    /**
-     * Tests to see if this entity is of the specified type
-     * @param entityType The entity type
-     * @return <code>true</code> if this entity is of the specified type, otherwise <code>false</code>.
-     */
-    public boolean isType(EntityType<?> entityType) {
-        return getEntityType().equals(entityType);
-    }
+	/**
+	 * Returns a string representation that can be used as the ID of this
+	 * entity. This is the toString representation of the IRI
+	 * 
+	 * @return A string representing the toString of the IRI of this entity.
+	 */
+	public String toStringID()
+	{
+		return iri.toString();
+	}
 
-    /**
-     * Returns a string representation that can be used as the ID of this entity.  This is the toString
-     * representation of the IRI
-     * @return A string representing the toString of the IRI of this entity.
-     */
-    public String toStringID() {
-        return iri.toString();
-    }
+	public IRI getIRI()
+	{
+		return iri;
+	}
 
-    public IRI getIRI() {
-        return iri;
-    }
+	public boolean isBuiltIn()
+	{
+		return builtin;
+	}
 
-    public boolean isBuiltIn() {
-        return builtin;
-    }
+	public DataRangeType getDataRangeType()
+	{
+		return DataRangeType.DATATYPE;
+	}
 
-    public DataRangeType getDataRangeType() {
-        return DataRangeType.DATATYPE;
-    }
+	public OWL2Datatype getBuiltInDatatype()
+	{
+		if (!builtin)
+		{
+			throw new OWLRuntimeException(
+					"Not a built in datatype.  The getBuiltInDatatype() method should only be called on built in datatypes.");
+		}
+		else
+		{
+			return OWL2Datatype.getDatatype(iri);
+		}
+	}
 
-    public OWL2Datatype getBuiltInDatatype() {
-        if (!builtin) {
-            throw new OWLRuntimeException("Not a built in datatype.  The getBuiltInDatatype() method should only be called on built in datatypes.");
-        }
-        else {
-            return OWL2Datatype.getDatatype(iri);
-        }
-    }
+	public boolean isDouble()
+	{
+		return iri.equals(OWL2Datatype.XSD_DOUBLE.getIRI());
+	}
 
-    public boolean isDouble() {
-        return iri.equals(OWL2Datatype.XSD_DOUBLE.getIRI());
-    }
+	public boolean isFloat()
+	{
+		return iri.equals(OWL2Datatype.XSD_FLOAT.getIRI());
+	}
 
-    public boolean isFloat() {
-        return iri.equals(OWL2Datatype.XSD_FLOAT.getIRI());
-    }
+	public boolean isInteger()
+	{
+		return iri.equals(OWL2Datatype.XSD_INTEGER.getIRI());
+	}
 
-    public boolean isInteger() {
-        return iri.equals(OWL2Datatype.XSD_INTEGER.getIRI());
-    }
+	public boolean isString()
+	{
+		return iri.equals(OWL2Datatype.XSD_STRING.getIRI());
+	}
 
-    public boolean isString() {
-        return iri.equals(OWL2Datatype.XSD_STRING.getIRI());
-    }
+	public boolean isBoolean()
+	{
+		return iri.equals(OWL2Datatype.XSD_BOOLEAN.getIRI());
+	}
 
-    public boolean isBoolean() {
-        return iri.equals(OWL2Datatype.XSD_BOOLEAN.getIRI());
-    }
+	public boolean isDatatype()
+	{
+		return true;
+	}
 
-    public boolean isDatatype() {
-        return true;
-    }
+	public boolean isTopDatatype()
+	{
+		return top;
+	}
 
-    public boolean isTopDatatype() {
-        return top;
-    }
+	public URI getURI()
+	{
+		return iri.toURI();
+	}
 
-    public URI getURI() {
-        return iri.toURI();
-    }
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (super.equals(obj))
+		{
+			if (obj instanceof OWLDatatype)
+			{
+				return ((OWLDatatype) obj).getIRI().equals(getIRI());
+			}
+		}
+		return false;
+	}
 
-    @Override
-	public boolean equals(Object obj) {
-        if (super.equals(obj)) {
-            if (obj instanceof OWLDatatype) {
-                return ((OWLDatatype) obj).getIRI().equals(getIRI());
-            }
-        }
-        return false;
-    }
+	public Set<OWLAnnotation> getAnnotations(OWLOntology ontology)
+	{
+		return ImplUtils.getAnnotations(this, Collections.singleton(ontology));
+	}
 
-    public Set<OWLAnnotation> getAnnotations(OWLOntology ontology) {
-        return ImplUtils.getAnnotations(this, Collections.singleton(ontology));
-    }
+	public Set<OWLAnnotationAssertionAxiom> getAnnotationAssertionAxioms(OWLOntology ontology)
+	{
+		return ImplUtils.getAnnotationAxioms(this, Collections.singleton(ontology));
+	}
 
-    public Set<OWLAnnotationAssertionAxiom> getAnnotationAssertionAxioms(OWLOntology ontology) {
-        return ImplUtils.getAnnotationAxioms(this, Collections.singleton(ontology));
-    }
+	public Set<OWLAnnotation> getAnnotations(OWLOntology ontology, OWLAnnotationProperty annotationProperty)
+	{
+		return ImplUtils.getAnnotations(this, annotationProperty, Collections.singleton(ontology));
+	}
 
-    public Set<OWLAnnotation> getAnnotations(OWLOntology ontology, OWLAnnotationProperty annotationProperty) {
-        return ImplUtils.getAnnotations(this, annotationProperty, Collections.singleton(ontology));
-    }
+	public OWLClass asOWLClass()
+	{
+		throw new OWLRuntimeException("Not an OWLClass!");
+	}
 
-    public OWLClass asOWLClass() {
-        throw new OWLRuntimeException("Not an OWLClass!");
-    }
+	public OWLDataProperty asOWLDataProperty()
+	{
+		throw new OWLRuntimeException("Not a data property!");
+	}
 
-    public OWLDataProperty asOWLDataProperty() {
-        throw new OWLRuntimeException("Not a data property!");
-    }
+	public OWLDatatype asOWLDatatype()
+	{
+		return this;
+	}
 
-    public OWLDatatype asOWLDatatype() {
-        return this;
-    }
+	public OWLNamedIndividual asOWLNamedIndividual()
+	{
+		throw new OWLRuntimeException("Not an individual!");
+	}
 
-    public OWLNamedIndividual asOWLNamedIndividual() {
-        throw new OWLRuntimeException("Not an individual!");
-    }
+	public OWLObjectProperty asOWLObjectProperty()
+	{
+		throw new OWLRuntimeException("Not an object property");
+	}
 
-    public OWLObjectProperty asOWLObjectProperty() {
-        throw new OWLRuntimeException("Not an object property");
-    }
+	public boolean isOWLClass()
+	{
+		return false;
+	}
 
-    public boolean isOWLClass() {
-        return false;
-    }
+	public boolean isOWLDataProperty()
+	{
+		return false;
+	}
 
+	public boolean isOWLDatatype()
+	{
+		return true;
+	}
 
-    public boolean isOWLDataProperty() {
-        return false;
-    }
+	public boolean isOWLNamedIndividual()
+	{
+		return false;
+	}
 
+	public boolean isOWLObjectProperty()
+	{
+		return false;
+	}
 
-    public boolean isOWLDatatype() {
-        return true;
-    }
+	public OWLAnnotationProperty asOWLAnnotationProperty()
+	{
+		throw new OWLRuntimeException("Not an annotation property");
+	}
 
-    public boolean isOWLNamedIndividual() {
-        return false;
-    }
+	public boolean isOWLAnnotationProperty()
+	{
+		return false;
+	}
 
+	public void accept(OWLEntityVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public boolean isOWLObjectProperty() {
-        return false;
-    }
+	public void accept(OWLDataVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public OWLAnnotationProperty asOWLAnnotationProperty() {
-        throw new OWLRuntimeException("Not an annotation property");
-    }
+	public void accept(OWLObjectVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public boolean isOWLAnnotationProperty() {
-        return false;
-    }
+	public void accept(OWLNamedObjectVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public void accept(OWLEntityVisitor visitor) {
-        visitor.visit(this);
-    }
+	public <O> O accept(OWLEntityVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
-    public void accept(OWLDataVisitor visitor) {
-        visitor.visit(this);
-    }
+	public <O> O accept(OWLDataVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
-    public void accept(OWLObjectVisitor visitor) {
-        visitor.visit(this);
-    }
+	public <O> O accept(OWLObjectVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
-    public void accept(OWLNamedObjectVisitor visitor) {
-        visitor.visit(this);
-    }
+	public void accept(OWLDataRangeVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public <O> O accept(OWLEntityVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
+	public <O> O accept(OWLDataRangeVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
-    public <O> O accept(OWLDataVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
+	@Override
+	protected int compareObjectOfSameType(OWLObject object)
+	{
+		return iri.compareTo(((OWLDatatype) object).getIRI());
+	}
 
-    public <O> O accept(OWLObjectVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
+	public Set<OWLAxiom> getReferencingAxioms(OWLOntology ontology)
+	{
+		return ontology.getReferencingAxioms(this);
+	}
 
-    public void accept(OWLDataRangeVisitor visitor) {
-        visitor.visit(this);
-    }
-
-    public <O> O accept(OWLDataRangeVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
-
-    @Override
-	protected int compareObjectOfSameType(OWLObject object) {
-        return iri.compareTo(((OWLDatatype) object).getIRI());
-    }
-
-    public Set<OWLAxiom> getReferencingAxioms(OWLOntology ontology) {
-        return ontology.getReferencingAxioms(this);
-    }
-
-    public Set<OWLAxiom> getReferencingAxioms(OWLOntology ontology, boolean includeImports) {
-        return ontology.getReferencingAxioms(this, includeImports);
-    }
+	public Set<OWLAxiom> getReferencingAxioms(OWLOntology ontology, boolean includeImports)
+	{
+		return ontology.getReferencingAxioms(this, includeImports);
+	}
 }

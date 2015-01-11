@@ -18,83 +18,109 @@ import org.semanticweb.owlapi.model.OWLRuntimeException;
 
 /**
  * OWLNaryDataRangeHGDB.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Oct 31, 2011
  */
-public abstract class OWLNaryDataRangeHGDB extends OWLObjectHGDB implements HGLink, OWLNaryDataRange {
-
+public abstract class OWLNaryDataRangeHGDB extends OWLObjectHGDB implements HGLink, OWLNaryDataRange
+{
 	private List<HGHandle> operandHandles;
-    //private Set<OWLDataRange> operands;
 
-    public OWLNaryDataRangeHGDB(HGHandle...args) {
-    	// no duplicates allowed
-    	assert(new TreeSet<HGHandle>(Arrays.asList(args)).size() == args.length);
-    	operandHandles = new ArrayList<HGHandle>(Arrays.asList(args));
-    }
+	// private Set<OWLDataRange> operands;
 
-    public OWLNaryDataRangeHGDB(Set<? extends HGHandle> operands) {   
-    	//Set<? extends OWLDataRange> operands
-    	this.operandHandles = new ArrayList<HGHandle>(operands);
-        //this.operands = new TreeSet<OWLDataRange>(operands);
-    }
+	public OWLNaryDataRangeHGDB(HGHandle... args)
+	{
+		// no duplicates allowed
+		assert (new TreeSet<HGHandle>(Arrays.asList(args)).size() == args.length);
+		operandHandles = new ArrayList<HGHandle>(Arrays.asList(args));
+	}
 
-    public Set<OWLDataRange> getOperands() {
-    	HyperGraph g = getHyperGraph();
-    	Set<OWLDataRange> s = new TreeSet<OWLDataRange>();
-    	for (HGHandle h : operandHandles) {
-    		s.add((OWLDataRange) g.get(h));    		
-    	}
-    	return s;
-        //return CollectionFactory.getCopyOnRequestSet(operands);
-    }
+	public OWLNaryDataRangeHGDB(Set<? extends HGHandle> operands)
+	{
+		// Set<? extends OWLDataRange> operands
+		this.operandHandles = new ArrayList<HGHandle>(operands);
+		// this.operands = new TreeSet<OWLDataRange>(operands);
+	}
 
-    public boolean isTopDatatype() {
-        return false;
-    }
+	public Set<OWLDataRange> getOperands()
+	{
+		HyperGraph g = getHyperGraph();
+		Set<OWLDataRange> s = new TreeSet<OWLDataRange>();
+		for (HGHandle h : operandHandles)
+		{
+			s.add((OWLDataRange) g.get(h));
+		}
+		return s;
+		// return CollectionFactory.getCopyOnRequestSet(operands);
+	}
 
-    public boolean isDatatype() {
-        return false;
-    }
+	public boolean isTopDatatype()
+	{
+		return false;
+	}
 
-    public OWLDatatype asOWLDatatype() {
-        throw new OWLRuntimeException("Not a datatype");
-    }
-    
-    /* (non-Javadoc)
+	public boolean isDatatype()
+	{
+		return false;
+	}
+
+	public OWLDatatype asOWLDatatype()
+	{
+		throw new OWLRuntimeException("Not a datatype");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getArity()
 	 */
 	@Override
-	public int getArity() {
+	public int getArity()
+	{
 		return operandHandles.size();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getTargetAt(int)
 	 */
 	@Override
-	public HGHandle getTargetAt(int i) {
-		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
-		return operandHandles.get(i);  
+	public HGHandle getTargetAt(int i)
+	{
+		if (!(i >= 0 && i < getArity()))
+			throw new IllegalArgumentException("Index has to be 0 and less than " + getArity());
+		return operandHandles.get(i);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int, org.hypergraphdb.HGHandle)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int,
+	 * org.hypergraphdb.HGHandle)
 	 */
 	@Override
-	public void notifyTargetHandleUpdate(int i, HGHandle handle) {
-		assert(getHyperGraph().get(handle) instanceof OWLClassExpression);
-		
-		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
-		if (handle == null) throw new IllegalArgumentException("handle null"); 
-		operandHandles.set(i, handle);  
+	public void notifyTargetHandleUpdate(int i, HGHandle handle)
+	{
+		assert (getHyperGraph().get(handle) instanceof OWLClassExpression);
+
+		if (!(i >= 0 && i < getArity()))
+			throw new IllegalArgumentException("Index has to be 0 and less than " + getArity());
+		if (handle == null)
+			throw new IllegalArgumentException("handle null");
+		operandHandles.set(i, handle);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#notifyTargetRemoved(int)
 	 */
 	@Override
-	public void notifyTargetRemoved(int i) {
-		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be 0 and less than " + getArity()); 
-		operandHandles.remove(i);  
+	public void notifyTargetRemoved(int i)
+	{
+		if (!(i >= 0 && i < getArity()))
+			throw new IllegalArgumentException("Index has to be 0 and less than " + getArity());
+		operandHandles.remove(i);
 	}
 }

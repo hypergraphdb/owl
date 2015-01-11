@@ -7,13 +7,15 @@ import org.semanticweb.owlapi.model.OWLPropertyAxiom;
 
 /**
  * OWLPropertyAxiomHGDB.
+ * 
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  * @created Oct 7, 2011
  */
-public abstract class OWLPropertyAxiomHGDB extends OWLLogicalAxiomHGDB implements OWLPropertyAxiom {
-	
-    protected OWLPropertyAxiomHGDB(Collection<? extends OWLAnnotation> annotations) {
-        super(annotations);
-    }
+public abstract class OWLPropertyAxiomHGDB extends OWLLogicalAxiomHGDB implements OWLPropertyAxiom
+{
+	protected OWLPropertyAxiomHGDB(Collection<? extends OWLAnnotation> annotations)
+	{
+		super(annotations);
+	}
 
 }

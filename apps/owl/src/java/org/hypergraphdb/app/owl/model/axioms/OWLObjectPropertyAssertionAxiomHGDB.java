@@ -18,75 +18,98 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
 /**
  * OWLObjectPropertyAssertionAxiomHGDB.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Nov 8, 2011
  */
-public class OWLObjectPropertyAssertionAxiomHGDB extends OWLIndividualRelationshipAxiomHGDB<OWLObjectPropertyExpression, OWLIndividual> implements OWLObjectPropertyAssertionAxiom {
+public class OWLObjectPropertyAssertionAxiomHGDB extends
+		OWLIndividualRelationshipAxiomHGDB<OWLObjectPropertyExpression, OWLIndividual> implements OWLObjectPropertyAssertionAxiom
+{
+	public OWLObjectPropertyAssertionAxiomHGDB(HGHandle... args)
+	{
+		super(args);
+	}
 
-    public OWLObjectPropertyAssertionAxiomHGDB(HGHandle...args) {
-    	super(args);
-    }
+	public OWLObjectPropertyAssertionAxiomHGDB(HGHandle subject, HGHandle property, HGHandle object,
+			Collection<? extends OWLAnnotation> annotations)
+	{
+		// OWLIndividual subject, OWLObjectPropertyExpression property,
+		// OWLIndividual object, Set<? extends OWLAnnotation> annotations
+		super(subject, property, object, annotations);
+	}
 
-    public OWLObjectPropertyAssertionAxiomHGDB(HGHandle subject, HGHandle property, HGHandle object, Collection<? extends OWLAnnotation> annotations) {
-    	//OWLIndividual subject, OWLObjectPropertyExpression property, OWLIndividual object, Set<? extends OWLAnnotation> annotations
-        super(subject, property, object, annotations);
-    }
+	public OWLObjectPropertyAssertionAxiom getAxiomWithoutAnnotations()
+	{
+		if (!isAnnotated())
+		{
+			return this;
+		}
+		return getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(getProperty(), getSubject(), getObject());
+	}
 
-    public OWLObjectPropertyAssertionAxiom getAxiomWithoutAnnotations() {
-        if (!isAnnotated()) {
-            return this;
-        }
-        return getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(getProperty(), getSubject(), getObject());
-    }
+	public OWLSubClassOfAxiom asOWLSubClassOfAxiom()
+	{
+		return getOWLDataFactory().getOWLSubClassOfAxiom(getOWLDataFactory().getOWLObjectOneOf(getSubject()),
+				getOWLDataFactory().getOWLObjectHasValue(getProperty(), getObject()));
+	}
 
-    public OWLSubClassOfAxiom asOWLSubClassOfAxiom() {
-        return getOWLDataFactory().getOWLSubClassOfAxiom(getOWLDataFactory().getOWLObjectOneOf(getSubject()), getOWLDataFactory().getOWLObjectHasValue(getProperty(), getObject()));
-    }
+	public OWLObjectPropertyAssertionAxiom getAnnotatedAxiom(Set<OWLAnnotation> annotations)
+	{
+		return getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(getProperty(), getSubject(), getObject(),
+				mergeAnnos(annotations));
+	}
 
-    public OWLObjectPropertyAssertionAxiom getAnnotatedAxiom(Set<OWLAnnotation> annotations) {
-        return getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(getProperty(), getSubject(), getObject(), mergeAnnos(annotations));
-    }
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (super.equals(obj))
+		{
+			return obj instanceof OWLObjectPropertyAssertionAxiom;
+		}
+		return false;
+	}
 
-    @Override
-	public boolean equals(Object obj) {
-        if (super.equals(obj)) {
-            return obj instanceof OWLObjectPropertyAssertionAxiom;
-        }
-        return false;
-    }
+	public OWLObjectPropertyAssertionAxiom getSimplified()
+	{
+		if (!getProperty().isAnonymous())
+		{
+			return this;
+		}
+		else
+		{
+			OWLObjectInverseOf property = (OWLObjectInverseOf) getProperty();
+			OWLObjectPropertyExpression invProp = property.getInverse();
+			return getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(invProp, getObject(), getSubject());
+		}
+	}
 
-    public OWLObjectPropertyAssertionAxiom getSimplified() {
-        if (!getProperty().isAnonymous()) {
-            return this;
-        }
-        else {
-            OWLObjectInverseOf property = (OWLObjectInverseOf) getProperty();
-            OWLObjectPropertyExpression invProp = property.getInverse();
-            return getOWLDataFactory().getOWLObjectPropertyAssertionAxiom(invProp, getObject(), getSubject());
-        }
-    }
+	public boolean isInSimplifiedForm()
+	{
+		return !getProperty().isAnonymous();
+	}
 
-    public boolean isInSimplifiedForm() {
-        return !getProperty().isAnonymous();
-    }
+	public void accept(OWLAxiomVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public void accept(OWLAxiomVisitor visitor) {
-        visitor.visit(this);
-    }
+	public void accept(OWLObjectVisitor visitor)
+	{
+		visitor.visit(this);
+	}
 
-    public void accept(OWLObjectVisitor visitor) {
-        visitor.visit(this);
-    }
+	public <O> O accept(OWLAxiomVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
-    public <O> O accept(OWLAxiomVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
+	public <O> O accept(OWLObjectVisitorEx<O> visitor)
+	{
+		return visitor.visit(this);
+	}
 
-    public <O> O accept(OWLObjectVisitorEx<O> visitor) {
-        return visitor.visit(this);
-    }
-
-    public AxiomType<?> getAxiomType() {
-        return AxiomType.OBJECT_PROPERTY_ASSERTION;
-    }
+	public AxiomType<?> getAxiomType()
+	{
+		return AxiomType.OBJECT_PROPERTY_ASSERTION;
+	}
 }
