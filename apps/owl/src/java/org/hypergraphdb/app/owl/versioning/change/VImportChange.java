@@ -6,66 +6,93 @@ import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 
 /**
  * VImportChange.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public abstract class VImportChange extends VOWLChange {
-	
+public abstract class VImportChange extends VOWLChange
+{
+
 	private HGHandle importDeclarationHandle;
-	
-	public VImportChange(HGHandle...args) {
-		if (args[0] == null) throw new IllegalArgumentException("Tried to create a VImportChange with a null import declaration handle.");
+
+	public VImportChange(HGHandle... args)
+	{
+		if (args[0] == null)
+			throw new IllegalArgumentException("Tried to create a VImportChange with a null import declaration handle.");
 		importDeclarationHandle = args[0];
-    }
-	
-	HGHandle getImportDeclarationHandle() {
+	}
+
+	HGHandle getImportDeclarationHandle()
+	{
 		return importDeclarationHandle;
 	}
 
-	public OWLImportsDeclaration getImportDeclaration() {
+	public OWLImportsDeclaration getImportDeclaration()
+	{
 		return graph.get(importDeclarationHandle);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getArity()
 	 */
 	@Override
-	public int getArity() {		
-		return (importDeclarationHandle == null)? 0:1;
+	public int getArity()
+	{
+		return (importDeclarationHandle == null) ? 0 : 1;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getTargetAt(int)
 	 */
 	@Override
-	public HGHandle getTargetAt(int i) {
-		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
+	public HGHandle getTargetAt(int i)
+	{
+		if (!(i >= 0 && i < getArity()))
+			throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
 		return importDeclarationHandle;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int, org.hypergraphdb.HGHandle)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int,
+	 * org.hypergraphdb.HGHandle)
 	 */
 	@Override
-	public void notifyTargetHandleUpdate(int i, HGHandle handle) {
-		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
+	public void notifyTargetHandleUpdate(int i, HGHandle handle)
+	{
+		if (!(i >= 0 && i < getArity()))
+			throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
 		importDeclarationHandle = handle;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#notifyTargetRemoved(int)
 	 */
 	@Override
-	public void notifyTargetRemoved(int i) {
-		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
+	public void notifyTargetRemoved(int i)
+	{
+		if (!(i >= 0 && i < getArity()))
+			throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
 		importDeclarationHandle = null;
 	}
-	
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.app.owl.versioning.VersioningObject#accept(org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.hypergraphdb.app.owl.versioning.VersioningObject#accept(org.hypergraphdb
+	 * .app.owl.versioning.VOWLObjectVisitor)
 	 */
 	@Override
-	public void accept(VOWLObjectVisitor visitor) {
+	public void accept(VOWLObjectVisitor visitor)
+	{
 		visitor.visit(this);
 	}
 

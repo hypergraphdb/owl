@@ -5,14 +5,11 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import org.hypergraphdb.HGQuery.hg;
-import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.HGDBOWLManager;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyImpl;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
-import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
-import org.hypergraphdb.app.owl.util.ImplUtils;
+import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.util.StopWatch;
 import org.hypergraphdb.util.HGUtils;
 import org.junit.AfterClass;
@@ -172,8 +169,8 @@ public abstract class OntologyManagerTest
 	{
 		System.out.print("TESTRUN in HYPERGRAPH MODE: ");
 		System.out.println(" PHGDBOntologyManagerImpl ");
-		HyperGraph graph = ImplUtils.owldb(System.getProperty("java.io.tmpdir") + File.separator + "hgdbtest");
-		m = HGDBOWLManager.createOWLOntologyManager(OWLDataFactoryHGDB.get(graph), new HGDBOntologyRepository(graph.getLocation()));
+		String dblocation = System.getProperty("java.io.tmpdir") + File.separator + "hgdbtest";
+		m = new HGOntologyManagerFactory().getOntologyManager(dblocation); 
 		r = ((HGDBOntologyManager) m).getOntologyRepository();
 	}
 

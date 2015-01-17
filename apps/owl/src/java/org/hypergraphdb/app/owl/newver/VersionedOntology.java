@@ -1,5 +1,6 @@
 package org.hypergraphdb.app.owl.newver;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -8,7 +9,6 @@ import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.HGDBOntology;
-import org.hypergraphdb.app.owl.versioning.ChangeSet;
 
 /**
  * <p>
@@ -56,6 +56,11 @@ public class VersionedOntology implements Versioned, HGGraphHolder
 		this.graph = graph;
 	}
 
+	public HyperGraph graph()
+	{
+		return graph;
+	}
+	
 	public Revision revision()
 	{
 		return graph.get(currentRevision);
@@ -95,20 +100,30 @@ public class VersionedOntology implements Versioned, HGGraphHolder
 		newmark.setTimestamp(System.currentTimeMillis());
 		HGHandle markHandle = graph.add(newmark);
 		graph.add(new MarkParent(markHandle, graph.getHandle(markCurrent)));
-		workingChanges = graph.add(new ChangeSet());
+		workingChanges = graph.add(new ChangeSet<VersionedOntology>());
 		return newmark;
 	}
 
 	@Override
-	public ChangeSet changes()
+	public ChangeSet<VersionedOntology> changes()
 	{
 		return graph.get(workingChanges);
 	}
 
-	public ChangeSet changes(Revision revision)
+	private void changes(ChangeMark from, List<ChangeSet<?>> L)
 	{
+		L.add((ChangeSet<?>)graph.get(from.changeset()));		
+		for (ChangeMark parentMark : from.parents())
+			if (parentMark.revision() == null)
+				changes(parentMark, L);
+	}
+	
+	public List<ChangeSet<?>> changes(Revision revision)
+	{
+		ArrayList<ChangeSet<?>> L = new ArrayList<ChangeSet<?>>();
 		ChangeMark mark = getMarkForRevision(graph.getHandle(revision));
-		return graph.get(mark.changeset());
+		changes(mark, L);
+		return L;
 	}
 
 	public HGDBOntology ontology()

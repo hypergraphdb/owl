@@ -13,12 +13,12 @@ import org.semanticweb.owlapi.model.OWLOntologyChangeListener;
 public class VersioningChangeListener implements OWLOntologyChangeListener
 {
 	private VersionManager repo;
-	
+
 	public VersioningChangeListener(VersionManager repo)
 	{
 		this.repo = repo;
 	}
-	
+
 	@Override
 	public void ontologiesChanged(final List<? extends OWLOntologyChange> changes) throws OWLException
 	{
@@ -34,8 +34,8 @@ public class VersioningChangeListener implements OWLOntologyChangeListener
 					if (repo.isVersioned(ontoHandle))
 					{
 						VersionedOntology vo = repo.versioned(ontoHandle);
-						VOWLChange vc = VOWLChangeFactory.create(c, repo.getGraph());						
-						vo.changes().addChange(vc);
+						VOWLChange vc = VOWLChangeFactory.create(c, repo.getGraph());
+						vo.changes().add(vc);
 					}
 				}
 				return null;

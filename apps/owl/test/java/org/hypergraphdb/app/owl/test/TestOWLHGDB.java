@@ -1,13 +1,13 @@
 package org.hypergraphdb.app.owl.test;
 
 import java.io.File;
-import java.util.Date;
 
-import org.hypergraphdb.app.owl.HGDBOWLManager;
+import java.util.Date;
 import org.hypergraphdb.app.owl.HGDBOntologyFormat;
 import org.hypergraphdb.app.owl.HGDBOntologyManagerImpl;
 import org.hypergraphdb.app.owl.HGDBOntologyOutputTarget;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
+import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
@@ -114,7 +114,7 @@ public class TestOWLHGDB
 	public static void initDatabase()
 	{
 		System.out.println("Init Database :" + new Date());
-		manager = HGDBOWLManager.createOWLOntologyManager(databaseLocation);
+		manager = new HGOntologyManagerFactory().getOntologyManager(databaseLocation); 
 		manager.setSilentMissingImportsHandling(false);
 		repository = ((HGDBOntologyManagerImpl) manager).getOntologyRepository();
 		registerRepoToResolveImports();

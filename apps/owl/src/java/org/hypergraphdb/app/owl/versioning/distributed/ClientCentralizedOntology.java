@@ -5,37 +5,47 @@ import org.hypergraphdb.peer.HGPeerIdentity;
 
 /**
  * ClientCentralizedOntology.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Aug 23, 2012
  */
-public class ClientCentralizedOntology extends DistributedOntology {
-
+public class ClientCentralizedOntology extends DistributedOntology
+{
 	private HGPeerIdentity serverPeer;
-	
-	public ClientCentralizedOntology() {
-	}	
 
-	public ClientCentralizedOntology(HGHandle versionedOntologyHandle, HGPeerIdentity serverPeer) {
+	public ClientCentralizedOntology()
+	{
+	}
+
+	public ClientCentralizedOntology(HGHandle versionedOntologyHandle, HGPeerIdentity serverPeer)
+	{
 		super(versionedOntologyHandle);
 		setServerPeer(serverPeer);
-	}	
+	}
 
-	public ClientCentralizedOntology(HGHandle...args) {
+	public ClientCentralizedOntology(HGHandle... args)
+	{
 		super(args);
-    }
-	
-	public HGPeerIdentity getServerPeer() {
+	}
+
+	public HGPeerIdentity getServerPeer()
+	{
 		return serverPeer;
 	}
 
-	public void setServerPeer(HGPeerIdentity server) {
+	public void setServerPeer(HGPeerIdentity server)
+	{
 		serverPeer = server;
 	}
 
-	public String toString() {
-		if (getVersionedOntology() != null) {
+	public String toString()
+	{
+		if (getVersionedOntology() != null)
+		{
 			return getVersionedOntology().toString() + " (Client of " + getServerPeer() + ")";
-		} else {
+		}
+		else
+		{
 			return super.toString();
 		}
 	}

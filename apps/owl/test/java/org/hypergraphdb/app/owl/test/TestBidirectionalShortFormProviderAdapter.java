@@ -69,11 +69,17 @@ public class TestBidirectionalShortFormProviderAdapter extends CachingBidirectio
 	    		return sf; 
 	    	}
 	    }
-	    
+
+	public void rebuild()
+	{
+        rebuild(new ReferencedEntitySetProvider(ontologies));
+	}
+
 	    /**
 	     * rebuilds cache using the entitysetprovider and adds builting properties afterwards.
 	     */
-	    public void rebuild(OWLEntitySetProvider<OWLEntity> entitySetProvider) {
+	public void rebuild(OWLEntitySetProvider<OWLEntity> entitySetProvider)
+	{
 	    	super.rebuild(entitySetProvider);	    	
 	    	//add our toplevel entities. @see OWLEntityRenderingCache
 	    	add(factory.getOWLThing());

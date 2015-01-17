@@ -1,6 +1,6 @@
 package org.hypergraphdb.app.owl.newver;
 
-import org.hypergraphdb.app.owl.versioning.ChangeSet;
+import java.util.List;
 
 /**
  * <p>
@@ -64,14 +64,15 @@ public interface Versioned
 	
 	/**
 	 * Return the latest working changes. Those are the changes that will
-	 * be committed if the {@link commit} method is called.
+	 * be committed if the {@link flushChanges} method is called.
 	 */
-	ChangeSet  changes();
+	ChangeSet<?>  changes();
 
 	/**
 	 * Return the changes that produced the specified {@link Revision}.
-	 * @param revision
+	 * 
+	 * @param revision The revision.
 	 * @return
 	 */
-	ChangeSet changes(Revision revision);
+	List<ChangeSet<?>> changes(Revision revision);
 }

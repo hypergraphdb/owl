@@ -1,113 +1,180 @@
 package org.hypergraphdb.app.owl.versioning.change;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.app.owl.newver.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor;
+import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyID;
+import org.semanticweb.owlapi.model.SetOntologyID;
 
 /**
  * VModifyOntologyIDChange.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public class VModifyOntologyIDChange extends VOWLChange {
-	
+public class VModifyOntologyIDChange extends VOWLChange
+{
 	private HGHandle oldOntologyIDHandle;
-
 	private HGHandle newOntologyIDHandle;
 	
+	@Override
+	public VChange<VersionedOntology> inverse()
+	{
+		return new VModifyOntologyIDChange(newOntologyIDHandle, oldOntologyIDHandle);
+	}
+
+	@Override
+	public boolean isEffective(VersionedOntology versioned)
+	{
+		return !graph.get(newOntologyIDHandle).equals(versioned.ontology().getOntologyID());		
+	}
+
+	@Override
+	public OWLOntologyChange toOWLChange(VersionedOntology versioned)
+	{
+		return new SetOntologyID(versioned.ontology(), 
+								 (OWLOntologyID)graph.get(newOntologyIDHandle));		
+	}
+
 	/**
 	 * old = [0], new = [1].
+	 * 
 	 * @param args
 	 */
-	public VModifyOntologyIDChange(HGHandle...args) {
-    	oldOntologyIDHandle = args[0];
-    	newOntologyIDHandle = args[1];    	
-    }
-	
-	HGHandle getOldOntologyIDHandle() {
+	public VModifyOntologyIDChange(HGHandle... args)
+	{
+		oldOntologyIDHandle = args[0];
+		newOntologyIDHandle = args[1];
+	}
+
+	HGHandle getOldOntologyIDHandle()
+	{
 		return oldOntologyIDHandle;
 	}
-	
-	HGHandle getNewOntologyIDHandle() {
+
+	HGHandle getNewOntologyIDHandle()
+	{
 		return newOntologyIDHandle;
 	}
-	
-	public OWLOntologyID getOldOntologyID() {
+
+	public OWLOntologyID getOldOntologyID()
+	{
 		return graph.get(oldOntologyIDHandle);
 	}
 
-	public OWLOntologyID getNewOntologyID() {
+	public OWLOntologyID getNewOntologyID()
+	{
 		return graph.get(newOntologyIDHandle);
 	}
-		
-//	}
-	/* (non-Javadoc)
+
+	// }
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getArity()
 	 */
 	@Override
-	public int getArity() {
-		int arity = (oldOntologyIDHandle == null)? 0 : 1;
-		return arity + ((newOntologyIDHandle == null)? 0 : 1);
+	public int getArity()
+	{
+		int arity = (oldOntologyIDHandle == null) ? 0 : 1;
+		return arity + ((newOntologyIDHandle == null) ? 0 : 1);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#getTargetAt(int)
 	 */
 	@Override
-	public HGHandle getTargetAt(int i) {
-		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
-		if (i == 0) {
-			if (oldOntologyIDHandle != null) {
+	public HGHandle getTargetAt(int i)
+	{
+		if (!(i >= 0 && i < getArity()))
+			throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
+		if (i == 0)
+		{
+			if (oldOntologyIDHandle != null)
+			{
 				return oldOntologyIDHandle;
-			} else {
+			}
+			else
+			{
 				return newOntologyIDHandle;
 			}
-		} else {
+		}
+		else
+		{
 			return newOntologyIDHandle;
 		}
-		//return (i == 0)? oldOntologyIDHandle : newOntologyIDHandle;
+		// return (i == 0)? oldOntologyIDHandle : newOntologyIDHandle;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int, org.hypergraphdb.HGHandle)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int,
+	 * org.hypergraphdb.HGHandle)
 	 */
 	@Override
-	public void notifyTargetHandleUpdate(int i, HGHandle handle) {
-		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
-		if (i == 0) {
-			if (oldOntologyIDHandle != null) {
+	public void notifyTargetHandleUpdate(int i, HGHandle handle)
+	{
+		if (!(i >= 0 && i < getArity()))
+			throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
+		if (i == 0)
+		{
+			if (oldOntologyIDHandle != null)
+			{
 				oldOntologyIDHandle = handle;
-			} else {
+			}
+			else
+			{
 				newOntologyIDHandle = handle;
 			}
-		} else {
+		}
+		else
+		{
 			newOntologyIDHandle = handle;
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.hypergraphdb.HGLink#notifyTargetRemoved(int)
 	 */
 	@Override
-	public void notifyTargetRemoved(int i) {
-		if (!(i >= 0 && i < getArity())) throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
+	public void notifyTargetRemoved(int i)
+	{
+		if (!(i >= 0 && i < getArity()))
+			throw new IllegalArgumentException("Index has to be >= 0 and less than " + getArity());
 		// two calls with 0 will delete both.
-		if (i == 0) {
-			if (oldOntologyIDHandle != null) {
+		if (i == 0)
+		{
+			if (oldOntologyIDHandle != null)
+			{
 				oldOntologyIDHandle = null;
-			} else {
+			}
+			else
+			{
 				newOntologyIDHandle = null;
 			}
-		} else {
+		}
+		else
+		{
 			newOntologyIDHandle = null;
 		}
 	}
-	
-	/* (non-Javadoc)
-	 * @see org.hypergraphdb.app.owl.versioning.VersioningObject#accept(org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.hypergraphdb.app.owl.versioning.VersioningObject#accept(org.hypergraphdb
+	 * .app.owl.versioning.VOWLObjectVisitor)
 	 */
 	@Override
-	public void accept(VOWLObjectVisitor visitor) {
+	public void accept(VOWLObjectVisitor visitor)
+	{
 		visitor.visit(this);
 	}
 }

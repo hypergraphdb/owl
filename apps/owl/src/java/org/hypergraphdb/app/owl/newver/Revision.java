@@ -49,6 +49,12 @@ public class Revision implements HGHandleHolder, HGGraphHolder
 		this.timestamp = timestamp;
 	}
 
+	public HGHandle changeMark()
+	{
+		return graph.findOne(hg.apply(hg.targetAt(graph, 1), 
+				hg.and(hg.type(RevisionMark.class), hg.incident(thisHandle))));
+	}
+	
 	/**
 	 * Return the set of direct ancestors of this revision. Under normal
 	 * circumstances, a revision will have only one parent. When there are 

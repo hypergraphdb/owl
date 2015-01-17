@@ -12,9 +12,9 @@ import java.util.Set;
 
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.HGDBOWLManager;
 import org.hypergraphdb.app.owl.HGDBOntology;
-import org.hypergraphdb.app.owl.HGDBOntologyManagerImpl;
+import org.hypergraphdb.app.owl.HGDBOntologyManager;
+import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.hypergraphdb.app.owl.core.OWLTempOntologyImpl;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
@@ -69,8 +69,8 @@ public class TestVersionedOntoRenderAndParse
 	public void testRenderAndParse()
 	{
 		List<File> renderedFiles = new ArrayList<File>();
-		HGDBOntologyManagerImpl manager = HGDBOWLManager.createOWLOntologyManager(System.getProperty("java.io.tmpdir")
-				+ File.separator + "hgdbtest");
+		String dblocation = System.getProperty("java.io.tmpdir") + File.separator + "hgdbtest";
+		HGDBOntologyManager manager = new HGOntologyManagerFactory().getOntologyManager(dblocation);
 		//
 		// IMPORT AND RENDER
 		//

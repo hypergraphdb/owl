@@ -1,14 +1,14 @@
 package org.hypergraphdb.app.owl.test.versioning.distributed;
 
 import java.io.File;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-
-import org.hypergraphdb.app.owl.HGDBOWLManager;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
+import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.gc.GarbageCollector;
 import org.hypergraphdb.app.owl.usage.ImportOntologies;
 import org.hypergraphdb.app.owl.util.StopWatch;
@@ -86,7 +86,7 @@ public class TestVDHGDBPull
 		if (!dir.exists())
 			dir.mkdir();
 		System.out.println("Creating Repository : " + dir);
-		HGDBOntologyManager manager = HGDBOWLManager.createOWLOntologyManager(dir.getAbsolutePath());
+		HGDBOntologyManager manager = new HGOntologyManagerFactory().getOntologyManager(dir.getAbsolutePath());
 		VDHGDBOntologyRepository dr = (VDHGDBOntologyRepository) manager.getOntologyRepository();
 		if (argv[0].contains("1"))
 		{

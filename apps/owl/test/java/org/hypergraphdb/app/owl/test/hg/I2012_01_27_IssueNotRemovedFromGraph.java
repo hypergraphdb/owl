@@ -53,8 +53,8 @@ public class I2012_01_27_IssueNotRemovedFromGraph {
 	}
 	
 	public void findChangesets() {
-		List<ChangeSet> csL = graph.getAll(hg.type(ChangeSet.class));
-		for (ChangeSet s : csL) {
+		List<HGHandle> csL = graph.getAll(hg.type(HGHandle.class));
+		for (HGHandle s : csL) {
 			System.out.println("Changeset found: " + s + " handle: " + graph.getHandle(s));
 		}
 	}

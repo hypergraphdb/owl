@@ -1,11 +1,11 @@
 package org.hypergraphdb.app.owl.test.versioning.distributed;
 
 import java.io.File;
+
 import java.util.Date;
 import java.util.Set;
-
-import org.hypergraphdb.app.owl.HGDBOWLManager;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
+import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.gc.GarbageCollector;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.peer.HGPeerIdentity;
@@ -54,7 +54,7 @@ public class TestVDHGDBIdle
 		if (!dir.exists())
 			dir.mkdir();
 		System.out.println("Repository at : " + dir);
-		HGDBOntologyManager manager = HGDBOWLManager.createOWLOntologyManager(dir.getAbsolutePath());
+		HGDBOntologyManager manager = new HGOntologyManagerFactory().getOntologyManager(dir.getAbsolutePath());
 		VDHGDBOntologyRepository dr = (VDHGDBOntologyRepository) manager.getOntologyRepository();
 		System.out.println("INIT LOCAL IDLE PEER REPOSITORY: " + PEER_USERNAME);
 		initializeVDRepository(dr);
