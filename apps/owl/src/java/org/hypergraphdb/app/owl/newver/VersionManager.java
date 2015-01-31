@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl.newver;
 
 import java.util.HashSet;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -9,7 +10,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.versioning.ChangeSet;
 
 /**
  * <p>
@@ -42,18 +42,20 @@ public class VersionManager
 	
 	private VersionedOntology startVersioning(HGHandle ontology)
 	{
+		HGHandle workingChanges = graph.add(new ChangeSet<VersionedOntology>());				
+		VersionedOntology versioned = new VersionedOntology(graph, 
+				  ontology, 
+				  graph.getHandleFactory().nullHandle(), 
+				  workingChanges);
+		graph.add(versioned);		
 		HGHandle initialMark = graph.add(new ChangeMark(ontology, emptyChangeSetHandle()));
-		Revision initialRevision = new Revision();
+		Revision initialRevision = new Revision(versioned.getAtomHandle());
 		initialRevision.setUser(user);
 		initialRevision.setTimestamp(System.currentTimeMillis());
 		HGHandle revisionHandle = graph.add(initialRevision);
 		graph.add(new RevisionMark(revisionHandle, initialMark));
-		HGHandle workingChanges = graph.add(new ChangeSet());		
-		VersionedOntology versioned = new VersionedOntology(graph, 
-										  ontology, 
-										  revisionHandle, 
-										  workingChanges); 
-		graph.add(versioned);
+		versioned.setCurrentRevision(revisionHandle);
+		graph.update(versioned);
 		isversionedmap.put(ontology, true);
 		return versioned;
 	}
@@ -138,20 +140,20 @@ public class VersionManager
 		return this;
 	}
 	
-	public Revision createRevision(final String comment, final Versioned...versionedObjects)
-	{
-		return graph.getTransactionManager().transact(new Callable<Revision>() {
-		public Revision call()
-		{
-			Revision rev = new Revision();
-			for (Versioned versioned : versionedObjects)
-			{
-				versioned.commit(user, comment);
-			}
-			graph.add(rev);
-			return rev;			
-		}});
-	}
+//	public Revision createRevision(final String comment, final Versioned...versionedObjects)
+//	{
+//		return graph.getTransactionManager().transact(new Callable<Revision>() {
+//		public Revision call()
+//		{
+//			Revision rev = new Revision();
+//			for (Versioned versioned : versionedObjects)
+//			{
+//				versioned.commit(user, comment);
+//			}
+//			graph.add(rev);
+//			return rev;			
+//		}});
+//	}
 	
 	/**
 	 * Return the one {@link Revision} tagged with the specified tag, or null if

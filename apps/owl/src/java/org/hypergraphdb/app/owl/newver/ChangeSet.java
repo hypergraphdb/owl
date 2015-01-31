@@ -19,6 +19,7 @@ import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.transaction.HGTransactionConfig;
 
 /**
+ * 
  * A ChangeSet contains changes affecting a {@link Versioned} object.
  * 
  * The changeset must be added to the graph, before changes are added.
@@ -220,13 +221,168 @@ public class ChangeSet<V extends Versioned> implements HGLink, HGGraphHolder
 		return changes;
 	}
 
+	static <V extends Versioned> 
+	List<VChange<V>> normalize(V versioned, List<VChange<V>> L)
+	{
+		Set<Integer> toremove = new HashSet<Integer>();		
+		for (int i = 0; i < L.size(); i++)
+		{
+			if (toremove.contains(i))
+				continue;
+			VChange<V> c = L.get(i);
+			if (!c.isEffective(versioned))
+				toremove.add(i);
+			VChange<V> ic = c.inverse();			
+			if (c.isIdempotent())
+			{
+				if (ic == null || ic.isIdempotent())
+				{
+					// We want to keep only the last change equal to 'c' or to 
+					// its inverse 'ic' - all the initial ones will be overridden
+					// by the last.
+					int last = i;
+					for (int j = i + 1; j < L.size(); j++)
+					{
+						VChange<V> next = L.get(j);
+						if (next.equals(c) || next.equals(ic))
+						{
+							toremove.add(last);
+							last = j;
+						}
+					}
+				}
+				else // non-idempotent inverse 
+				{
+					for (int j = i + 1; j < L.size(); j++)
+					{
+						VChange<V> next = L.get(j);
+						if (next.equals(c))
+						{
+							toremove.add(i);
+							break;
+						}
+						else if (next.equals(ic))
+						{
+							toremove.add(i);
+							toremove.add(j);
+							break;
+						}
+					}					
+				}
+			}
+			else if (ic != null)
+			{
+				for (int j = i + 1; j < L.size(); j++)
+				{
+					VChange<V> next = L.get(j);
+					if (next.equals(ic))
+					{
+						toremove.add(i);
+						toremove.add(j);
+						break;
+					}
+				}									
+			}
+			// else it's non-idempotent and it has no inverse, can't remove			
+		}
+		List<VChange<V>> normal = new ArrayList<VChange<V>>();		
+		for (int i = 0; i < L.size(); i++)
+		{
+			if (toremove.contains(i))
+				continue;
+			VChange<V> c = L.get(i);
+			normal.add(c);
+		}		
+		return normal;
+	}
+	
+	static <V extends Versioned> 
+	List<VChange<V>> merge(V versioned, List<VChange<V>> one, List<VChange<V>> two)
+	{
+		ArrayList<VChange<V>> result = new ArrayList<VChange<V>>();
+		result.addAll(one);
+		result.addAll(two);
+		return normalize(versioned, result);
+	}
+	
 	/**
 	 * Finds and eliminates changes that became obsolete due to later changes.
 	 */
-	public ChangeSet<V> pack()
+	public List<VChange<V>> packed(V versioned)
 	{
-		// TODO
-		return this;
+		/*
+		Set<Integer> toremove = new HashSet<Integer>();		
+		for (int i = 0; i < getArity(); i++)
+		{
+			if (toremove.contains(i))
+				continue;
+			VChange<V> c = graph.get(getTargetAt(i));
+			if (!c.isEffective(versioned))
+				toremove.add(i);
+			VChange<V> ic = c.inverse();			
+			if (c.isIdempotent())
+			{
+				if (ic == null || ic.isIdempotent())
+				{
+					// We want to keep only the last change equal to 'c' or to 
+					// its inverse 'ic' - all the initial ones will be overridden
+					// by the last.
+					int last = i;
+					for (int j = i + 1; j < getArity(); j++)
+					{
+						VChange<V> next = graph.get(getTargetAt(j));
+						if (next.equals(c) || next.equals(ic))
+						{
+							toremove.add(last);
+							last = j;
+						}
+					}
+				}
+				else // non-idempotent inverse 
+				{
+					for (int j = i + 1; j < getArity(); j++)
+					{
+						VChange<V> next = graph.get(getTargetAt(j));
+						if (next.equals(c))
+						{
+							toremove.add(i);
+							break;
+						}
+						else if (next.equals(ic))
+						{
+							toremove.add(i);
+							toremove.add(j);
+							break;
+						}
+					}					
+				}
+			}
+			else if (ic != null)
+			{
+				for (int j = i + 1; j < getArity(); j++)
+				{
+					VChange<V> next = graph.get(getTargetAt(j));
+					if (next.equals(ic))
+					{
+						toremove.add(i);
+						toremove.add(j);
+						break;
+					}
+				}									
+			}
+			// else it's non-idempotent and it has no inverse, can't remove			
+		}
+		List<VChange<V>> changes = changes();
+		for (int i = 0; i < getArity(); i++)
+		{
+			if (toremove.contains(i))
+				continue;
+			VChange<V> c = graph.get(getTargetAt(i));
+			changes.add(c);
+		}		
+		return changes;
+*/		
+		return normalize(versioned, changes());
 	}
 	
 	public Set<ChangeConflict<V>> findConflicts(ChangeSet<V> otherSet)

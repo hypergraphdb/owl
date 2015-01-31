@@ -13,6 +13,16 @@ public class MarkParent implements HGLink
 		parent = handles[1];
 	}
 	
+	public HGHandle parent()
+	{
+		return parent;
+	}
+	
+	public HGHandle child()
+	{
+		return child;
+	}
+	
 	@Override
 	public int getArity()
 	{

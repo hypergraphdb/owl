@@ -177,4 +177,41 @@ public class VModifyOntologyIDChange extends VOWLChange
 	{
 		visitor.visit(this);
 	}
+
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((newOntologyIDHandle == null) ? 0 : newOntologyIDHandle.hashCode());
+		result = prime * result + ((oldOntologyIDHandle == null) ? 0 : oldOntologyIDHandle.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		VModifyOntologyIDChange other = (VModifyOntologyIDChange) obj;
+		if (newOntologyIDHandle == null)
+		{
+			if (other.newOntologyIDHandle != null)
+				return false;
+		}
+		else if (!newOntologyIDHandle.equals(other.newOntologyIDHandle))
+			return false;
+		if (oldOntologyIDHandle == null)
+		{
+			if (other.oldOntologyIDHandle != null)
+				return false;
+		}
+		else if (!oldOntologyIDHandle.equals(other.oldOntologyIDHandle))
+			return false;
+		return true;
+	}
 }

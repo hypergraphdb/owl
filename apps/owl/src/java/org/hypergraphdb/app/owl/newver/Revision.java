@@ -8,17 +8,45 @@ import java.util.concurrent.Callable;
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGHandleHolder;
+import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 
-public class Revision implements HGHandleHolder, HGGraphHolder
+public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 {
 	private HyperGraph graph;
 	private HGHandle thisHandle;
+	private HGHandle versioned;
 	private long timestamp;
 	private String user;	
 	private String comment;
 		
+	public Revision(HGHandle...targets)
+	{
+		assert targets.length == 1;
+	}
+	
+	public HGHandle getTargetAt(int i)
+	{
+		assert i == 0;
+		return versioned;
+	}
+	public int getArity()
+	{
+		return 1;
+	}
+		
+	@Override
+	public void notifyTargetHandleUpdate(int i, HGHandle handle)
+	{
+		versioned = handle;
+	}
+
+	@Override
+	public void notifyTargetRemoved(int i)
+	{
+	}
+
 	public String getComment()
 	{
 		return comment;
@@ -61,16 +89,31 @@ public class Revision implements HGHandleHolder, HGGraphHolder
 	 * multiple parents, it means diverging heads/branches had to be merged.  
 	 */
 	@SuppressWarnings("unchecked")
-	public Set<Revision> parents()
+	public Set<HGHandle> parents()
 	{
-		HashSet<Revision> S = new HashSet<Revision>();
-		S.addAll((List<Revision>)(List<?>)graph.getAll(
+		HashSet<HGHandle> S = new HashSet<HGHandle>();
+		S.addAll((List<HGHandle>)(List<?>)graph.findAll(
 				hg.apply(hg.targetAt(graph, 1), 
 						 hg.and(hg.type(MarkParent.class), 
 								hg.orderedLink(thisHandle, hg.anyHandle())))));
 		return S;
 	}
 
+	/**
+	 * Return the set of child revisions that "branch off" this revision. A head
+	 * revision will have no branches at all.  
+	 */
+	@SuppressWarnings("unchecked")
+	public Set<Revision> branches()
+	{
+		HashSet<Revision> S = new HashSet<Revision>();
+		S.addAll((List<Revision>)(List<?>)graph.getAll(
+				hg.apply(hg.targetAt(graph, 0), 
+						 hg.and(hg.type(MarkParent.class), 
+								hg.orderedLink(hg.anyHandle(), thisHandle)))));
+		return S;		
+	}
+	
 	/**
 	 * <p>
 	 * Tag this revision with some meaningful string. Multiple tags 

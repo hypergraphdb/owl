@@ -38,13 +38,20 @@ public interface Versioned
 	 * revision</li>
 	 * <li>all revisions in the argument set R are head revisions, i.e. they are
 	 * "child-less" and no have descendants.</li>
+	 * <li>
+	 * Revision are either pairwise conflict-free or the user is ok with the conflicts
+	 * between automatically resolved as documented by the concrete
+	 * <code>Versioned</code> implementation.
+	 * </li>
 	 * </ul>
 	 * </p>
 	 * 
-	 * @param user
-	 * @param comment
-	 * @param revisions
-	 * @return
+	 * @param user The user performing the merge.
+	 * @param comment A comment associated with the new revision to be created.
+	 * @param revisions The list of revisions to merge. If there are < 2 revisions, 
+	 * nothing is done.
+	 * @return The newly created {@link Revision} as the result of the merge or
+	 * <code>null</code> if there are less than two revision arguments provided. 
 	 */
 	Revision merge(final String user, final String comment, Revision...revisions);
 	

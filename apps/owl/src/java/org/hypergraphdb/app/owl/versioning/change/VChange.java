@@ -40,4 +40,14 @@ public interface VChange<T extends Versioned>
 	 * modify the versioned object and <code>false</code> otherwise.
 	 */
 	boolean isEffective(T versioned);
+	
+	/**
+	 * Return <code>true</code> is this concrete type of change is idempotent 
+	 * and <code>false</code> otherwise. Idempotent changes change be applied
+	 * multiple times to the same effect. That is, applying an idempotent change
+	 * more than once is pointless. The framework will use this attribute of a
+	 * change type to decide whether some changes are superfluous and can be removed
+	 * from a change set.
+	 */
+	boolean isIdempotent();
 }

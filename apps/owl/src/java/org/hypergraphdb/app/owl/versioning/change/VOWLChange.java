@@ -36,6 +36,15 @@ public abstract class VOWLChange implements VChange<VersionedOntology>, HGLink, 
 		return !other.equals(this.inverse());
 	}
 	
+	/**
+	 * All possible changes defined by the OWL API are idempotent.
+	 */
+	@Override
+	public boolean isIdempotent()
+	{
+		return true;
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 

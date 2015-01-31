@@ -3,6 +3,13 @@ package org.hypergraphdb.app.owl.newver;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
 
+/**
+ * A <code>RevisionMark</code> connects the {@link ChangeSet} that 
+ * led to the creation of a given Revision.
+ * 
+ * @author Borislav Iordanov
+ *
+ */
 public class RevisionMark implements HGLink
 {
 	private HGHandle hRevision;

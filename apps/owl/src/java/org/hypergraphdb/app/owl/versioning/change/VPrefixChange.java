@@ -65,4 +65,34 @@ public abstract class VPrefixChange extends VOWLChange
 	{
 		return prefixNameToPrefixPairHandle;
 	}
+
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((prefixNameToPrefixPairHandle == null) ? 0 : prefixNameToPrefixPairHandle.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		VPrefixChange other = (VPrefixChange) obj;
+		if (prefixNameToPrefixPairHandle == null)
+		{
+			if (other.prefixNameToPrefixPairHandle != null)
+				return false;
+		}
+		else if (!prefixNameToPrefixPairHandle.equals(other.prefixNameToPrefixPairHandle))
+			return false;
+		return true;
+	}
+		
 }

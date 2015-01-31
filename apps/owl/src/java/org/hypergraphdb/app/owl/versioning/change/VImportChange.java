@@ -12,7 +12,6 @@ import org.semanticweb.owlapi.model.OWLImportsDeclaration;
  */
 public abstract class VImportChange extends VOWLChange
 {
-
 	private HGHandle importDeclarationHandle;
 
 	public VImportChange(HGHandle... args)
@@ -96,4 +95,32 @@ public abstract class VImportChange extends VOWLChange
 		visitor.visit(this);
 	}
 
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((importDeclarationHandle == null) ? 0 : importDeclarationHandle.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		VImportChange other = (VImportChange) obj;
+		if (importDeclarationHandle == null)
+		{
+			if (other.importDeclarationHandle != null)
+				return false;
+		}
+		else if (!importDeclarationHandle.equals(other.importDeclarationHandle))
+			return false;
+		return true;
+	}
 }
