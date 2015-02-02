@@ -1,15 +1,7 @@
 package org.hypergraphdb.app.owl.test.versioning;
 
-import static org.hypergraphdb.app.owl.test.TU.aInstanceOf;
-import static org.hypergraphdb.app.owl.test.TU.aProp;
-import static org.hypergraphdb.app.owl.test.TU.dprop;
-import static org.hypergraphdb.app.owl.test.TU.individual;
-import static org.hypergraphdb.app.owl.test.TU.literal;
-import static org.hypergraphdb.app.owl.test.TU.oprop;
-import static org.hypergraphdb.app.owl.test.TU.owlClass;
-
+import static org.hypergraphdb.app.owl.test.TU.*;
 import java.io.File;
-
 import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.app.owl.HGDBOntology;
@@ -42,6 +34,22 @@ public class NewVersioningTests
 	
 	TestContext ctx; 
 		
+	public static void main(String []argv)
+	{
+		try
+		{
+			setup();	
+			NewVersioningTests t = new NewVersioningTests();
+			t.beforeTest();
+			t.testSimpleMerge();
+			t.afterTest();
+		}
+		catch (Throwable t)
+		{
+			t.printStackTrace(System.err);
+		}
+	}
+	
 	@BeforeClass public static void setup() throws Exception
 	{
 		HGUtils.dropHyperGraphInstance(dblocation);
@@ -71,7 +79,7 @@ public class NewVersioningTests
 		System.out.println("after test");
 	}
 	
-	//@Test 
+	@Test 
 	public void testNewUnVersioned() throws Exception
 	{
 		OWLOntology newonto = ctx.manager().createOntology(IRI.create("hgdb://newunversioned"));
@@ -80,7 +88,7 @@ public class NewVersioningTests
 		Assert.assertFalse(ctx.vrepo().isVersioned(hOnto));
 	}
 	
-	//@Test 
+	@Test 
 	public void testVersioned() throws Exception
 	{
 		Assert.assertTrue(ctx.vrepo().isVersioned(ctx.vonto().getOntology()));
@@ -88,7 +96,7 @@ public class NewVersioningTests
 		Assert.assertFalse(ctx.vrepo().isVersioned(ctx.graph.getHandle(o2)));
 	}
 	
-	//@Test 
+	@Test 
 	public void testSimpleChanges()
 	{
 		aInstanceOf(owlClass("ClassCommit"), individual("IndividualCommit"));	
@@ -101,13 +109,14 @@ public class NewVersioningTests
 		// no current changes
 		System.out.println(ctx.vonto().changes());
 		Assert.assertEquals(0, ctx.vonto().changes().size());		
-		Revision lastCommitted = ctx.vonto().revision().parents().iterator().next();
-		Assert.assertEquals(revisionBefore, lastCommitted);
+		HGHandle lastCommitted = ctx.vonto().revision().parents().iterator().next();
+		Assert.assertEquals(revisionBefore.getAtomHandle(), lastCommitted);
 		ChangeSet<?> fromLastCommitted = ctx.vonto().changes(ctx.vonto().revision()).get(0);
 		Assert.assertEquals(changeSet, fromLastCommitted);		
 	}
 	
-	@Test public void testManyRevisions()
+	@Test 
+	public void testManyRevisions()
 	{
 		aInstanceOf(owlClass("ClassCommit"), individual("IndividualCommit"));
 		aProp(dprop("myLabel"), individual("IndividualCommit"), literal("Something"));
@@ -121,6 +130,96 @@ public class NewVersioningTests
 		set = ctx.graph.get(mark.changeset());
 		Assert.assertEquals(0, set.size());
 		ctx.vonto().commit("test", "second changes");
-		Assert.assertEquals(2, ctx.vonto().changes(ctx.vonto().revision()).size());
+		Assert.assertEquals(3, ctx.vonto().changes(ctx.vonto().revision()).size());
+	}
+	
+	@Test
+	public void testTags()
+	{
+		declare(owlClass("ClassCommit"));
+		declare(owlClass("ClassChangePush"));
+		aSubclassOf(owlClass("ClassCommit"), owlClass("ClassChangePush"));
+		Revision firstRevision = ctx.vonto().revision();				
+		ctx.vonto().revision().tag("initial");				
+		ctx.vonto().commit("test", "first changes");
+		Revision secondRevision = ctx.vonto().revision();		
+		secondRevision.tag("basic classes");
+		declare(owlClass("User"));
+		declare(oprop("hasAuthor"));
+		aInstanceOf(owlClass("User"), individual("Veve"));
+		ctx.vonto().flushChanges();
+		aProp(oprop("hasAuthor"), individual("GrandRelease"), individual("Veve"));
+		ctx.vonto().commit("test2", "second changes");
+		Revision thirdRevision = ctx.vonto().revision();
+		Revision found = ctx.vrepo().revisionWithTag("initial");
+		Assert.assertEquals(firstRevision, found);
+		found.tag("initial2");
+		found = ctx.vrepo().revisionWithTag("basic classes");
+		Assert.assertEquals(secondRevision, found);
+		found = ctx.vrepo().revisionWithTag("initial2");
+		Assert.assertEquals(firstRevision, found);
+		Assert.assertTrue(thirdRevision.tags().isEmpty());
+		try
+		{
+			thirdRevision.tag("initial2");
+		}
+		catch (IllegalArgumentException ex)
+		{
+			Assert.assertTrue(ex.getMessage().contains("already used"));
+		}
+		Assert.assertEquals(HGUtils.set("initial", "initial2"), firstRevision.tags());
+		secondRevision.untag("basic classes");
+		Assert.assertTrue(secondRevision.tags().isEmpty());
+	}
+	
+	@Test
+	public void testLabels()
+	{
+		declare(owlClass("ClassCommit"));
+		declare(owlClass("ClassChangePush"));
+		aSubclassOf(owlClass("ClassCommit"), owlClass("ClassChangePush"));
+		Revision firstRevision = ctx.vonto().revision();				
+		ctx.vonto().revision().label("initial");				
+		ctx.vonto().commit("test", "first changes");
+		Revision secondRevision = ctx.vonto().revision();		
+		declare(owlClass("User"));
+		declare(oprop("hasAuthor"));
+		aInstanceOf(owlClass("User"), individual("Veve"));
+		ctx.vonto().flushChanges();
+		secondRevision.label("basic classes"); // still labeling revision not change mark		
+		aProp(oprop("hasAuthor"), individual("GrandRelease"), individual("Veve"));
+		ctx.vonto().commit("test2", "second changes");
+		firstRevision.label("initial2");
+		Revision thirdRevision = ctx.vonto().revision();
+		Assert.assertEquals(HGUtils.set(firstRevision), 
+							ctx.vrepo().revisionsWithLabel("initial"));
+		Assert.assertEquals(HGUtils.set(secondRevision),
+							ctx.vrepo().revisionsWithLabel("basic classes"));		
+		thirdRevision.label("initial2");		
+		Assert.assertEquals(HGUtils.set(firstRevision, thirdRevision),
+				ctx.vrepo().revisionsWithLabel("initial2"));			
+		thirdRevision.unlabel("initial2");
+		Assert.assertTrue(thirdRevision.labels().isEmpty());
+		Assert.assertEquals(HGUtils.set("initial", "initial2"), firstRevision.labels());
+	}	
+	
+	@Test
+	public void testSimpleMerge()
+	{
+		// we create base revision and two conflicting child revisions
+		// which we then merge
+		declare(owlClass("ClassCommit"));
+		declare(owlClass("ClassChangePush"));
+		aSubclassOf(owlClass("ClassCommit"), owlClass("ClassChangePush"));
+		ctx.vonto().commit("test", "first changes");
+		Revision baseRevision = ctx.vonto().revision();				
+		declare(owlClass("User"));
+		declare(oprop("hasAuthor"));
+		aInstanceOf(owlClass("User"), individual("Veve"));
+		ctx.vonto().commit("test", "branch 1");				
+		// go back to first revision
+		ctx.vonto().goTo(baseRevision);
+		// branch with something else...
+		
 	}
 }

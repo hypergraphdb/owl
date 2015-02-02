@@ -24,6 +24,7 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 	public Revision(HGHandle...targets)
 	{
 		assert targets.length == 1;
+		versioned = targets[0];
 	}
 	
 	public HGHandle getTargetAt(int i)
@@ -31,6 +32,7 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 		assert i == 0;
 		return versioned;
 	}
+	
 	public int getArity()
 	{
 		return 1;

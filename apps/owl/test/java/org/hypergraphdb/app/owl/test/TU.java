@@ -2,11 +2,15 @@ package org.hypergraphdb.app.owl.test;
 
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLDataPropertyExpression;
+import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 
 /**
@@ -26,7 +30,7 @@ public class TU
 		return IRI.create(name);
 	}
 	
-	public static OWLClassExpression owlClass(String name)
+	public static OWLClass owlClass(String name)
 	{
 		return ctx.df().getOWLClass(iri(name));
 	}
@@ -40,6 +44,11 @@ public class TU
 	{
 		ctx.manager().addAxiom(ctx.ontology(), ax);
 		return ax;
+	}
+	
+	public static OWLAxiom declare(OWLEntity e)
+	{
+		return ctx.df().getOWLDeclarationAxiom(e);
 	}
 	
 	public static OWLAxiom aInstanceOf(OWLClassExpression cl, OWLIndividual ind)
@@ -70,12 +79,12 @@ public class TU
 		return ax;
 	}
 
-	public static OWLDataPropertyExpression dprop(String name)
+	public static OWLDataProperty dprop(String name)
 	{
 		return ctx.df().getOWLDataProperty(iri(name));
 	}
 
-	public static OWLObjectPropertyExpression oprop(String name)
+	public static OWLObjectProperty oprop(String name)
 	{
 		return ctx.df().getOWLObjectProperty(iri(name));
 	}

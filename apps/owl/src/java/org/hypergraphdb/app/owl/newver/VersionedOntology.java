@@ -118,8 +118,8 @@ public class VersionedOntology implements Versioned, HGGraphHolder, HGHandleHold
 	{
 		Map<HGHandle, HGHandle> predecessorMatrix = new HashMap<HGHandle, HGHandle>();		
 		if (GraphClassics.dijkstra(
-			   to, 
 			   from, 
+			   to, 
 			   new DefaultALGenerator(graph, 
 						  hg.type(MarkParent.class),
 						  hg.type(Revision.class)),
@@ -133,7 +133,7 @@ public class VersionedOntology implements Versioned, HGGraphHolder, HGHandleHold
 			   },
 		       null,
 		       predecessorMatrix) == null)
-			new IllegalArgumentException("Revisions " + from + " and " + to + 
+			throw new IllegalArgumentException("Revisions " + from + " and " + to + 
 					" are not connected - are they part of the same version history?");
 		ArrayList<VChange<VersionedOntology>> result = new ArrayList<VChange<VersionedOntology>>();
 		HGHandle hCurrent = to;
@@ -177,14 +177,15 @@ public class VersionedOntology implements Versioned, HGGraphHolder, HGHandleHold
 	 */
 	private List<VChange<VersionedOntology>> collectChangesAdjacent(HGHandle start, HGHandle end)
 	{
-		ChangeSet<VersionedOntology> cs = new ChangeSet<VersionedOntology>();
+		List<VChange<VersionedOntology>> changes = new ArrayList<VChange<VersionedOntology>>();
 		for (HGHandle h : marksBetweenAdjacent(start, end))
 		{
-			ChangeSet<VersionedOntology> current = graph.get(h);			
+			ChangeMark mark = graph.get(h);
+			ChangeSet<VersionedOntology> current = graph.get(mark.changeset()); 			
 			for (VChange<VersionedOntology> change : current.changes())
-				cs.add(change);
+				changes.add(change);
 		}
-		return cs.packed(this);
+		return ChangeSet.normalize(this, changes);
 	}
 	
 	public VersionedOntology()
@@ -230,13 +231,41 @@ public class VersionedOntology implements Versioned, HGGraphHolder, HGHandleHold
 			graph.add(new RevisionMark(revisionHandle, graph.getHandle(mark)));
 			graph.add(new MarkParent(revisionHandle, currentRevision));
 			workingChanges = graph.add(new ChangeSet<VersionedOntology>());
-			graph.add(new MarkParent(workingChanges, graph.getHandle(mark)));
 			return currentRevision = revisionHandle;
 		}
 		});
 		return revision();
 	}
 
+	private Revision createMergedRevision(String user,
+										  String comment,
+										  HGHandle commonAncestor, 
+										  List<VChange<VersionedOntology>> mergeChangeList,
+										  Revision...revisions)
+	{
+		HGHandle [] mergeChanges = new HGHandle[mergeChangeList.size()];
+		int i = 0;
+		for (VChange<VersionedOntology> c : mergeChangeList)
+			mergeChanges[i++] = hg.assertAtom(graph, c);
+		ChangeSet<VersionedOntology> changeSet = new ChangeSet<VersionedOntology>(mergeChanges);
+		HGHandle hChangeSet = graph.add(changeSet);
+		Revision revision = new Revision(thisHandle);
+		revision.setUser(user);
+		revision.setComment(comment);
+		revision.setTimestamp(System.currentTimeMillis());
+		HGHandle revisionHandle = graph.add(revision);		
+		goTo((Revision)graph.get(commonAncestor));
+		changeSet.apply(this);
+		HGHandle mark = graph.add(new ChangeMark(ontology, hChangeSet));
+		graph.add(new MarkParent(mark, this.getMarkForRevision(commonAncestor)));
+		graph.add(new RevisionMark(revisionHandle, mark));
+		for (Revision rev : revisions)
+			graph.add(new MarkParent(revisionHandle, graph.getHandle(rev)));
+		workingChanges = graph.add(new ChangeSet<VersionedOntology>());
+		graph.add(new MarkParent(workingChanges, graph.getHandle(mark)));
+		currentRevision = revisionHandle;
+		return revision();
+	}
 	
 	@Override
 	public Revision merge(String user, String comment, Revision... revisions)
@@ -249,19 +278,29 @@ public class VersionedOntology implements Versioned, HGGraphHolder, HGHandleHold
 		// in a set and iteratively replacing them with their immediate parents
 		// until there is only one element in the set: the common ancestor. This
 		// is guaranteed to terminate because the revision graph is a DAG.
-		
+		//
+		// In addition, we want to construct a list of changes that, when applied to
+		// that common ancestor will result in the desired state D of merged revisions.
+		// 
 		// The above mentioned set is actually a map. The keys are revisions
 		// iteratively replaced with their parents and the values are change lists.
-		// A change list associated with a revision at a given stage contains all
-		// the changes that need to be applied starting from that revision to reach
+		// A change list associated with revision R, at any given stage, contains all
+		// the changes that need to be applied starting from R to reach
 		// the state of the revisions we are merging and whose common ancestor
-		// that revision is. That is, we are merging change sets at each iteration.
+		// is R. That is, we are merging change sets at each iteration and at the end 
+		// we have the list of changes to complete the merge already built.
 		//
-		// Suppose at a given stage, M[r] = L, that is revision r in M is associated
-		// with a list of changes L...
+		// What happens at each iteration is the following: we collect parents of
+		// of current set of revisions. And for each parent we want to construct
+		// the full change list to reach the desired state D. We do this by merging
+		// the changes from a parent to all revisions in the current set and also
+		// by merging the changes from multiple parents of a single revision.
 		//
-		// When a revision has multiple parents, say p1->r and p2->, both p1 and p2
-		// inserted into M as a replacement for r, where the change set p1->r is merged
+		// Suppose at a given stage, M[R] = L, that is revision R in M is associated
+		// with a list of changes L. If R has multiple parents, say P1 and P2, we accumulate
+		// both the changes from P1 to R and from P2 to R
+		//
+		// are inserted into M as a replacement for r, where the change set p1->r is merged
 		HashMap<HGHandle, List<VChange<VersionedOntology>>> M = 
 				new HashMap<HGHandle, List<VChange<VersionedOntology>>>();
 		for (Revision r : revisions)
@@ -319,7 +358,14 @@ public class VersionedOntology implements Versioned, HGGraphHolder, HGHandleHold
 			}			
 			M = newM;
 		}
-		return null;
+		
+		// Here M contains 1 element, which is the common ancestor of all revisions.
+		HGHandle commonAncestor = M.keySet().iterator().next();
+		return createMergedRevision(user, 
+									comment, 
+									commonAncestor, 
+									M.get(commonAncestor), 
+									revisions);
 	}
 
 	/**
