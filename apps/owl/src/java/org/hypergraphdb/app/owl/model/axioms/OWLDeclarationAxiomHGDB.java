@@ -7,7 +7,9 @@ import java.util.Set;
 import org.hypergraphdb.HGException;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
+import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
+import org.hypergraphdb.atom.HGSubsumes;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -27,9 +29,10 @@ import org.semanticweb.owlapi.model.OWLOntology;
  */
 public class OWLDeclarationAxiomHGDB extends OWLAxiomHGDB implements OWLDeclarationAxiom, HGLink {
 
-    private HGHandle owlEntityHandle;
-
-
+	private static final long serialVersionUID = 1L;
+	
+	private HGHandle owlEntityHandle;
+	
     public OWLDeclarationAxiomHGDB(HGHandle...args)
     {
     	this(args[0], Collections.<OWLAnnotation>emptySet());
