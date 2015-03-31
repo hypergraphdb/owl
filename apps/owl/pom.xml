@@ -17,7 +17,7 @@
   <artifactId>hgdbowl</artifactId>
   <name>HyperGraphDB OWL</name>
   <description>An implementation of the OWLAPI backed by HyperGraphDB for transparent and automatic persistence of OWL ontologies. Each ontology is a subgraph in the graph database.</description>
- <!-- 
+
     <repositories>                                                                                                                                                                                                                             
     <repository>                                                                                                                                                                                                                              
       <id>hypergraphdb</id>                                                                                                                                                                                                                   
@@ -28,7 +28,7 @@
       <url>https://oss.sonatype.org/content/repositories/snapshots/</url>                                                                                                                                                                     
     </repository>                                                                                                                                                                                                                             
   </repositories>                                                                                                                                                                                                                             
- -->
+
   <dependencies>
 	<dependency>
 	  <groupId>org.hypergraphdb</groupId>
