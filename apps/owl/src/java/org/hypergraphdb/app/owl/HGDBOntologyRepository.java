@@ -35,6 +35,8 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
 /**
  * HGDBOntologyRepository, the repository for database backed OWL ontologies.
  * 
+ * This is a lightweight object, tied to the underlying graph database. 
+ * 
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  */
 public class HGDBOntologyRepository
@@ -49,11 +51,6 @@ public class HGDBOntologyRepository
 	public HGDBOntologyRepository(String hypergraphDBLocation)
 	{
 		this.graph = ImplUtils.owldb(hypergraphDBLocation);
-	}
-
-	public HGDBOntologyRepository(HyperGraph graph)
-	{
-		this.graph = graph;
 	}
 
 	/**

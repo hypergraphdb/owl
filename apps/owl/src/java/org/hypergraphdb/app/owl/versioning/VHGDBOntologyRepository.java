@@ -19,9 +19,11 @@ import org.semanticweb.owlapi.model.OWLOntologyChangeListener;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
 /**
- * VHGDBOntologyRepository.
+ * This is a lightweight object tied to the underlying database. You can create
+ * multiple instances of this objects working on the backing database
+ * in simultaneously. 
  * 
- * @author Thomas Hilpold (CIAO/Miami-Dade County)
+ * @author Thomas Hilpold (CIAO/Miami-Dade County), Borislav Iordanov
  * @created Jan 18, 2012
  */
 public class VHGDBOntologyRepository extends HGDBOntologyRepository implements OWLOntologyChangeListener
@@ -127,34 +129,6 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 	{
 		// TODO optimize this
 		return getVersionControlledOntology(o) != null;
-	}
-
-	/**
-	 * For each ontology, check if version controlled and commit. If the head
-	 * changeset is not empty, a new revision will be created.
-	 * 
-	 * 
-	 * @param ontologies
-	 *            a list of ontologies, non version controlled will be ignored
-	 * @param user
-	 */
-	public void commitAllVersioned(final List<OWLOntology> ontologies, final String user, final String commentForAll)
-	{
-		getHyperGraph().getTransactionManager().ensureTransaction(new Callable<Object>()
-		{
-			public Object call()
-			{
-				for (OWLOntology o : ontologies)
-				{
-					VersionedOntology vo = getVersionControlledOntology(o);
-					if (vo != null)
-					{
-						vo.commit(user, commentForAll);
-					}
-				}
-				return null;
-			}
-		});
 	}
 
 	//

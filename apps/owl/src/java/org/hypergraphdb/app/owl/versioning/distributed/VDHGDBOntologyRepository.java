@@ -20,6 +20,8 @@ import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
+import org.hypergraphdb.app.owl.util.Context;
+import org.hypergraphdb.app.owl.util.ImplUtils;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.RevisionID;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
@@ -34,6 +36,7 @@ import org.hypergraphdb.app.owl.versioning.distributed.activity.PullActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.PushActivity;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
+import org.hypergraphdb.peer.PeerConfig;
 import org.hypergraphdb.peer.PeerInterface;
 import org.hypergraphdb.peer.PeerPresenceListener;
 import org.hypergraphdb.peer.workflow.Activity;
@@ -67,9 +70,11 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository
 
 	HyperGraphPeer peer;
 
-	public VDHGDBOntologyRepository(String location)
+	public VDHGDBOntologyRepository(String location, String peerConnectionString)
 	{
 		super(location);
+		peer = ImplUtils.peer(peerConnectionString);
+		configurePeer();
 	}
 
 	public HGDBOntologyManager getOntologyManager()
@@ -144,12 +149,11 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository
 		}, HGTransactionConfig.READONLY);
 	}
 
-	private void createAndConfigurePeer(Json peerConfig)
+	private HyperGraphPeer configurePeer()
 	{
-		peer = new HyperGraphPeer(peerConfig, getHyperGraph());
+		peer.getConfiguration().set(PeerConfig.LOCAL_DB, this.getHyperGraph().getLocation());
 		peer.getActivityManager();
 		peer.getObjectContext().put(OBJECTCONTEXT_REPOSITORY, this);
-		setOntologyServer(Boolean.parseBoolean((String) peerConfig.at(CONFIG_KEY_SERVER, "false").asString()));
 
 		if (DBG)
 		{
@@ -169,6 +173,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository
 				}
 			});
 		}
+		return peer;
 	}
 
 	/**
@@ -219,36 +224,32 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository
 		return peerConfig;
 	}
 
-	public boolean startNetworking(Json configuration)
-	{
-		if (peer != null && peer.getPeerInterface().isConnected())
-		{
-			throw new IllegalStateException("Peer is currently connected. Disconnect first.");
-		}
-		createAndConfigurePeer(configuration);
-		return startNetworkingInternal();
-	}
-
-	public boolean startNetworking(String userName, String password, String serverUrl, String room)
-	{
-		if (peer != null && peer.getPeerInterface().isConnected())
-		{
-			throw new IllegalStateException("Peer is currently connected. Disconnect first.");
-		}
-		Json config = loadPeerConfig();
-		Json interFaceConfig = config.at("interfaceConfig");
-		interFaceConfig.set("user", userName);
-		interFaceConfig.set("password", password);
-		interFaceConfig.set("serverUrl", serverUrl);
-		if (!HGUtils.isEmpty(room))
-		{
-			interFaceConfig.set("room", room);
-			interFaceConfig.set("ignoreRoster", true);
-		}
-		createAndConfigurePeer(Json.make(config));
-		return startNetworkingInternal();
-	}
-
+//	public boolean startNetworking(Json configuration)
+//	{
+//		final Json config = configuration.dup();
+//		if (peer != null && peer.getPeerInterface().isConnected())
+//		{
+//			throw new IllegalStateException("Peer is currently connected. Disconnect first.");
+//		}			
+//		else
+//		{
+//			Callable<HyperGraphPeer> peerStarter = new Callable<HyperGraphPeer>() {
+//				public HyperGraphPeer call()
+//				{
+//					peer = createAndConfigurePeer(config);
+//					return startNetworkingInternal() ? peer : null;
+//				}
+//			};
+//			// We allow multiple instances of this class to coexist and make use of the
+//			// same DB and P2P identity.
+//			peer = Context.of(config.at("interfaceConfig").at("user").asString() + "@" + 
+//							   config.at("interfaceConfig").at("serverUrl").asString() + ":" + 
+//							   config.at("interfaceConfig").at("room").asString())
+//				      .singleton(HyperGraphPeer.class, peerStarter);
+//		}
+//		return peer != null && peer.getPeerInterface().isConnected();
+//	}
+	
 	/**
 	 * Starts networking using the configured userName and password.
 	 * 
@@ -256,13 +257,10 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository
 	 */
 	public boolean startNetworking()
 	{
-		if (peer != null && peer.getPeerInterface().isConnected())
-		{
-			throw new IllegalStateException("Peer is currently connected. Disconnect first.");
-		}
-		// DBG_ClearDates();
-		createAndConfigurePeer(Json.make(loadPeerConfig()));
-		return startNetworkingInternal();
+		if (peer.getPeerInterface() != null && peer.getPeerInterface().isConnected())
+			throw new IllegalStateException("Peer already connected.");
+		startNetworkingInternal();
+		return peer.getPeerInterface().isConnected();
 	}
 
 	private boolean startNetworkingInternal()

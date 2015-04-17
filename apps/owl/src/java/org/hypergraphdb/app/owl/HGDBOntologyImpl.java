@@ -163,10 +163,8 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 
 	public void ensureInternals()
 	{
-		if (graph == null || thisHandle == null)
-			throw new IllegalStateException("Must have graph and handle");
 		internals = new HGDBOntologyInternalsImpl();
-		((HGGraphHolder) internals).setHyperGraph(graph);
+		((HGGraphHolder) internals).setHyperGraph(getHyperGraph());
 		internals.setOntologyHyperNode(this);
 	}
 
@@ -2297,7 +2295,6 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 		// old from Boris manager = hg.getOne(graph,
 		// hg.type(PHGDBOntologyManagerImpl.class));
 		super.setHyperGraph(graph);
-		this.graph = graph;
 		if (graph != null)
 		{
 			setAtomHandle(graph.getHandle(this));
@@ -2325,7 +2322,6 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 	public void setAtomHandle(HGHandle handle)
 	{
 		super.setAtomHandle(handle);
-		this.thisHandle = handle;
 		if (handle != null)
 		{
 			ensureInternals();

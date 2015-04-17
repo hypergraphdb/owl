@@ -6,6 +6,7 @@ import mjson.Json;
 
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
+import org.hypergraphdb.app.owl.util.ImplUtils;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.PeerConfig;
@@ -57,16 +58,17 @@ public class VDHGDBOntologyServer
 				else
 					die("Invalid parameter name " + A[0]);
 			}
+			String databaseLocation = config.at(PeerConfig.LOCAL_DB).asString();
+			System.out.println("Starting ontology server peer at " + 
+							config.at(PeerConfig.LOCAL_DB) + " with peer name "
+							+ config.at(PeerConfig.PEER_NAME));
 
-			System.out.println("Starting ontology server peer at " + config.at(PeerConfig.LOCAL_DB) + " with peer name "
-					+ config.at(PeerConfig.PEER_NAME));
-
-			HGDBOntologyManager manager = new HGOntologyManagerFactory()
-				.getOntologyManager(config.at(PeerConfig.LOCAL_DB).asString());
-			dr = (VDHGDBOntologyRepository) manager.getOntologyRepository();
-			// dr.printAllOntologies();
+			dr = new VDHGDBOntologyRepository(databaseLocation, 
+											  ImplUtils.connectionStringFromConfiguration(config));
+			dr.setOntologyServer(true);
+			dr.printAllOntologies();
 			dr.printStatistics();
-			boolean success = dr.startNetworking(config);
+			boolean success = dr.startNetworking();
 			if (success)
 			{
 				System.out.println("Networking started as: ");

@@ -29,7 +29,7 @@ import org.hypergraphdb.util.Mapping;
  * @author Borislav Iordanov
  *
  */
-public class VersionedOntology implements Versioned, HGGraphHolder, HGHandleHolder
+public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphHolder, HGHandleHolder
 {
 	private HyperGraph graph;
 	private HGHandle thisHandle;
@@ -185,7 +185,7 @@ public class VersionedOntology implements Versioned, HGGraphHolder, HGHandleHold
 			for (VChange<VersionedOntology> change : current.changes())
 				changes.add(change);
 		}
-		return ChangeSet.normalize(this, changes);
+		return changes; // ChangeSet.normalize(this, changes);
 	}
 	
 	public VersionedOntology()
@@ -243,6 +243,13 @@ public class VersionedOntology implements Versioned, HGGraphHolder, HGHandleHold
 										  List<VChange<VersionedOntology>> mergeChangeList,
 										  Revision...revisions)
 	{
+		System.out.println("CA:" + commonAncestor);
+		for (Revision r: revisions)
+			System.out.println("M - " + graph.getHandle(r));
+		goTo((Revision)graph.get(commonAncestor));
+		// now we can normalize so only changes effective from the common
+		// merge ancestor will be recorded
+		mergeChangeList = ChangeSet.normalize(this, mergeChangeList);
 		HGHandle [] mergeChanges = new HGHandle[mergeChangeList.size()];
 		int i = 0;
 		for (VChange<VersionedOntology> c : mergeChangeList)
@@ -254,7 +261,6 @@ public class VersionedOntology implements Versioned, HGGraphHolder, HGHandleHold
 		revision.setComment(comment);
 		revision.setTimestamp(System.currentTimeMillis());
 		HGHandle revisionHandle = graph.add(revision);		
-		goTo((Revision)graph.get(commonAncestor));
 		changeSet.apply(this);
 		HGHandle mark = graph.add(new ChangeMark(ontology, hChangeSet));
 		graph.add(new MarkParent(mark, this.getMarkForRevision(commonAncestor)));
@@ -262,7 +268,6 @@ public class VersionedOntology implements Versioned, HGGraphHolder, HGHandleHold
 		for (Revision rev : revisions)
 			graph.add(new MarkParent(revisionHandle, graph.getHandle(rev)));
 		workingChanges = graph.add(new ChangeSet<VersionedOntology>());
-		graph.add(new MarkParent(workingChanges, graph.getHandle(mark)));
 		currentRevision = revisionHandle;
 		return revision();
 	}
@@ -451,7 +456,7 @@ public class VersionedOntology implements Versioned, HGGraphHolder, HGHandleHold
 				}
 				
 				for (VChange<VersionedOntology> c : changes)
-					c.apply(VersionedOntology.this);
+					c.inverse().apply(VersionedOntology.this);
 				currentRevision = revision.getAtomHandle();
 				// reset working set, or restore working set at that
 				// revision
@@ -505,5 +510,17 @@ public class VersionedOntology implements Versioned, HGGraphHolder, HGHandleHold
 	public HGHandle getAtomHandle()
 	{
 		return thisHandle;
+	}
+	
+	public String toString()
+	{
+		String s = "";
+		if (graph != null)
+		{
+			HGDBOntology O = graph.get(ontology);
+			s += O.getOntologyID().getOntologyIRI().getFragment() + 
+					" (" + O.getOntologyID().getOntologyIRI() + ")";
+		}
+		return s + " At " + revision() + ", with " + changes().size() + " working changes.";		
 	}
 }

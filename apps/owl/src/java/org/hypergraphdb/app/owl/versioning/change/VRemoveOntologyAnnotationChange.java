@@ -22,7 +22,9 @@ public class VRemoveOntologyAnnotationChange extends VOntologyAnnotationChange
 	@Override
 	public VChange<VersionedOntology> inverse()
 	{
-		return new VAddOntologyAnnotationChange(getOntologyAnnotationHandle());
+		VOWLChange ic = new VAddOntologyAnnotationChange(getOntologyAnnotationHandle());
+		ic.setHyperGraph(graph);
+		return ic;						
 	}
 
 	@Override

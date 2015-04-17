@@ -16,7 +16,7 @@ public class Context
 {
 	static Map<Object, Context> contexts = new IdentityHashMap<Object, Context>();
 	
-	public static Context get(Object ref)
+	public static Context of(Object ref)
 	{
 		synchronized (contexts)
 		{

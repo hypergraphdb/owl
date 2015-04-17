@@ -27,7 +27,7 @@ import org.hypergraphdb.transaction.HGTransactionConfig;
  * 
  * @created Jan 13, 2015
  */
-public class ChangeSet<V extends Versioned> implements HGLink, HGGraphHolder
+public class ChangeSet<V extends Versioned<?>> implements HGLink, HGGraphHolder
 {
 	private Date createdDate;
 	private List<HGHandle> changes;
@@ -221,7 +221,7 @@ public class ChangeSet<V extends Versioned> implements HGLink, HGGraphHolder
 		return changes;
 	}
 
-	static <V extends Versioned> 
+	static <V extends Versioned<?>> 
 	List<VChange<V>> normalize(V versioned, List<VChange<V>> L)
 	{
 		Set<Integer> toremove = new HashSet<Integer>();		
@@ -296,13 +296,13 @@ public class ChangeSet<V extends Versioned> implements HGLink, HGGraphHolder
 		return normal;
 	}
 	
-	static <V extends Versioned> 
+	static <V extends Versioned<?>> 
 	List<VChange<V>> merge(V versioned, List<VChange<V>> one, List<VChange<V>> two)
 	{
 		ArrayList<VChange<V>> result = new ArrayList<VChange<V>>();
 		result.addAll(one);
 		result.addAll(two);
-		return normalize(versioned, result);
+		return result;
 	}
 	
 	/**

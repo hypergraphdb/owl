@@ -5,6 +5,7 @@
                 {"class" : "org.hypergraphdb.peer.bootstrap.CACTBootstrap", "config" : {}}
               ],
 "interfaceConfig" : {
-    "autoRegister" : true
+    "autoRegister" : true,
+    "ignoreRoster" : true
   }
 }

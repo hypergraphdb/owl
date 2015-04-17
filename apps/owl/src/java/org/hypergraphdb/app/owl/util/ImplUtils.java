@@ -1,5 +1,7 @@
 package org.hypergraphdb.app.owl.util;
 
+import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -8,6 +10,8 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
+import mjson.Json;
 
 import org.hypergraphdb.HGConfiguration;
 import org.hypergraphdb.HGEnvironment;
@@ -26,6 +30,7 @@ import org.hypergraphdb.app.owl.model.OWLObjectPropertyHGDB;
 import org.hypergraphdb.handle.SequentialUUIDHandleFactory;
 import org.hypergraphdb.indexing.ByPartIndexer;
 import org.hypergraphdb.indexing.HGIndexer;
+import org.hypergraphdb.peer.HyperGraphPeer;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
@@ -53,7 +58,7 @@ public class ImplUtils
 		config.setHandleFactory(handleFactory);
 		return HGEnvironment.get(location, config);
 	}
-
+	
 	/**
 	 * Same role as {@link HGEnvironment.get}, except it also ensure the graph
 	 * is properly initialized with OWL model. This extra step is costly and
@@ -81,7 +86,73 @@ public class ImplUtils
 			return graph;
 		}
 	}
-
+ 
+	static HashMap<String, HyperGraphPeer> graphPeers = new HashMap<String, HyperGraphPeer>();
+	
+	private static Json connectionStringToConfiguration(String connectionString)
+	{
+		try
+		{
+			URL configTemplate = ImplUtils.class.getResource("/org/hypergraphdb/app/owl/versioning/distributed/VDHGDBConfig.p2p");
+			Json config = Json.read(configTemplate);			
+			URI uri = new URI(connectionString);
+			if (!uri.getScheme().equals("hgpeer"))
+				throw new IllegalArgumentException("Invalid connection string " + connectionString);
+			if (uri.getUserInfo() == null)
+				throw new IllegalArgumentException("Invalid connection string, missing user info " + connectionString);
+			String [] userinfo = uri.getUserInfo().split(":");
+			config.at("interfaceConfig").set("user", 
+											 userinfo[0]);
+			config.at("interfaceConfig").set("password", 
+											 userinfo.length > 1 ? userinfo[1] : "");
+			config.at("interfaceConfig").set("serverUrl", uri.getHost());
+			config.at("interfaceConfig").set("port", uri.getPort() == -1 ? 5222 : uri.getPort());
+			if (uri.getFragment() != null)
+				config.at("interfaceConfig").set("room", uri.getFragment());
+			return config;
+		}
+		catch (Exception ex)
+		{
+			throw new RuntimeException(ex);
+		}
+	}
+	
+	public static String connectionStringFromConfiguration(Json peerConfig)
+	{
+		if (peerConfig.has("interfaceConfig"))
+			peerConfig = peerConfig.at("interfaceConfig");
+		StringBuilder url = new StringBuilder("hgpeer://");
+		if (peerConfig.has("user"))
+		{
+			url.append(peerConfig.at("user").asString());
+			if (peerConfig.has("password"))
+				url.append(":" + peerConfig.at("password").asString());
+			url.append("@");
+		}
+		if (peerConfig.has("serverUrl"))
+			url.append(peerConfig.at("serverUrl").asString());
+		if (peerConfig.has("port"))
+			url.append(":" + peerConfig.at("port").toString());
+		if (peerConfig.has("room"))
+			url.append("#" + peerConfig.at("room").asString());
+		return url.toString();
+	}
+	
+	public static HyperGraphPeer peer(String connectionString)
+	{
+		synchronized (graphPeers)
+		{
+			HyperGraphPeer peer = graphPeers.get(connectionString);
+			if (peer == null)
+			{
+				Json configuration = connectionStringToConfiguration(connectionString);
+				peer = new HyperGraphPeer(configuration);
+				graphPeers.put(connectionString, peer);
+			}
+			return peer;
+		}
+	}
+	
 	@SuppressWarnings("rawtypes")
 	public static Collection<HGIndexer> getIRIIndexers(HyperGraph graph)
 	{

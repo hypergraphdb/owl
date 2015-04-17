@@ -9,9 +9,9 @@ import java.util.List;
  * </p>
  * 
  * @author Borislav Iordanov
- *
+ * @param T concrete type
  */
-public interface Versioned
+public interface Versioned<T>
 {
 	/**
 	 * Return the currently active revision.
@@ -28,6 +28,11 @@ public interface Versioned
 	 * @return The newly created revision.
 	 */
 	Revision commit(final String user, final String comment);
+	
+	/**
+	 * Drop any un-flushed working set changes and return <code>this</code>.
+	 */
+	T undo();
 	
 	/**
 	 * <p>

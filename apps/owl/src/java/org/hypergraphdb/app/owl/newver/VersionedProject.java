@@ -2,7 +2,7 @@ package org.hypergraphdb.app.owl.newver;
 
 import java.util.List;
 
-public class VersionedProject implements Versioned
+public class VersionedProject implements Versioned<VersionedProject>
 {
 	Revision currentRevision;
 	
@@ -42,5 +42,11 @@ public class VersionedProject implements Versioned
 	{
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public VersionedProject undo()
+	{
+		return this;
 	}
 }

@@ -43,7 +43,7 @@ import de.uulm.ecs.ai.owlapi.krssrenderer.KRSS2OWLSyntaxOntologyStorer;
  * There is one and only one <code>HGDBOWLOntologyManager</code> per open
  * database. Because the OWLAPI interface does not offer any configuration
  * parameters for the construction of a new OWL manager (besides the OWLDataFactory), 
- * by default this factory connect to the database located at 
+ * by default this factory connects to the database located at 
  * <code>System.getProperty("hgdbowl.defaultdb")</code>. If that system property is
  * not set, then it will open a HGDB instance at <code>TMP_DIR/hgdbowl.defaultdb</code>
  * where TMP_DIR is the current OS provided temp directory.   
@@ -112,10 +112,14 @@ public class HGOntologyManagerFactory implements OWLOntologyManagerFactory
 		return ontologyManager;
 	}
 	
+	/**
+	 * Get the {@link HGDBOntologyManager} for this graph database location.
+	 * There is a single HGDB ontology manager per open database.
+	 */
 	public HGDBOntologyManager getOntologyManager(final String graphLocation)
 	{
 		final HyperGraph graph = ImplUtils.owldb(graphLocation);
-		return Context.get(graph).singleton(HGDBOntologyManager.class, new Callable<HGDBOntologyManager>() {
+		return Context.of(graph).singleton(HGDBOntologyManager.class, new Callable<HGDBOntologyManager>() {
 			public HGDBOntologyManager call()
 			{
 				return createOWLOntologyManager(OWLDataFactoryHGDB.get(graph), 

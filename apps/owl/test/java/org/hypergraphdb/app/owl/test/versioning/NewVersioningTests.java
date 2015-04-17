@@ -216,10 +216,20 @@ public class NewVersioningTests
 		declare(owlClass("User"));
 		declare(oprop("hasAuthor"));
 		aInstanceOf(owlClass("User"), individual("Veve"));
-		ctx.vonto().commit("test", "branch 1");				
+		Revision B1 = ctx.vonto().commit("test", "branch 1");				
 		// go back to first revision
 		ctx.vonto().goTo(baseRevision);
 		// branch with something else...
-		
+		aInstanceOf(owlClass("ClassCommit"), individual("PushBranchOnBaseA"));
+		aInstanceOf(owlClass("ClassCommit"), individual("PushBranchOnBaseB"));
+		declare(dprop("hasTimestamp"));
+		aProp(dprop("hasTimestamp"), 
+			  individual("PushBranchOnBaseA"), 
+			  literal(Long.toString(System.currentTimeMillis())));
+		Revision B2 = ctx.vonto().commit("test", "branch 2");		
+		Revision merged = ctx.vonto().merge("test2", "simple merging", B1, B2);
+		Assert.assertEquals(HGUtils.set(ctx.graph.getHandle(B1), 
+										ctx.graph.getHandle(B2)),
+							merged.parents());
 	}
 }

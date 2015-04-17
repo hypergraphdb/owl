@@ -143,7 +143,7 @@ public class OWLDataFactoryHGDB implements OWLDataFactory
 
 	public static OWLDataFactoryHGDB get(HyperGraph graph)
 	{
-		OWLDataFactoryHGDB f = Context.get(graph).singleton(
+		OWLDataFactoryHGDB f = Context.of(graph).singleton(
 				OWLDataFactoryHGDB.class);
 		if (f.getHyperGraph() == null)
 			f.setHyperGraph(graph);

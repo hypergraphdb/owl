@@ -27,6 +27,11 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 		versioned = targets[0];
 	}
 	
+	public HGHandle versioned()
+	{
+		return versioned;
+	}
+	
 	public HGHandle getTargetAt(int i)
 	{
 		assert i == 0;
@@ -262,6 +267,11 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 		this.graph = graph;
 	}
 
+	public String toString()
+	{
+		return getAtomHandle().getPersistent().toString();
+	}
+	
 	@Override
 	public int hashCode()
 	{
