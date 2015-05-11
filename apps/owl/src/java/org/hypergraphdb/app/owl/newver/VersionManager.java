@@ -44,14 +44,14 @@ public class VersionManager
 	{
 		HGHandle workingChanges = graph.add(new ChangeSet<VersionedOntology>());				
 		VersionedOntology versioned = new VersionedOntology(graph, 
-				  ontology, 
-				  graph.getHandleFactory().nullHandle(), 
-				  workingChanges);
+															ontology, 
+															graph.getHandleFactory().nullHandle(), 
+															workingChanges);
 		graph.add(versioned);		
 		HGHandle initialMark = graph.add(new ChangeMark(ontology, emptyChangeSetHandle()));
 		Revision initialRevision = new Revision(versioned.getAtomHandle());
-		initialRevision.setUser(user);
-		initialRevision.setTimestamp(System.currentTimeMillis());
+		initialRevision.user(user);
+		initialRevision.timestamp(System.currentTimeMillis());
 		HGHandle revisionHandle = graph.add(initialRevision);
 		graph.add(new RevisionMark(revisionHandle, initialMark));
 		versioned.setCurrentRevision(revisionHandle);
@@ -112,7 +112,8 @@ public class VersionManager
 	public VersionedOntology versioned(HGHandle ontology)
 	{
 		VersionedOntology versioned = graph.getOne(
-				hg.and(hg.type(VersionedOntology.class), hg.eq("ontology", ontology)));		
+				hg.and(hg.type(VersionedOntology.class), 
+					   hg.eq("ontology", ontology)));		
 		if (versioned != null)
 			return versioned;
 		else
@@ -139,21 +140,6 @@ public class VersionManager
 		isversionedmap.put(ontology, false);		
 		return this;
 	}
-	
-//	public Revision createRevision(final String comment, final Versioned...versionedObjects)
-//	{
-//		return graph.getTransactionManager().transact(new Callable<Revision>() {
-//		public Revision call()
-//		{
-//			Revision rev = new Revision();
-//			for (Versioned versioned : versionedObjects)
-//			{
-//				versioned.commit(user, comment);
-//			}
-//			graph.add(rev);
-//			return rev;			
-//		}});
-//	}
 	
 	/**
 	 * Return the one {@link Revision} tagged with the specified tag, or null if

@@ -1,6 +1,10 @@
 package org.hypergraphdb.app.owl.usage;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import org.hypergraphdb.app.owl.HGDBOntologyFormat;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
@@ -42,7 +46,7 @@ public class ImportOntologies
 		}
 		File[] files = createAndValidateFileArray(argv);
 		System.out.println("Initializing Ontology Manager and  Repository...");
-		manager = new HGOntologyManagerFactory().getOntologyManager(files[0].getAbsolutePath());
+		manager = HGOntologyManagerFactory.getOntologyManager(files[0].getAbsolutePath());
 		// repository = (VHGDBOntologyRepository)
 		// manager.getOntologyRepository();
 		if (files.length == 1)
@@ -107,25 +111,47 @@ public class ImportOntologies
 		importOntology(ontologyFile, manager);
 	}
 
+	public static IRI importOntology(File ontologyLocation, OWLOntologyManager manager)
+	{
+		try
+		{
+			return importOntology(ontologyLocation.toURI().toURL(), manager);
+		}
+		catch (MalformedURLException e)
+		{
+			throw new RuntimeException(e);
+		}
+	}
+	
 	/**
 	 * 
 	 * @param ontologyFile
 	 * @param manager
 	 * @return target generated documentIRI
 	 */
-	public static IRI importOntology(File ontologyFile, OWLOntologyManager manager)
+	public static IRI importOntology(URL ontologyLocation, OWLOntologyManager manager)
 	{
 		// 1) Load in Memory
 		OWLOntology loadedOntology = null;
+		InputStream inputStream = null;
 		try
-		{
-			System.out.print("Loading Ontology from file: " + ontologyFile.getAbsolutePath() + " ...");
-			loadedOntology = manager.loadOntologyFromOntologyDocument(ontologyFile);
+		{			
+			System.out.print("Loading Ontology from : " + ontologyLocation + " ...");
+			inputStream = ontologyLocation.openStream();
+			loadedOntology = manager.loadOntologyFromOntologyDocument(inputStream);
 			System.out.println("Done.");
 		}
 		catch (OWLOntologyCreationException ocex)
 		{
-			throw new OWLRuntimeException("Error loading ontology from: " + ontologyFile.getAbsolutePath(), ocex);
+			throw new OWLRuntimeException("Error loading ontology from: " + ontologyLocation, ocex);
+		}
+		catch (IOException ex)
+		{
+			throw new RuntimeException("Failed to read from URL " + ontologyLocation);
+		}
+		finally
+		{
+			if (inputStream != null) try { inputStream.close(); } catch (Throwable t) { }
 		}
 		// 2) Change Format, create repo url with hgdb://
 		// Define a repository document IRI for our ontology
@@ -141,7 +167,7 @@ public class ImportOntologies
 		}
 		catch (OWLOntologyStorageException e)
 		{
-			throw new OWLRuntimeException("Error saving ontology: " + ontologyFile.getAbsolutePath(), e);
+			throw new OWLRuntimeException("Error saving ontology: " + ontologyLocation, e);
 		}
 		return targetIRI;
 	}

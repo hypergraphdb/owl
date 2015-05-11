@@ -1,15 +1,19 @@
 package org.hypergraphdb.app.owl.test.versioning.distributed;
 
 import java.io.File;
-
 import java.util.Date;
 import java.util.Set;
+
+import mjson.Json;
+
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.gc.GarbageCollector;
+import org.hypergraphdb.app.owl.util.ImplUtils;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
+import org.hypergraphdb.peer.PeerConfig;
 import org.jivesoftware.smack.XMPPConnection;
 
 /**
@@ -33,13 +37,6 @@ public class TestVDHGDBIdle
 	 */
 	public static boolean DELETE_ALL_ONTOLOGIES = false;
 
-	public static String REPOSITORY_LOCATION = "C:\\temp\\hypergraph-"; // +
-																		// PEER_USERNAME
-
-	public static String PEER_SERVERNAME = "W203-003.miamidade.gov";
-	public static String PEER_USERNAME;
-	public static String PEER_PASSWORD;
-
 	/**
 	 * 
 	 * @param argv
@@ -47,16 +44,34 @@ public class TestVDHGDBIdle
 	 */
 	public static void main(String[] argv)
 	{
-		PEER_USERNAME = argv[0];
-		PEER_PASSWORD = argv[1];
-		File dir = new File(REPOSITORY_LOCATION + PEER_USERNAME);
+		Json config = Json.read(TestVDHGDBIdle.class.getResource("/testpeer.json"));
+		for (int i = 0; i < argv.length; i++)
+		{
+			if (argv[i].equals("-xmppServer"))
+				config.at("interfaceConfig").set("serverUrl", argv[++i]);
+			else if (argv[i].equals("-xmppUser"))
+				config.at("interfaceConfig").set("user", argv[++i]);
+			else if (argv[i].equals("-xmppPass"))
+				config.at("interfaceConfig").set("password", argv[++i]);
+			else if (argv[i].equals("-dblocation"))
+				config.at(PeerConfig.LOCAL_DB, argv[++i]);
+		}
+		File dir = null;
+		if (!config.has(PeerConfig.LOCAL_DB))
+		{
+			dir = new File(new File(System.getProperty("java.io.tmpdir")), "hgdb.owltest");
+			config.set(PeerConfig.LOCAL_DB, dir.getAbsolutePath());
+		}
+		else
+			dir = new File(config.at(PeerConfig.LOCAL_DB).asString());
+		dir.mkdirs();
 		System.out.println("STARTING IDLE AT: " + dir);
 		if (!dir.exists())
 			dir.mkdir();
 		System.out.println("Repository at : " + dir);
-		HGDBOntologyManager manager = new HGOntologyManagerFactory().getOntologyManager(dir.getAbsolutePath());
-		VDHGDBOntologyRepository dr = (VDHGDBOntologyRepository) manager.getOntologyRepository();
-		System.out.println("INIT LOCAL IDLE PEER REPOSITORY: " + PEER_USERNAME);
+		VDHGDBOntologyRepository dr = new VDHGDBOntologyRepository(dir.getAbsolutePath(), 
+				  ImplUtils.connectionStringFromConfiguration(config));
+		System.out.println("INIT LOCAL IDLE PEER REPOSITORY: " + config.at("interfaceConfig").at("user"));
 		initializeVDRepository(dr);
 		waitForOnePeer(dr);
 		try
@@ -79,7 +94,6 @@ public class TestVDHGDBIdle
 		{
 			dr.stopNetworking();
 		}
-		System.out.println("BYE BYE " + PEER_USERNAME);
 	}
 
 	/**
@@ -98,7 +112,7 @@ public class TestVDHGDBIdle
 			dr.printAllOntologies();
 		}
 		dr.printStatistics();
-		dr.startNetworking(PEER_USERNAME, PEER_PASSWORD, PEER_SERVERNAME, null);
+		dr.startNetworking();
 	}
 
 	/**

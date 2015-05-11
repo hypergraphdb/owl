@@ -16,7 +16,7 @@ import org.hypergraphdb.HGQuery.hg;
  * Represents the application of a set of changes to a versioned object. After
  * the change set has been applied, it becomes immutable and cannot be 
  * modified any further. The versioned object itself can be positioned 
- * at different point in the version graph which means change sets will
+ * at different point in the version graph which means change sets will be
  * rolled back and re-applied, however after they are marked (i.e. after
  * there is at least one ChangeMark link pointing to a changeset), they
  * are readonly and cannot be altered.

@@ -25,15 +25,18 @@ import org.xml.sax.SAXException;
 
 /**
  * VOWLXMLParser.
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Feb 24, 2012
  */
-public class VOWLXMLParser extends OWLXMLParser {
-	
+public class VOWLXMLParser extends OWLXMLParser
+{
+
 	/**
 	 * 
 	 * @param documentSource
-	 * @param versionedOntologyRoot holds the result
+	 * @param versionedOntologyRoot
+	 *            holds the result
 	 * @param loaderConfig
 	 * @return
 	 * @throws OWLParserException
@@ -41,42 +44,58 @@ public class VOWLXMLParser extends OWLXMLParser {
 	 * @throws OWLOntologyChangeException
 	 * @throws UnloadableImportException
 	 */
-	public OWLOntologyFormat parse(OWLOntologyDocumentSource documentSource, VOWLXMLDocument  versionedOntologyRoot, OWLOntologyLoaderConfiguration loaderConfig) throws OWLParserException, IOException, OWLOntologyChangeException, UnloadableImportException {
-    	InputSource isrc = null;
-    	try {
-            System.setProperty("entityExpansionLimit", "100000000");
-            VOWLXMLVersionedOntologyFormat format = new VOWLXMLVersionedOntologyFormat();
-            SAXParserFactory factory = SAXParserFactory.newInstance();
-            factory.setNamespaceAware(true);
-            SAXParser parser = factory.newSAXParser();
-            isrc = getInputSource(documentSource); // TODO that null parameter was just to compile with 3.4.4
-            VOWLXMLParserHandler handler = new VOWLXMLParserHandler(versionedOntologyRoot, null, loaderConfig);
-            parser.parse(isrc, handler);
-            Map<String, String> prefix2NamespaceMap = handler.getPrefixName2PrefixMap();
-            for(String prefix : prefix2NamespaceMap.keySet()) {
-                format.setPrefix(prefix, prefix2NamespaceMap.get(prefix));
-            }
-            return format;
-        }
-        catch (ParserConfigurationException e) {
-            // serious trouble if this happens
-            throw new OWLRuntimeException(e);
-        }
-        catch (TranslatedOWLParserException e) {
-            throw e.getParserException();
-        }
-        catch (TranslatedUnloadableImportException e) {
-            throw e.getUnloadableImportException();
-        }
-        catch (SAXException e) {
-            // General exception
-            throw new OWLParserSAXException(e);
-		} finally {
-			if (isrc != null && isrc.getByteStream() != null) {
+	public OWLOntologyFormat parse(OWLOntologyDocumentSource documentSource, VOWLXMLDocument versionedOntologyRoot,
+			OWLOntologyLoaderConfiguration loaderConfig) throws OWLParserException, IOException, OWLOntologyChangeException,
+			UnloadableImportException
+	{
+		InputSource isrc = null;
+		try
+		{
+			System.setProperty("entityExpansionLimit", "100000000");
+			VOWLXMLVersionedOntologyFormat format = new VOWLXMLVersionedOntologyFormat();
+			SAXParserFactory factory = SAXParserFactory.newInstance();
+			factory.setNamespaceAware(true);
+			SAXParser parser = factory.newSAXParser();
+			isrc = getInputSource(documentSource); // TODO that null parameter
+													// was just to compile with
+													// 3.4.4
+			VOWLXMLParserHandler handler = new VOWLXMLParserHandler(versionedOntologyRoot, null, loaderConfig);
+			parser.parse(isrc, handler);
+			Map<String, String> prefix2NamespaceMap = handler.getPrefixName2PrefixMap();
+			for (String prefix : prefix2NamespaceMap.keySet())
+			{
+				format.setPrefix(prefix, prefix2NamespaceMap.get(prefix));
+			}
+			return format;
+		}
+		catch (ParserConfigurationException e)
+		{
+			// serious trouble if this happens
+			throw new OWLRuntimeException(e);
+		}
+		catch (TranslatedOWLParserException e)
+		{
+			throw e.getParserException();
+		}
+		catch (TranslatedUnloadableImportException e)
+		{
+			throw e.getUnloadableImportException();
+		}
+		catch (SAXException e)
+		{
+			// General exception
+			throw new OWLParserSAXException(e);
+		}
+		finally
+		{
+			if (isrc != null && isrc.getByteStream() != null)
+			{
 				isrc.getByteStream().close();
-			} else if (isrc != null && isrc.getCharacterStream() != null) {
+			}
+			else if (isrc != null && isrc.getCharacterStream() != null)
+			{
 				isrc.getCharacterStream().close();
 			}
 		}
-    }
+	}
 }

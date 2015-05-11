@@ -1,11 +1,12 @@
 package org.hypergraphdb.app.owl.versioning.distributed;
 
 import org.hypergraphdb.HGGraphHolder;
+
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
-import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.app.owl.newver.VersionedOntology;
 
 /**
  * DistributedOntology.
@@ -25,7 +26,7 @@ public abstract class DistributedOntology implements HGLink, HGGraphHolder
 
 	public HGDBOntology getWorkingSetData()
 	{
-		return getVersionedOntology().getWorkingSetData();
+		return getVersionedOntology().ontology();
 	}
 
 	public DistributedOntology(HGHandle... args)
@@ -41,34 +42,18 @@ public abstract class DistributedOntology implements HGLink, HGGraphHolder
 	// Hypergraph Interfaces Implementation
 	// ------------------------------------------------------------------------------
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.hypergraphdb.HGGraphHolder#setHyperGraph(org.hypergraphdb.HyperGraph)
-	 */
 	@Override
 	public void setHyperGraph(HyperGraph graph)
 	{
 		this.graph = graph;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.hypergraphdb.HGLink#getArity()
-	 */
 	@Override
 	public int getArity()
 	{
 		return 1;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.hypergraphdb.HGLink#getTargetAt(int)
-	 */
 	@Override
 	public HGHandle getTargetAt(int i)
 	{
@@ -79,12 +64,6 @@ public abstract class DistributedOntology implements HGLink, HGGraphHolder
 		return versionedOntologyHandle;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int,
-	 * org.hypergraphdb.HGHandle)
-	 */
 	@Override
 	public void notifyTargetHandleUpdate(int i, HGHandle handle)
 	{
@@ -95,11 +74,6 @@ public abstract class DistributedOntology implements HGLink, HGGraphHolder
 		versionedOntologyHandle = handle;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.hypergraphdb.HGLink#notifyTargetRemoved(int)
-	 */
 	@Override
 	public void notifyTargetRemoved(int i)
 	{

@@ -2,7 +2,7 @@ package org.hypergraphdb.app.owl.versioning.change;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.app.owl.model.OWLAnnotationHGDB;
-import org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor;
+import org.hypergraphdb.app.owl.newver.VOWLObjectVisitor;
 
 /**
  * VOntologyAnnotationChange.

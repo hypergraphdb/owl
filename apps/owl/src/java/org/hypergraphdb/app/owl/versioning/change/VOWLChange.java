@@ -4,7 +4,7 @@ import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.newver.VersionedOntology;
-import org.hypergraphdb.app.owl.versioning.VersioningObject;
+import org.hypergraphdb.app.owl.newver.VisitableObject;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 
 /**
@@ -13,7 +13,7 @@ import org.semanticweb.owlapi.model.OWLOntologyChange;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public abstract class VOWLChange implements VChange<VersionedOntology>, HGLink, VersioningObject, HGGraphHolder
+public abstract class VOWLChange implements VChange<VersionedOntology>, HGLink, VisitableObject, HGGraphHolder
 {
 	HyperGraph graph;
 

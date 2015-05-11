@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl.versioning.distributed;
 
 import java.io.BufferedReader;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -20,9 +21,8 @@ import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
-import org.hypergraphdb.app.owl.util.Context;
 import org.hypergraphdb.app.owl.util.ImplUtils;
-import org.hypergraphdb.app.owl.versioning.Revision;
+import org.hypergraphdb.app.owl.newver.Revision;
 import org.hypergraphdb.app.owl.versioning.RevisionID;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
@@ -138,7 +138,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository
 					HGPersistentHandle ontoPHandle = ontoHandle.getPersistent();
 					for (DistributedOntology distO : getDistributedOntologies())
 					{
-						if (distO.getVersionedOntology().getHeadRevision().getOntologyUUID().equals(ontoPHandle))
+						if (distO.getVersionedOntology().revision().versioned().equals(ontoPHandle))
 						{
 							return distO;
 						}
@@ -223,32 +223,6 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository
 		}
 		return peerConfig;
 	}
-
-//	public boolean startNetworking(Json configuration)
-//	{
-//		final Json config = configuration.dup();
-//		if (peer != null && peer.getPeerInterface().isConnected())
-//		{
-//			throw new IllegalStateException("Peer is currently connected. Disconnect first.");
-//		}			
-//		else
-//		{
-//			Callable<HyperGraphPeer> peerStarter = new Callable<HyperGraphPeer>() {
-//				public HyperGraphPeer call()
-//				{
-//					peer = createAndConfigurePeer(config);
-//					return startNetworkingInternal() ? peer : null;
-//				}
-//			};
-//			// We allow multiple instances of this class to coexist and make use of the
-//			// same DB and P2P identity.
-//			peer = Context.of(config.at("interfaceConfig").at("user").asString() + "@" + 
-//							   config.at("interfaceConfig").at("serverUrl").asString() + ":" + 
-//							   config.at("interfaceConfig").at("room").asString())
-//				      .singleton(HyperGraphPeer.class, peerStarter);
-//		}
-//		return peer != null && peer.getPeerInterface().isConnected();
-//	}
 	
 	/**
 	 * Starts networking using the configured userName and password.
@@ -424,7 +398,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository
 	}
 
 	public GetRemoteOntologyChangesetActivity getRemoteChangeset(HGPersistentHandle ontologyUUID, HGPeerIdentity remote,
-			RevisionID revision)
+			Revision revision)
 	{
 		GetRemoteOntologyChangesetActivity activity = new GetRemoteOntologyChangesetActivity(peer, remote, ontologyUUID, revision);
 		peer.getActivityManager().initiateActivity(activity);
@@ -662,24 +636,25 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository
 	 */
 	public VersionedOntologyComparisonResult compareOntologyToRemote(DistributedOntology dOnto, HGPeerIdentity peer, int timeoutSecs)
 	{
-		List<Revision> local = dOnto.getVersionedOntology().getRevisions();
-		List<Revision> remote;
-		HGPersistentHandle uuid = getOntologyUUID(dOnto.getWorkingSetData());
-		GetRemoteOntologyRevisionsActivity rra = getRemoteRevisions(uuid, peer);
-		try
-		{
-			ActivityResult ar = rra.getFuture().get(timeoutSecs, TimeUnit.SECONDS);
-			if (ar.getException() != null)
-				throw ar.getException();
-		}
-		catch (Throwable e)
-		{
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
-		remote = rra.getRemoteOntologyRevisions();
-		VersionedOntologyComparator c = new VersionedOntologyComparator();
-		return c.compare(local, remote);
+		throw new UnsupportedOperationException();
+//		List<Revision> local = dOnto.getVersionedOntology().getRevisions();
+//		List<Revision> remote;
+//		HGPersistentHandle uuid = getOntologyUUID(dOnto.getWorkingSetData());
+//		GetRemoteOntologyRevisionsActivity rra = getRemoteRevisions(uuid, peer);
+//		try
+//		{
+//			ActivityResult ar = rra.getFuture().get(timeoutSecs, TimeUnit.SECONDS);
+//			if (ar.getException() != null)
+//				throw ar.getException();
+//		}
+//		catch (Throwable e)
+//		{
+//			e.printStackTrace();
+//			throw new RuntimeException(e);
+//		}
+//		remote = rra.getRemoteOntologyRevisions();
+//		VersionedOntologyComparator c = new VersionedOntologyComparator();
+//		return c.compare(local, remote);
 	}
 
 	/**

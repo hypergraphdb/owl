@@ -11,7 +11,7 @@ import java.util.List;
  * @author Borislav Iordanov
  * @param T concrete type
  */
-public interface Versioned<T>
+public interface Versioned<T extends Versioned<T>>
 {
 	/**
 	 * Return the currently active revision.
@@ -78,7 +78,7 @@ public interface Versioned<T>
 	 * Return the latest working changes. Those are the changes that will
 	 * be committed if the {@link flushChanges} method is called.
 	 */
-	ChangeSet<?>  changes();
+	ChangeSet<T>  changes();
 
 	/**
 	 * Return the changes that produced the specified {@link Revision}.
@@ -86,5 +86,5 @@ public interface Versioned<T>
 	 * @param revision The revision.
 	 * @return
 	 */
-	List<ChangeSet<?>> changes(Revision revision);
+	List<ChangeSet<T>> changes(Revision revision);
 }

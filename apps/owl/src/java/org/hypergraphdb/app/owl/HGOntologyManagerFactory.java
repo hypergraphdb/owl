@@ -61,7 +61,7 @@ import de.uulm.ecs.ai.owlapi.krssrenderer.KRSS2OWLSyntaxOntologyStorer;
  */
 public class HGOntologyManagerFactory implements OWLOntologyManagerFactory
 {
-	private String graphLocation()
+	private static String graphLocation()
 	{
 		String location = System.getProperty("hgdbowl.defaultdb");
 		if (location == null)
@@ -70,7 +70,7 @@ public class HGOntologyManagerFactory implements OWLOntologyManagerFactory
 			return location;
 	}
 	
-	private OWLOntologyManager inMemoryManager(OWLDataFactory dataFactory)
+	private static OWLOntologyManager inMemoryManager(OWLDataFactory dataFactory)
 	{
         OWLOntologyManager ontologyManager = new OWLOntologyManagerImpl(dataFactory);
         ontologyManager.addOntologyStorer(new RDFXMLOntologyStorer());
@@ -90,7 +90,7 @@ public class HGOntologyManagerFactory implements OWLOntologyManagerFactory
         return ontologyManager;		
 	}		  
 	
-	private HGDBOntologyManagerImpl createOWLOntologyManager(final OWLDataFactoryHGDB dataFactory,
+	private static HGDBOntologyManagerImpl createOWLOntologyManager(final OWLDataFactoryHGDB dataFactory,
 													 		 final HGDBOntologyRepository repository)
 	{
 		final HGDBOntologyManagerImpl ontologyManager = new HGDBOntologyManagerImpl(dataFactory, repository);
@@ -116,7 +116,7 @@ public class HGOntologyManagerFactory implements OWLOntologyManagerFactory
 	 * Get the {@link HGDBOntologyManager} for this graph database location.
 	 * There is a single HGDB ontology manager per open database.
 	 */
-	public HGDBOntologyManager getOntologyManager(final String graphLocation)
+	public static HGDBOntologyManager getOntologyManager(final String graphLocation)
 	{
 		final HyperGraph graph = ImplUtils.owldb(graphLocation);
 		return Context.of(graph).singleton(HGDBOntologyManager.class, new Callable<HGDBOntologyManager>() {
@@ -143,11 +143,16 @@ public class HGOntologyManagerFactory implements OWLOntologyManagerFactory
 				(OWLDataFactoryHGDB)df, 
 				new HGDBOntologyRepository(((OWLDataFactoryHGDB)df).getHyperGraph().getLocation()));	
 		else
-			return this.inMemoryManager(df);
+			return inMemoryManager(df);
 	}
 
 	@Override
 	public OWLDataFactory getFactory()
+	{
+		return getDataFactory();
+	}
+
+	public static OWLDataFactory getDataFactory()
 	{
 		HyperGraph graph = ImplUtils.owldb(graphLocation()); 
 		return  OWLDataFactoryHGDB.get(graph);				

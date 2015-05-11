@@ -2,7 +2,6 @@ package org.hypergraphdb.app.owl.newver;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,30 +26,15 @@ import org.hypergraphdb.transaction.HGTransactionConfig;
  * 
  * @created Jan 13, 2015
  */
-public class ChangeSet<V extends Versioned<?>> implements HGLink, HGGraphHolder
+public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder
 {
-	private Date createdDate;
+	private long timestamp;
 	private List<HGHandle> changes;
 	private HyperGraph graph;
 
-	/**
-	 * The Date this changeset was created or last cleared.
-	 * 
-	 * @return
-	 */
-	public Date getCreatedDate()
-	{
-		return createdDate;
-	}
-
-	public void setCreatedDate(Date createdDate)
-	{
-		this.createdDate = createdDate;
-	}
-
 	public ChangeSet()
 	{
-		setCreatedDate(new Date());
+		timestamp(System.currentTimeMillis());
 		changes = new ArrayList<HGHandle>(100);
 	}
 
@@ -64,6 +48,22 @@ public class ChangeSet<V extends Versioned<?>> implements HGLink, HGGraphHolder
 		this.changes = new ArrayList<HGHandle>(changes);
 	}
 
+	/**
+	 * The Date this changeset was created or last cleared.
+	 * 
+	 * @return
+	 */
+	public long timestamp()
+	{
+		return timestamp;
+	}
+
+	public ChangeSet<V> timestamp(long timestamp)
+	{
+		this.timestamp = timestamp;
+		return this;
+	}	
+	
 	/**
 	 * Stores a change in the graph and adds it to the changeset. The changeset
 	 * will be updated in the graph. Should be called within HGTransaction.

@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.hypergraphdb.app.owl.versioning.change.VChange;
 
-public class ChangeConflict<V extends Versioned<?>>
+public class ChangeConflict<V extends Versioned<V>>
 {
 	private ChangeSet<V> baseSet, otherSet; 
 	private List<VChange<V>> baseChanges, otherChanges;

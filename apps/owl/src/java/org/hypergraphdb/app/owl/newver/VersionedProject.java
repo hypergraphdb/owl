@@ -38,7 +38,7 @@ public class VersionedProject implements Versioned<VersionedProject>
 	}
 
 	@Override
-	public List<ChangeSet<?>> changes(Revision revision)
+	public List<ChangeSet<VersionedProject>> changes(Revision revision)
 	{
 		// TODO Auto-generated method stub
 		return null;

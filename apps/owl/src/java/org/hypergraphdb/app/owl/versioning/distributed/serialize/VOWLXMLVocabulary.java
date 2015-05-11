@@ -9,13 +9,19 @@ import org.semanticweb.owlapi.model.IRI;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Feb 24, 2012
  */
-public enum VOWLXMLVocabulary  {
-
+public enum VOWLXMLVocabulary  
+{
     VERSIONED_ONTOLOGY_ROOT("VOWLXMLDocument"),
     RENDER_CONFIGURATION("RenderConfiguration"),
     VERSIONED_ONTOLOGY("VersionedOntology"),
     CHANGE_SET("ChangeSet"),
     REVISION("Revision"),
+    MARK_PARENT("MarkParent"),
+    REVISION_MARK("RevisionMark"),    
+    CHANGE_MARK("ChangeMark"),
+    ROOTS("Roots"),
+    HEADS("Heads"),
+    HGHANDLE("Handle"),
     V_ADD_AXIOM_CHANGE("VAddAxiomChange"),
     V_ADD_IMPORT_CHANGE("VAddImportChange"),
     V_ADD_ONTOLOGY_ANNOTATION_CHANGE("VAddOntologyAnnotationChange"),
@@ -41,26 +47,31 @@ public enum VOWLXMLVocabulary  {
     /**
 	 * 
 	 */
-	private VOWLXMLVocabulary(String name) {
+	private VOWLXMLVocabulary(String name) 
+	{
         this.iri = IRI.create(NAMESPACE + name);
         shortName = name;
     }
 
-    public IRI getIRI() {
+    public IRI getIRI()
+    {
         return iri;
     }
 
-    public URI getURI() {
+    public URI getURI() 
+    {
         return iri.toURI();
     }
 
 
-    public String getShortName() {
+    public String getShortName() 
+    {
         return shortName;
     }
 
     @Override
-	public String toString() {
+	public String toString() 
+    {
         return iri.toString();
     }
 }

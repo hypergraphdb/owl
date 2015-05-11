@@ -1,7 +1,7 @@
 package org.hypergraphdb.app.owl.versioning.change;
 
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor;
+import org.hypergraphdb.app.owl.newver.VOWLObjectVisitor;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 
 /**

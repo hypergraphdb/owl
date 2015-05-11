@@ -1,5 +1,6 @@
 package org.hypergraphdb.app.owl.newver;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -12,6 +13,24 @@ import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 
+/**
+ * <p>
+ * Represents a version of a versioned object. The representation is indirect
+ * in that a revision does not matierialize the state of an object at a given
+ * time. Rather, it is a point in the version graph that can be used to 
+ * re-construct the state of the versioned object when the revision was created.
+ * </p>
+ * 
+ * <p>
+ * A revision is associated one or more {@link ChangeMark}s that "lead" to it.
+ * The association is represented with the {@link RevisionMark} link. 
+ * There may be more than one change mark (a.k.a. "commit") associated with a
+ * revision when the versioned object is {@link VersionedProject} for example.  
+ * </p>
+ * 
+ * @author Borislav Iordanov
+ *
+ */
 public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 {
 	private HyperGraph graph;
@@ -25,6 +44,12 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 	{
 		assert targets.length == 1;
 		versioned = targets[0];
+	}
+
+	public Revision versioned(HGHandle version)
+	{
+		this.versioned = version;
+		return this;
 	}
 	
 	public HGHandle versioned()
@@ -40,7 +65,7 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 	
 	public int getArity()
 	{
-		return 1;
+		return 2;
 	}
 		
 	@Override
@@ -54,39 +79,42 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 	{
 	}
 
-	public String getComment()
+	public String comment()
 	{
 		return comment;
 	}
 
-	public void setComment(String comment)
+	public Revision comment(String comment)
 	{
 		this.comment = comment;
+		return this;
 	}
 
-	public String getUser()
+	public String user()
 	{
 		return user;
 	}
 
-	public void setUser(String user)
+	public Revision user(String user)
 	{
 		this.user = user;
+		return this;
 	}
 
-	public long getTimestamp()
+	public long timestamp()
 	{
 		return timestamp;
 	}
 
-	public void setTimestamp(long timestamp)
+	public Revision timestamp(long timestamp)
 	{
 		this.timestamp = timestamp;
+		return this;
 	}
 
-	public HGHandle changeMark()
+	public Collection<HGHandle> changeMarks()
 	{
-		return graph.findOne(hg.apply(hg.targetAt(graph, 1), 
+		return graph.findAll(hg.apply(hg.targetAt(graph, 1), 
 				hg.and(hg.type(RevisionMark.class), hg.incident(thisHandle))));
 	}
 	

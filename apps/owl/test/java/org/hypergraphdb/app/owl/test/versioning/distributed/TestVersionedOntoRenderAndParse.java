@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,9 +22,10 @@ import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRI
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyUUIDException;
 import org.hypergraphdb.app.owl.gc.GarbageCollector;
+import org.hypergraphdb.app.owl.newver.VersionManager;
+import org.hypergraphdb.app.owl.newver.VersionedOntology;
 import org.hypergraphdb.app.owl.usage.ImportOntologies;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
-import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLParser;
@@ -70,23 +72,23 @@ public class TestVersionedOntoRenderAndParse
 	{
 		List<File> renderedFiles = new ArrayList<File>();
 		String dblocation = System.getProperty("java.io.tmpdir") + File.separator + "hgdbtest";
-		HGDBOntologyManager manager = new HGOntologyManagerFactory().getOntologyManager(dblocation);
+		HGDBOntologyManager manager = HGOntologyManagerFactory.getOntologyManager(dblocation);
+		VHGDBOntologyRepository repo = new VHGDBOntologyRepository(dblocation);
+		VersionManager versionManager = new VersionManager(repo.getHyperGraph(), "test");
 		//
 		// IMPORT AND RENDER
 		//
 		try
 		{
-			VDHGDBOntologyRepository repo = (VDHGDBOntologyRepository) manager.getOntologyRepository();
 			// repo.dropHypergraph();
 			repo.deleteAllOntologies();
 			// System.out.println("Running GC");
 			// CANNOT RUN GC nullHANDLE problem !!! repo.runGarbageCollector();
-			File f = new File("C:\\_CiRM\\testontos\\County.owl");
-			IRI targetIRI = ImportOntologies.importOntology(f, manager);
-			// File f2 = new File("C:\\_CiRM\\testontos\\1 csr.owl");
+			URL ontologyUrl = this.getClass().getResource("/sampleOntology.owl");
+			IRI targetIRI = ImportOntologies.importOntology(ontologyUrl, manager);
 			// IRI targetIRI = ImportOntologies.importOntology(f2, manager);
 			HGDBOntology o = (HGDBOntology) manager.loadOntologyFromOntologyDocument(targetIRI);
-			VersionedOntology vo = repo.addVersionControl(o, "distributedTestUser");
+			VersionedOntology vo =  versionManager.versioned(o.getAtomHandle());
 			// MANIPULATE REMOVE CHANGED
 			Object[] axioms = o.getAxioms().toArray();
 			// remove all axioms 10.
@@ -104,22 +106,31 @@ public class TestVersionedOntoRenderAndParse
 				vo.commit("SameUser", " commit no " + i);
 			}
 			// RENDER VERSIONED ONTOLOGY, includes data
-			for (int i = 0; i < vo.getArity(); i++)
-			{
-				VOWLXMLRenderConfiguration c = new VOWLXMLRenderConfiguration();
-				c.setLastRevisionIndex(i);
-				VOWLXMLVersionedOntologyRenderer r = new VOWLXMLVersionedOntologyRenderer(manager);
-				File fx = new File(TESTFILE.getAbsolutePath() + " Revision-" + i + ".xml");
-				// File fx = new
-				// File("C:\\_CiRM\\testontos\\CountyVersioned-Rev-"+ i +
-				// ".vowlxml");
-				renderedFiles.add(fx);
-				// File fx = new File("C:\\_CiRM\\testontos\\1 csr-Rev-"+ i +
-				// ".vowlxml");
-				Writer fwriter = new OutputStreamWriter(new FileOutputStream(fx), Charset.forName("UTF-8"));
-				// Full export
-				r.render(vo, fwriter, c);
-			}
+			
+			// TODO...			
+			VOWLXMLRenderConfiguration c = new VOWLXMLRenderConfiguration();
+			c.uncommittedChanges(true);
+			VOWLXMLVersionedOntologyRenderer r = new VOWLXMLVersionedOntologyRenderer(manager);
+			File fx = new File(TESTFILE.getAbsolutePath() + " Revision-" + ".xml");
+			renderedFiles.add(fx);
+			Writer fwriter = new OutputStreamWriter(new FileOutputStream(fx), Charset.forName("UTF-8"));
+			r.render(vo, fwriter, c);
+//			for (int i = 0; i < vo.getArity(); i++)
+//			{
+//				VOWLXMLRenderConfiguration c = new VOWLXMLRenderConfiguration();
+//				//c.setLastRevisionIndex(i);
+//				VOWLXMLVersionedOntologyRenderer r = new VOWLXMLVersionedOntologyRenderer(manager);
+//				File fx = new File(TESTFILE.getAbsolutePath() + " Revision-" + i + ".xml");
+//				// File fx = new
+//				// File("C:\\_CiRM\\testontos\\CountyVersioned-Rev-"+ i +
+//				// ".vowlxml");
+//				renderedFiles.add(fx);
+//				// File fx = new File("C:\\_CiRM\\testontos\\1 csr-Rev-"+ i +
+//				// ".vowlxml");
+//				Writer fwriter = new OutputStreamWriter(new FileOutputStream(fx), Charset.forName("UTF-8"));
+//				// Full export
+//				r.render(vo, fwriter, c);
+//			}
 			System.out.println("DELETE ALL ONTOLOGIES");
 			repo.deleteAllOntologies();
 			GarbageCollector gc = new GarbageCollector(repo);
@@ -203,35 +214,35 @@ public class TestVersionedOntoRenderAndParse
 			HyperGraph graph = manager.getOntologyRepository().getHyperGraph();
 			// Add version control with full matching history.
 			System.out.println("Adding version control history to : " + ontologyUUID);
-			VersionedOntology voParsed = new VersionedOntology(versionedOntologyRoot.getRevisions(),
-					versionedOntologyRoot.getChangesets(), graph);
-			VHGDBOntologyRepository vrepo = (VHGDBOntologyRepository) manager.getOntologyRepository();
-			System.out.println("Versioned Repository Contents: ");
-			for (VersionedOntology vox : vrepo.getVersionControlledOntologies())
-			{
-				System.out.println("Versioned Ontology: " + vox.getWorkingSetData());
-				System.out.println("Versioned Ontology Revs: " + vox.getNrOfRevisions());
-			}
-			//
-			// Rendering FULL Versioned Ontology
-			//
-			System.out.println("Rendering full versioned ontology after parse and store: " + ontologyUUID);
-			VOWLXMLVersionedOntologyRenderer r = new VOWLXMLVersionedOntologyRenderer(manager);
-			File fx = new File(TESTFILE.getAbsolutePath() + "FULL-afterParse.xml");
-			Writer fwriter;
-			try
-			{
-				fwriter = new OutputStreamWriter(new FileOutputStream(fx), Charset.forName("UTF-8"));
-				r.render(voParsed, fwriter);
-			}
-			catch (IOException e)
-			{
-				e.printStackTrace();
-			}
-			catch (OWLRendererException e)
-			{
-				e.printStackTrace();
-			}
+//			VersionedOntology voParsed = new VersionedOntology(versionedOntologyRoot.getRevisions(),
+//					versionedOntologyRoot.getChangesets(), graph);
+//			VHGDBOntologyRepository vrepo = (VHGDBOntologyRepository) manager.getOntologyRepository();
+//			System.out.println("Versioned Repository Contents: ");
+//			for (VersionedOntology vox : vrepo.getVersionControlledOntologies())
+//			{
+//				System.out.println("Versioned Ontology: " + vox.getWorkingSetData());
+//				System.out.println("Versioned Ontology Revs: " + vox.getNrOfRevisions());
+//			}
+//			//
+//			// Rendering FULL Versioned Ontology
+//			//
+//			System.out.println("Rendering full versioned ontology after parse and store: " + ontologyUUID);
+//			VOWLXMLVersionedOntologyRenderer r = new VOWLXMLVersionedOntologyRenderer(manager);
+//			File fx = new File(TESTFILE.getAbsolutePath() + "FULL-afterParse.xml");
+//			Writer fwriter;
+//			try
+//			{
+//				fwriter = new OutputStreamWriter(new FileOutputStream(fx), Charset.forName("UTF-8"));
+//				r.render(voParsed, fwriter);
+//			}
+//			catch (IOException e)
+//			{
+//				e.printStackTrace();
+//			}
+//			catch (OWLRendererException e)
+//			{
+//				e.printStackTrace();
+//			}
 		}
 		else
 		{

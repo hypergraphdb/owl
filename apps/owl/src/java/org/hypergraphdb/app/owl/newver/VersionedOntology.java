@@ -16,6 +16,7 @@ import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.algorithms.DefaultALGenerator;
 import org.hypergraphdb.algorithms.GraphClassics;
 import org.hypergraphdb.app.owl.HGDBOntology;
+import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.hypergraphdb.app.owl.versioning.change.VChange;
 import org.hypergraphdb.util.Mapping;
 
@@ -37,20 +38,6 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	private HGHandle currentRevision;
 	private HGHandle workingChanges;
 
-	private HGHandle getMarkForRevision(HGHandle revisionHandle)
-	{
-		List<HGHandle> L = graph.findAll(hg.apply(hg.targetAt(graph, 1),
-									  hg.and(hg.type(RevisionMark.class), 
-											 hg.incident(revisionHandle))));
-		for (HGHandle h : L)
-		{
-			ChangeMark mark = graph.get(h);
-			if (mark.target().equals(ontology))
-				return h;
-		}
-		return null;
-	}
-
 	/**
 	 * Get all change marks applied after the revision argument. 
 	 * 
@@ -59,7 +46,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	private List<HGHandle> marksFrom(HGHandle revisionHandle)
 	{
 		ArrayList<HGHandle> L = new ArrayList<HGHandle>(); 
-		HGHandle lastMark = getMarkForRevision(revisionHandle);
+		HGHandle lastMark = getMarkForRevision(revisionHandle).mark();
 		HGSearchResult<HGHandle> rs = graph.find(hg.dfs(lastMark, 
 				hg.type(MarkParent.class), null, true, false));		
 		try
@@ -78,18 +65,34 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	}
 	
 	/**
+	 * Return the {@link ChangeMark} handle for the change mark that
+	 * created the given revision.
+	 */
+	public RevisionMark getMarkForRevision(HGHandle revisionHandle)
+	{
+		List<RevisionMark> L = graph.getAll(hg.and(hg.type(RevisionMark.class), hg.incident(revisionHandle)));
+		for (RevisionMark markLink : L)
+		{
+			ChangeMark mark = graph.get(markLink.mark());
+			if (mark.target().equals(ontology))
+				return markLink;
+		}
+		return null;
+	}
+	
+	/**
 	 * Collect all {@link ChangeMark}s between two adjacent revisions.
 	 * 
 	 * @param startRevision The parent revision
 	 * @param endRevision The child revision
 	 * @return A list of ChangeMark handles.
 	 */
-	private List<HGHandle> marksBetweenAdjacent(HGHandle startRevision, HGHandle endRevision)
+	public List<HGHandle> marksBetweenAdjacent(HGHandle startRevision, HGHandle endRevision)
 	{
 		ArrayList<HGHandle> L = new ArrayList<HGHandle>();
 		if (startRevision.equals(endRevision))
 			return L; 
-		HGHandle lastMark = getMarkForRevision(startRevision);
+		HGHandle lastMark = getMarkForRevision(startRevision).mark();
 		HGSearchResult<HGHandle> rs = graph.find(hg.dfs(lastMark, 
 				hg.type(MarkParent.class), null, true, false));		
 		try
@@ -216,6 +219,10 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		return graph.get(currentRevision);
 	}
 
+	/**
+	 * Create a new revision for this ontology. The revision is created
+	 * regardless of whether there are any pending changes or not.
+	 */
 	@Override
 	public Revision commit(final String user, final String comment)
 	{
@@ -224,9 +231,9 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		{
 			ChangeMark mark = flushChanges();
 			Revision revision = new Revision(thisHandle);
-			revision.setUser(user);
-			revision.setComment(comment);
-			revision.setTimestamp(System.currentTimeMillis());
+			revision.user(user);
+			revision.comment(comment);
+			revision.timestamp(System.currentTimeMillis());
 			HGHandle revisionHandle = graph.add(revision);
 			graph.add(new RevisionMark(revisionHandle, graph.getHandle(mark)));
 			graph.add(new MarkParent(revisionHandle, currentRevision));
@@ -257,13 +264,13 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		ChangeSet<VersionedOntology> changeSet = new ChangeSet<VersionedOntology>(mergeChanges);
 		HGHandle hChangeSet = graph.add(changeSet);
 		Revision revision = new Revision(thisHandle);
-		revision.setUser(user);
-		revision.setComment(comment);
-		revision.setTimestamp(System.currentTimeMillis());
+		revision.user(user);
+		revision.comment(comment);
+		revision.timestamp(System.currentTimeMillis());
 		HGHandle revisionHandle = graph.add(revision);		
 		changeSet.apply(this);
 		HGHandle mark = graph.add(new ChangeMark(ontology, hChangeSet));
-		graph.add(new MarkParent(mark, this.getMarkForRevision(commonAncestor)));
+		graph.add(new MarkParent(mark, this.getMarkForRevision(commonAncestor).mark()));
 		graph.add(new RevisionMark(revisionHandle, mark));
 		for (Revision rev : revisions)
 			graph.add(new MarkParent(revisionHandle, graph.getHandle(rev)));
@@ -391,9 +398,17 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		});
 	}
 	
+	/**
+	 * Freeze the latest working changes on this ontology as an immutable change set.
+	 * Thus a new {@link ChangeMark} is created as a result of the flush operation and
+	 * made a child (via a {@link MarkParent} link) to the most recent such ChangeMark.  
+	 */
 	public ChangeMark flushChanges()
 	{ 
-		HGHandle handleCurrent = getMarkForRevision(currentRevision);
+		HGHandle handleCurrent = getMarkForRevision(currentRevision).mark();
+		
+		// Traverse to find the most recent change mark, the "youngest"
+		// descendent of the ChangeMark that created the current revision.
 		HGSearchResult<HGHandle> rs = graph.find(hg.dfs(handleCurrent, 
 							hg.type(MarkParent.class), null, true, false));
 		try
@@ -413,15 +428,20 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		return newmark;
 	}
 
+	/**
+	 * Return the working {@link ChangeSet} which holds the set of changes since the last
+	 * commit or flush (see {@link #flushChanges()}.
+	 */
 	@Override
 	public ChangeSet<VersionedOntology> changes()
 	{
 		return graph.get(workingChanges);
 	}
 
-	private void changes(ChangeMark from, List<ChangeSet<?>> L)
+	@SuppressWarnings("unchecked")
+	private void changes(ChangeMark from, List<ChangeSet<VersionedOntology>> L)
 	{
-		L.add((ChangeSet<?>)graph.get(from.changeset()));		
+		L.add((ChangeSet<VersionedOntology>)graph.get(from.changeset()));		
 		for (HGHandle h : from.parents())
 		{
 			ChangeMark parentMark = graph.get(h);
@@ -430,14 +450,21 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		}
 	}
 	
-	public List<ChangeSet<?>> changes(Revision revision)
+	public List<ChangeSet<VersionedOntology>> changes(Revision revision)
 	{
-		ArrayList<ChangeSet<?>> L = new ArrayList<ChangeSet<?>>();
-		ChangeMark mark = graph.get(getMarkForRevision(graph.getHandle(revision)));
+		ArrayList<ChangeSet<VersionedOntology>> L = new ArrayList<ChangeSet<VersionedOntology>>();
+		ChangeMark mark = graph.get(getMarkForRevision(graph.getHandle(revision)).mark());
 		changes(mark, L);
 		return L;
 	}
 
+	/**
+	 * <p>
+	 * Position the working copy of the ontology to a specific revision.
+	 * </p>
+	 * 
+	 * @return this
+	 */
 	public VersionedOntology goTo(final Revision revision)
 	{
 		if (revision.getAtomHandle().equals(currentRevision))
@@ -464,6 +491,11 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 				return VersionedOntology.this;
 			}
 		});
+	}
+	
+	public OWLOntologyEx getRevisionData(HGHandle revisionHandle)
+	{
+		throw new UnsupportedOperationException();
 	}
 	
 	public HGDBOntology ontology()

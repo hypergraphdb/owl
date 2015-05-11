@@ -1,6 +1,8 @@
 package org.hypergraphdb.app.owl;
 
+import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandleHolder;
+import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.HyperNode;
 import org.hypergraphdb.annotation.HGIgnore;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
@@ -28,7 +30,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
  * 
  * @author Thomas Hilpold (GIC/Miami-Dade County)
  */
-public interface HGDBOntology extends OWLOntologyEx, HyperNode, HGHandleHolder
+public interface HGDBOntology extends OWLOntologyEx, HyperNode, HGHandleHolder, HGGraphHolder
 {	
 		
 	void setOntologyID(OWLOntologyID id);
@@ -60,5 +62,10 @@ public interface HGDBOntology extends OWLOntologyEx, HyperNode, HGHandleHolder
 	 * @return
 	 */	
 	long getNrOfNonLinkAtoms();
+	
+	/**
+	 * Return the HyperGraph instance where this ontology is stored.
+	 */
+	HyperGraph getHyperGraph();
 
 }

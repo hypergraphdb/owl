@@ -234,7 +234,7 @@ public class TestVDHGDBPush
 			if (versionedOntology == null)
 				throw new IllegalStateException("We have NOT found a versioned ontololgy in the repository.");
 		}
-		dr.startNetworking(PEER_USERNAME, PEER_PASSWORD, PEER_HOSTNAME, null);
+		dr.startNetworking();
 	}
 
 	/**
@@ -248,7 +248,7 @@ public class TestVDHGDBPush
 			GarbageCollector gc = new GarbageCollector(dr);
 			gc.runGarbageCollection(GarbageCollector.MODE_DELETED_ONTOLOGIES);
 		}
-		dr.startNetworking(PEER_USERNAME, PEER_PASSWORD, PEER_HOSTNAME, null);
+		dr.startNetworking();
 	}
 
 	/**

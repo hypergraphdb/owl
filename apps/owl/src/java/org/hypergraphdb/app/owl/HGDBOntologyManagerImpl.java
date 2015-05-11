@@ -62,7 +62,7 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 	{
 		super(dataFactory);
 		this.ontologyRepository = ontologyRepository;
-		versionManager = new VersionManager(ontologyRepository.getHyperGraph(), "");
+		versionManager = new VersionManager(ontologyRepository.getHyperGraph(), null);
 		this.addOntologyChangeListener(new VersioningChangeListener(versionManager));
 		addIRIMapper(new HGDBIRIMapper(ontologyRepository));
 		dataFactory.setHyperGraph(ontologyRepository.getHyperGraph());
