@@ -12,23 +12,18 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 
-import org.hypergraphdb.HGPersistentHandle;
-import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
-import org.hypergraphdb.app.owl.HGDBOntologyFormat;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
+import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
-import org.hypergraphdb.app.owl.core.OWLTempOntologyImpl;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyUUIDException;
-import org.hypergraphdb.app.owl.versioning.ChangeSet;
-import org.hypergraphdb.app.owl.versioning.Revision;
-import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.app.owl.newver.Revision;
+import org.hypergraphdb.app.owl.newver.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.DistributedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLParser;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLRenderConfiguration;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVersionedOntologyRenderer;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
@@ -37,13 +32,10 @@ import org.semanticweb.owlapi.io.OWLRendererException;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
-import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLOntologyChangeException;
-import org.semanticweb.owlapi.model.OWLOntologyID;
-import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.UnloadableImportException;
 
 /**
@@ -123,9 +115,7 @@ public class ActivityUtils
 	 * @throws HGDBOntologyAlreadyExistsByOntologyUUIDException
 	 */
 	public VersionedOntology storeVersionedOntology(OWLOntologyDocumentSource vowlDocumentSource, HGDBOntologyManager manager)
-			throws OWLOntologyChangeException, UnloadableImportException, OWLParserException, IOException,
-			HGDBOntologyAlreadyExistsByDocumentIRIException, HGDBOntologyAlreadyExistsByOntologyIDException,
-			HGDBOntologyAlreadyExistsByOntologyUUIDException
+			throws Exception
 	{
 		throw new UnsupportedOperationException();
 //		// OWLOntologyDocumentSource ds = new
@@ -272,6 +262,16 @@ public class ActivityUtils
 //		}
 	}
 
+	String renderVersionedOntologyDelta(VersionedOntology versionedOntology, Set<Revision> delta) throws OWLRendererException
+	{
+		VOWLXMLRenderConfiguration conf = new VOWLXMLRenderConfiguration();
+		VOWLXMLVersionedOntologyRenderer owlxmlRenderer = new VOWLXMLVersionedOntologyRenderer(
+				HGOntologyManagerFactory.getOntologyManager(versionedOntology.graph().getLocation()));
+		StringWriter stringWriter = new StringWriter(RENDER_BUFFER_DELTA_INITIAL_SIZE);
+		owlxmlRenderer.render(versionedOntology, delta, stringWriter, conf);
+		return stringWriter.toString();
+	}
+	
 	/**
 	 * Renders the revisions and changesets starting with the given index.
 	 * 

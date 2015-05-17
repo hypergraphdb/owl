@@ -2,9 +2,11 @@ package org.hypergraphdb.app.owl.versioning.distributed.serialize;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
+import org.hypergraphdb.app.owl.newver.Revision;
 import org.hypergraphdb.app.owl.newver.VersionedOntology;
 import org.hypergraphdb.app.owl.util.StopWatch;
 import org.semanticweb.owlapi.io.AbstractOWLRenderer;
@@ -36,15 +38,15 @@ public class VOWLXMLVersionedOntologyRenderer extends AbstractOWLRenderer
 		HGHandle ontoHandle =  manager.getOntologyRepository().getHyperGraph().getHandle(ontology);
 		if (!manager.getVersionManager().isVersioned(ontoHandle))
 			new OWLRendererException("The given ontology is not versioned." + ontology);			
-		render(manager.getVersionManager().versioned(ontoHandle), writer);
+		render(manager.getVersionManager().versioned(ontoHandle), null, writer);
 	}
 
-	public void render(VersionedOntology vonto, Writer writer) throws OWLRendererException
+	public void render(VersionedOntology vonto, Set<Revision> revisions, Writer writer) throws OWLRendererException
 	{
-		render(vonto, writer, new VOWLXMLRenderConfiguration());
+		render(vonto, revisions, writer, new VOWLXMLRenderConfiguration());
 	}
 
-	public void render(VersionedOntology vonto, Writer writer, VOWLXMLRenderConfiguration configuration)
+	public void render(VersionedOntology vonto, Set<Revision> revisions, Writer writer, VOWLXMLRenderConfiguration configuration)
 			throws OWLRendererException
 	{
 		StopWatch s = new StopWatch(true);
@@ -63,6 +65,13 @@ public class VOWLXMLVersionedOntologyRenderer extends AbstractOWLRenderer
 			VOWLXMLObjectRenderer vren = new VOWLXMLObjectRenderer(vw, configuration);
 			vren.visit(configuration);
 			vren.visit(vonto);
+			
+			// Not sure if the revision set (which is basically the delta graph we are transferring
+			// should be part of the configuration, or what will end up remaining in that "configuration"
+			// eventually.
+			if (revisions != null)
+				for (Revision rev : revisions)
+					vren.visit(rev);
 			vw.endDocument();
 			writer.flush();
 			s.stop("VOWLXMLVersionedOntologyRenderer Render Process " + 

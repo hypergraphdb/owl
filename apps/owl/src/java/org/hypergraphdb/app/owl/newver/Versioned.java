@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl.newver;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * <p>
@@ -13,6 +14,13 @@ import java.util.List;
  */
 public interface Versioned<T extends Versioned<T>>
 {
+	/**
+	 * Return all version heads. A version head is a revision that is the
+	 * last in its branch. One of the revision heads is always going to be
+	 * the current {@link #revision()}.
+	 */
+	Set<Revision> heads();
+	
 	/**
 	 * Return the currently active revision.
 	 */

@@ -53,6 +53,7 @@ public class VersionManager
 		initialRevision.user(user);
 		initialRevision.timestamp(System.currentTimeMillis());
 		HGHandle revisionHandle = graph.add(initialRevision);
+		versioned.setRootRevision(revisionHandle);
 		graph.add(new RevisionMark(revisionHandle, initialMark));
 		versioned.setCurrentRevision(revisionHandle);
 		graph.update(versioned);

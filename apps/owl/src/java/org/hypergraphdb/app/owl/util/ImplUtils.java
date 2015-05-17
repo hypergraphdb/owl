@@ -69,6 +69,7 @@ public class ImplUtils
 	 * @return
 	 */
 	static HashMap<String, HyperGraph> owlGraphs = new HashMap<String, HyperGraph>();
+	static HashMap<URI, HyperGraphPeer> owlPeers = new HashMap<URI, HyperGraphPeer>();
 
 	public static HyperGraph owldb(String location)
 	{
@@ -86,6 +87,7 @@ public class ImplUtils
 			return graph;
 		}
 	}
+	
  
 	static HashMap<String, HyperGraphPeer> graphPeers = new HashMap<String, HyperGraphPeer>();
 	

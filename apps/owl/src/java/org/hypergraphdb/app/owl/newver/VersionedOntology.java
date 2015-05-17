@@ -1,12 +1,14 @@
 package org.hypergraphdb.app.owl.newver;
 
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
-
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGHandleHolder;
@@ -18,6 +20,7 @@ import org.hypergraphdb.algorithms.GraphClassics;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.hypergraphdb.app.owl.versioning.change.VChange;
+import org.hypergraphdb.util.HGUtils;
 import org.hypergraphdb.util.Mapping;
 
 /**
@@ -35,6 +38,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	private HyperGraph graph;
 	private HGHandle thisHandle;
 	private HGHandle ontology;
+	private HGHandle rootRevision;
 	private HGHandle currentRevision;
 	private HGHandle workingChanges;
 
@@ -213,7 +217,17 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	{
 		return graph;
 	}
-	
+		
+	public HGHandle getRootRevision()
+	{
+		return rootRevision;
+	}
+
+	public void setRootRevision(HGHandle rootRevision)
+	{
+		this.rootRevision = rootRevision;
+	}
+
 	public Revision revision()
 	{
 		return graph.get(currentRevision);
@@ -496,6 +510,26 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	public OWLOntologyEx getRevisionData(HGHandle revisionHandle)
 	{
 		throw new UnsupportedOperationException();
+	}
+
+	public Set<Revision> heads()
+	{
+		HashSet<Revision> result = new HashSet<Revision>();
+		HGSearchResult<HGHandle> rs = graph.find(hg.bfs(this.getRootRevision(), hg.type(MarkParent.class), null));
+		try
+		{
+			while (rs.hasNext())
+			{
+				Revision rev = graph.get(rs.next());
+				if (rev.branches().isEmpty())
+					result.add(rev);				
+			}
+		}
+		finally
+		{
+			HGUtils.closeNoException(rs);
+		}
+		return result;
 	}
 	
 	public HGDBOntology ontology()

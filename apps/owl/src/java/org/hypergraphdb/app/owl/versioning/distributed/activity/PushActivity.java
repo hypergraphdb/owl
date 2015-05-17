@@ -2,6 +2,7 @@ package org.hypergraphdb.app.owl.versioning.distributed.activity;
 
 import static org.hypergraphdb.peer.Messages.CONTENT;
 
+
 import static org.hypergraphdb.peer.Messages.getReply;
 import static org.hypergraphdb.peer.Messages.getSender;
 import static org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository.OBJECTCONTEXT_REPOSITORY;
@@ -137,16 +138,6 @@ public class PushActivity extends OntologyTransmitActivity
 		return completedMessage;
 	}
 
-	/**
-	 * Only call on source, where sourceDistributedOntology is available.
-	 * 
-	 * @return
-	 */
-	public String sourceGetPushMode()
-	{
-		return getDistributionModeFor(sourceDistributedOnto);
-	}
-
 	/*
 	 * (non-Javadoc) // SOURCE
 	 * 
@@ -157,7 +148,6 @@ public class PushActivity extends OntologyTransmitActivity
 	{
 		Json msg = createMessage(Performative.QueryIf, this);
 		msg.set(CONTENT, sourceDistributedOnto.getVersionedOntology().getCurrentRevision());
-		msg.set(KEY_DISTRIBUTION_MODE, sourceGetPushMode());
 		send(targetPeerID, msg);
 		if (DBG)
 		{
@@ -181,7 +171,6 @@ public class PushActivity extends OntologyTransmitActivity
 	{
 		// msg parsing
 		final HGPersistentHandle headRevisionOntologyID = Messages.fromJson(msg.at(CONTENT));
-		final String pushMode = msg.at(KEY_DISTRIBUTION_MODE).asString();
 		// Look up in repository
 		// TRANSACTION START
 		return graph.getTransactionManager().ensureTransaction(new Callable<WorkflowStateConstant>()
@@ -194,7 +183,6 @@ public class PushActivity extends OntologyTransmitActivity
 					DistributedOntology targetDistributedOnto = repository.getDistributedOntology(o);
 					if (targetDistributedOnto != null)
 					{
-						targetAssertDistributionModeMatches(targetDistributedOnto, pushMode);
 						// send Confirm with existing revisions objects
 						// and tell if we have uncommitted changes.
 						// TODO send content hash
@@ -270,7 +258,6 @@ public class PushActivity extends OntologyTransmitActivity
 		msg = createMessage(Performative.Propose, this);
 		// send full head revision data, not versioned yet.
 		msg.set(CONTENT, vowlxmlStringOntology);
-		msg.set(KEY_DISTRIBUTION_MODE, sourceGetPushMode());
 		send(targetPeerID, msg);
 //		setSourceNrOfRevisionsPushed(sourceDistributedOnto.getVersionedOntology().getNrOfRevisions());
 		setSourceSizeOfPushedDataChars(vowlxmlStringOntology.length());
@@ -290,7 +277,6 @@ public class PushActivity extends OntologyTransmitActivity
 	public WorkflowStateConstant targetReceiveFullVersionedOntologyAsNew(Json msg) throws Throwable
 	{
 		final String vowlxmlStringOntology = msg.at(CONTENT).asString();
-		final String pushMode = msg.at(KEY_DISTRIBUTION_MODE).asString();
 		graph.getTransactionManager().ensureTransaction(new Callable<Object>()
 		{
 			public Object call()
@@ -308,20 +294,8 @@ public class PushActivity extends OntologyTransmitActivity
 				}
 				DistributedOntology newDO;
 				HGHandle voParsedHandle = graph.getHandle(voParsed);
-				if (pushMode.equals(VALUE_DISTRIBUTION_MODE_CLIENT_SERVER))
-				{
-					newDO = new ServerCentralizedOntology(voParsedHandle);
-				}
-				else if (pushMode.equals(VALUE_DISTRIBUTION_MODE_PEER))
-				{
-					newDO = new PeerDistributedOntology(voParsedHandle);
-				}
-				else
-				{
-					throw new IllegalArgumentException("Push mode not recognized. Abort transaction. Was:" + pushMode);
-				}
-				graph.add(newDO);
-				targetDistributedOnto = newDO;
+//				graph.add(newDO);
+//				targetDistributedOnto = newDO;
 //				if (DBG_RENDER_ONTOLOGIES_TO_FILE)
 //				{
 //					repository.printAllOntologies();
@@ -498,7 +472,6 @@ public class PushActivity extends OntologyTransmitActivity
 							"No common revision at beginning of source and target histories."));
 				}
 				// TRANSACTION END
-				reply.set(KEY_DISTRIBUTION_MODE, sourceGetPushMode());
 				send(getSender(msg), reply);
 				return nextState;
 			}
@@ -531,8 +504,6 @@ public class PushActivity extends OntologyTransmitActivity
 		// Test if received last revision matches target head and all other
 		// prerequisites are still met.
 		//
-		final Revision lastMatchingRevision = Messages.fromJson(msg.at(KEY_LAST_MATCHING_REVISION));
-		final String pushMode = msg.at(KEY_DISTRIBUTION_MODE).asString();
 		// Validate if lastMatchingRevision still is target HEAD, keep UUID
 		// Throws exceptions if not.
 		String vowlxmlStringDelta = graph.getTransactionManager().ensureTransaction(new Callable<String>()

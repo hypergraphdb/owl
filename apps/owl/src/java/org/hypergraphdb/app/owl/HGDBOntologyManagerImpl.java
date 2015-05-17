@@ -11,7 +11,7 @@ import org.hypergraphdb.app.owl.core.PrefixChangeListener;
 import org.hypergraphdb.app.owl.core.RemovePrefixChange;
 import org.hypergraphdb.app.owl.newver.VersionManager;
 import org.hypergraphdb.app.owl.newver.VersioningChangeListener;
-import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.app.owl.newver.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.ActivityUtils;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.OWLOntology;

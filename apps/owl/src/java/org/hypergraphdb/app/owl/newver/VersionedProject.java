@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl.newver;
 
 import java.util.List;
+import java.util.Set;
 
 public class VersionedProject implements Versioned<VersionedProject>
 {
@@ -48,5 +49,12 @@ public class VersionedProject implements Versioned<VersionedProject>
 	public VersionedProject undo()
 	{
 		return this;
+	}
+
+	@Override
+	public Set<Revision> heads()
+	{
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

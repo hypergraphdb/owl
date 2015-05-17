@@ -46,7 +46,6 @@ public class TestVDHGDBPush
 	 * This ontology will be imported.
 	 */
 	public static String TEST_ONTOLOGY = "C:\\_CiRM\\testontos\\County.owl";
-	public static String TEST_DISTRIBUTION_MODE = OntologyTransmitActivity.VALUE_DISTRIBUTION_MODE_CLIENT_SERVER;
 
 	/**
 	 * if false the first one found will be used.

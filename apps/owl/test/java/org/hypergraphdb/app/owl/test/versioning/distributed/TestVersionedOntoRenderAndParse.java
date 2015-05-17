@@ -114,7 +114,7 @@ public class TestVersionedOntoRenderAndParse
 			File fx = new File(TESTFILE.getAbsolutePath() + " Revision-" + ".xml");
 			renderedFiles.add(fx);
 			Writer fwriter = new OutputStreamWriter(new FileOutputStream(fx), Charset.forName("UTF-8"));
-			r.render(vo, fwriter, c);
+			r.render(vo, null, fwriter, c);
 //			for (int i = 0; i < vo.getArity(); i++)
 //			{
 //				VOWLXMLRenderConfiguration c = new VOWLXMLRenderConfiguration();
