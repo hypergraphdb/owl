@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl;
 
 import java.io.PrintWriter;
+
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.util.Date;
@@ -308,14 +309,6 @@ public class HGDBOntologyRepository
 			printAllOntologies();
 		return graph.add(ontology);
 	}
-
-	// public GarbageCollectorStatistics runGarbageCollector() {
-	// return garbageCollector.runGarbageCollection();
-	// }
-	//
-	// public GarbageCollector getGarbageCollector() {
-	// return garbageCollector;
-	// }
 
 	public void printStatistics()
 	{
