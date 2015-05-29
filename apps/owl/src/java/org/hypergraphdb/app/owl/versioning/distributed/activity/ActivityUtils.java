@@ -12,18 +12,24 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 
+import org.hypergraphdb.HGPersistentHandle;
+import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
+import org.hypergraphdb.app.owl.HGDBOntologyFormat;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
+import org.hypergraphdb.app.owl.core.OWLTempOntologyImpl;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyUUIDException;
+import org.hypergraphdb.app.owl.newver.ChangeSet;
 import org.hypergraphdb.app.owl.newver.Revision;
 import org.hypergraphdb.app.owl.newver.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.DistributedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLParser;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLRenderConfiguration;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVersionedOntologyRenderer;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
@@ -32,10 +38,13 @@ import org.semanticweb.owlapi.io.OWLRendererException;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLOntologyChangeException;
+import org.semanticweb.owlapi.model.OWLOntologyID;
+import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.UnloadableImportException;
 
 /**
@@ -74,12 +83,26 @@ public class ActivityUtils
 	 * @return
 	 * @throws OWLRendererException
 	 */
-	String renderVersionedOntology(VersionedOntology versionedOnto) throws OWLRendererException
+	public static String renderVersionedOntology(VersionedOntology versionedOntology)
 	{
-		return renderVersionedOntology(versionedOnto, Integer.MAX_VALUE);
+		try
+		{
+			VOWLXMLRenderConfiguration conf = new VOWLXMLRenderConfiguration();
+			conf.firstRevision(versionedOntology.getRootRevision());
+			conf.revisionSnapshot(versionedOntology.getCurrentRevision());
+			VOWLXMLVersionedOntologyRenderer owlxmlRenderer = new VOWLXMLVersionedOntologyRenderer(
+					HGOntologyManagerFactory.getOntologyManager(versionedOntology.graph().getLocation()));
+			StringWriter stringWriter = new StringWriter(RENDER_BUFFER_DELTA_INITIAL_SIZE);
+			owlxmlRenderer.render(versionedOntology, null, stringWriter, conf);
+			return stringWriter.toString();
+		}
+		catch (Exception ex)
+		{
+			throw new RuntimeException(ex);
+		}
 	}
 
-	String renderVersionedOntology(VersionedOntology versionedOnto, int lastRevisionToRenderIndex) throws OWLRendererException
+	public static String renderVersionedOntology(VersionedOntology versionedOnto, int lastRevisionToRenderIndex) throws OWLRendererException
 	{
 		throw new UnsupportedOperationException();
 //		VOWLXMLRenderConfiguration conf = new VOWLXMLRenderConfiguration();
@@ -114,42 +137,44 @@ public class ActivityUtils
 	 * @throws HGDBOntologyAlreadyExistsByOntologyIDException
 	 * @throws HGDBOntologyAlreadyExistsByOntologyUUIDException
 	 */
-	public VersionedOntology storeVersionedOntology(OWLOntologyDocumentSource vowlDocumentSource, HGDBOntologyManager manager)
-			throws Exception
+	public static VersionedOntology storeVersionedOntology(OWLOntologyDocumentSource vowlDocumentSource, HGDBOntologyManager manager)
 	{
-		throw new UnsupportedOperationException();
-//		// OWLOntologyDocumentSource ds = new
-//		// StringDocumentSource(vowlXMLString);
-//		VOWLXMLParser vowlxmlParser = new VOWLXMLParser();
-//		// Create an partial in mem onto with a hgdb manager and hgdb data
-//		// factory to use.
-//		OWLOntologyEx partialInMemOnto = new OWLTempOntologyImpl(manager, new OWLOntologyID());
-//		VOWLXMLDocument vowlxmlDoc = new VOWLXMLDocument(partialInMemOnto);
-//		// The newly created ontology will hold the manager and the parser will
-//		// use the manager's
-//		// data factory.
-//		vowlxmlParser.parse(vowlDocumentSource, vowlxmlDoc, new OWLOntologyLoaderConfiguration());
-//		if (!vowlxmlDoc.isCompleteVersionedOntology())
-//		{
-//			throw new OWLParserException("The transmitted ontology was not complete.");
-//		}
-//		OWLOntologyID ontologyID = vowlxmlDoc.getRevisionData().getOntologyID();
-//		IRI documentIRI = HGDBOntologyFormat.convertToHGDBDocumentIRI(ontologyID.getDefaultDocumentIRI()); // IRI.create("hgdb://"
-//																											// +
-//																											// ontologyID.getDefaultDocumentIRI().toString().substring(7));
-//		HGPersistentHandle ontologyUUID = vowlxmlDoc.getVersionedOntologyID();
-//		System.out.println("Storing ontology data for : " + ontologyUUID + " using docIRI: " + documentIRI);
-//		HGDBOntology o = manager.getOntologyRepository().createOWLOntology(ontologyID, documentIRI, ontologyUUID);
-//		o.setOWLOntologyManager(manager);
-//		storeFromTo(vowlxmlDoc.getRevisionData(), o);
-//		HyperGraph graph = manager.getOntologyRepository().getHyperGraph();
-//		// Add version control with full matching history.
-//		System.out.println("Creating and adding version control information for : " + ontologyUUID);
-//		VersionedOntology voParsed = new VersionedOntology(vowlxmlDoc.getRevisions(), vowlxmlDoc.getChangesets(), graph);
-//		// TODO VALIDATE EVERYTHING HERE, even though we have a lot of
-//		// validation by getting here.
-//		graph.add(voParsed);
-//		return voParsed;
+		HyperGraph graph = manager.getOntologyRepository().getHyperGraph();		
+		try
+		{
+			VOWLXMLParser vowlxmlParser = new VOWLXMLParser();
+			// Create an partial in mem onto with a hgdb manager and hgdb data
+			// factory to use.
+			OWLOntologyEx partialInMemOnto = new OWLTempOntologyImpl(manager, new OWLOntologyID());
+			VOWLXMLDocument vowlxmlDoc = new VOWLXMLDocument(partialInMemOnto);
+			// The newly created ontology will hold the manager and the parser will
+			// use the manager's
+			// data factory.
+			vowlxmlParser.parse(graph, vowlDocumentSource, vowlxmlDoc, new OWLOntologyLoaderConfiguration());
+			OWLOntologyID ontologyID = vowlxmlDoc.getRevisionData().getOntologyID();
+			IRI documentIRI = HGDBOntologyFormat.convertToHGDBDocumentIRI(ontologyID.getDefaultDocumentIRI()); 
+			HGPersistentHandle ontologyUUID = graph.getHandleFactory().makeHandle(vowlxmlDoc.getOntologyID());
+			System.out.println("Storing ontology data for : " + ontologyUUID + " using docIRI: " + documentIRI);
+			HGDBOntology o = manager.getOntologyRepository().createOWLOntology(ontologyID, documentIRI, ontologyUUID);
+			o.setOWLOntologyManager(manager);
+			storeFromTo(vowlxmlDoc.getRevisionData(), o);
+			// Add version control with full matching history.
+			System.out.println("Creating and adding version control information for : " + ontologyUUID);
+			ChangeSet<VersionedOntology> workingChangeSet = new ChangeSet<VersionedOntology>();			
+			VersionedOntology voParsed = new VersionedOntology(graph, 
+															   o.getAtomHandle(),  
+															   vowlxmlDoc.getRenderConfig().revisionSnapshot(), 
+															   graph.add(workingChangeSet));
+			voParsed.setRootRevision(vowlxmlDoc.getRenderConfig().firstRevision());
+			voParsed.setCurrentRevision(vowlxmlDoc.getRenderConfig().revisionSnapshot());
+			HGPersistentHandle versionedHandle = graph.getHandleFactory().makeHandle(vowlxmlDoc.getVersionedID());			
+			graph.define(versionedHandle, voParsed);
+			return voParsed;
+		}
+		catch (Exception ex)
+		{
+			throw new RuntimeException(ex);
+		}		
 	}
 
 	/**
@@ -167,7 +192,7 @@ public class ActivityUtils
 	 * @throws OWLParserException
 	 * @throws IOException
 	 */
-	VOWLXMLDocument appendDeltaTo(OWLOntologyDocumentSource vowlxmlDeltaSource, VersionedOntology targetVersionedOntology,
+	public VOWLXMLDocument appendDeltaTo(OWLOntologyDocumentSource vowlxmlDeltaSource, VersionedOntology targetVersionedOntology,
 			boolean mergeWithUncommitted) throws OWLOntologyChangeException, UnloadableImportException, OWLParserException,
 			IOException
 	{
@@ -221,7 +246,7 @@ public class ActivityUtils
 	 * @throws IllegalStateException
 	 *             in all problem cases.
 	 */
-	DistributedOntology getDistributedOntologyForDeltaFrom(Revision lastMatchingRevision, VDHGDBOntologyRepository repository,
+	public DistributedOntology getDistributedOntologyForDeltaFrom(Revision lastMatchingRevision, VDHGDBOntologyRepository repository,
 			boolean mergeWithUncommittedMode) throws IllegalStateException
 	{
 		throw new UnsupportedOperationException();
@@ -262,7 +287,7 @@ public class ActivityUtils
 //		}
 	}
 
-	String renderVersionedOntologyDelta(VersionedOntology versionedOntology, Set<Revision> delta) throws OWLRendererException
+	public String renderVersionedOntologyDelta(VersionedOntology versionedOntology, Set<Revision> delta) throws OWLRendererException
 	{
 		VOWLXMLRenderConfiguration conf = new VOWLXMLRenderConfiguration();
 		VOWLXMLVersionedOntologyRenderer owlxmlRenderer = new VOWLXMLVersionedOntologyRenderer(
@@ -283,12 +308,12 @@ public class ActivityUtils
 	 * @return
 	 * @throws OWLRendererException
 	 */
-	String renderVersionedOntologyDelta(VersionedOntology versionedOntology, int startRevisionIndex) throws OWLRendererException
+	public String renderVersionedOntologyDelta(VersionedOntology versionedOntology, int startRevisionIndex) throws OWLRendererException
 	{
 		return renderVersionedOntologyDelta(versionedOntology, startRevisionIndex, Integer.MAX_VALUE);
 	}
 
-	String renderVersionedOntologyDelta(VersionedOntology versionedOntology, int startRevisionIndex, int lastRevisionIndex)
+	public String renderVersionedOntologyDelta(VersionedOntology versionedOntology, int startRevisionIndex, int lastRevisionIndex)
 			throws OWLRendererException
 	{
 		throw new UnsupportedOperationException();
@@ -300,43 +325,6 @@ public class ActivityUtils
 //		// owlxmlRenderer.render(sourceVersionedOnto, stringWriter, conf);
 //		owlxmlRenderer.render(versionedOntology, stringWriter, conf);
 //		return stringWriter.toString();
-	}
-
-	/**
-	 * Finds the index of the last 2 revisions that are common (equal) to both
-	 * histories.
-	 * 
-	 * <pre>
-	 * 0..source.size()-1 the index of the last matching revision
-	 * -1 no common history
-	 * </pre>
-	 * 
-	 * @param branchA
-	 *            a history of revisions, oldest first.
-	 * @param branchB
-	 *            a history of revisions, oldest first.
-	 * @return -1 if no common history, or index value
-	 *         [0..Math.Min(branchA.size(), branchB.size()-1)]
-	 */
-	int findLastCommonRevisionIndex(List<Revision> branchA, List<Revision> branchB)
-	{
-		ListIterator<Revision> aIt = branchA.listIterator();
-		ListIterator<Revision> bIt = branchB.listIterator();
-		int commonIndex = -1;
-		boolean commonAreEqual = true;
-		while (commonAreEqual && aIt.hasNext() && bIt.hasNext())
-		{
-			Revision revisionA = aIt.next();
-			Revision revisionB = bIt.next();
-			// TODO we'll need content dependent comparison here in the future
-			// (SHA1?)
-			commonAreEqual = revisionA.equals(revisionB);
-			if (commonAreEqual)
-			{
-				commonIndex++;
-			}
-		}
-		return commonIndex;
 	}
 
 	/**
@@ -356,7 +344,7 @@ public class ActivityUtils
 	 * @param to
 	 *            and ontology already in the graph.
 	 */
-	void storeFromTo(OWLOntologyEx from, HGDBOntology to)
+	public static void storeFromTo(OWLOntologyEx from, HGDBOntology to)
 	{
 		final Set<OWLAxiom> axioms = from.getAxioms();
 		int i = 0;

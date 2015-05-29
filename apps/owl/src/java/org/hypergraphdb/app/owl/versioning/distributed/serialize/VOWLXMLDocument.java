@@ -1,10 +1,9 @@
 package org.hypergraphdb.app.owl.versioning.distributed.serialize;
 
 import java.text.DateFormat;
+
 import java.util.List;
 import java.util.Locale;
-
-import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.hypergraphdb.app.owl.newver.ChangeSet;
 import org.hypergraphdb.app.owl.newver.Revision;
@@ -30,7 +29,8 @@ public class VOWLXMLDocument
 	private List<ChangeSet<VersionedOntology>> changesets;
 
 	private OWLOntologyEx revisionData;
-	private HGPersistentHandle versionedOntologyID;
+	private String ontologyID;
+	private String versionedID;
 
 	/**
 	 * 
@@ -45,23 +45,7 @@ public class VOWLXMLDocument
 		setRenderConfig(new VOWLXMLRenderConfiguration());
 		setRevisionData(onto);
 	}
-	
-	/**
-	 * True if this object represents a full versionedOntology with or without
-	 * uncommitted changes. This is the case, if all changesets plus the last
-	 * revision data is contained.
-	 * 
-	 * @return
-	 */
-	public boolean isCompleteVersionedOntology()
-	{
-		if (revisions.contains(renderConfig.firstRevision()))
-			return false;
-		if (!revisions.containsAll(renderConfig.heads()))
-			return false;
-		return true;
-	}
-	
+			
 	/**
 	 * 
 	 * @return the revisions
@@ -131,20 +115,23 @@ public class VOWLXMLDocument
 		this.revisionData = revisionData;
 	}
 
-	/**
-	 * @return the versionedOntologyID
-	 */
-	public HGPersistentHandle getVersionedOntologyID()
+	public String getOntologyID()
 	{
-		return versionedOntologyID;
+		return ontologyID;
 	}
 
-	/**
-	 * @param versionedOntologyID
-	 *            the versionedOntologyID to set
-	 */
-	public void setVersionedOntologyID(HGPersistentHandle versionedOntologyID)
+	public void setOntologyID(String ontologyID)
 	{
-		this.versionedOntologyID = versionedOntologyID;
+		this.ontologyID = ontologyID;
+	}
+
+	public String getVersionedID()
+	{
+		return versionedID;
+	}
+
+	public void setVersionedID(String versionedID)
+	{
+		this.versionedID = versionedID;
 	}
 }

@@ -1,7 +1,6 @@
 package org.hypergraphdb.app.owl.newver;
 
 import java.util.HashSet;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -9,7 +8,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
+import org.hypergraphdb.HGSearchResult;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.util.HGUtils;
 
 /**
  * <p>
@@ -36,7 +37,18 @@ public class VersionManager
 	private HGHandle emptyChangeSetHandle()
 	{
 		if (emptyChangeSetHandle == null)
+		{
 			emptyChangeSetHandle = graph.getHandleFactory().makeHandle("cfc87b65-35bc-427c-ac33-1c0aa4dd24c8");
+			graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+				public Object call()
+				{
+					ChangeSet<VersionedOntology> changeSet = graph.get(emptyChangeSetHandle);
+					if (changeSet == null)
+						graph.define(emptyChangeSetHandle, new ChangeSet<VersionedOntology>());
+					return null;
+				}
+			});
+		}
 		return emptyChangeSetHandle;
 	}
 	
@@ -121,6 +133,15 @@ public class VersionManager
 			return startVersioning(ontology);
 	}
 			
+	/**
+	 * <p>
+	 * Remove versioning information about an ontology.If there is no currently
+	 * versioning in effect, nothing is done.
+	 * </p>
+	 * @param ontology The {@link HGHandle} of the <code>OWLOntology</code> itself, 
+	 * not the {@link VersionedOntology} object.
+	 * @return <code>this</code>
+	 */
 	public VersionManager removeVersioning(final HGHandle ontology)
 	{
 		graph.getTransactionManager().ensureTransaction(new Callable<Boolean>()
@@ -131,8 +152,47 @@ public class VersionManager
 				{
 					VersionedOntology vOntology = versioned(ontology);
 					HGHandle voHandle = graph.getHandle(vOntology);
-					// TODO - this is probably not enough, we have to do
-					// all the cleanup of change sets, commits, revisions etc.
+					HGSearchResult<HGHandle> rs = graph.find(hg.dfs(vOntology.getRootRevision(),
+																    hg.type(MarkParent.class),
+																    hg.type(Revision.class)));
+					// TODO: how much of this stuff should be left for garbage collection
+					// we do want this to be a fast operation since it's going to be user performed.
+					// The problem with leaving it to GC is that an immediate (re)clone of the same
+					// ontology will hit a conflict with the partially removed, not GC-ed yet one
+					// since all HGHandles are the same.
+					try
+					{
+						while (rs.hasNext()) 
+						{
+							HGHandle revisionHandle = rs.next();
+							// remove MarkParent links as well, hopefully no issue with ongoing traversal!
+							graph.remove(revisionHandle, true); 
+						}
+					}
+					finally
+					{
+						HGUtils.closeNoException(rs);
+					}
+					graph.remove(vOntology.getRootRevision(), true);
+					rs = graph.find(hg.and(hg.incident(vOntology.ontology().getAtomHandle()), 
+										   hg.type(ChangeMark.class)));
+					try
+					{
+						while (rs.hasNext()) 
+						{
+							HGHandle changeMarkHandle = rs.next();
+							ChangeMark changeMark = graph.get(changeMarkHandle);
+							HGHandle changeSetHandle = changeMark.changeset();
+							ChangeSet<VersionedOntology> changeSet = graph.get(changeSetHandle);
+							changeSet.clear();
+							graph.remove(changeMarkHandle, true);
+							graph.remove(changeSetHandle, true);
+						}
+					}
+					finally
+					{
+						HGUtils.closeNoException(rs);
+					}					
 					graph.remove(voHandle, true);
 				}
 				return true;

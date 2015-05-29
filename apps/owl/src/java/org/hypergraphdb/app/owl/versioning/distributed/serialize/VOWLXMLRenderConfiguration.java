@@ -6,9 +6,23 @@ import java.util.Set;
 import org.hypergraphdb.HGHandle;
 
 /**
- * VOWLXMLRenderConfiguration.
+ * <p>
+ * Configures how a versioned ontology is serialized. One can configure what parts of the 
+ * revision graph to serialize as well as transmitting a given snapshot (as of a 
+ * specific revision). 
+ * </p>
+ * <p>
+ * To configure the graph portions to serialize, specify a set
+ * of revision "roots" and a set of revision "heads". The serialization will then
+ * collect all revisions starting from the roots and stopping at any of the heads. 
+ * Another way to stop the revision traversal in this process is with 
+ * the <code>maxDepth</code> parameter. When one of the roots is the same as
+ * the <code>firstRevision</code> parameter and the <code>heads</code> set is 
+ * empty, then everything is being serialized.
+ * </p>
  * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
+ * @author borislav
  * @created Feb 24, 2012
  */
 public class VOWLXMLRenderConfiguration
@@ -18,14 +32,23 @@ public class VOWLXMLRenderConfiguration
 	Set<HGHandle> heads = new HashSet<HGHandle>();
 	Set<HGHandle> roots = new HashSet<HGHandle>();
 	int maxDepth = Integer.MAX_VALUE;
-	boolean uncommittedChanges;
 	
 	/**
 	 * Default is render all revisions, head data but no uncommitted changes.
 	 */
 	public VOWLXMLRenderConfiguration()
 	{
-		uncommittedChanges(false);
+	}
+	
+	public HGHandle firstRevision()
+	{
+		return firstRevision;
+	}
+	
+	public VOWLXMLRenderConfiguration firstRevision(HGHandle firstRevision)
+	{
+		this.firstRevision = firstRevision;
+		return this;
 	}
 	
 	public int maxDepth()
@@ -33,7 +56,6 @@ public class VOWLXMLRenderConfiguration
 		return maxDepth;
 	}
 	
-
 	public VOWLXMLRenderConfiguration maxDepth(int maxDepth)
 	{
 		this.maxDepth = maxDepth;
@@ -51,17 +73,6 @@ public class VOWLXMLRenderConfiguration
 		return this;
 	}
 	
-	public HGHandle firstRevision()
-	{
-		return firstRevision;
-	}
-	
-	public VOWLXMLRenderConfiguration firstRevision(HGHandle firstRevision)
-	{
-		this.firstRevision = firstRevision;
-		return this;
-	}
-	
 	public Set<HGHandle> roots()
 	{
 		return roots;
@@ -70,40 +81,5 @@ public class VOWLXMLRenderConfiguration
 	public Set<HGHandle> heads()
 	{
 		return heads;
-	}
-
-	/**
-	 * Revisions and Changesets only, starting with first, no uncommitted, no
-	 * data.
-	 * 
-	 * @param first
-	 */
-	public VOWLXMLRenderConfiguration(int first)
-	{
-		uncommittedChanges(false);
-	}
-
-	/**
-	 * On false, neither the head changeset (after head) will be rendered, nor
-	 * will the lastRevisionData include any uncommitted changes.
-	 * 
-	 * @return the uncommittedChanges default: false
-	 */
-	public boolean isUncommittedChanges()
-	{
-		return uncommittedChanges;
-	}
-
-	/**
-	 * Get whether both, the head changeset (after head) will be rendered, and
-	 * the lastRevisionData will include any uncommitted changes.
-	 * 
-	 * @param uncommittedChanges
-	 *            the uncommittedChanges to set
-	 */
-	public VOWLXMLRenderConfiguration uncommittedChanges(boolean includeUncommited)
-	{
-		this.uncommittedChanges = includeUncommited;
-		return this;
 	}
 }

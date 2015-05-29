@@ -11,6 +11,7 @@ import org.coode.owlapi.owlxmlparser.OWLXMLParser;
 //import org.coode.owlapi.owlxmlparser.OWLXMLParserHandler;
 import org.coode.owlapi.owlxmlparser.TranslatedOWLParserException;
 import org.coode.owlapi.owlxmlparser.TranslatedUnloadableImportException;
+import org.hypergraphdb.HyperGraph;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.io.OWLParserSAXException;
@@ -44,9 +45,11 @@ public class VOWLXMLParser extends OWLXMLParser
 	 * @throws OWLOntologyChangeException
 	 * @throws UnloadableImportException
 	 */
-	public OWLOntologyFormat parse(OWLOntologyDocumentSource documentSource, VOWLXMLDocument versionedOntologyRoot,
-			OWLOntologyLoaderConfiguration loaderConfig) throws OWLParserException, IOException, OWLOntologyChangeException,
-			UnloadableImportException
+	public OWLOntologyFormat parse(HyperGraph graph,
+								   OWLOntologyDocumentSource documentSource, 
+								   VOWLXMLDocument versionedOntologyRoot,
+								   OWLOntologyLoaderConfiguration loaderConfig) 
+	    throws OWLParserException, IOException, OWLOntologyChangeException, UnloadableImportException
 	{
 		InputSource isrc = null;
 		try
@@ -59,7 +62,7 @@ public class VOWLXMLParser extends OWLXMLParser
 			isrc = getInputSource(documentSource); // TODO that null parameter
 													// was just to compile with
 													// 3.4.4
-			VOWLXMLParserHandler handler = new VOWLXMLParserHandler(versionedOntologyRoot, null, loaderConfig);
+			VOWLXMLParserHandler handler = new VOWLXMLParserHandler(graph, versionedOntologyRoot, null, loaderConfig);
 			parser.parse(isrc, handler);
 			Map<String, String> prefix2NamespaceMap = handler.getPrefixName2PrefixMap();
 			for (String prefix : prefix2NamespaceMap.keySet())

@@ -61,7 +61,6 @@ public class VOWLXMLVersionedOntologyRenderer extends AbstractOWLRenderer
 			vw.writePrefix("xsd:", Namespaces.XSD.toString());
 			vw.writePrefix("owl:", Namespaces.OWL.toString());
 			vw.writePrefix(VOWLXMLVocabulary.NAMESPACE_PREFIX.toString(), VOWLXMLVocabulary.NAMESPACE.toString());
-
 			VOWLXMLObjectRenderer vren = new VOWLXMLObjectRenderer(vw, configuration);
 			vren.visit(configuration);
 			vren.visit(vonto);

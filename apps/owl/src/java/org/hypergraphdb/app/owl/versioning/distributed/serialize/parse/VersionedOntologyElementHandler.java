@@ -57,15 +57,20 @@ public class VersionedOntologyElementHandler extends AbstractVOWLElementHandler<
 
 	@Override
 	public void attribute(String localName, String value) throws OWLParserException
-	{
+	{		
 		if (localName.equals("ontologyID"))
-		{
-			ontologyID = UUIDPersistentHandle.makeHandle(value.trim());
-		}
-		if (localName.equals("headRevisionIndex"))
-		{
-			headRevisionIndex = Integer.parseInt(value.trim());
-		}
+			this.getDocumentRoot().setOntologyID(value);
+		else if (localName.equals("versionedID"))
+			this.getDocumentRoot().setVersionedID(value);
+//
+//		if (localName.equals("ontologyID"))
+//		{
+//			ontologyID = UUIDPersistentHandle.makeHandle(value.trim());
+//		}
+//		if (localName.equals("headRevisionIndex"))
+//		{
+//			headRevisionIndex = Integer.parseInt(value.trim());
+//		}
 	}
 
 	/*

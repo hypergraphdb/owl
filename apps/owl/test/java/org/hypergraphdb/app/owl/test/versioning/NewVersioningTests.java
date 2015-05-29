@@ -1,12 +1,17 @@
 package org.hypergraphdb.app.owl.test.versioning;
 
-import static org.hypergraphdb.app.owl.test.TU.*;
-import java.io.File;
-import org.hypergraphdb.HGEnvironment;
+import static org.hypergraphdb.app.owl.test.TU.aInstanceOf;
+import static org.hypergraphdb.app.owl.test.TU.aProp;
+import static org.hypergraphdb.app.owl.test.TU.aSubclassOf;
+import static org.hypergraphdb.app.owl.test.TU.declare;
+import static org.hypergraphdb.app.owl.test.TU.dprop;
+import static org.hypergraphdb.app.owl.test.TU.individual;
+import static org.hypergraphdb.app.owl.test.TU.literal;
+import static org.hypergraphdb.app.owl.test.TU.oprop;
+import static org.hypergraphdb.app.owl.test.TU.owlClass;
+
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.app.owl.HGDBOntology;
-import org.hypergraphdb.app.owl.HGDBOntologyRepository;
-import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.newver.ChangeMark;
 import org.hypergraphdb.app.owl.newver.ChangeSet;
 import org.hypergraphdb.app.owl.newver.Revision;
@@ -17,29 +22,20 @@ import org.hypergraphdb.util.HGUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 
-public class NewVersioningTests
+public class NewVersioningTests extends VersioningTestBase
 {
-	static final String dblocation = 
-			System.getProperty("java.io.tmpdir") + 
-			File.separator + 
-			"hgdbtest";
-	
-	static final String iri_prefix = "hgdb://UNITTESTONT_VERSIONED";
-	
-	TestContext ctx; 
 		
 	public static void main(String []argv)
 	{
 		try
 		{
-			setup();	
-			NewVersioningTests t = new NewVersioningTests();
+			setupDatabase();
+			NewVersioningTests t = new NewVersioningTests();						
 			t.beforeTest();
 			t.testSimpleMerge();
 			t.afterTest();
@@ -49,18 +45,7 @@ public class NewVersioningTests
 			t.printStackTrace(System.err);
 		}
 	}
-	
-	@BeforeClass public static void setup() throws Exception
-	{
-		HGUtils.dropHyperGraphInstance(dblocation);
-		TestContext ctx = new TestContext();
-		ctx.graph = HGEnvironment.get(dblocation);
-		ctx.r = new HGDBOntologyRepository(dblocation);
-		ctx.m = new HGOntologyManagerFactory().getOntologyManager(dblocation);
-		ctx.df = ctx.m.getOWLDataFactory();
-		TU.ctx = ctx;
-	}
-	
+		
 	
 	@Rule public MyTestName testName = new MyTestName();
 	static int i = 0;

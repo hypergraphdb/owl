@@ -21,34 +21,23 @@ public class RenderConfigurationElementHandler extends AbstractVOWLElementHandle
 	/**
 	 * @param handler
 	 */
-	public RenderConfigurationElementHandler(OWLXMLParserHandler handler)
+	public RenderConfigurationElementHandler(HyperGraph graph, OWLXMLParserHandler handler)
 	{
 		super(handler);
+		this.graph = graph;
 	}
 
 	@Override
 	public void attribute(String localName, String value) throws OWLParserException
 	{
 		if (localName.equals("firstRevision"))
-		{
 			configuration.firstRevision(graph.getHandleFactory().makeHandle(value));
-		}
 		else if (localName.equals("revisionSnapshot"))
-		{
 			configuration.revisionSnapshot(graph.getHandleFactory().makeHandle(value));
-		}
 		else if (localName.equals("maxDepth"))
-		{
 			configuration.maxDepth(Integer.parseInt(value));
-		}
-		else if (localName.equals("unCommittedChanges"))
-		{
-			configuration.uncommittedChanges(Boolean.parseBoolean(value.trim()));
-		}
 		else
-		{
 			throw new IllegalStateException("");
-		}
 	}
 	
 	@Override

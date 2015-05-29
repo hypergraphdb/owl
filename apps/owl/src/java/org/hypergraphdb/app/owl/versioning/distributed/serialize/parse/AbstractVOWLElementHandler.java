@@ -25,11 +25,6 @@ public abstract class AbstractVOWLElementHandler<O> extends AbstractOWLElementHa
 		this.handler = (VOWLXMLParserHandler) handler;
 	}
 
-	public void setParentHandler(OWLElementHandler<?> handler)
-	{
-		super.setParentHandler((VOWLElementHandler<?>) handler);
-	}
-
 	public VOWLXMLDocument getDocumentRoot()
 	{
 		return handler.getDocumentRoot();

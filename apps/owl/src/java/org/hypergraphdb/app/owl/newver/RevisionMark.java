@@ -10,7 +10,7 @@ import org.hypergraphdb.HGLink;
  * applied on a revision without necessarily creating a new revision (for 
  * example because they are associated with the revision of a composite project).
  * This link is used to link the one flushing operation (i.e. the creation of a ChangeMark)
- * got a given versioned object that also creates a new {@link Revision}. 
+ * for a given versioned object that also creates a new {@link Revision}. 
  * </p>
  * <p>
  * Note that we cannot store the revision mark as part of the {@link Revision} itself because

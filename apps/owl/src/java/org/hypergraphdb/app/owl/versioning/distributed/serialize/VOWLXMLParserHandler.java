@@ -204,6 +204,7 @@ import org.coode.owlapi.owlxmlparser.SWRLRuleElementHandler;
 import org.coode.owlapi.owlxmlparser.SWRLSameIndividualAtomElementHandler;
 import org.coode.owlapi.owlxmlparser.TranslatedOWLParserException;
 import org.coode.owlapi.owlxmlparser.TranslatedUnloadableImportException;
+import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.ChangeSetElementHandler;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.OWLImportsHandlerModified;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.OWLOntologyHandlerModified;
@@ -276,35 +277,15 @@ import org.xml.sax.SAXException;
  */
 public class VOWLXMLParserHandler extends OWLXMLParserHandler
 {
-
+	private HyperGraph graph;
 	private OWLOntologyManager owlOntologyManager;
-
 	private VOWLXMLDocument versionedOntologyRoot;
-
 	private List<OWLElementHandler<?>> handlerStack;
-
 	private Map<String, OWLElementHandlerFactory> handlerMap;
-
 	private Map<String, String> prefixName2PrefixMap = new HashMap<String, String>();
-
 	private Locator locator;
-
 	private Stack<URI> bases;
-
 	private OWLOntologyLoaderConfiguration configuration;
-
-	// /**
-	// * True, if we are currently processing an ontology Object that our
-	// superclass shall handle.
-	// * Overwritten methods will return superclass's methods values during OWL
-	// element processing.
-	// */
-	// private boolean owlElementProcessingMode;
-
-	public VOWLXMLParserHandler(VOWLXMLDocument voRoot)
-	{
-		this(voRoot, null, new OWLOntologyLoaderConfiguration());
-	}
 
 	/**
 	 * Creates an OWLXML handler with the specified top level handler. This
@@ -316,11 +297,14 @@ public class VOWLXMLParserHandler extends OWLXMLParserHandler
 	 *            The ontology object that the XML representation should be
 	 *            parsed into.
 	 */
-	public VOWLXMLParserHandler(VOWLXMLDocument voRoot, OWLElementHandler<?> topHandler,
-			OWLOntologyLoaderConfiguration configuration)
+	public VOWLXMLParserHandler(HyperGraph graph,
+								VOWLXMLDocument voRoot, 
+							    OWLElementHandler<?> topHandler,
+							    OWLOntologyLoaderConfiguration configuration)
 	{
 		// forced to call
 		super(voRoot.getRevisionData(), topHandler, configuration);
+		this.graph = graph;
 		this.versionedOntologyRoot = voRoot;
 		this.owlOntologyManager = voRoot.getRevisionData().getOWLOntologyManager();
 		// this.ontology = voRoot.getRevisionData();
@@ -348,7 +332,7 @@ public class VOWLXMLParserHandler extends OWLXMLParserHandler
 		{
 			public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler)
 			{
-				return new RenderConfigurationElementHandler(handler);
+				return new RenderConfigurationElementHandler(VOWLXMLParserHandler.this.graph, handler);
 			}
 		});
 
@@ -1268,51 +1252,6 @@ public class VOWLXMLParserHandler extends OWLXMLParserHandler
 		{
 			throw new TranslatedOWLParserException(e);
 		}
-		// try {
-		// processXMLBase(attributes);
-		// //super.processXMLBase(attributes);
-		// if (localName.equals(OWLXMLVocabulary.PREFIX.getShortName())) {
-		// String name =
-		// attributes.getValue(OWLXMLVocabulary.NAME_ATTRIBUTE.getShortName());
-		// String iriString =
-		// attributes.getValue(OWLXMLVocabulary.IRI_ATTRIBUTE.getShortName());
-		// if (name != null && iriString != null) {
-		// if (name.endsWith(":")) {
-		// prefixName2PrefixMap.put(name, iriString);
-		// }
-		// else {
-		// prefixName2PrefixMap.put(name + ":", iriString);
-		// }
-		// }
-		// super.startElement(uri, localName, qName, attributes);
-		// return;
-		// }
-		// // Shall we process this element?
-		// if (isVersionedElement(localName)) {
-		// //owlElementProcessingMode = false;
-		// OWLElementHandlerFactory handlerFactory = handlerMap.get(localName);
-		// if (handlerFactory != null) {
-		// OWLElementHandler<?> handler = handlerFactory.createHandler(this);
-		// if (!handlerStack.isEmpty()) {
-		// OWLElementHandler<?> topElement = handlerStack.get(0);
-		// handler.setParentHandler(topElement);
-		// }
-		// handlerStack.add(0, handler);
-		// for (int i = 0; i < attributes.getLength(); i++) {
-		// handler.attribute(attributes.getLocalName(i),
-		// attributes.getValue(i));
-		// }
-		// handler.startElement(localName);
-		// }
-		// } else {
-		// //owlElementProcessingMode = true;
-		// //Not versioning related, let super handle ontology data or fail.
-		// super.startElement(uri, localName, qName, attributes);
-		// }
-		// }
-		// catch (OWLParserException e) {
-		// throw new TranslatedOWLParserException(e);
-		// }
 	}
 
 	protected void processXMLBase(Attributes attributes)
@@ -1349,7 +1288,7 @@ public class VOWLXMLParserHandler extends OWLXMLParserHandler
 			{
 				return;
 			}
-			if (!handlerStack.isEmpty())
+			if (handlerMap.containsKey(localName) && !handlerStack.isEmpty())
 			{
 				OWLElementHandler<?> handler = handlerStack.remove(0);
 				handler.endElement();

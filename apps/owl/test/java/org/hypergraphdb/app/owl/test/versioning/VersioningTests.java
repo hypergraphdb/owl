@@ -48,7 +48,7 @@ public class VersioningTests // implements OntologyContext
 	{
 		HGUtils.dropHyperGraphInstance(dblocation);
 		r =  new VHGDBOntologyRepository(dblocation);		
-		m = new HGOntologyManagerFactory().getOntologyManager(dblocation);
+		m = HGOntologyManagerFactory.getOntologyManager(dblocation);
 		o = (HGDBOntology)m.createOntology(IRI.create("hgdb://UNITTESTONT_VERSIONED"));
 		vo = r.addVersionControl(o, "testuser");
 		df = m.getOWLDataFactory();				

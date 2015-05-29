@@ -49,6 +49,7 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.RemoveAxiom;
 import org.semanticweb.owlapi.model.UnloadableImportException;
+import org.testng.internal.Graph;
 
 /**
  * TestVersionedOntoRenderAndParse.
@@ -75,6 +76,8 @@ public class TestVersionedOntoRenderAndParse
 		HGDBOntologyManager manager = HGOntologyManagerFactory.getOntologyManager(dblocation);
 		VHGDBOntologyRepository repo = new VHGDBOntologyRepository(dblocation);
 		VersionManager versionManager = new VersionManager(repo.getHyperGraph(), "test");
+		HyperGraph graph = manager.getOntologyRepository().getHyperGraph();
+		
 		//
 		// IMPORT AND RENDER
 		//
@@ -109,7 +112,6 @@ public class TestVersionedOntoRenderAndParse
 			
 			// TODO...			
 			VOWLXMLRenderConfiguration c = new VOWLXMLRenderConfiguration();
-			c.uncommittedChanges(true);
 			VOWLXMLVersionedOntologyRenderer r = new VOWLXMLVersionedOntologyRenderer(manager);
 			File fx = new File(TESTFILE.getAbsolutePath() + " Revision-" + ".xml");
 			renderedFiles.add(fx);
@@ -165,7 +167,7 @@ public class TestVersionedOntoRenderAndParse
 		// Create VersionedOntology Revision 10
 		try
 		{
-			parser.parse(source, versionedOntologyRoot, new OWLOntologyLoaderConfiguration());
+			parser.parse(graph, source, versionedOntologyRoot, new OWLOntologyLoaderConfiguration());
 			System.out.println("PARSING FINISHED.");
 		}
 		catch (OWLOntologyChangeException e)
@@ -188,11 +190,12 @@ public class TestVersionedOntoRenderAndParse
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		if (versionedOntologyRoot.isCompleteVersionedOntology())
+		if (versionedOntologyRoot.getRenderConfig().heads().isEmpty() && 
+			versionedOntologyRoot.getRenderConfig().roots().contains(versionedOntologyRoot.getRenderConfig().firstRevision()))
 		{
 			OWLOntologyID ontologyID = versionedOntologyRoot.getRevisionData().getOntologyID();
 			IRI documentIRI = IRI.create("hgdb://" + ontologyID.getDefaultDocumentIRI().toString().substring(7));
-			HGPersistentHandle ontologyUUID = versionedOntologyRoot.getVersionedOntologyID();
+			HGPersistentHandle ontologyUUID = repo.getHyperGraph().getHandleFactory().makeHandle(versionedOntologyRoot.getOntologyID());
 			try
 			{
 				System.out.println("Storing ontology data for : " + ontologyUUID);
@@ -211,7 +214,6 @@ public class TestVersionedOntoRenderAndParse
 			{
 				e.printStackTrace();
 			}
-			HyperGraph graph = manager.getOntologyRepository().getHyperGraph();
 			// Add version control with full matching history.
 			System.out.println("Adding version control history to : " + ontologyUUID);
 //			VersionedOntology voParsed = new VersionedOntology(versionedOntologyRoot.getRevisions(),

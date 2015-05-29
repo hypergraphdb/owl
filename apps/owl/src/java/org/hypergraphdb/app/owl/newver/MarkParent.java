@@ -78,6 +78,6 @@ public class MarkParent implements HGLink
 		if ( ! (obj instanceof MarkParent))
 			return false;
 		MarkParent mp = (MarkParent)obj;
-		return HGUtils.eq(parent, child);
+		return HGUtils.eq(parent, mp.parent) && HGUtils.eq(child, mp.child);
 	}		
 }
