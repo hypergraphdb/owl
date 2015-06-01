@@ -21,9 +21,10 @@ public class ChangeSetElementHandler extends AbstractVOWLElementHandler<ChangeSe
 	private HyperGraph graph;
 	private ChangeSet<VersionedOntology> changeSet;
 
-	public ChangeSetElementHandler(OWLXMLParserHandler handler)
+	public ChangeSetElementHandler(HyperGraph graph, OWLXMLParserHandler handler)
 	{
 		super(handler);
+		this.graph = graph;
 		changeSet = new ChangeSet<VersionedOntology>();
 		changeSet.setHyperGraph(graph);
 	}
@@ -42,6 +43,10 @@ public class ChangeSetElementHandler extends AbstractVOWLElementHandler<ChangeSe
 				throw new OWLParserException("Could not parse timestamp: " + value);
 			}
 		}
+		else if (localName.equals("handle"))
+		{
+			changeSet.setAtomHandle(graph.getHandleFactory().makeHandle(value.trim()));
+		}		
 	}
 
 	@Override

@@ -1,7 +1,6 @@
 package org.hypergraphdb.app.owl.versioning.distributed.serialize;
 
 import java.io.IOException;
-
 import java.io.Writer;
 import java.net.URI;
 import java.util.Comparator;
@@ -12,6 +11,7 @@ import org.coode.owlapi.owlxml.renderer.OWLXMLWriter;
 import org.coode.xml.XMLWriter;
 import org.coode.xml.XMLWriterFactory;
 import org.coode.xml.XMLWriterNamespaceManager;
+import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.newver.VersionedOntology;
 import org.semanticweb.owlapi.io.OWLRendererException;
@@ -104,6 +104,22 @@ public class VOWLXMLWriter extends OWLXMLWriter
 		writeEndElement();
 	}
 
+	public VOWLXMLWriter writeAttributes(Object...attrs)
+	{
+		if (attrs.length % 2 != 0)
+			throw new IllegalArgumentException("Use this method with an even number of arguments: name/value pairs");
+		for (int i = 0; i < attrs.length; i++)
+			writeAttribute(attrs[i].toString(), attrs[++i].toString());
+		return this;
+	}
+	
+	public VOWLXMLWriter writeAttribute(String attributeName, HGHandle value)
+	{
+		if (value == null)
+			return this;
+		return writeAttribute(attributeName, value.toString());
+	}
+	
 	/**
 	 * Writes a datatype attributed (used on Literal elements). The full
 	 * datatype IRI is written out
@@ -111,11 +127,14 @@ public class VOWLXMLWriter extends OWLXMLWriter
 	 * @param datatype
 	 *            The datatype
 	 */
-	public void writeAttribute(String attributeName, String value)
+	public VOWLXMLWriter writeAttribute(String attributeName, String value)
 	{
+		if (value == null)
+			return this;
 		try
 		{
 			writer.writeAttribute(attributeName.toString(), value);
+			return this;
 		}
 		catch (IOException e)
 		{
@@ -240,12 +259,13 @@ public class VOWLXMLWriter extends OWLXMLWriter
 	/**
 	 * 2012.02.27 Hilpold
 	 */
-	public void writeStartElement(VOWLXMLVocabulary name)
+	public VOWLXMLWriter writeStartElement(VOWLXMLVocabulary name)
 	{
 		startElementCount++;
 		try
 		{
 			writer.writeStartElement(name.getURI().toString());
+			return this;
 		}
 		catch (IOException e)
 		{

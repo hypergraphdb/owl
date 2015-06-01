@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 
+import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
@@ -23,8 +24,11 @@ import org.hypergraphdb.app.owl.core.OWLTempOntologyImpl;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyUUIDException;
+import org.hypergraphdb.app.owl.newver.ChangeMark;
 import org.hypergraphdb.app.owl.newver.ChangeSet;
 import org.hypergraphdb.app.owl.newver.Revision;
+import org.hypergraphdb.app.owl.newver.RevisionMark;
+import org.hypergraphdb.app.owl.newver.VersionManager;
 import org.hypergraphdb.app.owl.newver.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.DistributedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
@@ -90,6 +94,7 @@ public class ActivityUtils
 			VOWLXMLRenderConfiguration conf = new VOWLXMLRenderConfiguration();
 			conf.firstRevision(versionedOntology.getRootRevision());
 			conf.revisionSnapshot(versionedOntology.getCurrentRevision());
+			conf.roots().add(conf.firstRevision());
 			VOWLXMLVersionedOntologyRenderer owlxmlRenderer = new VOWLXMLVersionedOntologyRenderer(
 					HGOntologyManagerFactory.getOntologyManager(versionedOntology.graph().getLocation()));
 			StringWriter stringWriter = new StringWriter(RENDER_BUFFER_DELTA_INITIAL_SIZE);
@@ -167,8 +172,11 @@ public class ActivityUtils
 															   graph.add(workingChangeSet));
 			voParsed.setRootRevision(vowlxmlDoc.getRenderConfig().firstRevision());
 			voParsed.setCurrentRevision(vowlxmlDoc.getRenderConfig().revisionSnapshot());
+			HGHandle initialMark = graph.add(new ChangeMark(voParsed.getOntology(), manager.getVersionManager().emptyChangeSetHandle()));			
+			graph.add(new RevisionMark(voParsed.getRootRevision(), initialMark));
 			HGPersistentHandle versionedHandle = graph.getHandleFactory().makeHandle(vowlxmlDoc.getVersionedID());			
 			graph.define(versionedHandle, voParsed);
+			manager.getVersionManager().manualVersioned(voParsed.getOntology());
 			return voParsed;
 		}
 		catch (Exception ex)

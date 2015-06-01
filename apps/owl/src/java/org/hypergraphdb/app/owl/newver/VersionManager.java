@@ -34,7 +34,11 @@ public class VersionManager
 	private String user;
 	private Map<HGHandle, Boolean> isversionedmap = new ConcurrentHashMap<HGHandle, Boolean>();
 	
-	private HGHandle emptyChangeSetHandle()
+	/**
+	 * for internal use, TODO - hide this better...
+	 * @return
+	 */
+	public HGHandle emptyChangeSetHandle()
 	{
 		if (emptyChangeSetHandle == null)
 		{
@@ -51,6 +55,8 @@ public class VersionManager
 		}
 		return emptyChangeSetHandle;
 	}
+	
+	public void manualVersioned(HGHandle O) { isversionedmap.put(O, true); }
 	
 	private VersionedOntology startVersioning(HGHandle ontology)
 	{
@@ -166,7 +172,7 @@ public class VersionManager
 						{
 							HGHandle revisionHandle = rs.next();
 							// remove MarkParent links as well, hopefully no issue with ongoing traversal!
-							graph.remove(revisionHandle, true); 
+							graph.remove(revisionHandle, false); 
 						}
 					}
 					finally
@@ -185,15 +191,16 @@ public class VersionManager
 							HGHandle changeSetHandle = changeMark.changeset();
 							ChangeSet<VersionedOntology> changeSet = graph.get(changeSetHandle);
 							changeSet.clear();
-							graph.remove(changeMarkHandle, true);
-							graph.remove(changeSetHandle, true);
+							graph.remove(changeMarkHandle, false);
+							if (!changeSetHandle.equals(emptyChangeSetHandle))
+								graph.remove(changeSetHandle, false);
 						}
 					}
 					finally
 					{
 						HGUtils.closeNoException(rs);
 					}					
-					graph.remove(voHandle, true);
+					graph.remove(voHandle, false);
 				}
 				return true;
 			}

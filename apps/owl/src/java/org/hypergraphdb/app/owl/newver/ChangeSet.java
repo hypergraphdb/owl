@@ -10,6 +10,7 @@ import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.newver.Versioned;
@@ -26,8 +27,9 @@ import org.hypergraphdb.transaction.HGTransactionConfig;
  * 
  * @created Jan 13, 2015
  */
-public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder
+public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder, HGHandleHolder
 {
+	private HGHandle thisHandle;
 	private long timestamp;
 	private List<HGHandle> changes;
 	private HyperGraph graph;
@@ -46,6 +48,18 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder
 	public ChangeSet(List<HGHandle> changes)
 	{
 		this.changes = new ArrayList<HGHandle>(changes);
+	}
+	
+	@Override
+	public HGHandle getAtomHandle()
+	{
+		return thisHandle;
+	}
+
+	@Override
+	public void setAtomHandle(HGHandle handle)
+	{
+		this.thisHandle = handle;
 	}
 
 	/**
@@ -472,6 +486,8 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder
 		return changes.get(i);
 	}
 
+	
+	
 	/*
 	 * (non-Javadoc)
 	 * 

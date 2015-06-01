@@ -36,7 +36,7 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 	 * Set this to have all removed ontologies also deleted from the repository.
 	 * This is intended for unit testing only.
 	 */
-	private static boolean deleteOntologiesOnRemove = false;
+	private static boolean deleteOntologiesOnRemove = true;
 
 	HGDBOntologyRepository ontologyRepository;
 	VersionManager versionManager;

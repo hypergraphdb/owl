@@ -1,17 +1,14 @@
 package org.hypergraphdb.app.owl.versioning.distributed.serialize.parse;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserHandler;
+import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
-import org.hypergraphdb.app.owl.newver.ChangeSet;
-import org.hypergraphdb.app.owl.newver.Revision;
-import org.hypergraphdb.app.owl.newver.VersionedOntology;
-import org.hypergraphdb.handle.UUIDPersistentHandle;
 import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.UnloadableImportException;
 
@@ -33,8 +30,7 @@ public class VersionedOntologyElementHandler extends AbstractVOWLElementHandler<
 	private HGPersistentHandle ontologyID;
 	private int headRevisionIndex; // -1 is undefined
 
-	private List<Revision> revisions;
-	private List<ChangeSet<VersionedOntology>> changeSets;
+	private Set<HGHandleHolder> revisionObjects;
 	private OWLOntologyEx ontologyHeadData;
 
 	/**
@@ -50,8 +46,7 @@ public class VersionedOntologyElementHandler extends AbstractVOWLElementHandler<
 	{
 		ontologyID = null;
 		headRevisionIndex = -1;
-		revisions = new LinkedList<Revision>();
-		changeSets = new LinkedList<ChangeSet<VersionedOntology>>();
+		revisionObjects = new HashSet<HGHandleHolder>();
 		ontologyHeadData = null;
 	}
 
@@ -84,14 +79,27 @@ public class VersionedOntologyElementHandler extends AbstractVOWLElementHandler<
 	@Override
 	public void handleChild(RevisionElementHandler h) throws OWLXMLParserException
 	{
-		Revision r = h.getOWLObject();
+//		Revision r = h.getOWLObject();
 		// Add Revision to Graph or not??
 		// > NO, will be added as bean of the Pair object in VersionedOntology
-		// getHyperGraph().add(r);
-		System.out.print("R" + revisions.size());
-		revisions.add(r);
+//		getHyperGraph().define(r.getAtomHandle(), r);
+//		System.out.print("R" + revisions.size());
+		revisionObjects.add(h.getOWLObject());
 	}
 
+	@Override
+	public void handleChild(RevisionMarkElementHandler h) throws OWLXMLParserException
+	{
+		revisionObjects.add(h.getOWLObject());
+
+//		RevisionMark r = h.getOWLObject();
+		// Add Revision to Graph or not??
+		// > NO, will be added as bean of the Pair object in VersionedOntology
+		//getHyperGraph().define(r.getAtomHandle(), r);
+//		System.out.print("R" + revisions.size());
+//		revisions.add(r);
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -103,13 +111,26 @@ public class VersionedOntologyElementHandler extends AbstractVOWLElementHandler<
 	@Override
 	public void handleChild(ChangeSetElementHandler h) throws OWLXMLParserException
 	{
-		ChangeSet<VersionedOntology> c = h.getOWLObject();
-		// Add Changeset link to Graph or not??
-		// > Yes so we can remove changes more easily later if things go wrong.
-		getHyperGraph().add(c);
-		changeSets.add(c);
+		revisionObjects.add(h.getOWLObject());		
+//		ChangeSet<VersionedOntology> c = h.getOWLObject();
+//		// Add Changeset link to Graph or not??
+//		// > Yes so we can remove changes more easily later if things go wrong.
+//		getHyperGraph().add(c);
+//		changeSets.add(c);
 	}
 
+	@Override
+	public void handleChild(ChangeMarkElementHandler h) throws OWLXMLParserException
+	{
+		revisionObjects.add(h.getOWLObject());		
+	}
+	
+	@Override
+	public void handleChild(MarkParentElementHandler h) throws OWLXMLParserException
+	{
+		revisionObjects.add(h.getOWLObject());		
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -179,19 +200,9 @@ public class VersionedOntologyElementHandler extends AbstractVOWLElementHandler<
 	 * 
 	 * @return the revisions
 	 */
-	public List<Revision> getRevisions() throws OWLXMLParserException
+	public Set<HGHandleHolder> getRevisionObjects() throws OWLXMLParserException
 	{
-		return revisions;
-	}
-
-	/**
-	 * Each changeset, changes and axioms will also be stored in the graph.
-	 * 
-	 * @return the changeSets
-	 */
-	public List<ChangeSet<VersionedOntology>> getChangeSets() throws OWLXMLParserException
-	{
-		return changeSets;
+		return revisionObjects;
 	}
 
 	/**

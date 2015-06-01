@@ -57,7 +57,7 @@ public class VersioningTestBase
 	protected void remove(VersionedOntology vo)
 	{
 		ctx.vr.removeVersioning(vo.getOntology());
-		ctx.r.deleteOntology(vo.ontology().getOntologyID());
+		ctx.m.removeOntology(vo.ontology());
 		new GarbageCollector(ctx.repo()).runGarbageCollection();
 	}
 }

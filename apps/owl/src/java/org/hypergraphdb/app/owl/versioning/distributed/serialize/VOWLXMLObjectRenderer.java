@@ -69,7 +69,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 	private OWLXMLObjectRenderer owlObjectRenderer;
 	private VOWLXMLRenderConfiguration configuration;
 
-	private Collection<HGHandle> collectRevisionsFrom(final HGHandle root, final Set<HGHandle> S, final VersionedOntology vo)
+	private Collection<HGHandle> collectRevisionsFrom(final HGHandle root, final Set<HGHandle> sofar, final VersionedOntology vo)
 	{
 		final HyperGraph graph = vo.ontology().getHyperGraph();
 		final HGHandle revisionType = graph.getTypeSystem().getTypeHandle(Revision.class);
@@ -77,7 +77,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 			public boolean satisfies(HyperGraph graph, HGHandle revision)
 			{
 				return graph.getType(revision).equals(revisionType) && 
-					   !S.contains(revision) &&
+					   !sofar.contains(revision) &&
 					   !configuration.heads().contains(revision);
 			}
 		};
@@ -91,7 +91,8 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		{
 			if (S.contains(root))
 				continue;
-			collectRevisionsFrom(root, S, vo);
+			S.addAll(collectRevisionsFrom(root, S, vo));
+			S.add(root);
 		}
 		return S;
 	}
@@ -155,10 +156,10 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		
 		for (MarkParent revisionLink : parentLinks)
 		{
-			if (!revisions.contains(revisionLink.parent()) || !revisions.contains(revisionLink.child()))
+			if (!revisions.contains(revisionLink.parent()) && !revisions.contains(revisionLink.child()))
 				continue;
-			RevisionMark parentMark = vo.getMarkForRevision(revisionLink.parent());
-			RevisionMark childMark =  vo.getMarkForRevision(revisionLink.child());
+			RevisionMark parentMark = vo.getRevisionMark(revisionLink.parent());
+			RevisionMark childMark =  vo.getRevisionMark(revisionLink.child());
 			visit(parentMark);
 			visit(childMark);
 			HGHandle currentMarkHandle = parentMark.mark();
@@ -218,24 +219,27 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 	public void visit(MarkParent parentLink)
 	{
 		writer.writeStartElement(MARK_PARENT);
-		writer.writeAttribute("parent", parentLink.parent().getPersistent().toString());
-		writer.writeAttribute("child", parentLink.child().getPersistent().toString());
+		writer.writeAttribute("parent", parentLink.parent());
+		writer.writeAttribute("child", parentLink.child());
+		writer.writeAttribute("handle", parentLink.getAtomHandle());
 		writer.writeEndElement();
 	}
 
 	public void visit(RevisionMark revisionMark)
 	{
 		writer.writeStartElement(REVISION_MARK);
-		writer.writeAttribute("revision", revisionMark.revision().toString());
-		writer.writeAttribute("mark", revisionMark.mark().toString());
+		writer.writeAttribute("revision", revisionMark.revision());
+		writer.writeAttribute("mark", revisionMark.mark());
+		writer.writeAttribute("handle", revisionMark.getAtomHandle());
 		writer.writeEndElement();
 	}
 
 	public void visit(ChangeMark changeMark)
 	{
 		writer.writeStartElement(CHANGE_MARK);
-		writer.writeAttribute("target", changeMark.target().toString());
-		writer.writeAttribute("changeSet", changeMark.changeset().toString());
+		writer.writeAttribute("target", changeMark.target());
+		writer.writeAttribute("changeSet", changeMark.changeset());
+		writer.writeAttribute("handle", changeMark.getAtomHandle());
 		writer.writeEndElement();		
 	}
 	
@@ -249,14 +253,13 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 	@Override
 	public void visit(Revision revision)
 	{
-		writer.writeStartElement(REVISION);
-		// writer.writeStartElement("ontologyID");
-		writer.writeAttribute("ontology", revision.versioned().getPersistent().toString());
-		writer.writeAttribute("revision", revision.getAtomHandle().getPersistent().toString());
-		writer.writeAttribute("user", revision.user());
-		writer.writeAttribute("timestamp", "" + revision.timestamp());
-		writer.writeAttribute("revisionComment", revision.comment());
-		writer.writeEndElement();
+		writer.writeStartElement(REVISION)
+			  .writeAttribute("ontology", revision.versioned())
+			  .writeAttribute("handle", revision.getAtomHandle())
+			  .writeAttribute("user", revision.user())
+			  .writeAttribute("timestamp", "" + revision.timestamp())
+			  .writeAttribute("comment", revision.comment())
+			  .writeEndElement();
 	}
 
 	/*
@@ -271,6 +274,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 	{
 		writer.writeStartElement(CHANGE_SET);
 		writer.writeAttribute("timestamp", Long.toString(changeSet.timestamp()));
+		writer.writeAttribute("handle", changeSet.getAtomHandle());
 		for (VChange<VersionedOntology> c : changeSet.changes())
 			((VOWLChange)c).accept(this);
 		writer.writeEndElement();

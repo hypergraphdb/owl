@@ -4,6 +4,9 @@ import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLV
 //import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.NAMESPACE;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.RENDER_CONFIGURATION;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.REVISION;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.REVISION_MARK;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.CHANGE_MARK;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.MARK_PARENT;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_AXIOM_CHANGE;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_IMPORT_CHANGE;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_ONTOLOGY_ANNOTATION_CHANGE;
@@ -205,13 +208,16 @@ import org.coode.owlapi.owlxmlparser.SWRLSameIndividualAtomElementHandler;
 import org.coode.owlapi.owlxmlparser.TranslatedOWLParserException;
 import org.coode.owlapi.owlxmlparser.TranslatedUnloadableImportException;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.ChangeMarkElementHandler;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.ChangeSetElementHandler;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.MarkParentElementHandler;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.OWLImportsHandlerModified;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.OWLOntologyHandlerModified;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.OrigSWRLAtomListElementHandler;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.OrigSWRLVariableElementHandler;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.RenderConfigurationElementHandler;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.RevisionElementHandler;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.RevisionMarkElementHandler;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VAxiomChangeElementHandler;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VImportChangeElementHandler;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VOntologyAnnotationChangeElementHandler;
@@ -297,7 +303,7 @@ public class VOWLXMLParserHandler extends OWLXMLParserHandler
 	 *            The ontology object that the XML representation should be
 	 *            parsed into.
 	 */
-	public VOWLXMLParserHandler(HyperGraph graph,
+	public VOWLXMLParserHandler(final HyperGraph graph,
 								VOWLXMLDocument voRoot, 
 							    OWLElementHandler<?> topHandler,
 							    OWLOntologyLoaderConfiguration configuration)
@@ -348,15 +354,39 @@ public class VOWLXMLParserHandler extends OWLXMLParserHandler
 		{
 			public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler)
 			{
-				return new RevisionElementHandler(handler);
+				return new RevisionElementHandler(graph, handler);
 			}
 		});
 
+		addFactory(new AbstractVElementHandlerFactory(REVISION_MARK)
+		{
+			public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler)
+			{
+				return new RevisionMarkElementHandler(graph, handler);
+			}
+		});
+		
+		addFactory(new AbstractVElementHandlerFactory(MARK_PARENT)
+		{
+			public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler)
+			{
+				return new MarkParentElementHandler(graph, handler);
+			}
+		});
+		
+		addFactory(new AbstractVElementHandlerFactory(CHANGE_MARK)
+		{
+			public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler)
+			{
+				return new ChangeMarkElementHandler(graph, handler);
+			}
+		});
+		
 		addFactory(new AbstractVElementHandlerFactory(CHANGE_SET)
 		{
 			public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler)
 			{
-				return new ChangeSetElementHandler(handler);
+				return new ChangeSetElementHandler(graph, handler);
 			}
 		});
 

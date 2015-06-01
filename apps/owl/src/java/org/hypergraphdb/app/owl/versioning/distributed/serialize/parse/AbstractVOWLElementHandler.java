@@ -1,7 +1,6 @@
 package org.hypergraphdb.app.owl.versioning.distributed.serialize.parse;
 
 import org.coode.owlapi.owlxmlparser.AbstractOWLElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLElementHandler;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserHandler;
 import org.hypergraphdb.HyperGraph;
@@ -44,6 +43,28 @@ public abstract class AbstractVOWLElementHandler<O> extends AbstractOWLElementHa
 	{
 		return ((OWLDataFactoryHGDB) super.getOWLDataFactory());
 	}
+
+	@Override
+	public void handleChild(MarkParentElementHandler h)
+			throws OWLXMLParserException
+	{
+	}
+
+	@Override
+	public void handleChild(ChangeMarkElementHandler h)
+			throws OWLXMLParserException
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void handleChild(RevisionMarkElementHandler h)
+			throws OWLXMLParserException
+	{
+		// TODO Auto-generated method stub
+		
+	}	
 
 	@Override
 	public void handleChild(RenderConfigurationElementHandler h) throws OWLXMLParserException

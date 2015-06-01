@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl.newver;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HGLink;
 
 /**
@@ -23,16 +24,33 @@ import org.hypergraphdb.HGLink;
  * @author Borislav Iordanov
  *
  */
-public class RevisionMark implements HGLink
+public class RevisionMark implements HGLink, HGHandleHolder
 {
+	private HGHandle thisHandle;
 	private HGHandle hRevision;
 	private HGHandle hMark;
+	
+	public RevisionMark()
+	{
+	}
 	
 	public RevisionMark(HGHandle...handles)
 	{
 		assert handles.length == 2;		
 		hRevision = handles[0];
 		hMark = handles[1];
+	}
+	
+	public RevisionMark mark(HGHandle mark)
+	{
+		this.hMark = mark;
+		return this;
+	}
+	
+	public RevisionMark revision(HGHandle revision)
+	{
+		this.hRevision = revision;
+		return this;
 	}
 	
 	public HGHandle mark()
@@ -55,6 +73,19 @@ public class RevisionMark implements HGLink
 	public HGHandle getTargetAt(int i)
 	{
 		return (i == 0) ? hRevision : hMark;
+	}
+
+	
+	@Override
+	public HGHandle getAtomHandle()
+	{
+		return thisHandle;
+	}
+
+	@Override
+	public void setAtomHandle(HGHandle handle)
+	{
+		this.thisHandle = handle;
 	}
 
 	@Override

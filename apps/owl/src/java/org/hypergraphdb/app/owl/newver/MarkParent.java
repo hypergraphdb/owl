@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl.newver;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.util.HGUtils;
 
@@ -13,14 +14,43 @@ import org.hypergraphdb.util.HGUtils;
  * @author Borislav Iordanov
  *
  */
-public class MarkParent implements HGLink
+public class MarkParent implements HGLink, HGHandleHolder
 {
-	private HGHandle child, parent;
+	private HGHandle thisHandle, child, parent;
+	
+	public MarkParent()
+	{		
+	}
 	
 	public MarkParent(HGHandle...handles)
 	{
 		child = handles[0];
 		parent = handles[1];
+	}
+
+	public MarkParent child(HGHandle child)
+	{
+		this.child = child;
+		return this;
+	}
+	
+	
+	@Override
+	public HGHandle getAtomHandle()
+	{
+		return thisHandle;
+	}
+
+	@Override
+	public void setAtomHandle(HGHandle handle)
+	{
+		this.thisHandle = handle;
+	}
+
+	public MarkParent parent(HGHandle parent)
+	{
+		this.parent = parent;
+		return this;
 	}
 	
 	public HGHandle parent()

@@ -38,6 +38,10 @@ public class ChangeMark implements HGLink, HGGraphHolder, HGHandleHolder
 	private HGHandle target, changeset;
 	private long timestamp;
 	
+	public ChangeMark()
+	{		
+	}
+	
 	public ChangeMark(HGHandle...targets)
 	{
 		if (targets.length != 2)
@@ -90,6 +94,17 @@ public class ChangeMark implements HGLink, HGGraphHolder, HGHandleHolder
 								hg.orderedLink(thisHandle, hg.anyHandle())))));
 		return S;
 	}
+
+	@SuppressWarnings("unchecked")
+	public Set<HGHandle> children()
+	{
+		HashSet<HGHandle> S = new HashSet<HGHandle>();
+		S.addAll((List<HGHandle>)(List<?>)graph.findAll(
+				hg.apply(hg.targetAt(graph, 0), 
+						 hg.and(hg.type(MarkParent.class), 
+								hg.orderedLink(hg.anyHandle(), thisHandle)))));
+		return S;
+	}
 	
 	public HGHandle revision()
 	{
@@ -97,9 +112,21 @@ public class ChangeMark implements HGLink, HGGraphHolder, HGHandleHolder
 				hg.and(hg.type(RevisionMark.class), hg.incident(thisHandle))));
 	}
 	
+	public ChangeMark target(HGHandle target)
+	{
+		this.target = target;
+		return this;
+	}
+	
 	public HGHandle target()
 	{
 		return getTargetAt(0);
+	}
+
+	public ChangeMark changeSet(HGHandle changeSet)
+	{
+		this.changeset = changeSet;
+		return this;
 	}
 	
 	public HGHandle changeset()

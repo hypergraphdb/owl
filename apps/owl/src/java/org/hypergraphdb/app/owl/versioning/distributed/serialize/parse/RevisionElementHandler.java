@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl.versioning.distributed.serialize.parse;
 
 import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
+
 import org.coode.owlapi.owlxmlparser.OWLXMLParserHandler;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.newver.Revision;
@@ -18,12 +19,10 @@ public class RevisionElementHandler extends AbstractVOWLElementHandler<Revision>
 	private HyperGraph graph;
 	private Revision revision;
 
-	/**
-	 * @param handler
-	 */
-	public RevisionElementHandler(OWLXMLParserHandler handler)
+	public RevisionElementHandler(HyperGraph graph, OWLXMLParserHandler handler)
 	{
 		super(handler);
+		this.graph = graph;
 		revision = new Revision();
 	}
 
@@ -34,7 +33,7 @@ public class RevisionElementHandler extends AbstractVOWLElementHandler<Revision>
 		{
 			revision.versioned(graph.getHandleFactory().makeHandle(value.trim()));
 		}
-		else if (localName.equals("revision"))
+		else if (localName.equals("handle"))
 		{
 			revision.setAtomHandle(graph.getHandleFactory().makeHandle(value.trim()));
 		}
@@ -57,40 +56,15 @@ public class RevisionElementHandler extends AbstractVOWLElementHandler<Revision>
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.coode.owlapi.owlxmlparser.AbstractOWLElementHandler#startElement(
-	 * java.lang.String)
-	 */
-	@Override
-	public void startElement(String name) throws OWLXMLParserException
-	{
-		// reset();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.coode.owlapi.owlxmlparser.OWLElementHandler#endElement()
-	 */
 	@Override
 	public void endElement() throws OWLParserException, UnloadableImportException
 	{
 		getParentHandler().handleChild(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.coode.owlapi.owlxmlparser.OWLElementHandler#getOWLObject()
-	 */
 	@Override
 	public Revision getOWLObject() throws OWLXMLParserException
 	{
-		if (revision == null)
-			throw new OWLXMLParserException("Could not parse Revision", getLineNumber(), getColumnNumber());
 		return revision;
 	}
 }

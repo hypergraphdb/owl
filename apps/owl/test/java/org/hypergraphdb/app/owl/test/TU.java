@@ -1,5 +1,10 @@
 package org.hypergraphdb.app.owl.test;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -22,6 +27,16 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 public class TU
 {
 	public static OntologyContext ctx;
+	
+	public static <T> Set<T> set(T...items)
+	{
+		return new HashSet<T>(Arrays.asList(items));
+	}
+
+	public static <T> List<T> list(T...items)
+	{
+		return Arrays.asList(items);
+	}
 	
 	public static IRI iri(String name)
 	{

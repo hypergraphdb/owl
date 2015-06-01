@@ -40,6 +40,10 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 	private String user;	
 	private String comment;
 		
+	public Revision()
+	{	
+	}
+	
 	public Revision(HGHandle...targets)
 	{
 		assert targets.length == 1;
