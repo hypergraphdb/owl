@@ -1,5 +1,10 @@
 package org.hypergraphdb.app.owl.versioning.distributed.serialize.parse;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserHandler;
 import org.hypergraphdb.HyperGraph;
@@ -20,7 +25,8 @@ public class ChangeSetElementHandler extends AbstractVOWLElementHandler<ChangeSe
 {
 	private HyperGraph graph;
 	private ChangeSet<VersionedOntology> changeSet;
-
+	private List<VOWLChange> changes = new ArrayList<VOWLChange>();
+			
 	public ChangeSetElementHandler(HyperGraph graph, OWLXMLParserHandler handler)
 	{
 		super(handler);
@@ -55,7 +61,8 @@ public class ChangeSetElementHandler extends AbstractVOWLElementHandler<ChangeSe
 		// We expect to be called in order here.
 		// The first call to handleChild must refer to the oldest change in a changeset.
 		VOWLChange c = h.getOWLObject();
-		changeSet.add(c);
+		changes.add(c);
+		//changeSet.add(c);
 	}
 
 	@Override
@@ -68,5 +75,10 @@ public class ChangeSetElementHandler extends AbstractVOWLElementHandler<ChangeSe
 	public ChangeSet<VersionedOntology> getOWLObject() throws OWLXMLParserException
 	{
 		return changeSet;
+	}
+	
+	public List<VOWLChange> changes()
+	{
+		return this.changes;
 	}
 }

@@ -1,13 +1,19 @@
 package org.hypergraphdb.app.owl.versioning.distributed.serialize;
 
 import java.text.DateFormat;
-
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
+import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
+import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.hypergraphdb.app.owl.newver.ChangeSet;
-import org.hypergraphdb.app.owl.newver.Revision;
 import org.hypergraphdb.app.owl.newver.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 
 /**
  * This class represents the toplevel structure of an VOWLXML document. Use this
@@ -25,9 +31,8 @@ public class VOWLXMLDocument
 	public final static DateFormat DATE_FORMAT = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG, Locale.US);
 
 	private VOWLXMLRenderConfiguration renderConfig;
-	private List<Revision> revisions;
-	private List<ChangeSet<VersionedOntology>> changesets;
-
+	private Set<HGHandleHolder> revisionObjects = new HashSet<HGHandleHolder>();
+	private Map<ChangeSet<VersionedOntology>, List<VOWLChange>> changeSetMap = new HashMap<ChangeSet<VersionedOntology>, List<VOWLChange>>();
 	private OWLOntologyEx revisionData;
 	private String ontologyID;
 	private String versionedID;
@@ -46,39 +51,14 @@ public class VOWLXMLDocument
 		setRevisionData(onto);
 	}
 			
-	/**
-	 * 
-	 * @return the revisions
-	 */
-	public List<Revision> getRevisions()
+	public Set<HGHandleHolder> revisionObjects() throws OWLXMLParserException
 	{
-		return revisions;
+		return revisionObjects;
 	}
 
-	/**
-	 * @param revisions
-	 *            the revisions to set
-	 */
-	public void setRevisions(List<Revision> revisions)
+	public Map<ChangeSet<VersionedOntology>, List<VOWLChange>> changeSetMap()
 	{
-		this.revisions = revisions;
-	}
-
-	/**
-	 * @return the changesets of the versionedOntology or
-	 */
-	public List<ChangeSet<VersionedOntology>> getChangesets()
-	{
-		return changesets;
-	}
-
-	/**
-	 * @param changesets
-	 *            the changesets to set
-	 */
-	public void setChangesets(List<ChangeSet<VersionedOntology>> changesets)
-	{
-		this.changesets = changesets;
+		return changeSetMap;
 	}
 
 	/**

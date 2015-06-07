@@ -40,7 +40,7 @@ public class VersionManager
 	 */
 	public HGHandle emptyChangeSetHandle()
 	{
-		if (emptyChangeSetHandle == null)
+		if (emptyChangeSetHandle == null || graph.get(emptyChangeSetHandle) == null)
 		{
 			emptyChangeSetHandle = graph.getHandleFactory().makeHandle("cfc87b65-35bc-427c-ac33-1c0aa4dd24c8");
 			graph.getTransactionManager().ensureTransaction(new Callable<Object>() {

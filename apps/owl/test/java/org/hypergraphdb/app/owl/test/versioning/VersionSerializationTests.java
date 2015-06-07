@@ -79,6 +79,8 @@ public class VersionSerializationTests extends VersioningTestBase
 		assertEquals(ctx.vo.getCurrentRevision(), vo2.getCurrentRevision());
 		assertEquals(ctx.vo.getOntology(), vo2.getOntology());
 		assertTrue(vo2.changes().isEmpty());		
+		System.out.println("current revision " + vo2.getCurrentRevision());
+		System.out.println("current revision mark " + vo2.getRevisionMark(vo2.getCurrentRevision()));
 		mark = ctx.graph.get(vo2.getRevisionMark(vo2.getCurrentRevision()).mark());
 		assertEquals(0, mark.children().size());
 		ctx.vo = vo2;
@@ -88,7 +90,7 @@ public class VersionSerializationTests extends VersioningTestBase
 	 * Test ability to serialize an ontology with one revision only. 
 	 */
 	@Test
-	public void serializeOneRevisions()
+	public void serializeOneRevision()
 	{
 		a(aInstanceOf(owlClass("Bla"), individual("foo")));
 		assertEquals(1, ctx.vo.changes().size());
@@ -111,7 +113,8 @@ public class VersionSerializationTests extends VersioningTestBase
 		mark = ctx.graph.get(revisionMark.mark());
 		assertEquals(1, mark.parents().size());
 		assertEquals(0, mark.children().size());
-		assertEquals(TU.set(ctx.m.getVersionManager().emptyChangeSetHandle()), mark.parents());
+		ChangeMark parentMark = ctx.graph.get(mark.parents().iterator().next());
+		assertEquals(ctx.m.getVersionManager().emptyChangeSetHandle(), parentMark.changeset());
 		assertEquals(ctx.vo.getCurrentRevision(), revisionMark.revision());
 		assertEquals(vo2.getCurrentRevision(), revisionMark.revision());
 		ctx.vo = vo2;
@@ -120,7 +123,7 @@ public class VersionSerializationTests extends VersioningTestBase
 	public static void main(String []argv)
 	{
 		JUnitCore junit = new JUnitCore();
-		Result result = junit.run(Request.method(VersionSerializationTests.class, "serializeOneRevisions"));
+		Result result = junit.run(Request.method(VersionSerializationTests.class, "serializeOneRevision"));
 		System.out.println("Failures " + result.getFailureCount());
 		if (result.getFailureCount() > 0)
 		{

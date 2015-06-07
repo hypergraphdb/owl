@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl.versioning.distributed.serialize;
 
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.CHANGE_MARK;
+
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.CHANGE_SET;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.MARK_PARENT;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.REVISION;
@@ -28,7 +29,6 @@ import java.util.Set;
 import org.coode.owlapi.owlxml.renderer.OWLXMLObjectRenderer;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
-import org.hypergraphdb.HGSearchResult;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.hypergraphdb.app.owl.newver.ChangeMark;
@@ -120,6 +120,37 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		owlObjectRenderer = new OWLXMLObjectRenderer(writer);
 	}
 
+	private void writeMarkChanges(HyperGraph graph, HGHandle currentMarkHandle, HGHandle stop, HashSet<HGHandle> visited)
+	{
+		if (visited.contains(currentMarkHandle))
+			return;
+		ChangeMark mark = graph.get(currentMarkHandle);
+		visit(mark);
+		visited.add(currentMarkHandle);
+		ChangeSet<VersionedOntology> changeSet = graph.get(mark.changeset());
+		if (!visited.contains(changeSet.getAtomHandle()))
+		{
+			visit(changeSet);
+			visited.add(changeSet.getAtomHandle());
+		}			
+		if (currentMarkHandle.equals(stop))
+			return;
+		else
+		{
+			List<MarkParent> parentLinks = graph.getAll(
+				 hg.and(hg.type(MarkParent.class), 
+						hg.orderedLink(currentMarkHandle, hg.anyHandle())));			
+			for (MarkParent link : parentLinks)
+			{
+				if (visited.contains(link.getAtomHandle()))
+					continue;
+				visit(link);
+				visited.add(link.getAtomHandle());
+				writeMarkChanges(graph, link.parent(), stop, visited);
+			}
+		}
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -154,36 +185,37 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 			}
 		}
 		
+		// Now that we have the revision graph itself serialized, collect
+		// the change sets between revisions. There may be many commits ("flushes")
+		// between two revisions and because of parent project merging, we may
+		// have a change set with multiple parents so we don't want to serialize 
+		// any object twice. 
+		HashSet<HGHandle> visited = new HashSet<HGHandle>();		
 		for (MarkParent revisionLink : parentLinks)
 		{
 			if (!revisions.contains(revisionLink.parent()) && !revisions.contains(revisionLink.child()))
 				continue;
 			RevisionMark parentMark = vo.getRevisionMark(revisionLink.parent());
 			RevisionMark childMark =  vo.getRevisionMark(revisionLink.child());
-			visit(parentMark);
-			visit(childMark);
-			HGHandle currentMarkHandle = parentMark.mark();
-			HGSearchResult<HGHandle> rs = graph.find(hg.dfs(currentMarkHandle, 
-					hg.type(MarkParent.class), null, true, false));		
-			try
+			if (!visited.contains(parentMark.getAtomHandle()))
 			{
-				while (true)
-				{
-					ChangeMark mark = graph.get(currentMarkHandle);
-					visit(mark);
-					ChangeSet<VersionedOntology> changeSet = graph.get(mark.changeset());
-					visit(changeSet);
-				
-					if (!currentMarkHandle.equals(childMark.mark()) && rs.hasNext())
-						currentMarkHandle = rs.next();
-					else 
-						break;
-				}
+				visit(parentMark);
+				visited.add(parentMark.getAtomHandle());
 			}
-			finally
+			if (!visited.contains(childMark.getAtomHandle()))
 			{
-				rs.close();
-			}			
+				visit(childMark);
+				visited.add(childMark.getAtomHandle());
+			}
+			writeMarkChanges(graph, childMark.mark(), parentMark.mark(), visited);
+		}
+		for (HGHandle rootRevision : configuration.roots())
+		{
+			RevisionMark revisionMark = vo.getRevisionMark(rootRevision);
+			if (visited.contains(revisionMark.getAtomHandle()))
+				continue;
+			visit(revisionMark);
+			writeMarkChanges(graph, revisionMark.mark(), revisionMark.mark(), visited);
 		}
 		
 		// Data

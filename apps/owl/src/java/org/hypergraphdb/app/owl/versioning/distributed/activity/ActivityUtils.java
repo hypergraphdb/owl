@@ -13,6 +13,7 @@ import java.util.ListIterator;
 import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
@@ -30,6 +31,8 @@ import org.hypergraphdb.app.owl.newver.Revision;
 import org.hypergraphdb.app.owl.newver.RevisionMark;
 import org.hypergraphdb.app.owl.newver.VersionManager;
 import org.hypergraphdb.app.owl.newver.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.change.VChange;
+import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.app.owl.versioning.distributed.DistributedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
@@ -122,6 +125,11 @@ public class ActivityUtils
 //		return stringWriter.toString();
 	}
 
+	public static void storeChangeSet(HyperGraph graph, ChangeSet<VersionedOntology> changeSet, List<VChange<VersionedOntology>> changes)
+	{
+		changeSet.add(changes);
+	}
+	
 	/**
 	 * Parses a complete versioned ontology (revisions, change sets, head
 	 * revision data) from a VOWLXML string and stores it as new ontology with
@@ -142,6 +150,7 @@ public class ActivityUtils
 	 * @throws HGDBOntologyAlreadyExistsByOntologyIDException
 	 * @throws HGDBOntologyAlreadyExistsByOntologyUUIDException
 	 */
+	@SuppressWarnings("unchecked")
 	public static VersionedOntology storeVersionedOntology(OWLOntologyDocumentSource vowlDocumentSource, HGDBOntologyManager manager)
 	{
 		HyperGraph graph = manager.getOntologyRepository().getHyperGraph();		
@@ -159,12 +168,12 @@ public class ActivityUtils
 			OWLOntologyID ontologyID = vowlxmlDoc.getRevisionData().getOntologyID();
 			IRI documentIRI = HGDBOntologyFormat.convertToHGDBDocumentIRI(ontologyID.getDefaultDocumentIRI()); 
 			HGPersistentHandle ontologyUUID = graph.getHandleFactory().makeHandle(vowlxmlDoc.getOntologyID());
-			System.out.println("Storing ontology data for : " + ontologyUUID + " using docIRI: " + documentIRI);
+//			System.out.println("Storing ontology data for : " + ontologyUUID + " using docIRI: " + documentIRI);
 			HGDBOntology o = manager.getOntologyRepository().createOWLOntology(ontologyID, documentIRI, ontologyUUID);
 			o.setOWLOntologyManager(manager);
 			storeFromTo(vowlxmlDoc.getRevisionData(), o);
 			// Add version control with full matching history.
-			System.out.println("Creating and adding version control information for : " + ontologyUUID);
+//			System.out.println("Creating and adding version control information for : " + ontologyUUID);
 			ChangeSet<VersionedOntology> workingChangeSet = new ChangeSet<VersionedOntology>();			
 			VersionedOntology voParsed = new VersionedOntology(graph, 
 															   o.getAtomHandle(),  
@@ -172,11 +181,23 @@ public class ActivityUtils
 															   graph.add(workingChangeSet));
 			voParsed.setRootRevision(vowlxmlDoc.getRenderConfig().firstRevision());
 			voParsed.setCurrentRevision(vowlxmlDoc.getRenderConfig().revisionSnapshot());
-			HGHandle initialMark = graph.add(new ChangeMark(voParsed.getOntology(), manager.getVersionManager().emptyChangeSetHandle()));			
-			graph.add(new RevisionMark(voParsed.getRootRevision(), initialMark));
+//			HGHandle initialMark = graph.add(new ChangeMark(voParsed.getOntology(), manager.getVersionManager().emptyChangeSetHandle()));			
+//			graph.add(new RevisionMark(voParsed.getRootRevision(), initialMark));
 			HGPersistentHandle versionedHandle = graph.getHandleFactory().makeHandle(vowlxmlDoc.getVersionedID());			
 			graph.define(versionedHandle, voParsed);
 			manager.getVersionManager().manualVersioned(voParsed.getOntology());
+			for (HGHandleHolder object : vowlxmlDoc.revisionObjects())
+			{
+				if (graph.get(object.getAtomHandle()) == null)
+				{
+					graph.define(object.getAtomHandle(), object);
+				}
+			}
+			for (ChangeSet<VersionedOntology> changeSet : vowlxmlDoc.changeSetMap().keySet())
+			{
+				if (graph.get(changeSet.getAtomHandle()) == null)
+					storeChangeSet(graph, changeSet, (List<VChange<VersionedOntology>>)(List<?>)vowlxmlDoc.changeSetMap().get(changeSet));
+			}
 			return voParsed;
 		}
 		catch (Exception ex)

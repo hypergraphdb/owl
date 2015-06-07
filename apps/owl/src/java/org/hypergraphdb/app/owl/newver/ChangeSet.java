@@ -99,6 +99,32 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 		return this;
 	}
 
+	/**
+	 * Stores a list of changes in the graph and add them to the changeset. The changeset
+	 * will be updated in the graph. Should be called within HGTransaction.
+	 * 
+	 * @param change
+	 */
+	public ChangeSet<V> add(final List<VChange<V>> changeList)
+	{
+//		if (changeList.isEmpty())
+//			return this;
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>()
+		{
+			public Object call()
+			{
+				for (VChange<V> change : changeList)
+				{
+					HGHandle changeHandle = graph.add(change);
+					changes.add(changeHandle);
+				}
+				graph.update(ChangeSet.this);
+				return null;
+			}
+		});
+		return this;
+	}
+	
 	public ChangeSet<V> remove(final VChange<V> change)
 	{
 		graph.getTransactionManager().ensureTransaction(new Callable<Object>()
@@ -509,5 +535,10 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 	public void notifyTargetRemoved(int i)
 	{
 		changes.remove(i);
+	}
+	
+	public String toString()
+	{
+		return getAtomHandle().toString();
 	}
 }
