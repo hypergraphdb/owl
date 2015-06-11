@@ -3,6 +3,7 @@ package org.hypergraphdb.app.owl.test.versioning;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.gc.GarbageCollector;
 import org.hypergraphdb.app.owl.newver.ChangeMark;
+import org.hypergraphdb.app.owl.newver.Revision;
 import org.hypergraphdb.app.owl.newver.RevisionMark;
 import org.hypergraphdb.app.owl.newver.VersionManager;
 import org.hypergraphdb.app.owl.newver.VersionedOntology;
@@ -119,11 +120,68 @@ public class VersionSerializationTests extends VersioningTestBase
 		assertEquals(vo2.getCurrentRevision(), revisionMark.revision());
 		ctx.vo = vo2;
 	}
+
+	/**
+	 * This tests the ability to have more than one revision with multiple
+	 * intermediate ChangeSet commits in between.
+	 */
+	@Test
+	public void serializeTwoRevisionsMultipleChangeCommits()
+	{
+		Revision initialRevision = ctx.vo.revision();
+		declare(owlClass("User"));
+		declare(owlClass("Employee"));
+		aSubclassOf(owlClass("User"), owlClass("Employee"));
+		Revision revision1 = ctx.vo.commit("anonymous", "First version");
+		
+		declare(individual("Pedro"));
+		aInstanceOf(owlClass("Employee"), individual("Pedro"));
+		aSubclassOf(owlClass("User"), owlClass("Customer"));
+		declare(owlClass("LoyalCustomer"));
+		ChangeMark mark1 = ctx.vo.flushChanges();
+		
+		aSubclassOf(owlClass("Customer"), owlClass("LoyalCustomer"));
+		aInstanceOf(owlClass("LoyalCustomer"), individual("Mary"));
+		aInstanceOf(owlClass("LoyalCustomer"), individual("Tom"));
+		ChangeMark mark2 = ctx.vo.flushChanges();
+		
+		aInstanceOf(owlClass("Customer"), individual("John"));
+		aInstanceOf(owlClass("Employee"), individual("Fred"));
+		declare(oprop("isServing"));		
+		aProp(oprop("isServing"), individual("Fred"), individual("Tom"));
+		ChangeMark mark3 = ctx.vo.flushChanges();
+		// no changes between last flush and the creation of a new revision
+		Revision revision2 = ctx.vo.commit("administrator", "Second version by admin");		
+		
+		// some more in working set, shouldn't be serialized
+		aProp(dprop("hasAge"), individual("Mary"), literal("54"));
+		
+		assertEquals(1, revision2.changeMarks().size());
+		assertEquals(mark3.getAtomHandle(), revision2.changeMarks().iterator().next());
+		
+		String asxml = ActivityUtils.renderVersionedOntology(ctx.vo);
+		System.out.println(asxml);
+		remove(ctx.vo);
+		
+		VersionedOntology vo2 = ActivityUtils.storeVersionedOntology(new StringDocumentSource(asxml), ctx.m);
+		assertEquals(ctx.vo.getAtomHandle(), vo2.getAtomHandle());
+		assertEquals(ctx.vo.getRootRevision(), vo2.getRootRevision());
+		assertEquals(ctx.vo.getCurrentRevision(), vo2.getCurrentRevision());
+		assertEquals(ctx.vo.getOntology(), vo2.getOntology());
+		assertTrue(vo2.changes().isEmpty());
+		RevisionMark revisionMark = vo2.getRevisionMark(vo2.getCurrentRevision());
+		ChangeMark mark = ctx.graph.get(revisionMark.mark());
+		assertEquals(1, mark.parents().size());
+		assertEquals(0, mark.children().size());
+		assertEquals(mark3, mark);
+		assertEquals(TU.set(vo2.revision().parents().toArray()), TU.set(revision1.getAtomHandle()));
+		assertEquals(mark.parents(), TU.set(mark2.getAtomHandle()));
+	}
 	
 	public static void main(String []argv)
 	{
 		JUnitCore junit = new JUnitCore();
-		Result result = junit.run(Request.method(VersionSerializationTests.class, "serializeOneRevision"));
+		Result result = junit.run(Request.method(VersionSerializationTests.class, "serializeTwoRevisionsMultipleChangeCommits"));
 		System.out.println("Failures " + result.getFailureCount());
 		if (result.getFailureCount() > 0)
 		{

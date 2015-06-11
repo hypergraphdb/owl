@@ -15,6 +15,7 @@ import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
+import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.hypergraphdb.app.owl.core.OWLTempOntologyImpl;
@@ -74,8 +75,8 @@ public class TestVersionedOntoRenderAndParse
 		List<File> renderedFiles = new ArrayList<File>();
 		String dblocation = System.getProperty("java.io.tmpdir") + File.separator + "hgdbtest";
 		HGDBOntologyManager manager = HGOntologyManagerFactory.getOntologyManager(dblocation);
-		VHGDBOntologyRepository repo = new VHGDBOntologyRepository(dblocation);
-		VersionManager versionManager = new VersionManager(repo.getHyperGraph(), "test");
+		HGDBOntologyRepository repo = new HGDBOntologyRepository(dblocation);
+		VersionManager versionManager = manager.getVersionManager();
 		HyperGraph graph = manager.getOntologyRepository().getHyperGraph();
 		
 		//

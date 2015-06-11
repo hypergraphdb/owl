@@ -25,8 +25,6 @@ import org.hypergraphdb.app.owl.util.ImplUtils;
 import org.hypergraphdb.app.owl.newver.Revision;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.newver.VersionedOntology;
-import org.hypergraphdb.app.owl.versioning.VersionedOntologyComparator;
-import org.hypergraphdb.app.owl.versioning.VersionedOntologyComparator.VersionedOntologyComparisonResult;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowseRepositoryActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.FindOntologyServersActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.GetRemoteOntologyChangesetActivity;
@@ -633,9 +631,9 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository
 	 * @param cco
 	 * @return null, if server not accessible, ontology not on server.
 	 */
-	public VersionedOntologyComparisonResult compareOntologyToRemote(DistributedOntology dOnto, HGPeerIdentity peer, int timeoutSecs)
-	{
-		throw new UnsupportedOperationException();
+//	public VersionedOntologyComparisonResult compareOntologyToRemote(DistributedOntology dOnto, HGPeerIdentity peer, int timeoutSecs)
+//	{
+//		throw new UnsupportedOperationException();
 //		List<Revision> local = dOnto.getVersionedOntology().getRevisions();
 //		List<Revision> remote;
 //		HGPersistentHandle uuid = getOntologyUUID(dOnto.getWorkingSetData());
@@ -654,7 +652,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository
 //		remote = rra.getRemoteOntologyRevisions();
 //		VersionedOntologyComparator c = new VersionedOntologyComparator();
 //		return c.compare(local, remote);
-	}
+//	}
 
 	/**
 	 * Deletes sharing information, if distributed and delegatest to superclass.

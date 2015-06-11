@@ -7,7 +7,7 @@ import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.HGQuery.hg;
-import org.hypergraphdb.app.owl.versioning.ChangeSet;
+import org.hypergraphdb.app.owl.newver.ChangeSet;
 import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.hypergraphdb.util.HGUtils;
 

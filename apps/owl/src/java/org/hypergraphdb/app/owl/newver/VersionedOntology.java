@@ -88,6 +88,29 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	}
 	
 	/**
+	 * Return the latest {@link ChangeMark} representing the last change flush operation.
+	 */
+	public ChangeMark latestChangeMark()
+	{
+		HGHandle handleCurrent = getRevisionMark(currentRevision).mark();
+		
+		// Traverse to find the most recent change mark, the "youngest"
+		// descendent of the ChangeMark that created the current revision.
+		HGSearchResult<HGHandle> rs = graph.find(hg.dfs(handleCurrent, 
+							hg.type(MarkParent.class), null, true, false));
+		try
+		{
+			while (rs.hasNext())
+				handleCurrent = rs.next();
+		}
+		finally
+		{
+			rs.close();
+		}
+		return graph.get(handleCurrent);
+	}
+	
+	/**
 	 * Collect all {@link ChangeMark}s between two adjacent revisions.
 	 * 
 	 * @param startRevision The parent revision
@@ -238,7 +261,10 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 
 	/**
 	 * Create a new revision for this ontology. The revision is created
-	 * regardless of whether there are any pending changes or not.
+	 * regardless of whether there are any pending changes or not. If there are no
+	 * pending changes, the latest {@link ChangeMark} is used and no flush is done.
+	 * If there are pending (i.e. working) changes, the {@link #flushChanges()} method
+	 * is invoked first to create a new <code>ChangeMark</code>.
 	 */
 	@Override
 	public Revision commit(final String user, final String comment)
@@ -246,7 +272,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		graph.getTransactionManager().ensureTransaction(new Callable<HGHandle>(){
 		public HGHandle call()
 		{
-			ChangeMark mark = flushChanges();
+			ChangeMark mark = changes().isEmpty() ? latestChangeMark() : flushChanges();
 			Revision revision = new Revision(thisHandle);
 			revision.user(user);
 			revision.comment(comment);
@@ -422,25 +448,11 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	 */
 	public ChangeMark flushChanges()
 	{ 
-		HGHandle handleCurrent = getRevisionMark(currentRevision).mark();
-		
-		// Traverse to find the most recent change mark, the "youngest"
-		// descendent of the ChangeMark that created the current revision.
-		HGSearchResult<HGHandle> rs = graph.find(hg.dfs(handleCurrent, 
-							hg.type(MarkParent.class), null, true, false));
-		try
-		{
-			while (rs.hasNext())
-				handleCurrent = rs.next();
-		}
-		finally
-		{
-			rs.close();
-		}
+		ChangeMark current = latestChangeMark();
 		ChangeMark newmark = new ChangeMark(ontology, workingChanges);
 		newmark.setTimestamp(System.currentTimeMillis());
 		HGHandle markHandle = graph.add(newmark);
-		graph.add(new MarkParent(markHandle, handleCurrent));
+		graph.add(new MarkParent(markHandle, current.getAtomHandle()));
 		workingChanges = graph.add(new ChangeSet<VersionedOntology>());
 		return newmark;
 	}

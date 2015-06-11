@@ -9,8 +9,8 @@ import java.net.URL;
 import org.hypergraphdb.app.owl.HGDBOntologyFormat;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGDBOntologyOutputTarget;
+import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
-import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
@@ -29,7 +29,7 @@ public class ImportOntologies
 {
 
 	private static HGDBOntologyManager manager;
-	private static VHGDBOntologyRepository repository;
+	private static HGDBOntologyRepository repository;
 
 	/**
 	 * [0]...Repository Folder [0..n]...Ontology files to import (Topologically

@@ -12,7 +12,7 @@ import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.gc.GarbageCollector;
 import org.hypergraphdb.app.owl.usage.ImportOntologies;
 import org.hypergraphdb.app.owl.util.StopWatch;
-import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.app.owl.newver.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowseRepositoryActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowseRepositoryActivity.BrowseEntry;
@@ -191,7 +191,7 @@ public class TestVDHGDBPull
 	 */
 	private static void modifyAndCommitTarget()
 	{
-		OWLOntology onto = versionedOntology.getWorkingSetData();
+		OWLOntology onto = versionedOntology.ontology();
 		OWLOntologyManager manager = onto.getOWLOntologyManager();
 		OWLDataFactory df = manager.getOWLDataFactory();
 		for (int i = 0; i < 5; i++)
@@ -201,7 +201,7 @@ public class TestVDHGDBPull
 			manager.applyChange(new AddAxiom(onto, newAx));
 		}
 		versionedOntology.commit("Automated User", "Time was: " + new Date().getTime());
-		System.out.println("TARGET REVISION COUNT: " + versionedOntology.getNrOfRevisions());
+//		System.out.println("TARGET REVISION COUNT: " + versionedOntology.getNrOfRevisions());
 	}
 
 	/**
@@ -231,13 +231,13 @@ public class TestVDHGDBPull
 			}
 			System.out.println("LOADED ONTOLOLGY ID: " + o.getOntologyID());
 			System.out.println("addVersionControl: " + o);
-			versionedOntology = dr.addVersionControl(o, "distributedTestUser");
+//			versionedOntology = dr.addVersionControl(o, "distributedTestUser");
 			// MANIPULATE REMOVE CHANGED
 			Object[] axioms = o.getAxioms().toArray();
 			// remove all axioms 10.
 			for (int i = 0; i < axioms.length / 10; i++)
 			{
-				System.out.println("Creating Revision: " + versionedOntology.getNrOfRevisions());
+	//			System.out.println("Creating Revision: " + versionedOntology.getNrOfRevisions());
 				int j = i;
 				for (; j < i + axioms.length / 100; j++)
 				{
@@ -252,10 +252,10 @@ public class TestVDHGDBPull
 		}
 		else
 		{
-			versionedOntology = dr.getVersionControlledOntologies().get(0);
+//			versionedOntology = dr.getVersionControlledOntologies().get(0);
 			// the workingsetdata is not loaded by the manager, we need to set
 			// it.
-			versionedOntology.getWorkingSetData().setOWLOntologyManager(manager);
+			versionedOntology.ontology().setOWLOntologyManager(manager);
 			if (versionedOntology == null)
 				throw new IllegalStateException("We have NOT found a versioned ontololgy in the repository.");
 		}

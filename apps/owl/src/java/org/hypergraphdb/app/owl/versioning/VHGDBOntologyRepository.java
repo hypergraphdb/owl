@@ -1,21 +1,16 @@
 package org.hypergraphdb.app.owl.versioning;
 
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGPersistentHandle;
-import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.HGQuery.hg;
-import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
-import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
+import org.hypergraphdb.app.owl.newver.VersionManager;
+import org.hypergraphdb.app.owl.newver.VersionedOntology;
 import org.hypergraphdb.transaction.HGTransactionConfig;
-import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyChange;
-import org.semanticweb.owlapi.model.OWLOntologyChangeListener;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
 /**
@@ -26,17 +21,18 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
  * @author Thomas Hilpold (CIAO/Miami-Dade County), Borislav Iordanov
  * @created Jan 18, 2012
  */
-public class VHGDBOntologyRepository extends HGDBOntologyRepository implements OWLOntologyChangeListener
+public class VHGDBOntologyRepository extends HGDBOntologyRepository // implements OWLOntologyChangeListener
 {
 	/**
 	 * Will print time every 100 changes.
 	 */
 	private static boolean DBG = false;
-	private static boolean DBG_CHANGES = false;
-
+	private VersionManager versionManager;
+	
 	public VHGDBOntologyRepository(String location)
 	{
 		super(location);
+		versionManager = new VersionManager(getHyperGraph(), "fixme-VHDBOntologyRepository");
 	}
 
 	public List<VersionedOntology> getVersionControlledOntologies()
@@ -70,7 +66,7 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 					HGPersistentHandle ontoPHandle = ontoHandle.getPersistent();
 					for (VersionedOntology vo : getVersionControlledOntologies())
 					{
-						if (vo.getHeadRevision().getOntologyUUID().equals(ontoPHandle))
+						if (vo.getOntology().equals(ontoPHandle))
 						{
 							return vo;
 						}
@@ -89,47 +85,47 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 	 * @param user
 	 * @return
 	 */
-	public VersionedOntology addVersionControl(final HGDBOntology o, final String user)
-	{
-		final HyperGraph graph = getHyperGraph();
-		if (isVersionControlled(o))
-			throw new IllegalStateException("Ontology already version controlled" + o.getOntologyID());
-		return getHyperGraph().getTransactionManager().ensureTransaction(new Callable<VersionedOntology>()
-		{
-			public VersionedOntology call()
-			{
-				VersionedOntology newVO = new VersionedOntology(o, user, graph);
-				graph.add(newVO);
-				return newVO;
-			}
-		});
-	}
+//	public VersionedOntology addVersionControl(final HGDBOntology o, final String user)
+//	{
+//		final HyperGraph graph = getHyperGraph();
+//		if (isVersionControlled(o))
+//			throw new IllegalStateException("Ontology already version controlled" + o.getOntologyID());
+//		return getHyperGraph().getTransactionManager().ensureTransaction(new Callable<VersionedOntology>()
+//		{
+//			public VersionedOntology call()
+//			{
+//				VersionedOntology newVO = new VersionedOntology(o, user, graph);
+//				graph.add(newVO);
+//				return newVO;
+//			}
+//		});
+//	}
 
 	/**
 	 * Removes version control.
 	 * 
 	 * @param vo
 	 */
-	public void removeVersionControl(final VersionedOntology vo)
-	{
-		final HyperGraph graph = getHyperGraph();
-		getHyperGraph().getTransactionManager().ensureTransaction(new Callable<Object>()
-		{
-			public Object call()
-			{
-				vo.clear();
-				HGHandle voHandle = graph.getHandle(vo);
-				graph.remove(voHandle, true);
-				return null;
-			}
-		});
-	}
-
-	public boolean isVersionControlled(OWLOntology o)
-	{
-		// TODO optimize this
-		return getVersionControlledOntology(o) != null;
-	}
+//	public void removeVersionControl(final VersionedOntology vo)
+//	{
+//		final HyperGraph graph = getHyperGraph();
+//		getHyperGraph().getTransactionManager().ensureTransaction(new Callable<Object>()
+//		{
+//			public Object call()
+//			{
+//				vo.clear();
+//				HGHandle voHandle = graph.getHandle(vo);
+//				graph.remove(voHandle, true);
+//				return null;
+//			}
+//		});
+//	}
+//
+//	public boolean isVersionControlled(OWLOntology o)
+//	{
+//		// TODO optimize this
+//		return getVersionControlledOntology(o) != null;
+//	}
 
 	//
 	// OVERWRITING SUPERCLASS DELETE_ONTOLOGY
@@ -146,12 +142,8 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 			public Boolean call()
 			{
 				HGHandle ontologyHandle = getOntologyHandleByID(ontologyId);
-				OWLOntology ontology = getHyperGraph().get(ontologyHandle);
-				if (isVersionControlled(ontology))
-				{
-					VersionedOntology vOntology = getVersionControlledOntology(ontology);
-					removeVersionControl(vOntology);
-				}
+				if (versionManager.isVersioned(ontologyHandle))
+					versionManager.removeVersioning(ontologyHandle);
 				return VHGDBOntologyRepository.super.deleteOntology(ontologyId);
 			}
 		});
@@ -193,42 +185,45 @@ public class VHGDBOntologyRepository extends HGDBOntologyRepository implements O
 	 * org.semanticweb.owlapi.model.OWLOntologyChangeListener#ontologiesChanged
 	 * (java.util.List)
 	 */
-	@Override
-	public void ontologiesChanged(final List<? extends OWLOntologyChange> changes) throws OWLException
-	{
-		if (shouldIgnoreChangeEvents())
-			return;
-		getHyperGraph().getTransactionManager().ensureTransaction(new Callable<Object>()
-		{
-			public Object call()
-			{
-				if (DBG_CHANGES)
-					System.out.println("" + new Date() + " VHGDB processes applied changes: " + changes.size());
-				int i = 0;
-				for (OWLOntologyChange c : changes)
-				{
-					if (DBG_CHANGES)
-					{
-						i++;
-						if (i % 100 == 0)
-						{
-							System.out.println("" + new Date() + " VHGDB changes done: " + i);
-						}
-					}
-					// get versioned onto
-					if (isVersionControlled(c.getOntology()))
-					{
-						VersionedOntology vo = getVersionControlledOntology(c.getOntology());
-						// VOWLChange vc = VOWLChangeFactory.create(c,
-						// getHyperGraph());
-						vo.addAppliedChange(c);
-					}
-				}
-				if (DBG_CHANGES)
-					System.out.println("" + new Date() + " VHGDB changes done: " + i);
-				// forced to use Callable:
-				return null;
-			}
-		});
-	}
+//	@Override
+//	public void ontologiesChanged(final List<? extends OWLOntologyChange> changes) throws OWLException
+//	{
+//		if (shouldIgnoreChangeEvents())
+//			return;
+//		getHyperGraph().getTransactionManager().ensureTransaction(new Callable<Object>()
+//		{
+//			public Object call()
+//			{
+//				if (DBG_CHANGES)
+//					System.out.println("" + new Date() + " VHGDB processes applied changes: " + changes.size());
+//				int i = 0;
+//				for (OWLOntologyChange c : changes)
+//				{
+//					if (DBG_CHANGES)
+//					{
+//						i++;
+//						if (i % 100 == 0)
+//						{
+//							System.out.println("" + new Date() + " VHGDB changes done: " + i);
+//						}
+//					}
+//					if (! (c.getOntology() instanceof HGDBOntology)
+//						continue;
+//					HGDBOntology hgdbontology = (HGDBOntology)c.getOntology();
+//					// get versioned onto
+//					if (versionManager.isVersioned(hgdbontology.getAtomHandle()))
+//					{
+//						VersionedOntology vo = getVersionControlledOntology(c.getOntology());
+//						// VOWLChange vc = VOWLChangeFactory.create(c,
+//						// getHyperGraph());
+//						vo.changes().add(new )
+//					}
+//				}
+//				if (DBG_CHANGES)
+//					System.out.println("" + new Date() + " VHGDB changes done: " + i);
+//				// forced to use Callable:
+//				return null;
+//			}
+//		});
+//	}
 }

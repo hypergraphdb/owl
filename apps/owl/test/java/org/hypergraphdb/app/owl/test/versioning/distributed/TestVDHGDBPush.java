@@ -10,7 +10,7 @@ import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.gc.GarbageCollector;
 import org.hypergraphdb.app.owl.usage.ImportOntologies;
-import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.app.owl.newver.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.OntologyTransmitActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.PushActivity;
@@ -167,7 +167,7 @@ public class TestVDHGDBPush
 	 */
 	private static void modifyAndCommitSource()
 	{
-		OWLOntology onto = versionedOntology.getWorkingSetData();
+		OWLOntology onto = versionedOntology.ontology();
 		OWLOntologyManager manager = onto.getOWLOntologyManager();
 		OWLDataFactory df = manager.getOWLDataFactory();
 		for (int i = 0; i < 5; i++)
@@ -205,13 +205,12 @@ public class TestVDHGDBPush
 				throw new RuntimeException("load Failes", e);
 			}
 			System.out.println("addVersionControl: " + o);
-			versionedOntology = dr.addVersionControl(o, "distributedTestUser");
+			versionedOntology = manager.getVersionManager().versioned(o.getAtomHandle());
 			// MANIPULATE REMOVE CHANGED
 			Object[] axioms = o.getAxioms().toArray();
 			// remove all axioms 10.
 			for (int i = 0; i < axioms.length / 10; i++)
 			{
-				System.out.println("Creating Revision: " + versionedOntology.getNrOfRevisions());
 				int j = i;
 				for (; j < i + axioms.length / 100; j++)
 				{
@@ -229,7 +228,7 @@ public class TestVDHGDBPush
 			versionedOntology = dr.getVersionControlledOntologies().get(0);
 			// the workingsetdata is not loaded by the manager, we need to set
 			// it.
-			versionedOntology.getWorkingSetData().setOWLOntologyManager(manager);
+			versionedOntology.ontology().setOWLOntologyManager(manager);
 			if (versionedOntology == null)
 				throw new IllegalStateException("We have NOT found a versioned ontololgy in the repository.");
 		}

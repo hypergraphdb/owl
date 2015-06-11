@@ -10,6 +10,15 @@ import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyChangeListener;
 
+/**
+ * <p>
+ * This is tracking ontology changes going to the main ontology manager for versioning
+ * purposes: each change is recorded in the current working {@link ChangeSet}.
+ * </p>
+ * 
+ * @author borislav
+ *
+ */
 public class VersioningChangeListener implements OWLOntologyChangeListener
 {
 	private VersionManager repo;

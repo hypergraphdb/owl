@@ -172,4 +172,34 @@ public class ChangeMark implements HGLink, HGGraphHolder, HGHandleHolder
 	{
 		throw new UnsupportedOperationException("Can't remove a commit link target, first delete the commit atom.");
 	}
+
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((thisHandle == null) ? 0 : thisHandle.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ChangeMark other = (ChangeMark) obj;
+		if (thisHandle == null)
+		{
+			if (other.thisHandle != null)
+				return false;
+		}
+		else if (!thisHandle.equals(other.thisHandle))
+			return false;
+		return true;
+	}	
 }
