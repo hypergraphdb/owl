@@ -1,4 +1,4 @@
-package org.hypergraphdb.app.owl.newver;
+package org.hypergraphdb.app.owl.versioning;
 
 import java.util.HashSet;
 import java.util.List;
@@ -10,7 +10,6 @@ import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.algorithms.DefaultALGenerator;
 import org.hypergraphdb.algorithms.HGBreadthFirstTraversal;
 import org.hypergraphdb.algorithms.HGTraversal;
-import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.query.HGAtomPredicate;
 import org.hypergraphdb.util.Pair;
 

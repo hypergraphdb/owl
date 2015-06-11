@@ -21,7 +21,7 @@ import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.util.ImplUtils;
-import org.hypergraphdb.app.owl.newver.Revision;
+import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowseRepositoryActivity;

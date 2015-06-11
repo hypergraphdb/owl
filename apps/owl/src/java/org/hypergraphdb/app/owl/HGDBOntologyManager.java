@@ -6,7 +6,7 @@ import java.io.IOException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyUUIDException;
-import org.hypergraphdb.app.owl.newver.VersionManager;
+import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.OWLOntologyChangeException;

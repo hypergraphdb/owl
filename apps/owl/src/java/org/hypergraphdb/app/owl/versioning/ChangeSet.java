@@ -13,8 +13,6 @@ import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.newver.ChangeConflict;
-import org.hypergraphdb.app.owl.newver.Versioned;
 import org.hypergraphdb.app.owl.versioning.change.VChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.transaction.HGTransactionConfig;

@@ -9,6 +9,10 @@ import java.util.logging.Logger;
 
 
 
+
+
+
+
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HGTypeSystem;
@@ -23,17 +27,17 @@ import org.hypergraphdb.app.owl.model.OWLLiteralHGDB;
 import org.hypergraphdb.app.owl.model.OWLNamedIndividualHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectPropertyHGDB;
 import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
-import org.hypergraphdb.app.owl.newver.ChangeMark;
-import org.hypergraphdb.app.owl.newver.MarkParent;
-import org.hypergraphdb.app.owl.newver.Revision;
-import org.hypergraphdb.app.owl.newver.RevisionMark;
 import org.hypergraphdb.app.owl.type.IRIType;
 import org.hypergraphdb.app.owl.type.OWLImportsDeclarationType;
 import org.hypergraphdb.app.owl.type.OWLNamedObjectType;
 import org.hypergraphdb.app.owl.type.OntologyIDType;
 import org.hypergraphdb.app.owl.type.TypeUtils;
 import org.hypergraphdb.app.owl.util.ImplUtils;
+import org.hypergraphdb.app.owl.versioning.ChangeMark;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
+import org.hypergraphdb.app.owl.versioning.MarkParent;
+import org.hypergraphdb.app.owl.versioning.Revision;
+import org.hypergraphdb.app.owl.versioning.RevisionMark;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.indexing.ByPartIndexer;
 import org.hypergraphdb.indexing.ByTargetIndexer;

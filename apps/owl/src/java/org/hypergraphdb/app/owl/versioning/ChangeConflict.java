@@ -1,9 +1,8 @@
-package org.hypergraphdb.app.owl.newver;
+package org.hypergraphdb.app.owl.versioning;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.change.VChange;
 
 public class ChangeConflict<V extends Versioned<V>>

@@ -1,6 +1,6 @@
 package org.hypergraphdb.app.owl.versioning.change;
 
-import org.hypergraphdb.app.owl.newver.Versioned;
+import org.hypergraphdb.app.owl.versioning.Versioned;
 
 /**
  * Represents a change to a versioned object. The methods in this interface 

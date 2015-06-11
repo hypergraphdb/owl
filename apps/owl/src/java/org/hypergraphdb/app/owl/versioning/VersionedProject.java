@@ -1,9 +1,7 @@
-package org.hypergraphdb.app.owl.newver;
+package org.hypergraphdb.app.owl.versioning;
 
 import java.util.List;
 import java.util.Set;
-
-import org.hypergraphdb.app.owl.versioning.ChangeSet;
 
 public class VersionedProject implements Versioned<VersionedProject>
 {

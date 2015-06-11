@@ -4,7 +4,7 @@ import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.util.Date;
 
-import org.hypergraphdb.app.owl.newver.Revision;
+import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.ClientCentralizedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.DistributedOntology;

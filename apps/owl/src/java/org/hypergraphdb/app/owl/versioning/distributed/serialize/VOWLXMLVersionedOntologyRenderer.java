@@ -6,8 +6,8 @@ import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
-import org.hypergraphdb.app.owl.newver.Revision;
 import org.hypergraphdb.app.owl.util.StopWatch;
+import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.semanticweb.owlapi.io.AbstractOWLRenderer;
 import org.semanticweb.owlapi.io.OWLRendererException;

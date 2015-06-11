@@ -1,4 +1,5 @@
-package org.hypergraphdb.app.owl.newver;
+package org.hypergraphdb.app.owl.versioning;
+
 
 public interface VisitableObject
 {

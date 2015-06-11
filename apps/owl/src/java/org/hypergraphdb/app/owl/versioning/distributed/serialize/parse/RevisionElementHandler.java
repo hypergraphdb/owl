@@ -1,10 +1,9 @@
 package org.hypergraphdb.app.owl.versioning.distributed.serialize.parse;
 
 import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
-
 import org.coode.owlapi.owlxmlparser.OWLXMLParserHandler;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.newver.Revision;
+import org.hypergraphdb.app.owl.versioning.Revision;
 import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.UnloadableImportException;
 

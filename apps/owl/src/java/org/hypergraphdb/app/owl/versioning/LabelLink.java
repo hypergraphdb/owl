@@ -1,4 +1,4 @@
-package org.hypergraphdb.app.owl.newver;
+package org.hypergraphdb.app.owl.versioning;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
