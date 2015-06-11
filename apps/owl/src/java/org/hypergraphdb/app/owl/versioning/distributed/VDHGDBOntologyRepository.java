@@ -1,7 +1,6 @@
 package org.hypergraphdb.app.owl.versioning.distributed;
 
 import java.io.BufferedReader;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -24,7 +23,7 @@ import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.util.ImplUtils;
 import org.hypergraphdb.app.owl.newver.Revision;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
-import org.hypergraphdb.app.owl.newver.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowseRepositoryActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.FindOntologyServersActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.GetRemoteOntologyChangesetActivity;

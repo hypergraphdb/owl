@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.app.owl.versioning.ChangeSet;
+import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChangeFactory;
 import org.semanticweb.owlapi.model.OWLException;

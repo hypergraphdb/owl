@@ -10,6 +10,8 @@ import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HGSearchResult;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.app.owl.versioning.ChangeSet;
+import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.util.HGUtils;
 
 /**

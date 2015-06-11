@@ -3,6 +3,7 @@ package org.hypergraphdb.app.owl.newver;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.change.VChange;
 
 public class ChangeConflict<V extends Versioned<V>>

@@ -3,8 +3,8 @@ package org.hypergraphdb.app.owl.versioning.change;
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.newver.VersionedOntology;
 import org.hypergraphdb.app.owl.newver.VisitableObject;
+import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 
 /**

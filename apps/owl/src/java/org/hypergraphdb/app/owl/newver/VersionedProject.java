@@ -3,6 +3,8 @@ package org.hypergraphdb.app.owl.newver;
 import java.util.List;
 import java.util.Set;
 
+import org.hypergraphdb.app.owl.versioning.ChangeSet;
+
 public class VersionedProject implements Versioned<VersionedProject>
 {
 	Revision currentRevision;

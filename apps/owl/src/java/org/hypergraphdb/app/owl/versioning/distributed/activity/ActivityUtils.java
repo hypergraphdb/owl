@@ -26,11 +26,11 @@ import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRI
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyUUIDException;
 import org.hypergraphdb.app.owl.newver.ChangeMark;
-import org.hypergraphdb.app.owl.newver.ChangeSet;
 import org.hypergraphdb.app.owl.newver.Revision;
 import org.hypergraphdb.app.owl.newver.RevisionMark;
 import org.hypergraphdb.app.owl.newver.VersionManager;
-import org.hypergraphdb.app.owl.newver.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.ChangeSet;
+import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.change.VChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.app.owl.versioning.distributed.DistributedOntology;

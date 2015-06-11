@@ -11,8 +11,8 @@ import java.util.Set;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
 import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
-import org.hypergraphdb.app.owl.newver.ChangeSet;
-import org.hypergraphdb.app.owl.newver.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.ChangeSet;
+import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 
 /**

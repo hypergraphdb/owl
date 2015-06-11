@@ -1,4 +1,4 @@
-package org.hypergraphdb.app.owl.newver;
+package org.hypergraphdb.app.owl.versioning;
 
 
 import java.util.ArrayList;
@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGHandleHolder;
@@ -19,6 +20,12 @@ import org.hypergraphdb.algorithms.DefaultALGenerator;
 import org.hypergraphdb.algorithms.GraphClassics;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
+import org.hypergraphdb.app.owl.newver.ChangeMark;
+import org.hypergraphdb.app.owl.newver.MarkParent;
+import org.hypergraphdb.app.owl.newver.Revision;
+import org.hypergraphdb.app.owl.newver.RevisionMark;
+import org.hypergraphdb.app.owl.newver.StashLink;
+import org.hypergraphdb.app.owl.newver.Versioned;
 import org.hypergraphdb.app.owl.versioning.change.VChange;
 import org.hypergraphdb.util.HGUtils;
 import org.hypergraphdb.util.Mapping;

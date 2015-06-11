@@ -20,7 +20,7 @@ import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.newver.OntologyVersionState;
 import org.hypergraphdb.app.owl.newver.Revision;
-import org.hypergraphdb.app.owl.newver.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;

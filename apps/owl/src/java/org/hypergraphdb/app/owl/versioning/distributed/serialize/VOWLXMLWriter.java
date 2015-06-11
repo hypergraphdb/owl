@@ -13,7 +13,7 @@ import org.coode.xml.XMLWriterFactory;
 import org.coode.xml.XMLWriterNamespaceManager;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.app.owl.HGDBOntology;
-import org.hypergraphdb.app.owl.newver.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.semanticweb.owlapi.io.OWLRendererException;
 import org.semanticweb.owlapi.io.OWLRendererIOException;
 import org.semanticweb.owlapi.model.IRI;

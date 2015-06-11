@@ -1,7 +1,6 @@
 package org.hypergraphdb.app.owl.versioning.distributed.serialize;
 
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.CHANGE_MARK;
-
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.CHANGE_SET;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.MARK_PARENT;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.REVISION;
@@ -32,12 +31,12 @@ import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.hypergraphdb.app.owl.newver.ChangeMark;
-import org.hypergraphdb.app.owl.newver.ChangeSet;
 import org.hypergraphdb.app.owl.newver.MarkParent;
 import org.hypergraphdb.app.owl.newver.Revision;
 import org.hypergraphdb.app.owl.newver.RevisionMark;
 import org.hypergraphdb.app.owl.newver.VOWLObjectVisitor;
-import org.hypergraphdb.app.owl.newver.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.ChangeSet;
+import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.change.VAddAxiomChange;
 import org.hypergraphdb.app.owl.versioning.change.VAddImportChange;
 import org.hypergraphdb.app.owl.versioning.change.VAddOntologyAnnotationChange;

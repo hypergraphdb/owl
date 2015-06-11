@@ -3,6 +3,7 @@ package org.hypergraphdb.app.owl.newver;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HGLink;
+import org.hypergraphdb.app.owl.versioning.ChangeSet;
 
 /**
  * <p>

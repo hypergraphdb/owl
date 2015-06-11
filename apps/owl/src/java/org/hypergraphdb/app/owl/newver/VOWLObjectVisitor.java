@@ -1,5 +1,7 @@
 package org.hypergraphdb.app.owl.newver;
 
+import org.hypergraphdb.app.owl.versioning.ChangeSet;
+import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.change.VAxiomChange;
 import org.hypergraphdb.app.owl.versioning.change.VImportChange;
 import org.hypergraphdb.app.owl.versioning.change.VModifyOntologyIDChange;

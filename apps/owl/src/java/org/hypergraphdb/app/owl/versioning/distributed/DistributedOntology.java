@@ -1,12 +1,11 @@
 package org.hypergraphdb.app.owl.versioning.distributed;
 
 import org.hypergraphdb.HGGraphHolder;
-
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
-import org.hypergraphdb.app.owl.newver.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 
 /**
  * DistributedOntology.

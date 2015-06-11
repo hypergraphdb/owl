@@ -8,7 +8,6 @@ import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.newver.VersionManager;
-import org.hypergraphdb.app.owl.newver.VersionedOntology;
 import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyID;

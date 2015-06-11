@@ -2,7 +2,7 @@ package org.hypergraphdb.app.owl.versioning.change;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.app.owl.core.RemovePrefixChange;
-import org.hypergraphdb.app.owl.newver.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 
 /**
