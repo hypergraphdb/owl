@@ -25,7 +25,7 @@ import org.hypergraphdb.app.owl.core.OWLTempOntologyImpl;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyUUIDException;
-import org.hypergraphdb.app.owl.versioning.ChangeMark;
+import org.hypergraphdb.app.owl.versioning.ChangeRecord;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.RevisionMark;
@@ -181,7 +181,7 @@ public class ActivityUtils
 															   graph.add(workingChangeSet));
 			voParsed.setRootRevision(vowlxmlDoc.getRenderConfig().firstRevision());
 			voParsed.setCurrentRevision(vowlxmlDoc.getRenderConfig().revisionSnapshot());
-//			HGHandle initialMark = graph.add(new ChangeMark(voParsed.getOntology(), manager.getVersionManager().emptyChangeSetHandle()));			
+//			HGHandle initialMark = graph.add(new ChangeRecord(voParsed.getOntology(), manager.getVersionManager().emptyChangeSetHandle()));			
 //			graph.add(new RevisionMark(voParsed.getRootRevision(), initialMark));
 			HGPersistentHandle versionedHandle = graph.getHandleFactory().makeHandle(vowlxmlDoc.getVersionedID());			
 			graph.define(versionedHandle, voParsed);

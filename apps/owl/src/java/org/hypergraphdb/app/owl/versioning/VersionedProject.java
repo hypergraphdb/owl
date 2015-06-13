@@ -26,7 +26,7 @@ public class VersionedProject implements Versioned<VersionedProject>
 		return null;
 	}
 	
-	public ChangeMark flushChanges()
+	public ChangeRecord flushChanges()
 	{
 		return null;
 	}

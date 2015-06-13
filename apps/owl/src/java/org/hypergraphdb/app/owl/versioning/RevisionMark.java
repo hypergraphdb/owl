@@ -6,11 +6,11 @@ import org.hypergraphdb.HGLink;
 
 /**
  * <p>
- * A <code>RevisionMark</code> connects the {@link ChangeSet} that 
+ * A <code>RevisionMark</code> connects the {@link ChangeRecord} that 
  * led to the creation of a given Revision. Many change sets can be 
- * applied on a revision without necessarily creating a new revision (for 
+ * applied on a versioned object without necessarily creating a new revision (for 
  * example because they are associated with the revision of a composite project).
- * This link is used to link the one flushing operation (i.e. the creation of a ChangeMark)
+ * This link is used to link the one flushing operation (i.e. the creation of a ChangeRecord)
  * for a given versioned object that also creates a new {@link Revision}. 
  * </p>
  * <p>
@@ -21,6 +21,7 @@ import org.hypergraphdb.HGLink;
  * create a new revision for the project, we have to specify all of the change marks that apply
  * to it, one per individual module.
  * </p>
+ * 
  * @author Borislav Iordanov
  *
  */
@@ -28,7 +29,7 @@ public class RevisionMark implements HGLink, HGHandleHolder
 {
 	private HGHandle thisHandle;
 	private HGHandle hRevision;
-	private HGHandle hMark;
+	private HGHandle hChangeRecord;
 	
 	public RevisionMark()
 	{
@@ -38,12 +39,12 @@ public class RevisionMark implements HGLink, HGHandleHolder
 	{
 		assert handles.length == 2;		
 		hRevision = handles[0];
-		hMark = handles[1];
+		hChangeRecord = handles[1];
 	}
 	
-	public RevisionMark mark(HGHandle mark)
+	public RevisionMark changeRecord(HGHandle changeRecord)
 	{
-		this.hMark = mark;
+		this.hChangeRecord = changeRecord;
 		return this;
 	}
 	
@@ -53,9 +54,9 @@ public class RevisionMark implements HGLink, HGHandleHolder
 		return this;
 	}
 	
-	public HGHandle mark()
+	public HGHandle changeRecord()
 	{
-		return hMark;
+		return hChangeRecord;
 	}
 	
 	public HGHandle revision()
@@ -72,7 +73,7 @@ public class RevisionMark implements HGLink, HGHandleHolder
 	@Override
 	public HGHandle getTargetAt(int i)
 	{
-		return (i == 0) ? hRevision : hMark;
+		return (i == 0) ? hRevision : hChangeRecord;
 	}
 
 	
@@ -94,7 +95,7 @@ public class RevisionMark implements HGLink, HGHandleHolder
 		if (i == 0)
 			hRevision = handle;
 		else if (i == 1)
-			hMark = handle;
+			hChangeRecord = handle;
 		else
 			throw new IllegalArgumentException("target index " + i);
 	}
@@ -132,7 +133,5 @@ public class RevisionMark implements HGLink, HGHandleHolder
 		else if (!thisHandle.equals(other.thisHandle))
 			return false;
 		return true;
-	}
-	
-	
+	}	
 }

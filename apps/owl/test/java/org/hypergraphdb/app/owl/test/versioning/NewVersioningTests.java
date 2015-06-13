@@ -12,12 +12,12 @@ import static org.hypergraphdb.app.owl.test.TU.owlClass;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.app.owl.HGDBOntology;
-import org.hypergraphdb.app.owl.newver.ChangeMark;
-import org.hypergraphdb.app.owl.newver.ChangeSet;
-import org.hypergraphdb.app.owl.newver.Revision;
-import org.hypergraphdb.app.owl.newver.VersionManager;
-import org.hypergraphdb.app.owl.newver.VersionedOntology;
 import org.hypergraphdb.app.owl.test.TU;
+import org.hypergraphdb.app.owl.versioning.ChangeRecord;
+import org.hypergraphdb.app.owl.versioning.ChangeSet;
+import org.hypergraphdb.app.owl.versioning.Revision;
+import org.hypergraphdb.app.owl.versioning.VersionManager;
+import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.util.HGUtils;
 import org.junit.After;
 import org.junit.Assert;
@@ -108,7 +108,7 @@ public class NewVersioningTests extends VersioningTestBase
 		ctx.vonto().commit("test", "first changes");
 		aInstanceOf(owlClass("ClassPerson"), individual("Mucho"));		
 		aProp(oprop("byUser"), individual("IndividualCommit"), individual("Mucho"));		
-		ChangeMark mark = ctx.vonto().flushChanges(); // starts a new working change set, without creating a new revision
+		ChangeRecord mark = ctx.vonto().flushChanges(); // starts a new working change set, without creating a new revision
 		ChangeSet<VersionedOntology> set = ctx.graph.get(mark.changeset());
 		Assert.assertEquals(2, set.size());
 		mark = ctx.vonto().flushChanges(); // empty changes flushed...

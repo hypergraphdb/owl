@@ -30,9 +30,9 @@ import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
-import org.hypergraphdb.app.owl.versioning.ChangeMark;
+import org.hypergraphdb.app.owl.versioning.ChangeRecord;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
-import org.hypergraphdb.app.owl.versioning.MarkParent;
+import org.hypergraphdb.app.owl.versioning.ParentLink;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.RevisionMark;
 import org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor;
@@ -80,7 +80,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 					   !configuration.heads().contains(revision);
 			}
 		};
-		return graph.findAll(hg.bfs(root, hg.type(MarkParent.class), revisionOk));
+		return graph.findAll(hg.bfs(root, hg.type(ParentLink.class), revisionOk));
 	}
 	
 	private Set<HGHandle> collectRevisions(VersionedOntology vo)
@@ -123,7 +123,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 	{
 		if (visited.contains(currentMarkHandle))
 			return;
-		ChangeMark mark = graph.get(currentMarkHandle);
+		ChangeRecord mark = graph.get(currentMarkHandle);
 		visit(mark);
 		visited.add(currentMarkHandle);
 		ChangeSet<VersionedOntology> changeSet = graph.get(mark.changeset());
@@ -136,10 +136,10 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 			return;
 		else
 		{
-			List<MarkParent> parentLinks = graph.getAll(
-				 hg.and(hg.type(MarkParent.class), 
+			List<ParentLink> parentLinks = graph.getAll(
+				 hg.and(hg.type(ParentLink.class), 
 						hg.orderedLink(currentMarkHandle, hg.anyHandle())));			
-			for (MarkParent link : parentLinks)
+			for (ParentLink link : parentLinks)
 			{
 				if (visited.contains(link.getAtomHandle()))
 					continue;
@@ -167,15 +167,15 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		writer.writeAttribute(VOWLXMLVocabulary.NAMESPACE + "versionedID", vo.getAtomHandle().toString());
 		
 		Set<HGHandle> revisions = collectRevisions(vo);
-		HashSet<MarkParent> parentLinks = new HashSet<MarkParent>();
+		HashSet<ParentLink> parentLinks = new HashSet<ParentLink>();
 		
 		for (HGHandle revisionHandle : revisions)
 		{
 			Revision revision = graph.get(revisionHandle);
 			visit(revision);
-			List<MarkParent> links = hg.getAll(graph, hg.and(hg.type(MarkParent.class), 
+			List<ParentLink> links = hg.getAll(graph, hg.and(hg.type(ParentLink.class), 
 																   hg.incident(revisionHandle)));
-			for (MarkParent parentLink : links)
+			for (ParentLink parentLink : links)
 			{
 				if (parentLinks.contains(parentLink))
 					continue;
@@ -190,7 +190,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		// have a change set with multiple parents so we don't want to serialize 
 		// any object twice. 
 		HashSet<HGHandle> visited = new HashSet<HGHandle>();		
-		for (MarkParent revisionLink : parentLinks)
+		for (ParentLink revisionLink : parentLinks)
 		{
 			if (!revisions.contains(revisionLink.parent()) && !revisions.contains(revisionLink.child()))
 				continue;
@@ -206,7 +206,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 				visit(childMark);
 				visited.add(childMark.getAtomHandle());
 			}
-			writeMarkChanges(graph, childMark.mark(), parentMark.mark(), visited);
+			writeMarkChanges(graph, childMark.changeRecord(), parentMark.changeRecord(), visited);
 		}
 		for (HGHandle rootRevision : configuration.roots())
 		{
@@ -214,7 +214,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 			if (visited.contains(revisionMark.getAtomHandle()))
 				continue;
 			visit(revisionMark);
-			writeMarkChanges(graph, revisionMark.mark(), revisionMark.mark(), visited);
+			writeMarkChanges(graph, revisionMark.changeRecord(), revisionMark.changeRecord(), visited);
 		}
 		
 		// Data
@@ -247,7 +247,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		writer.writeEndElement();
 	}
 
-	public void visit(MarkParent parentLink)
+	public void visit(ParentLink parentLink)
 	{
 		writer.writeStartElement(MARK_PARENT);
 		writer.writeAttribute("parent", parentLink.parent());
@@ -260,12 +260,12 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 	{
 		writer.writeStartElement(REVISION_MARK);
 		writer.writeAttribute("revision", revisionMark.revision());
-		writer.writeAttribute("mark", revisionMark.mark());
+		writer.writeAttribute("mark", revisionMark.changeRecord());
 		writer.writeAttribute("handle", revisionMark.getAtomHandle());
 		writer.writeEndElement();
 	}
 
-	public void visit(ChangeMark changeMark)
+	public void visit(ChangeRecord changeMark)
 	{
 		writer.writeStartElement(CHANGE_MARK);
 		writer.writeAttribute("target", changeMark.target());

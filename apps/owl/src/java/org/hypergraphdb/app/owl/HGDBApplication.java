@@ -33,9 +33,9 @@ import org.hypergraphdb.app.owl.type.OWLNamedObjectType;
 import org.hypergraphdb.app.owl.type.OntologyIDType;
 import org.hypergraphdb.app.owl.type.TypeUtils;
 import org.hypergraphdb.app.owl.util.ImplUtils;
-import org.hypergraphdb.app.owl.versioning.ChangeMark;
+import org.hypergraphdb.app.owl.versioning.ChangeRecord;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
-import org.hypergraphdb.app.owl.versioning.MarkParent;
+import org.hypergraphdb.app.owl.versioning.ParentLink;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.RevisionMark;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
@@ -171,8 +171,8 @@ public class HGDBApplication extends HGApplication
 	private void registerVersioningTypes(HyperGraph graph)
 	{
 		graph.getTypeSystem().getAtomType(ChangeSet.class);
-		graph.getTypeSystem().getAtomType(ChangeMark.class);
-		graph.getTypeSystem().getAtomType(MarkParent.class);
+		graph.getTypeSystem().getAtomType(ChangeRecord.class);
+		graph.getTypeSystem().getAtomType(ParentLink.class);
 		graph.getTypeSystem().getAtomType(Revision.class);
 		graph.getTypeSystem().getAtomType(RevisionMark.class);		
 		graph.getTypeSystem().getAtomType(Revision.class);

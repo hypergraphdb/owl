@@ -2,12 +2,12 @@ package org.hypergraphdb.app.owl.test.versioning;
 
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.gc.GarbageCollector;
-import org.hypergraphdb.app.owl.newver.ChangeMark;
-import org.hypergraphdb.app.owl.newver.Revision;
-import org.hypergraphdb.app.owl.newver.RevisionMark;
-import org.hypergraphdb.app.owl.newver.VersionManager;
-import org.hypergraphdb.app.owl.newver.VersionedOntology;
 import org.hypergraphdb.app.owl.test.TU;
+import org.hypergraphdb.app.owl.versioning.ChangeRecord;
+import org.hypergraphdb.app.owl.versioning.Revision;
+import org.hypergraphdb.app.owl.versioning.RevisionMark;
+import org.hypergraphdb.app.owl.versioning.VersionManager;
+import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.ActivityUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -69,7 +69,7 @@ public class VersionSerializationTests extends VersioningTestBase
 		assertEquals(1, ctx.vo.changes().size());
 		ctx.vo.flushChanges();
 		assertTrue(ctx.vo.changes().isEmpty());
-		ChangeMark mark = ctx.graph.get(ctx.vo.getRevisionMark(ctx.vo.getCurrentRevision()).mark());
+		ChangeRecord mark = ctx.graph.get(ctx.vo.getRevisionMark(ctx.vo.getCurrentRevision()).changeRecord());
 		assertEquals(1, mark.children().size());
 		String asxml = ActivityUtils.renderVersionedOntology(ctx.vo);
 		System.out.println(asxml);
@@ -82,7 +82,7 @@ public class VersionSerializationTests extends VersioningTestBase
 		assertTrue(vo2.changes().isEmpty());		
 		System.out.println("current revision " + vo2.getCurrentRevision());
 		System.out.println("current revision mark " + vo2.getRevisionMark(vo2.getCurrentRevision()));
-		mark = ctx.graph.get(vo2.getRevisionMark(vo2.getCurrentRevision()).mark());
+		mark = ctx.graph.get(vo2.getRevisionMark(vo2.getCurrentRevision()).changeRecord());
 		assertEquals(0, mark.children().size());
 		ctx.vo = vo2;
 	}
@@ -98,7 +98,7 @@ public class VersionSerializationTests extends VersioningTestBase
 		ctx.vo.commit("unittest", "one revision serialization");
 		assertTrue(ctx.vo.changes().isEmpty());
 		assertNotSame(ctx.vo.getRootRevision(), ctx.vo.getCurrentRevision());
-		ChangeMark mark = ctx.graph.get(ctx.vo.getRevisionMark(ctx.vo.getCurrentRevision()).mark());
+		ChangeRecord mark = ctx.graph.get(ctx.vo.getRevisionMark(ctx.vo.getCurrentRevision()).changeRecord());
 		assertEquals(1, mark.parents().size());
 		assertEquals(0, mark.children().size());
 		String asxml = ActivityUtils.renderVersionedOntology(ctx.vo);
@@ -111,10 +111,10 @@ public class VersionSerializationTests extends VersioningTestBase
 		assertEquals(ctx.vo.getOntology(), vo2.getOntology());
 		assertTrue(vo2.changes().isEmpty());
 		RevisionMark revisionMark = vo2.getRevisionMark(vo2.getCurrentRevision());
-		mark = ctx.graph.get(revisionMark.mark());
+		mark = ctx.graph.get(revisionMark.changeRecord());
 		assertEquals(1, mark.parents().size());
 		assertEquals(0, mark.children().size());
-		ChangeMark parentMark = ctx.graph.get(mark.parents().iterator().next());
+		ChangeRecord parentMark = ctx.graph.get(mark.parents().iterator().next());
 		assertEquals(ctx.m.getVersionManager().emptyChangeSetHandle(), parentMark.changeset());
 		assertEquals(ctx.vo.getCurrentRevision(), revisionMark.revision());
 		assertEquals(vo2.getCurrentRevision(), revisionMark.revision());
@@ -138,18 +138,18 @@ public class VersionSerializationTests extends VersioningTestBase
 		aInstanceOf(owlClass("Employee"), individual("Pedro"));
 		aSubclassOf(owlClass("User"), owlClass("Customer"));
 		declare(owlClass("LoyalCustomer"));
-		ChangeMark mark1 = ctx.vo.flushChanges();
+		ChangeRecord mark1 = ctx.vo.flushChanges();
 		
 		aSubclassOf(owlClass("Customer"), owlClass("LoyalCustomer"));
 		aInstanceOf(owlClass("LoyalCustomer"), individual("Mary"));
 		aInstanceOf(owlClass("LoyalCustomer"), individual("Tom"));
-		ChangeMark mark2 = ctx.vo.flushChanges();
+		ChangeRecord mark2 = ctx.vo.flushChanges();
 		
 		aInstanceOf(owlClass("Customer"), individual("John"));
 		aInstanceOf(owlClass("Employee"), individual("Fred"));
 		declare(oprop("isServing"));		
 		aProp(oprop("isServing"), individual("Fred"), individual("Tom"));
-		ChangeMark mark3 = ctx.vo.flushChanges();
+		ChangeRecord mark3 = ctx.vo.flushChanges();
 		// no changes between last flush and the creation of a new revision
 		Revision revision2 = ctx.vo.commit("administrator", "Second version by admin");		
 		
@@ -170,7 +170,7 @@ public class VersionSerializationTests extends VersioningTestBase
 		assertEquals(ctx.vo.getOntology(), vo2.getOntology());
 		assertTrue(vo2.changes().isEmpty());
 		RevisionMark revisionMark = vo2.getRevisionMark(vo2.getCurrentRevision());
-		ChangeMark mark = ctx.graph.get(revisionMark.mark());
+		ChangeRecord mark = ctx.graph.get(revisionMark.changeRecord());
 		assertEquals(1, mark.parents().size());
 		assertEquals(0, mark.children().size());
 		assertEquals(mark3, mark);

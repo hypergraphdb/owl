@@ -3,20 +3,20 @@ package org.hypergraphdb.app.owl.versioning.distributed.serialize.parse;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserHandler;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.versioning.MarkParent;
+import org.hypergraphdb.app.owl.versioning.ParentLink;
 import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.UnloadableImportException;
 
-public class MarkParentElementHandler extends AbstractVOWLElementHandler<MarkParent>
+public class ParentLinkElementHandler extends AbstractVOWLElementHandler<ParentLink>
 {
 	private HyperGraph graph;
-	private MarkParent markParent;
+	private ParentLink markParent;
 
-	public MarkParentElementHandler(HyperGraph graph, OWLXMLParserHandler handler)
+	public ParentLinkElementHandler(HyperGraph graph, OWLXMLParserHandler handler)
 	{
 		super(handler);
 		this.graph = graph;
-		markParent = new MarkParent();
+		markParent = new ParentLink();
 	}
 
 	@Override
@@ -35,7 +35,7 @@ public class MarkParentElementHandler extends AbstractVOWLElementHandler<MarkPar
 			markParent.setAtomHandle(graph.getHandleFactory().makeHandle(value.trim()));
 		}		
 		else
-			throw new IllegalArgumentException("Unrecognized attribute '" + localName + " for MarkParent");
+			throw new IllegalArgumentException("Unrecognized attribute '" + localName + " for ParentLink");
 	}
 	@Override
 	public void endElement() throws OWLParserException, UnloadableImportException
@@ -44,7 +44,7 @@ public class MarkParentElementHandler extends AbstractVOWLElementHandler<MarkPar
 	}
 
 	@Override
-	public MarkParent getOWLObject() throws OWLXMLParserException
+	public ParentLink getOWLObject() throws OWLXMLParserException
 	{
 		return markParent;
 	}

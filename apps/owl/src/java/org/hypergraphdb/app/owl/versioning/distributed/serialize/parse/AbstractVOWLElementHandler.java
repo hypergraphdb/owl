@@ -45,13 +45,13 @@ public abstract class AbstractVOWLElementHandler<O> extends AbstractOWLElementHa
 	}
 
 	@Override
-	public void handleChild(MarkParentElementHandler h)
+	public void handleChild(ParentLinkElementHandler h)
 			throws OWLXMLParserException
 	{
 	}
 
 	@Override
-	public void handleChild(ChangeMarkElementHandler h)
+	public void handleChild(ChangeRecordElementHandler h)
 			throws OWLXMLParserException
 	{
 		// TODO Auto-generated method stub

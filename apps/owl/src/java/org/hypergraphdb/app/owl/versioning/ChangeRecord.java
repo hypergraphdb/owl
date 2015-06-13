@@ -18,7 +18,7 @@ import org.hypergraphdb.HGQuery.hg;
  * modified any further. The versioned object itself can be positioned 
  * at different point in the version graph which means change sets will be
  * rolled back and re-applied, however after they are marked (i.e. after
- * there is at least one ChangeMark link pointing to a changeset), they
+ * there is at least one ChangeRecord link pointing to a changeset), they
  * are readonly and cannot be altered.
  * </p>
  * 
@@ -31,18 +31,18 @@ import org.hypergraphdb.HGQuery.hg;
  * @author Borislav Iordanov
  *
  */
-public class ChangeMark implements HGLink, HGGraphHolder, HGHandleHolder
+public class ChangeRecord implements HGLink, HGGraphHolder, HGHandleHolder
 {
 	private HGHandle thisHandle;
 	private HyperGraph graph;
 	private HGHandle target, changeset;
 	private long timestamp;
 	
-	public ChangeMark()
+	public ChangeRecord()
 	{		
 	}
 	
-	public ChangeMark(HGHandle...targets)
+	public ChangeRecord(HGHandle...targets)
 	{
 		if (targets.length != 2)
 			throw new IllegalArgumentException("Expecting exactly 2 targets: target object and changeset");
@@ -90,7 +90,7 @@ public class ChangeMark implements HGLink, HGGraphHolder, HGHandleHolder
 		HashSet<HGHandle> S = new HashSet<HGHandle>();
 		S.addAll((List<HGHandle>)(List<?>)graph.findAll(
 				hg.apply(hg.targetAt(graph, 1), 
-						 hg.and(hg.type(MarkParent.class), 
+						 hg.and(hg.type(ParentLink.class), 
 								hg.orderedLink(thisHandle, hg.anyHandle())))));
 		return S;
 	}
@@ -101,7 +101,7 @@ public class ChangeMark implements HGLink, HGGraphHolder, HGHandleHolder
 		HashSet<HGHandle> S = new HashSet<HGHandle>();
 		S.addAll((List<HGHandle>)(List<?>)graph.findAll(
 				hg.apply(hg.targetAt(graph, 0), 
-						 hg.and(hg.type(MarkParent.class), 
+						 hg.and(hg.type(ParentLink.class), 
 								hg.orderedLink(hg.anyHandle(), thisHandle)))));
 		return S;
 	}
@@ -112,7 +112,7 @@ public class ChangeMark implements HGLink, HGGraphHolder, HGHandleHolder
 				hg.and(hg.type(RevisionMark.class), hg.incident(thisHandle))));
 	}
 	
-	public ChangeMark target(HGHandle target)
+	public ChangeRecord target(HGHandle target)
 	{
 		this.target = target;
 		return this;
@@ -123,7 +123,7 @@ public class ChangeMark implements HGLink, HGGraphHolder, HGHandleHolder
 		return getTargetAt(0);
 	}
 
-	public ChangeMark changeSet(HGHandle changeSet)
+	public ChangeRecord changeSet(HGHandle changeSet)
 	{
 		this.changeset = changeSet;
 		return this;
@@ -192,7 +192,7 @@ public class ChangeMark implements HGLink, HGGraphHolder, HGHandleHolder
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ChangeMark other = (ChangeMark) obj;
+		ChangeRecord other = (ChangeRecord) obj;
 		if (thisHandle == null)
 		{
 			if (other.thisHandle != null)

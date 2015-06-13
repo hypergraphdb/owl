@@ -14,21 +14,21 @@ import org.hypergraphdb.util.HGUtils;
  * @author Borislav Iordanov
  *
  */
-public class MarkParent implements HGLink, HGHandleHolder
+public class ParentLink implements HGLink, HGHandleHolder
 {
 	private HGHandle thisHandle, child, parent;
 	
-	public MarkParent()
+	public ParentLink()
 	{		
 	}
 	
-	public MarkParent(HGHandle...handles)
+	public ParentLink(HGHandle...handles)
 	{
 		child = handles[0];
 		parent = handles[1];
 	}
 
-	public MarkParent child(HGHandle child)
+	public ParentLink child(HGHandle child)
 	{
 		this.child = child;
 		return this;
@@ -47,7 +47,7 @@ public class MarkParent implements HGLink, HGHandleHolder
 		this.thisHandle = handle;
 	}
 
-	public MarkParent parent(HGHandle parent)
+	public ParentLink parent(HGHandle parent)
 	{
 		this.parent = parent;
 		return this;
@@ -105,9 +105,9 @@ public class MarkParent implements HGLink, HGHandleHolder
 	@Override
 	public boolean equals(Object obj)
 	{
-		if ( ! (obj instanceof MarkParent))
+		if ( ! (obj instanceof ParentLink))
 			return false;
-		MarkParent mp = (MarkParent)obj;
+		ParentLink mp = (ParentLink)obj;
 		return HGUtils.eq(parent, mp.parent) && HGUtils.eq(child, mp.child);
 	}		
 }

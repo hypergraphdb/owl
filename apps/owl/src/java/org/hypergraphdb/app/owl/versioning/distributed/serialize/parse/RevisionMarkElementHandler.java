@@ -28,7 +28,7 @@ public class RevisionMarkElementHandler extends AbstractVOWLElementHandler<Revis
 		}
 		else if (localName.equals("mark"))
 		{
-			revisionMark.mark(graph.getHandleFactory().makeHandle(value));
+			revisionMark.changeRecord(graph.getHandleFactory().makeHandle(value));
 		}
 		else if (localName.equals("handle"))
 		{

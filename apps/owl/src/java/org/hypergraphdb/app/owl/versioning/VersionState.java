@@ -16,14 +16,14 @@ import java.util.Set;
  * be obtained from a chronological ordering. For purposes of <code>VersionState</code>
  * comparison, we say the a state A is prior to state B (or that B is a 
  * subsequent to A) if B was reached from A as a result of new revisions being
- * applied to A. The two states A and B are divergent if there a revision applied
+ * applied to A. The two states A and B are divergent if there are revisions applied
  * to A that are not part of B and vice versa (i.e. when the two state evolved in
- * parallel rather in sequence).   
+ * parallel rather than in sequence).   
  * </p>
  * 
  * <p>
- * The purpose of this <code>VersionState</code> concept is not only to compare
- * whether two versioned objects, but also to compute deltas: given version state A
+ * The intent behind the <code>VersionState</code> concept is not only to compare
+ * two versioned objects, but also to compute deltas: given version state A
  * and version state B for a versioned object V, compute all necessary changes to
  * reach B from A, for example. The delta is expressed as a set of {@link Revision}s.
  * </p>

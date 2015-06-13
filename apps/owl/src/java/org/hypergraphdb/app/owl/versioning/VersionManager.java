@@ -66,7 +66,7 @@ public class VersionManager
 															graph.getHandleFactory().nullHandle(), 
 															workingChanges);
 		graph.add(versioned);		
-		HGHandle initialMark = graph.add(new ChangeMark(ontology, emptyChangeSetHandle()));
+		HGHandle initialMark = graph.add(new ChangeRecord(ontology, emptyChangeSetHandle()));
 		Revision initialRevision = new Revision(versioned.getAtomHandle());
 		initialRevision.user(user);
 		initialRevision.timestamp(System.currentTimeMillis());
@@ -111,7 +111,7 @@ public class VersionManager
 		Boolean inmap = this.isversionedmap.get(target);
 		if (inmap == null)
 		{
-			inmap = graph.findOne(hg.and(hg.type(ChangeMark.class),
+			inmap = graph.findOne(hg.and(hg.type(ChangeRecord.class),
 		  		 hg.orderedLink(target, emptyChangeSetHandle()))) != null;
 			this.isversionedmap.put(target, inmap);
 		}
@@ -159,7 +159,7 @@ public class VersionManager
 					VersionedOntology vOntology = versioned(ontology);
 					HGHandle voHandle = graph.getHandle(vOntology);
 					HGSearchResult<HGHandle> rs = graph.find(hg.dfs(vOntology.getRootRevision(),
-																    hg.type(MarkParent.class),
+																    hg.type(ParentLink.class),
 																    hg.type(Revision.class)));
 					// TODO: how much of this stuff should be left for garbage collection
 					// we do want this to be a fast operation since it's going to be user performed.
@@ -171,7 +171,7 @@ public class VersionManager
 						while (rs.hasNext()) 
 						{
 							HGHandle revisionHandle = rs.next();
-							// remove MarkParent links as well, hopefully no issue with ongoing traversal!
+							// remove ParentLink links as well, hopefully no issue with ongoing traversal!
 							graph.remove(revisionHandle, false); 
 						}
 					}
@@ -181,13 +181,13 @@ public class VersionManager
 					}
 					graph.remove(vOntology.getRootRevision(), true);
 					rs = graph.find(hg.and(hg.incident(vOntology.ontology().getAtomHandle()), 
-										   hg.type(ChangeMark.class)));
+										   hg.type(ChangeRecord.class)));
 					try
 					{
 						while (rs.hasNext()) 
 						{
 							HGHandle changeMarkHandle = rs.next();
-							ChangeMark changeMark = graph.get(changeMarkHandle);
+							ChangeRecord changeMark = graph.get(changeMarkHandle);
 							HGHandle changeSetHandle = changeMark.changeset();
 							ChangeSet<VersionedOntology> changeSet = graph.get(changeSetHandle);
 							changeSet.clear();

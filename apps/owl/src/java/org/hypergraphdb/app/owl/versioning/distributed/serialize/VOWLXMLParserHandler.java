@@ -208,9 +208,9 @@ import org.coode.owlapi.owlxmlparser.SWRLSameIndividualAtomElementHandler;
 import org.coode.owlapi.owlxmlparser.TranslatedOWLParserException;
 import org.coode.owlapi.owlxmlparser.TranslatedUnloadableImportException;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.ChangeMarkElementHandler;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.ChangeRecordElementHandler;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.ChangeSetElementHandler;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.MarkParentElementHandler;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.ParentLinkElementHandler;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.OWLImportsHandlerModified;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.OWLOntologyHandlerModified;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.OrigSWRLAtomListElementHandler;
@@ -370,7 +370,7 @@ public class VOWLXMLParserHandler extends OWLXMLParserHandler
 		{
 			public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler)
 			{
-				return new MarkParentElementHandler(graph, handler);
+				return new ParentLinkElementHandler(graph, handler);
 			}
 		});
 		
@@ -378,7 +378,7 @@ public class VOWLXMLParserHandler extends OWLXMLParserHandler
 		{
 			public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler)
 			{
-				return new ChangeMarkElementHandler(graph, handler);
+				return new ChangeRecordElementHandler(graph, handler);
 			}
 		});
 		

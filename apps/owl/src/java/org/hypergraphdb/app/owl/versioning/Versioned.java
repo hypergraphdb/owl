@@ -80,7 +80,7 @@ public interface Versioned<T extends Versioned<T>>
 	 * being created.
 	 * </p>
 	 */
-	ChangeMark flushChanges();
+	ChangeRecord flushChanges();
 	
 	/**
 	 * Return the latest working changes. Those are the changes that will

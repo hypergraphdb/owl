@@ -3,20 +3,20 @@ package org.hypergraphdb.app.owl.versioning.distributed.serialize.parse;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserHandler;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.versioning.ChangeMark;
+import org.hypergraphdb.app.owl.versioning.ChangeRecord;
 import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.UnloadableImportException;
 
-public class ChangeMarkElementHandler extends AbstractVOWLElementHandler<ChangeMark>
+public class ChangeRecordElementHandler extends AbstractVOWLElementHandler<ChangeRecord>
 {
 	private HyperGraph graph;
-	private ChangeMark changeMark;
+	private ChangeRecord changeMark;
 
-	public ChangeMarkElementHandler(HyperGraph graph, OWLXMLParserHandler handler)
+	public ChangeRecordElementHandler(HyperGraph graph, OWLXMLParserHandler handler)
 	{
 		super(handler);
 		this.graph = graph;
-		changeMark = new ChangeMark();
+		changeMark = new ChangeRecord();
 	}
 
 	@Override
@@ -44,7 +44,7 @@ public class ChangeMarkElementHandler extends AbstractVOWLElementHandler<ChangeM
 	}
 
 	@Override
-	public ChangeMark getOWLObject() throws OWLXMLParserException
+	public ChangeRecord getOWLObject() throws OWLXMLParserException
 	{
 		return changeMark;
 	}

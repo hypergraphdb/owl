@@ -28,9 +28,9 @@ public class OntologyVersionState implements VersionState<VersionedOntology>
 	private HGHandle closestAncestor(HyperGraph graph, HGHandle r1, HGHandle r2)
 	{
 		HGTraversal t1 = new HGBreadthFirstTraversal(r1, 
-			new DefaultALGenerator(graph, hg.type(MarkParent.class), null, true, false, false));
+			new DefaultALGenerator(graph, hg.type(ParentLink.class), null, true, false, false));
 		HGTraversal t2 = new HGBreadthFirstTraversal(r2, 
-			new DefaultALGenerator(graph, hg.type(MarkParent.class), null, true, false, false));
+			new DefaultALGenerator(graph, hg.type(ParentLink.class), null, true, false, false));
 		
 		while (true)
 		{
@@ -83,7 +83,7 @@ public class OntologyVersionState implements VersionState<VersionedOntology>
 					}
 				};
 				List<Revision> L = graph.getAll(hg.bfs(parent, 
-													   hg.type(MarkParent.class), 
+													   hg.type(ParentLink.class), 
 													   nodePredicate));
 				result.addAll(L);
 				result.add(theirHeadRevision);

@@ -86,13 +86,13 @@ public class VersionedOntologyElementHandler extends AbstractVOWLElementHandler<
 	}
 
 	@Override
-	public void handleChild(ChangeMarkElementHandler h) throws OWLXMLParserException
+	public void handleChild(ChangeRecordElementHandler h) throws OWLXMLParserException
 	{
 		this.getDocumentRoot().revisionObjects().add(h.getOWLObject());		
 	}
 	
 	@Override
-	public void handleChild(MarkParentElementHandler h) throws OWLXMLParserException
+	public void handleChild(ParentLinkElementHandler h) throws OWLXMLParserException
 	{
 		this.getDocumentRoot().revisionObjects().add(h.getOWLObject());	
 	}

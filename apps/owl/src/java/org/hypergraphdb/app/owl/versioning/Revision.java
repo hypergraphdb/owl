@@ -22,7 +22,7 @@ import org.hypergraphdb.HyperGraph;
  * </p>
  * 
  * <p>
- * A revision is associated one or more {@link ChangeMark}s that "lead" to it.
+ * A revision is associated one or more {@link ChangeRecord}s that "lead" to it.
  * The association is represented with the {@link RevisionMark} link. 
  * There may be more than one change mark (a.k.a. "commit") associated with a
  * revision when the versioned object is {@link VersionedProject} for example.  
@@ -133,7 +133,7 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 		HashSet<HGHandle> S = new HashSet<HGHandle>();
 		S.addAll((List<HGHandle>)(List<?>)graph.findAll(
 				hg.apply(hg.targetAt(graph, 1), 
-						 hg.and(hg.type(MarkParent.class), 
+						 hg.and(hg.type(ParentLink.class), 
 								hg.orderedLink(thisHandle, hg.anyHandle())))));
 		return S;
 	}
@@ -148,7 +148,7 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 		HashSet<Revision> S = new HashSet<Revision>();
 		S.addAll((List<Revision>)(List<?>)graph.getAll(
 				hg.apply(hg.targetAt(graph, 0), 
-						 hg.and(hg.type(MarkParent.class), 
+						 hg.and(hg.type(ParentLink.class), 
 								hg.orderedLink(hg.anyHandle(), thisHandle)))));
 		return S;		
 	}
