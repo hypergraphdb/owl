@@ -79,6 +79,16 @@ public class VersionManager
 		return versioned;
 	}
 	
+	/**
+	 * <p>
+	 * Construct a <code>VersionManager</code> bound to the specified database instance
+	 * and representing the given user.
+	 * </p>
+	 * 
+	 * @param graph The HyperGraphDB instance holding the versioned.
+	 * @param user The user conducting versioning operation. If <code>null</code>, the
+	 * system user (<code>System.getProperty("user.name")</code>) is used.
+	 */
 	public VersionManager(HyperGraph graph, String user)
 	{
 		this.graph = graph;

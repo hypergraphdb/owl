@@ -316,11 +316,22 @@ public class ActivityUtils
 //		}
 	}
 
-	public String renderVersionedOntologyDelta(VersionedOntology versionedOntology, Set<Revision> delta) throws OWLRendererException
+	public static String renderVersionedOntologyDelta(VersionedOntology versionedOntology, 
+			   								   		  Set<HGHandle> delta) throws OWLRendererException
+	{
+		return renderVersionedOntologyDelta(versionedOntology, delta, null);
+	}
+	
+	public static String renderVersionedOntologyDelta(VersionedOntology versionedOntology, 
+													  Set<HGHandle> delta,
+													  HGHandle revisionSnapshot) throws OWLRendererException
 	{
 		VOWLXMLRenderConfiguration conf = new VOWLXMLRenderConfiguration();
 		VOWLXMLVersionedOntologyRenderer owlxmlRenderer = new VOWLXMLVersionedOntologyRenderer(
 				HGOntologyManagerFactory.getOntologyManager(versionedOntology.graph().getLocation()));
+		conf.heads().addAll(delta);
+		if (revisionSnapshot != null)
+			conf.revisionSnapshot(revisionSnapshot);
 		StringWriter stringWriter = new StringWriter(RENDER_BUFFER_DELTA_INITIAL_SIZE);
 		owlxmlRenderer.render(versionedOntology, delta, stringWriter, conf);
 		return stringWriter.toString();

@@ -19,7 +19,7 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
  * @author Thomas Hilpold (CIAO/Miami-Dade County), Borislav Iordanov
  * @created Jan 18, 2012
  */
-public class VHGDBOntologyRepository extends HGDBOntologyRepository // implements OWLOntologyChangeListener
+public class VHGDBOntologyRepository extends HGDBOntologyRepository
 {
 	/**
 	 * Will print time every 100 changes.

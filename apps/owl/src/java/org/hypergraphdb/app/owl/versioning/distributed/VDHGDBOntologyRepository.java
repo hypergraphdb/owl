@@ -66,6 +66,12 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository
 
 	HyperGraphPeer peer;
 
+	public VDHGDBOntologyRepository(HyperGraphPeer peer)
+	{
+		super(peer.getGraph().getLocation());
+		this.peer = peer;
+	}
+	
 	public VDHGDBOntologyRepository(String location, String peerConnectionString)
 	{
 		super(location);

@@ -21,22 +21,10 @@ public class VersioningTestBase
 			File.separator + 
 			"hgdbtest";
 	
-	static final String iri_prefix = "hgdb://UNITTESTONT_VERSIONED";
+	protected static final String iri_prefix = "hgdb://UNITTESTONT_VERSIONED";
 	
 	TestContext ctx; 
-	
-	@BeforeClass public static void setupDatabase()
-	{
-		System.out.println("Using db location " + dblocation + " for VersioningTestBase.");
-		HGUtils.dropHyperGraphInstance(dblocation);
-		TestContext ctx = new TestContext();
-		ctx.graph = HGEnvironment.get(dblocation);
-		ctx.r = new HGDBOntologyRepository(dblocation);
-		ctx.m = HGOntologyManagerFactory.getOntologyManager(dblocation);
-		ctx.df = ctx.m.getOWLDataFactory();
-		TU.ctx = ctx;
-	}
-	
+		
 	protected VersionedOntology make(String iri, OWLAxiom...axioms)
 	{
 		try

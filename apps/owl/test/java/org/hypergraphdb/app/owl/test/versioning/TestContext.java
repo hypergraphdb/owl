@@ -13,13 +13,13 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 public class TestContext implements OntologyContext
 {
-	HyperGraph graph;
-	HGDBOntologyManager m;
-	HGDBOntologyRepository r;
-	OWLDataFactory df;
-	VersionManager vr;
-	HGDBOntology o;
-	VersionedOntology vo;
+	public HyperGraph graph;
+	public HGDBOntologyManager m;
+	public HGDBOntologyRepository r;
+	public OWLDataFactory df;
+	public VersionManager vr;
+	public HGDBOntology o;
+	public VersionedOntology vo;
 	
 	public HyperGraph graph() { return graph; }
 	public OWLOntology ontology() { return o; }

@@ -41,12 +41,12 @@ public class VOWLXMLVersionedOntologyRenderer extends AbstractOWLRenderer
 		render(manager.getVersionManager().versioned(ontoHandle), null, writer);
 	}
 
-	public void render(VersionedOntology vonto, Set<Revision> revisions, Writer writer) throws OWLRendererException
+	public void render(VersionedOntology vonto, Set<HGHandle> revisions, Writer writer) throws OWLRendererException
 	{
 		render(vonto, revisions, writer, new VOWLXMLRenderConfiguration());
 	}
 
-	public void render(VersionedOntology vonto, Set<Revision> revisions, Writer writer, VOWLXMLRenderConfiguration configuration)
+	public void render(VersionedOntology vonto, Set<HGHandle> revisions, Writer writer, VOWLXMLRenderConfiguration configuration)
 			throws OWLRendererException
 	{
 		StopWatch s = new StopWatch(true);
@@ -69,8 +69,8 @@ public class VOWLXMLVersionedOntologyRenderer extends AbstractOWLRenderer
 			// should be part of the configuration, or what will end up remaining in that "configuration"
 			// eventually.
 			if (revisions != null)
-				for (Revision rev : revisions)
-					vren.visit(rev);
+				for (HGHandle rev : revisions)
+					vren.visit((Revision)manager.getOntologyRepository().getHyperGraph().get(rev));
 			vw.endDocument();
 			writer.flush();
 			s.stop("VOWLXMLVersionedOntologyRenderer Render Process " + 

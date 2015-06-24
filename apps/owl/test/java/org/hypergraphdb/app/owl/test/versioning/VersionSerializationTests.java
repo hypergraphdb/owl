@@ -1,6 +1,9 @@
 package org.hypergraphdb.app.owl.test.versioning;
 
+import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.app.owl.HGDBOntology;
+import org.hypergraphdb.app.owl.HGDBOntologyRepository;
+import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.gc.GarbageCollector;
 import org.hypergraphdb.app.owl.test.TU;
 import org.hypergraphdb.app.owl.versioning.ChangeRecord;
@@ -9,8 +12,10 @@ import org.hypergraphdb.app.owl.versioning.RevisionMark;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.ActivityUtils;
+import org.hypergraphdb.util.HGUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.Assert;
 import org.junit.runner.JUnitCore;
@@ -28,9 +33,21 @@ import static org.hypergraphdb.app.owl.test.TU.*;
 public class VersionSerializationTests extends VersioningTestBase
 {
 	
+	@BeforeClass public static void setupDatabase()
+	{
+		System.out.println("Using db location " + dblocation + " for VersioningTestBase.");
+		HGUtils.dropHyperGraphInstance(dblocation);
+		TestContext ctx = new TestContext();
+		ctx.graph = HGEnvironment.get(dblocation);
+		ctx.r = new HGDBOntologyRepository(dblocation);
+		ctx.m = HGOntologyManagerFactory.getOntologyManager(dblocation);
+		ctx.df = ctx.m.getOWLDataFactory();
+		TU.ctx.set(ctx);
+	}
+	
 	@Before public void beforeTest() throws Exception
 	{ 
-		ctx = (TestContext)TU.ctx;
+		ctx = (TestContext)TU.ctx();
 		ctx.o = (HGDBOntology)ctx.m.createOntology(IRI.create(iri_prefix + "_" + "serialization")); 
 		ctx.vr = new VersionManager(ctx.graph, "testuser");
 		ctx.vo = ctx.vr.versioned(ctx.graph.getHandle(ctx.o));				

@@ -22,6 +22,7 @@ import org.hypergraphdb.util.HGUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
@@ -29,7 +30,14 @@ import org.semanticweb.owlapi.model.OWLOntology;
 
 public class NewVersioningTests extends VersioningTestBase
 {
-		
+
+	@BeforeClass public static void setupDatabase()
+	{
+		System.out.println("Using db location " + dblocation + " for VersioningTestBase.");
+		HGUtils.dropHyperGraphInstance(dblocation);		
+		TU.ctx.set(TU.newCtx(dblocation));
+	}
+	
 	public static void main(String []argv)
 	{
 		try
@@ -52,7 +60,7 @@ public class NewVersioningTests extends VersioningTestBase
 	@Before public void beforeTest() throws Exception
 	{ 
 		System.out.println("before test");
-		ctx = (TestContext)TU.ctx;
+		ctx = (TestContext)TU.ctx();
 		ctx.o = (HGDBOntology)ctx.m.createOntology(IRI.create(
 				iri_prefix + "_" + (++i))); 
 		ctx.vr = new VersionManager(ctx.graph, "testuser");

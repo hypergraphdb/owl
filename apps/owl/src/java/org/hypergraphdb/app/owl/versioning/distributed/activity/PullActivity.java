@@ -265,7 +265,7 @@ public class PullActivity extends OntologyTransmitActivity
 							// render FULL or render until last requested.
 							VersionedOntology versionedOntology = repository.getOntologyManager().getVersionManager().versioned(onto.getAtomHandle());							
 							Set<Revision> delta = new OntologyVersionState(referenceHeads).delta(versionedOntology);
-							return activityUtils.renderVersionedOntologyDelta(versionedOntology, delta);
+							return activityUtils.renderVersionedOntologyDelta(versionedOntology, /*delta*/ null);
 						}
 						catch (Exception e)
 						{
@@ -415,7 +415,7 @@ public class PullActivity extends OntologyTransmitActivity
 				}
 				try
 				{
-					owlxmlStringOntology = activityUtils.renderVersionedOntologyDelta(versionedOntology, delta);
+					owlxmlStringOntology = activityUtils.renderVersionedOntologyDelta(versionedOntology, /*delta*/ null);
 				}
 				catch (Exception ex)
 				{

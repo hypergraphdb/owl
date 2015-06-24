@@ -143,10 +143,10 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 	 * revision will have no branches at all.  
 	 */
 	@SuppressWarnings("unchecked")
-	public Set<Revision> branches()
+	public Set<HGHandle> branches()
 	{
-		HashSet<Revision> S = new HashSet<Revision>();
-		S.addAll((List<Revision>)(List<?>)graph.getAll(
+		HashSet<HGHandle> S = new HashSet<HGHandle>();
+		S.addAll((List<HGHandle>)(List<?>)graph.findAll(
 				hg.apply(hg.targetAt(graph, 0), 
 						 hg.and(hg.type(ParentLink.class), 
 								hg.orderedLink(hg.anyHandle(), thisHandle)))));
