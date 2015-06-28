@@ -7,7 +7,6 @@ import java.util.Set;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.util.StopWatch;
-import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.semanticweb.owlapi.io.AbstractOWLRenderer;
 import org.semanticweb.owlapi.io.OWLRendererException;
@@ -63,14 +62,7 @@ public class VOWLXMLVersionedOntologyRenderer extends AbstractOWLRenderer
 			vw.writePrefix(VOWLXMLVocabulary.NAMESPACE_PREFIX.toString(), VOWLXMLVocabulary.NAMESPACE.toString());
 			VOWLXMLObjectRenderer vren = new VOWLXMLObjectRenderer(vw, configuration);
 			vren.visit(configuration);
-			vren.visit(vonto);
-			
-			// Not sure if the revision set (which is basically the delta graph we are transferring
-			// should be part of the configuration, or what will end up remaining in that "configuration"
-			// eventually.
-			if (revisions != null)
-				for (HGHandle rev : revisions)
-					vren.visit((Revision)manager.getOntologyRepository().getHyperGraph().get(rev));
+			vren.visit(vonto, revisions);
 			vw.endDocument();
 			writer.flush();
 			s.stop("VOWLXMLVersionedOntologyRenderer Render Process " + 

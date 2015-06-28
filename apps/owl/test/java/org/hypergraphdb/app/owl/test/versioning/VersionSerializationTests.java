@@ -173,8 +173,8 @@ public class VersionSerializationTests extends VersioningTestBase
 		// some more in working set, shouldn't be serialized
 		aProp(dprop("hasAge"), individual("Mary"), literal("54"));
 		
-		assertEquals(1, revision2.changeMarks().size());
-		assertEquals(mark3.getAtomHandle(), revision2.changeMarks().iterator().next());
+		assertEquals(1, revision2.changeRecords().size());
+		assertEquals(mark3.getAtomHandle(), revision2.changeRecords().iterator().next());
 		
 		String asxml = ActivityUtils.renderVersionedOntology(ctx.vo);
 		System.out.println(asxml);

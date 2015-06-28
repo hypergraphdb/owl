@@ -2,14 +2,19 @@ package org.hypergraphdb.app.owl.versioning.distributed.activity;
 
 import static org.hypergraphdb.peer.Messages.CONTENT;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 import mjson.Json;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.versioning.OntologyVersionState;
+import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
+import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.RemoteOntology;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.Messages;
@@ -18,6 +23,7 @@ import org.hypergraphdb.peer.workflow.FSMActivity;
 import org.hypergraphdb.peer.workflow.FromState;
 import org.hypergraphdb.peer.workflow.OnMessage;
 import org.hypergraphdb.peer.workflow.WorkflowStateConstant;
+
 import static org.hypergraphdb.peer.Messages.*;
 
 /**
@@ -73,6 +79,15 @@ public class GetNewRevisionsActivity extends FSMActivity
 		VersionManager versionManager = new VersionManager(getThisPeer().getGraph(), "fixme-VHDBOntologyRepository");
 		if (!versionManager.isVersioned(ontologyHandle))
 			reply(msg, Performative.Failure, Json.object("error", "The ontology does not exist or is not versioned."));
+		else if (revisionHeads.isEmpty())
+		{
+			VersionedOntology vo = versionManager.versioned(ontologyHandle);
+			Set<HGHandle> heads = new HashSet<HGHandle>();
+			for (Revision r : vo.heads()) heads.add(getThisPeer().getGraph().getHandle(r));
+			reply(msg, 
+				  Performative.InformRef, 
+				  ActivityUtils.collectRevisions(vo, Collections.singleton(vo.getRootRevision()), heads));
+		}
 		else
 			reply(msg, Performative.InformRef, versionState.findRevisionsSince(versionManager.versioned(ontologyHandle)));
 		return WorkflowStateConstant.Completed;

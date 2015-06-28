@@ -32,7 +32,7 @@ public class RevisionMarkElementHandler extends AbstractVOWLElementHandler<Revis
 		}
 		else if (localName.equals("handle"))
 		{
-			revisionMark.setAtomHandle(graph.getHandleFactory().makeHandle(value.trim()));
+			revisionMark.setAtomHandle(graph.getHandleFactory().makeHandle(value));
 		}		
 		else
 			throw new IllegalArgumentException("Unrecognized attribute '" + localName + " for RevisionMark");

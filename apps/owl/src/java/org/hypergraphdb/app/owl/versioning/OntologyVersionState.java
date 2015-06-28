@@ -89,7 +89,7 @@ public class OntologyVersionState implements VersionState<VersionedOntology>
 	 * member of <code>Heads</code> so we add it to a set of <code>Pending</code> revisions
 	 * to traverse in opposite direction in Phase 2.  </li>
 	 * <li>Phase 2: for each revision R in the <code>Pending</code> set built in 
-	 * the previous phase, let S = set of successors of R (descendents in the revision graph);
+	 * the previous phase, let S = set of successors of R (descendants in the revision graph);
 	 * if S and <code>Heads</code> have empty intersection, add all of S to Delta. </li>
 	 * </ul>
 	 * Note that we could theoretically just do Phase 2 with the pending set taken as the
@@ -135,7 +135,7 @@ public class OntologyVersionState implements VersionState<VersionedOntology>
 		}
 		for (HGHandle revisionHandle : pending)
 		{
-			// A pending revision is one where we couldn't determine for sure in the previous whether
+			// A pending revision is one where we couldn't determine for sure in the previous phase whether
 			// it's a new or not. So we traverse all its descendants and if we hit a head from version
 			// state we are comparing against, then no it's not new, otherwise it's new and all of its
 			// descendants are new so we add them to delta.

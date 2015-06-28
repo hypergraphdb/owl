@@ -20,7 +20,7 @@ import org.hypergraphdb.HGHandle;
  * the <code>firstRevision</code> parameter and the <code>heads</code> set is 
  * empty, then everything is being serialized.
  * </p>
- * 
+ * revLeft.parents().equals(revRight.parents()) 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @author borislav
  * @created Feb 24, 2012

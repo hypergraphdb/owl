@@ -540,4 +540,37 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 	{
 		return getAtomHandle().toString();
 	}
+
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((thisHandle == null) ? 0 : thisHandle.hashCode());
+		return result;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ChangeSet<V> other = (ChangeSet<V>) obj;
+		if (thisHandle == null)
+		{
+			if (other.thisHandle != null)
+				return false;
+		}
+		else if (!thisHandle.equals(other.thisHandle))
+			return false;
+		return true;
+	}
+	
+	
 }

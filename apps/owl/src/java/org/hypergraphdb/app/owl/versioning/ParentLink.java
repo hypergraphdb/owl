@@ -11,6 +11,10 @@ import org.hypergraphdb.util.HGUtils;
  * to link {@link ChangeSet}s and {@link Revision}s.
  * </p>
  * 
+ * <p>
+ * <b>Format: ParentLink[Child, Parent]</b>
+ * </p>
+ * 
  * @author Borislav Iordanov
  *
  */

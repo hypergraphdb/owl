@@ -116,7 +116,22 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 		return this;
 	}
 
-	public Collection<HGHandle> changeMarks()
+	/**
+	 * Return the revision marks associated this revision to the change sets
+	 * that led to its creation. Note that when the versioned object being tracked
+	 * is not a compound object, e.g. a project made of multiple modules, there will
+	 * be only one revision mark per revision. 
+	 */
+	public Collection<HGHandle> revisionMarks()
+	{
+		return graph.findAll(hg.and(hg.type(RevisionMark.class), hg.incident(thisHandle)));
+	}
+
+	/**
+	 * Return the {@link org.hypergraphdb.app.owl.versioning.ChangeRecord}s of the
+	 * {@link org.hypergraphdb.app.owl.versioning.ChangeSet}s that led to this revision.
+	 */
+	public Collection<HGHandle> changeRecords()
 	{
 		return graph.findAll(hg.apply(hg.targetAt(graph, 1), 
 				hg.and(hg.type(RevisionMark.class), hg.incident(thisHandle))));

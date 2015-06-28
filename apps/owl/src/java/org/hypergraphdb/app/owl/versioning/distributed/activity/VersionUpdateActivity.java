@@ -139,7 +139,7 @@ public class VersionUpdateActivity extends FSMActivity
 	@OnMessage(performative="InformRef")
 	public WorkflowStateConstant receiveChanges(Json msg)
 	{
-		System.out.println("Got changes " + msg);
+		System.out.println("Got changes " + msg.at(Messages.CONTENT).asString());
 		VersionedOntology vo = ActivityUtils.storeVersionedOntology(
 				new StringDocumentSource(msg.at(Messages.CONTENT).asString()), 
 				HGOntologyManagerFactory.getOntologyManager(getThisPeer().getGraph().getLocation()));
@@ -170,8 +170,11 @@ public class VersionUpdateActivity extends FSMActivity
 		try
 		{
 			VersionedOntology versionedOntology = versionManager.versioned(ontologyHandle);
+			System.out.println("At source parents " + versionedOntology.revision().parents());
+			// If this is a clone, we send also the latest snapshot of the ontology, otherwise
+			// we just send the revisions and change sets
 			String serializedOntology = revisions.contains(versionedOntology.getRootRevision()) ?
-					ActivityUtils.renderVersionedOntologyDelta(versionedOntology, revisions, versionedOntology.getCurrentRevision()) :
+					ActivityUtils.renderVersionedOntology(versionedOntology) :
 					ActivityUtils.renderVersionedOntologyDelta(versionedOntology, revisions);
 			reply(msg, Performative.InformRef, serializedOntology);
 		}

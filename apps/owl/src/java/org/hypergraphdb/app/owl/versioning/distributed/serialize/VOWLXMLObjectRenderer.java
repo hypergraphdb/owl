@@ -1,25 +1,7 @@
 package org.hypergraphdb.app.owl.versioning.distributed.serialize;
 
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.CHANGE_MARK;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.CHANGE_SET;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.MARK_PARENT;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.REVISION;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.REVISION_MARK;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.VERSIONED_ONTOLOGY;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_AXIOM_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_IMPORT_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_ONTOLOGY_ANNOTATION_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_PREFIX_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_MODIFY_ONTOLOGY_ID_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_MODIFY_ONTOLOGY_ID_NEW_ID;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_MODIFY_ONTOLOGY_ID_OLD_ID;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_REMOVE_AXIOM_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_REMOVE_IMPORT_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_REMOVE_ONTOLOGY_ANNOTATION_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_REMOVE_PREFIX_CHANGE;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.*;
 import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.IMPORT;
-
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -52,14 +34,31 @@ import org.hypergraphdb.app.owl.versioning.change.VRemoveAxiomChange;
 import org.hypergraphdb.app.owl.versioning.change.VRemoveImportChange;
 import org.hypergraphdb.app.owl.versioning.change.VRemoveOntologyAnnotationChange;
 import org.hypergraphdb.app.owl.versioning.change.VRemovePrefixChange;
-import org.hypergraphdb.query.HGAtomPredicate;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.vocab.Namespaces;
 
 /**
- * VOWLXMLObjectRenderer.
+ * VOWLXMLObjectRenderer - the main class responsible for serializing a 
+ * {@link org.hypergraphdb.app.owl.versioning.VersionedOntology} as an XML
+ * document.
  * 
- * @author Thomas Hilpold (CIAO/Miami-Dade County)
+ * <p>
+ * Most object are serialized in a trivial way, by simply writing out
+ * their properties as tag attributes. The less obvious part is how the
+ * graph is serialized. There are two graphs intertwined: the revision graph
+ * and the change set graph. Both are DAGs and in both cases the graphs basically
+ * grow indefinitely by adding more and more descendants over time. So the connections
+ * that matter from the vantage point of a node are the connections to the parents.
+ * So for both revisions and change sets, we serialize the ParentLinks. 
+ * The change sets are not explicitly defined as part of the serialization. They
+ * are implicitly pulled because of the revisions. So, given a revision R, we care
+ * about all the changes that need to be made to its parent revisions so as to reach
+ * the state "as of" that revision. So any time we are sending revisions R1 and R2 
+ * with R1 being a parent of R2, we send all change sets and change records between them. 
+ * All root revisions are thus presumed to be already known at destination.
+ * </p>
+ * 
+ * @author Thomas Hilpold (CIAO/Miami-Dade County), Borislav Iordanov
  * @created Feb 24, 2012
  */
 public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
@@ -67,34 +66,6 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 	private VOWLXMLWriter writer;
 	private OWLXMLObjectRenderer owlObjectRenderer;
 	private VOWLXMLRenderConfiguration configuration;
-
-	private Collection<HGHandle> collectRevisionsFrom(final HGHandle root, final Set<HGHandle> sofar, final VersionedOntology vo)
-	{
-		final HyperGraph graph = vo.ontology().getHyperGraph();
-		final HGHandle revisionType = graph.getTypeSystem().getTypeHandle(Revision.class);
-		HGAtomPredicate revisionOk = new HGAtomPredicate() {
-			public boolean satisfies(HyperGraph graph, HGHandle revision)
-			{
-				return graph.getType(revision).equals(revisionType) && 
-					   !sofar.contains(revision) &&
-					   !configuration.heads().contains(revision);
-			}
-		};
-		return graph.findAll(hg.bfs(root, hg.type(ParentLink.class), revisionOk));
-	}
-	
-	private Set<HGHandle> collectRevisions(VersionedOntology vo)
-	{
-		Set<HGHandle> S = new HashSet<HGHandle>();
-		for (HGHandle root : configuration.roots())
-		{
-			if (S.contains(root))
-				continue;
-			S.addAll(collectRevisionsFrom(root, S, vo));
-			S.add(root);
-		}
-		return S;
-	}
 	
 	boolean isAddChange(VOWLChange c)
 	{
@@ -121,18 +92,19 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 
 	private void writeMarkChanges(HyperGraph graph, HGHandle currentMarkHandle, HGHandle stop, HashSet<HGHandle> visited)
 	{
-		if (visited.contains(currentMarkHandle))
-			return;
-		ChangeRecord mark = graph.get(currentMarkHandle);
-		visit(mark);
-		visited.add(currentMarkHandle);
-		ChangeSet<VersionedOntology> changeSet = graph.get(mark.changeset());
-		if (!visited.contains(changeSet.getAtomHandle()))
+		if (!visited.contains(currentMarkHandle))
 		{
-			visit(changeSet);
-			visited.add(changeSet.getAtomHandle());
-		}			
-		if (currentMarkHandle.equals(stop))
+			ChangeRecord mark = graph.get(currentMarkHandle);
+			visit(mark);
+			visited.add(currentMarkHandle);
+			ChangeSet<VersionedOntology> changeSet = graph.get(mark.changeset());
+			if (!visited.contains(changeSet.getAtomHandle()))
+			{
+				visit(changeSet);
+				visited.add(changeSet.getAtomHandle());
+			}			
+		}
+	    if (currentMarkHandle.equals(stop))
 			return;
 		else
 		{
@@ -150,15 +122,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		}
 	}
 	
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor#visit(org.hypergraphdb
-	 * .app.owl.versioning.VersionedOntology)
-	 */
-	@Override
-	public void visit(VersionedOntology vo)
+	public void visit(VersionedOntology vo, Set<HGHandle> revisions)
 	{
 		HyperGraph graph = vo.ontology().getHyperGraph();
 		
@@ -166,7 +130,6 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		writer.writeAttribute(VOWLXMLVocabulary.NAMESPACE + "ontologyID", vo.getOntology().toString());
 		writer.writeAttribute(VOWLXMLVocabulary.NAMESPACE + "versionedID", vo.getAtomHandle().toString());
 		
-		Set<HGHandle> revisions = collectRevisions(vo);
 		HashSet<ParentLink> parentLinks = new HashSet<ParentLink>();
 		
 		for (HGHandle revisionHandle : revisions)
@@ -174,7 +137,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 			Revision revision = graph.get(revisionHandle);
 			visit(revision);
 			List<ParentLink> links = hg.getAll(graph, hg.and(hg.type(ParentLink.class), 
-																   hg.incident(revisionHandle)));
+														     hg.incident(revisionHandle)));
 			for (ParentLink parentLink : links)
 			{
 				if (parentLinks.contains(parentLink))
@@ -192,8 +155,13 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		HashSet<HGHandle> visited = new HashSet<HGHandle>();		
 		for (ParentLink revisionLink : parentLinks)
 		{
-			if (!revisions.contains(revisionLink.parent()) && !revisions.contains(revisionLink.child()))
-				continue;
+			// If this is a link between a root revision (i.e. either the very first revision of the
+			// ontology or already known at destination) and its parent, or between a head revision
+			// and its child, no change sets are needed. A head with a child seems like a contradiction
+			// but it is possible to manually designate some revisions as the last one to serialize, or
+			// if there was a new head created after the current revisions set was established
+			if (!revisions.contains(revisionLink.parent()) || !revisions.contains(revisionLink.child()))
+				continue;					
 			RevisionMark parentMark = vo.getRevisionMark(revisionLink.parent());
 			RevisionMark childMark =  vo.getRevisionMark(revisionLink.child());
 			if (!visited.contains(parentMark.getAtomHandle()))
@@ -207,14 +175,6 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 				visited.add(childMark.getAtomHandle());
 			}
 			writeMarkChanges(graph, childMark.changeRecord(), parentMark.changeRecord(), visited);
-		}
-		for (HGHandle rootRevision : configuration.roots())
-		{
-			RevisionMark revisionMark = vo.getRevisionMark(rootRevision);
-			if (visited.contains(revisionMark.getAtomHandle()))
-				continue;
-			visit(revisionMark);
-			writeMarkChanges(graph, revisionMark.changeRecord(), revisionMark.changeRecord(), visited);
 		}
 		
 		// Data
@@ -281,7 +241,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 	 * org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor#visit(org.hypergraphdb
 	 * .app.owl.versioning.Revision)
 	 */
-	@Override
+	
 	public void visit(Revision revision)
 	{
 		writer.writeStartElement(REVISION)
@@ -293,14 +253,6 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 			  .writeEndElement();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor#visit(org.hypergraphdb
-	 * .app.owl.versioning.ChangeSet)
-	 */
-	@Override
 	public void visit(ChangeSet<VersionedOntology> changeSet)
 	{
 		writer.writeStartElement(CHANGE_SET);
@@ -311,14 +263,6 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		writer.writeEndElement();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor#visit(org.hypergraphdb
-	 * .app.owl.versioning.change.VAxiomChange)
-	 */
-	@Override
 	public void visit(VAxiomChange change)
 	{
 		if (isAddChange(change))
@@ -338,15 +282,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		writer.writeEndElement();
 
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor#visit(org.hypergraphdb
-	 * .app.owl.versioning.change.VImportChange)
-	 */
-	@Override
+	
 	public void visit(VImportChange change)
 	{
 		if (isAddChange(change))
@@ -368,14 +304,6 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor#visit(org.hypergraphdb
-	 * .app.owl.versioning.change.VOntologyAnnotationChange)
-	 */
-	@Override
 	public void visit(VOntologyAnnotationChange change)
 	{
 		if (isAddChange(change))
@@ -393,15 +321,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		change.getOntologyAnnotation().accept(owlObjectRenderer);
 		writer.writeEndElement();
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor#visit(org.hypergraphdb
-	 * .app.owl.versioning.change.VPrefixChange)
-	 */
-	@Override
+	
 	public void visit(VPrefixChange change)
 	{
 		if (isAddChange(change))
@@ -422,14 +342,6 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		writer.writeEndElement();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor#visit(org.hypergraphdb
-	 * .app.owl.versioning.change.VModifyOntologyIDChange)
-	 */
-	@Override
 	public void visit(VModifyOntologyIDChange change)
 	{
 		if (VOWLChange.isModifyChange(change))
@@ -461,15 +373,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		// End change
 		writer.writeEndElement();
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor#visit(org.hypergraphdb
-	 * .app.owl.versioning.distributed.serialize.VOWLXMLRenderConfiguration)
-	 */
-	@Override
+	
 	public void visit(VOWLXMLRenderConfiguration configuration)
 	{
 		writer.writeStartElement(VOWLXMLVocabulary.RENDER_CONFIGURATION);

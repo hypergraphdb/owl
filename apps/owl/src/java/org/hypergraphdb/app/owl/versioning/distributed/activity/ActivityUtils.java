@@ -7,14 +7,16 @@ import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HGPersistentHandle;
+import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyFormat;
@@ -25,20 +27,18 @@ import org.hypergraphdb.app.owl.core.OWLTempOntologyImpl;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyUUIDException;
-import org.hypergraphdb.app.owl.versioning.ChangeRecord;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
+import org.hypergraphdb.app.owl.versioning.ParentLink;
 import org.hypergraphdb.app.owl.versioning.Revision;
-import org.hypergraphdb.app.owl.versioning.RevisionMark;
-import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.change.VChange;
-import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.app.owl.versioning.distributed.DistributedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLParser;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLRenderConfiguration;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVersionedOntologyRenderer;
+import org.hypergraphdb.query.HGAtomPredicate;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.io.OWLRendererException;
@@ -81,6 +81,38 @@ public class ActivityUtils
 		System.out.println("ACTIVITY RENDER DIRECTORY: " + RENDER_DIR);
 	}
 
+	private static Collection<HGHandle> collectRevisionsFrom(final HGHandle root, 
+															 final Set<HGHandle> sofar, 
+															 final VersionedOntology vo,
+															 final Collection<HGHandle> heads)
+	{
+		final HyperGraph graph = vo.ontology().getHyperGraph();
+		final HGHandle revisionType = graph.getTypeSystem().getTypeHandle(Revision.class);
+		HGAtomPredicate revisionOk = new HGAtomPredicate() {
+			public boolean satisfies(HyperGraph graph, HGHandle revision)
+			{
+				return graph.getType(revision).equals(revisionType) && 
+					   !sofar.contains(revision) &&
+					   !heads.contains(revision);
+			}
+		};
+		return graph.findAll(hg.bfs(root, hg.type(ParentLink.class), revisionOk));
+	}
+	
+	public static Set<HGHandle> collectRevisions(VersionedOntology vo, Collection<HGHandle> roots, Collection<HGHandle> heads)
+	{
+		Set<HGHandle> S = new HashSet<HGHandle>();
+		for (HGHandle root : roots)
+		{
+			if (S.contains(root))
+				continue;
+			S.addAll(collectRevisionsFrom(root, S, vo, heads));
+			S.add(root);
+		}
+		return S;
+	}
+	
+
 	/**
 	 * Renders a full versioned ontology (All Changesets, Revisions and Head
 	 * Revision data). Call within transaction.
@@ -101,7 +133,12 @@ public class ActivityUtils
 			VOWLXMLVersionedOntologyRenderer owlxmlRenderer = new VOWLXMLVersionedOntologyRenderer(
 					HGOntologyManagerFactory.getOntologyManager(versionedOntology.graph().getLocation()));
 			StringWriter stringWriter = new StringWriter(RENDER_BUFFER_DELTA_INITIAL_SIZE);
-			owlxmlRenderer.render(versionedOntology, null, stringWriter, conf);
+			owlxmlRenderer.render(versionedOntology, 
+								  collectRevisions(versionedOntology, 
+										  		   conf.roots(), 
+										  		   conf.heads()), 
+										  		   stringWriter, 
+										  		   conf);
 			return stringWriter.toString();
 		}
 		catch (Exception ex)
@@ -190,12 +227,13 @@ public class ActivityUtils
 			{
 				if (graph.get(object.getAtomHandle()) == null)
 				{
+//					System.out.println("Storing object " + object + " with handle " + object.getAtomHandle());
 					graph.define(object.getAtomHandle(), object);
 				}
 			}
 			for (ChangeSet<VersionedOntology> changeSet : vowlxmlDoc.changeSetMap().keySet())
 			{
-				if (graph.get(changeSet.getAtomHandle()) == null)
+//				if (graph.get(changeSet.getAtomHandle()) == null)
 					storeChangeSet(graph, changeSet, (List<VChange<VersionedOntology>>)(List<?>)vowlxmlDoc.changeSetMap().get(changeSet));
 			}
 			return voParsed;
