@@ -3,6 +3,8 @@ package org.hypergraphdb.app.owl.versioning;
 import java.util.List;
 import java.util.Set;
 
+import org.hypergraphdb.HGHandle;
+
 public class VersionedProject implements Versioned<VersionedProject>
 {
 	Revision currentRevision;
@@ -52,7 +54,7 @@ public class VersionedProject implements Versioned<VersionedProject>
 	}
 
 	@Override
-	public Set<Revision> heads()
+	public Set<HGHandle> heads()
 	{
 		// TODO Auto-generated method stub
 		return null;

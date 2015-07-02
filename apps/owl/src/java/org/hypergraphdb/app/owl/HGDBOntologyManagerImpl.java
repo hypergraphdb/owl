@@ -13,6 +13,7 @@ import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.VersioningChangeListener;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.ActivityUtils;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
@@ -157,10 +158,10 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 		{
 			public VersionedOntology call()
 			{
-				ActivityUtils utils = new ActivityUtils();
 				try
 				{
-					return utils.storeVersionedOntology(fds, HGDBOntologyManagerImpl.this);
+					VOWLXMLDocument doc = ActivityUtils.parseVersionedDoc(HGDBOntologyManagerImpl.this, fds);
+					return ActivityUtils.storeClonedOntology(HGDBOntologyManagerImpl.this, doc);
 				}
 				catch (Exception e)
 				{

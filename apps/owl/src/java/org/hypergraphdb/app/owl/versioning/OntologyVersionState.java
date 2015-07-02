@@ -57,6 +57,13 @@ public class OntologyVersionState implements VersionState<VersionedOntology>
 		return null;
 	}
 	
+	public static class Delta
+	{
+		public Set<HGHandle> revisions = new HashSet<HGHandle>();
+		public Set<HGHandle> roots = new HashSet<HGHandle>();
+		public Set<HGHandle> heads = new HashSet<HGHandle>();
+	}
+	
 	public OntologyVersionState(Set<HGHandle> heads)
 	{
 		this.heads = heads;
@@ -103,31 +110,36 @@ public class OntologyVersionState implements VersionState<VersionedOntology>
 	 * @param otherOntology
 	 * @return
 	 */
-	public Set<HGHandle> findRevisionsSince(VersionedOntology otherOntology)
+	public Delta findRevisionsSince(VersionedOntology otherOntology)
 	{
 		HyperGraph graph = ((VersionedOntology)otherOntology).graph();
-		final HashSet<HGHandle> delta = new HashSet<HGHandle>();
+		final Delta delta = new Delta();
 		final HashSet<HGHandle> pending = new HashSet<HGHandle>();		
 		final SimpleStack<Revision> toexamine = new SimpleStack<Revision>();
-		for (Revision rev : otherOntology.heads())
+		final Set<HGHandle> otherHeads = otherOntology.heads();
+		for (HGHandle rev : otherHeads)
 		{
-			if (heads.contains(rev.getAtomHandle()))
+			if (heads.contains(rev))
 				continue;
-			toexamine.push(rev);
+			delta.heads.add(rev);
+			toexamine.push((Revision)graph.get(rev));
 		}
+		for (HGHandle head : heads)
+			if (!otherHeads.contains(head))
+				delta.roots.add(head);
 		while (!toexamine.isEmpty())
 		{
 			Revision current = toexamine.pop();
-			delta.add(current.getAtomHandle());
+			delta.revisions.add(current.getAtomHandle());
 			for (HGHandle parentHandle : current.parents())
 			{
 				if (heads.contains(parentHandle))
 					continue;
 				Revision parent = graph.get(parentHandle);
-				if (delta.containsAll(parent.branches()))
+				if (delta.revisions.containsAll(parent.branches()))
 				{
 					toexamine.push(parent);
-					delta.add(parentHandle);
+					delta.revisions.add(parentHandle);
 				}
 				else
 					pending.add(parentHandle);
@@ -159,7 +171,10 @@ public class OntologyVersionState implements VersionState<VersionedOntology>
 				HGUtils.closeNoException(successors);
 			}
 			if (accumulate != null)
-				delta.addAll(accumulate);
+			{
+				delta.roots.add(revisionHandle);
+				delta.revisions.addAll(accumulate);
+			}
 		}
 		return delta;
 	}
@@ -176,9 +191,8 @@ public class OntologyVersionState implements VersionState<VersionedOntology>
 		final HashSet<Revision> result = new HashSet<Revision>();
 		for (final HGHandle myHead : heads)
 		{
-			for (final Revision theirHeadRevision : otherOntology.heads())
+			for (final HGHandle theirHead : otherOntology.heads())
 			{
-				final HGHandle theirHead = graph.getHandle(theirHeadRevision);
 				final HGHandle parent = this.closestAncestor(graph, myHead, theirHead);
 				if (parent.equals(theirHead))
 					continue; // we have a more recent revision
@@ -195,7 +209,7 @@ public class OntologyVersionState implements VersionState<VersionedOntology>
 													   hg.type(ParentLink.class), 
 													   nodePredicate));
 				result.addAll(L);
-				result.add(theirHeadRevision);
+				result.add((Revision)graph.get(theirHead));
 			}
 		}
 		return result;

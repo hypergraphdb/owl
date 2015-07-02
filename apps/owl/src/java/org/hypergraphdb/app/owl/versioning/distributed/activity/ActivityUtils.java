@@ -24,9 +24,6 @@ import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.hypergraphdb.app.owl.core.OWLTempOntologyImpl;
-import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
-import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
-import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyUUIDException;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.ParentLink;
 import org.hypergraphdb.app.owl.versioning.Revision;
@@ -169,79 +166,91 @@ public class ActivityUtils
 	
 	/**
 	 * Parses a complete versioned ontology (revisions, change sets, head
-	 * revision data) from a VOWLXML string and stores it as new ontology with
-	 * versioning in the repository. The created ontology will have the parsed
-	 * ontologyUUID.
+	 * revision data) from a VOWLXML string and returns the corresponding
+	 * VOWLXMLDocument representation.
 	 * 
-	 * Maps the defaultDocumentIRI to hgdb://.
-	 * 
-	 * Call within Transaction.
-	 * 
-	 * @param vowlXMLString
-	 * @param manager
-	 * @throws OWLOntologyChangeException
-	 * @throws UnloadableImportException
-	 * @throws OWLParserException
-	 * @throws IOException
-	 * @throws HGDBOntologyAlreadyExistsByDocumentIRIException
-	 * @throws HGDBOntologyAlreadyExistsByOntologyIDException
-	 * @throws HGDBOntologyAlreadyExistsByOntologyUUIDException
 	 */
-	@SuppressWarnings("unchecked")
-	public static VersionedOntology storeVersionedOntology(OWLOntologyDocumentSource vowlDocumentSource, HGDBOntologyManager manager)
+	public static VOWLXMLDocument parseVersionedDoc(HGDBOntologyManager manager, OWLOntologyDocumentSource vowlDocumentSource)
 	{
-		HyperGraph graph = manager.getOntologyRepository().getHyperGraph();		
+		VOWLXMLParser vowlxmlParser = new VOWLXMLParser();
+		// Create an partial in mem onto with a hgdb manager and hgdb data
+		// factory to use.
+		OWLOntologyEx partialInMemOnto = new OWLTempOntologyImpl(manager, new OWLOntologyID());
+		VOWLXMLDocument vowlxmlDoc = new VOWLXMLDocument(partialInMemOnto);
+		// The newly created ontology will hold the manager and the parser will
+		// use the manager's
+		// data factory.
 		try
 		{
-			VOWLXMLParser vowlxmlParser = new VOWLXMLParser();
-			// Create an partial in mem onto with a hgdb manager and hgdb data
-			// factory to use.
-			OWLOntologyEx partialInMemOnto = new OWLTempOntologyImpl(manager, new OWLOntologyID());
-			VOWLXMLDocument vowlxmlDoc = new VOWLXMLDocument(partialInMemOnto);
-			// The newly created ontology will hold the manager and the parser will
-			// use the manager's
-			// data factory.
-			vowlxmlParser.parse(graph, vowlDocumentSource, vowlxmlDoc, new OWLOntologyLoaderConfiguration());
-			OWLOntologyID ontologyID = vowlxmlDoc.getRevisionData().getOntologyID();
-			IRI documentIRI = HGDBOntologyFormat.convertToHGDBDocumentIRI(ontologyID.getDefaultDocumentIRI()); 
-			HGPersistentHandle ontologyUUID = graph.getHandleFactory().makeHandle(vowlxmlDoc.getOntologyID());
-//			System.out.println("Storing ontology data for : " + ontologyUUID + " using docIRI: " + documentIRI);
-			HGDBOntology o = manager.getOntologyRepository().createOWLOntology(ontologyID, documentIRI, ontologyUUID);
-			o.setOWLOntologyManager(manager);
-			storeFromTo(vowlxmlDoc.getRevisionData(), o);
-			// Add version control with full matching history.
-//			System.out.println("Creating and adding version control information for : " + ontologyUUID);
-			ChangeSet<VersionedOntology> workingChangeSet = new ChangeSet<VersionedOntology>();			
-			VersionedOntology voParsed = new VersionedOntology(graph, 
-															   o.getAtomHandle(),  
-															   vowlxmlDoc.getRenderConfig().revisionSnapshot(), 
-															   graph.add(workingChangeSet));
-			voParsed.setRootRevision(vowlxmlDoc.getRenderConfig().firstRevision());
-			voParsed.setCurrentRevision(vowlxmlDoc.getRenderConfig().revisionSnapshot());
-//			HGHandle initialMark = graph.add(new ChangeRecord(voParsed.getOntology(), manager.getVersionManager().emptyChangeSetHandle()));			
-//			graph.add(new RevisionMark(voParsed.getRootRevision(), initialMark));
-			HGPersistentHandle versionedHandle = graph.getHandleFactory().makeHandle(vowlxmlDoc.getVersionedID());			
-			graph.define(versionedHandle, voParsed);
-			manager.getVersionManager().manualVersioned(voParsed.getOntology());
-			for (HGHandleHolder object : vowlxmlDoc.revisionObjects())
-			{
-				if (graph.get(object.getAtomHandle()) == null)
-				{
-//					System.out.println("Storing object " + object + " with handle " + object.getAtomHandle());
-					graph.define(object.getAtomHandle(), object);
-				}
-			}
-			for (ChangeSet<VersionedOntology> changeSet : vowlxmlDoc.changeSetMap().keySet())
-			{
-//				if (graph.get(changeSet.getAtomHandle()) == null)
-					storeChangeSet(graph, changeSet, (List<VChange<VersionedOntology>>)(List<?>)vowlxmlDoc.changeSetMap().get(changeSet));
-			}
-			return voParsed;
+			vowlxmlParser.parse(manager.getOntologyRepository().getHyperGraph(), 
+								vowlDocumentSource, 
+								vowlxmlDoc, 
+								new OWLOntologyLoaderConfiguration());
+			return vowlxmlDoc;
 		}
 		catch (Exception ex)
 		{
 			throw new RuntimeException(ex);
-		}		
+		}
+	}
+	
+	public static VersionedOntology storeClonedOntology(HGDBOntologyManager manager, VOWLXMLDocument doc)
+	{
+		try
+		{
+			HyperGraph graph = manager.getOntologyRepository().getHyperGraph();
+			OWLOntologyID ontologyID = doc.getRevisionData().getOntologyID();
+			IRI documentIRI = HGDBOntologyFormat.convertToHGDBDocumentIRI(ontologyID.getDefaultDocumentIRI()); 
+			HGPersistentHandle ontologyUUID = graph.getHandleFactory().makeHandle(doc.getOntologyID());
+			HGDBOntology o = manager.getOntologyRepository().createOWLOntology(ontologyID, documentIRI, ontologyUUID);
+			o.setOWLOntologyManager(manager);
+			storeFromTo(doc.getRevisionData(), o);		
+			ChangeSet<VersionedOntology> workingChangeSet = new ChangeSet<VersionedOntology>();			
+			VersionedOntology vo = new VersionedOntology(graph, 
+														 o.getAtomHandle(),  
+														 doc.getRenderConfig().revisionSnapshot(), 
+														 graph.add(workingChangeSet));
+			vo.setRootRevision(doc.getRenderConfig().firstRevision());
+			HGPersistentHandle versionedHandle = graph.getHandleFactory().makeHandle(doc.getVersionedID());			
+			graph.define(versionedHandle, vo);
+			manager.getVersionManager().manualVersioned(vo.getOntology());
+			return vo;
+		}
+		catch (Exception ex)
+		{
+			throw new RuntimeException(ex);
+		}
+	}
+	
+	/**
+	 * Update the given version ontology from the VOWLXMLDocument obtain from a peer. 
+	 * It is assumed that there is already a local copy of the ontology so only the new
+	 * revisions and all change objects are stored. The the current head is set to 
+	 * the head specified as "revisionSnapshot" in the VOWLXMLDocument.
+	 * 
+	 * @param manager 
+	 * @param vo
+	 * @param doc
+	 */
+	@SuppressWarnings("unchecked")
+	public static void updateVersionedOntology(HGDBOntologyManager manager, VersionedOntology vo, VOWLXMLDocument doc)
+	{
+		HyperGraph graph = manager.getOntologyRepository().getHyperGraph();		
+		for (HGHandleHolder object : doc.revisionObjects())
+		{
+			if (graph.get(object.getAtomHandle()) == null)
+			{
+//				System.out.println("Storing object " + object + " with handle " + object.getAtomHandle());
+				graph.define(object.getAtomHandle(), object);
+			}
+		}
+		for (ChangeSet<VersionedOntology> changeSet : doc.changeSetMap().keySet())
+		{
+//			if (graph.get(changeSet.getAtomHandle()) == null)
+				storeChangeSet(graph, changeSet, (List<VChange<VersionedOntology>>)(List<?>)doc.changeSetMap().get(changeSet));
+		}
+		if (doc.getRenderConfig().revisionSnapshot() != null)
+			vo.goTo((Revision)graph.get(doc.getRenderConfig().revisionSnapshot()));
 	}
 
 	/**

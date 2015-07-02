@@ -4,7 +4,6 @@ import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
-import org.hypergraphdb.app.owl.gc.GarbageCollector;
 import org.hypergraphdb.app.owl.test.TU;
 import org.hypergraphdb.app.owl.versioning.ChangeRecord;
 import org.hypergraphdb.app.owl.versioning.Revision;
@@ -17,7 +16,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.Assert;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Request;
 import org.junit.runner.Result;
@@ -67,7 +65,8 @@ public class VersionSerializationTests extends VersioningTestBase
 		String asxml = ActivityUtils.renderVersionedOntology(ctx.vo);
 		System.out.println(asxml);
 		remove(ctx.vo);
-		VersionedOntology vo2 = ActivityUtils.storeVersionedOntology(new StringDocumentSource(asxml), ctx.m);
+		VersionedOntology vo2 = ActivityUtils.storeClonedOntology(ctx.m, 
+				ActivityUtils.parseVersionedDoc(ctx.m, new StringDocumentSource(asxml)));
 		assertEquals(ctx.vo.getAtomHandle(), vo2.getAtomHandle());
 		assertEquals(ctx.vo.getRootRevision(), vo2.getRootRevision());
 		assertEquals(ctx.vo.getCurrentRevision(), vo2.getCurrentRevision());
@@ -91,7 +90,8 @@ public class VersionSerializationTests extends VersioningTestBase
 		String asxml = ActivityUtils.renderVersionedOntology(ctx.vo);
 		System.out.println(asxml);
 		remove(ctx.vo);
-		VersionedOntology vo2 = ActivityUtils.storeVersionedOntology(new StringDocumentSource(asxml), ctx.m);
+		VersionedOntology vo2 = ActivityUtils.storeClonedOntology(ctx.m, 
+									ActivityUtils.parseVersionedDoc(ctx.m, new StringDocumentSource(asxml)));
 		assertEquals(ctx.vo.getAtomHandle(), vo2.getAtomHandle());
 		assertEquals(ctx.vo.getRootRevision(), vo2.getRootRevision());
 		assertEquals(ctx.vo.getCurrentRevision(), vo2.getCurrentRevision());
@@ -121,7 +121,8 @@ public class VersionSerializationTests extends VersioningTestBase
 		String asxml = ActivityUtils.renderVersionedOntology(ctx.vo);
 		System.out.println(asxml);
 		remove(ctx.vo);
-		VersionedOntology vo2 = ActivityUtils.storeVersionedOntology(new StringDocumentSource(asxml), ctx.m);
+		VersionedOntology vo2 = ActivityUtils.storeClonedOntology(ctx.m, 
+				ActivityUtils.parseVersionedDoc(ctx.m, new StringDocumentSource(asxml)));
 		assertEquals(ctx.vo.getAtomHandle(), vo2.getAtomHandle());
 		assertEquals(ctx.vo.getRootRevision(), vo2.getRootRevision());
 		assertEquals(ctx.vo.getCurrentRevision(), vo2.getCurrentRevision());
@@ -180,7 +181,8 @@ public class VersionSerializationTests extends VersioningTestBase
 		System.out.println(asxml);
 		remove(ctx.vo);
 		
-		VersionedOntology vo2 = ActivityUtils.storeVersionedOntology(new StringDocumentSource(asxml), ctx.m);
+		VersionedOntology vo2 = ActivityUtils.storeClonedOntology(ctx.m, 
+									ActivityUtils.parseVersionedDoc(ctx.m, new StringDocumentSource(asxml)));
 		assertEquals(ctx.vo.getAtomHandle(), vo2.getAtomHandle());
 		assertEquals(ctx.vo.getRootRevision(), vo2.getRootRevision());
 		assertEquals(ctx.vo.getCurrentRevision(), vo2.getCurrentRevision());

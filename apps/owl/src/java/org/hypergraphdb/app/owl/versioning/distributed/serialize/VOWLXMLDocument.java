@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-
-import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
 import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
@@ -51,7 +49,7 @@ public class VOWLXMLDocument
 		setRevisionData(onto);
 	}
 			
-	public Set<HGHandleHolder> revisionObjects() throws OWLXMLParserException
+	public Set<HGHandleHolder> revisionObjects()
 	{
 		return revisionObjects;
 	}

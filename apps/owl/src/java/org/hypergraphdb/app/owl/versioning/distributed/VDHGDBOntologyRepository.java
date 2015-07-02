@@ -1,9 +1,5 @@
 package org.hypergraphdb.app.owl.versioning.distributed;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -13,15 +9,13 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import mjson.Json;
-
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HGQuery.hg;
+import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.util.ImplUtils;
-import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowseRepositoryActivity;
@@ -30,16 +24,14 @@ import org.hypergraphdb.app.owl.versioning.distributed.activity.GetRemoteOntolog
 import org.hypergraphdb.app.owl.versioning.distributed.activity.GetRemoteOntologyRevisionsActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.PullActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.PushActivity;
+import org.hypergraphdb.app.owl.versioning.distributed.activity.VersionUpdateActivity;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.PeerConfig;
 import org.hypergraphdb.peer.PeerInterface;
 import org.hypergraphdb.peer.PeerPresenceListener;
-import org.hypergraphdb.peer.workflow.Activity;
-import org.hypergraphdb.peer.workflow.ActivityResult;
 import org.hypergraphdb.peer.xmpp.XMPPPeerInterface;
 import org.hypergraphdb.transaction.HGTransactionConfig;
-import org.hypergraphdb.util.HGUtils;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
@@ -89,16 +81,6 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository
 		if (manager == null)
 			throw new NullPointerException("Manager must not be null");
 		ontologyManager = manager;
-	}
-
-	/**
-	 * 
-	 * @param ontology
-	 * @return
-	 */
-	public HGPersistentHandle getOntologyUUID(HGDBOntology ontology)
-	{
-		return getHyperGraph().getHandle(ontology).getPersistent();
 	}
 
 	public boolean isDistributed(HGDBOntology o)
@@ -195,36 +177,6 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository
 	{
 		return isOntologyServer;
 	}
-
-	/**
-	 * 
-	 * @return a default configuration or the configuration found in the
-	 *         configuration file.
-	 * @throws IOException
-	 */
-	private Json loadPeerConfig()
-	{
-		URL peerConfigFile = getClass().getResource(PEER_CONFIGURATION_FILE);
-		Json peerConfig;
-		if (peerConfigFile == null)
-			throw new RuntimeException("Missing peer configuration file resource " + PEER_CONFIGURATION_FILE);
-		System.out.println("LOADING PEER CONFIGURATION FROM: " + PEER_CONFIGURATION_FILE);
-		try
-		{
-			String cur, configAsString = "";
-			BufferedReader brr = new BufferedReader(new InputStreamReader(peerConfigFile.openStream(), "UTF-8"));
-			while ((cur = brr.readLine()) != null)
-			{
-				configAsString = configAsString + cur + "\n";
-			}
-			peerConfig = Json.read(configAsString);
-		}
-		catch (IOException e)
-		{
-			throw new RuntimeException("Loading configuration failed: " + PEER_CONFIGURATION_FILE, e);
-		}
-		return peerConfig;
-	}
 	
 	/**
 	 * Starts networking using the configured userName and password.
@@ -298,40 +250,40 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository
 		return peer;
 	}
 
-	/**
-	 * Returns all peers that respond to a multicast that they are configured as
-	 * server.
-	 * 
-	 * @return
-	 */
-	public Set<HGPeerIdentity> getOntologyServers()
-	{
-		FindOntologyServersActivity activity = new FindOntologyServersActivity(peer);
-		peer.getActivityManager().initiateActivity(activity);
-		Future<ActivityResult> future = activity.getFuture();
-		try
-		{
-			future.get(30, TimeUnit.SECONDS);
-		}
-		catch (InterruptedException e)
-		{
-			e.printStackTrace();
-		}
-		catch (ExecutionException e)
-		{
-			e.printStackTrace();
-		}
-		catch (TimeoutException e)
-		{
-			e.printStackTrace();
-		}
-		return activity.getOntologyServers();
-	}
-
-	public Set<HGPeerIdentity> getPeers()
-	{
-		return peer.getConnectedPeers();
-	}
+//	/**
+//	 * Returns all peers that respond to a multicast that they are configured as
+//	 * server.
+//	 * 
+//	 * @return
+//	 */
+//	public Set<HGPeerIdentity> getOntologyServers()
+//	{
+//		FindOntologyServersActivity activity = new FindOntologyServersActivity(peer);
+//		peer.getActivityManager().initiateActivity(activity);
+//		Future<ActivityResult> future = activity.getFuture();
+//		try
+//		{
+//			future.get(30, TimeUnit.SECONDS);
+//		}
+//		catch (InterruptedException e)
+//		{
+//			e.printStackTrace();
+//		}
+//		catch (ExecutionException e)
+//		{
+//			e.printStackTrace();
+//		}
+//		catch (TimeoutException e)
+//		{
+//			e.printStackTrace();
+//		}
+//		return activity.getOntologyServers();
+//	}
+//
+//	public Set<HGPeerIdentity> getPeers()
+//	{
+//		return peer.getConnectedPeers();
+//	}
 
 	/**
 	 * Returns user@server for a given PeerIdentity.
@@ -346,21 +298,10 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository
 		return parts[0];
 	}
 
-	Activity a = null;
-
 	public void printPeerInfo()
 	{
 		System.out.println("peer.getPeerInterface().isConnected() " + peer.getPeerInterface().isConnected());
-		// peer.getPeerInterface().newFilterActivity(evaluator)
 		System.out.println("peer.peer.getConnectedPeers().size() " + peer.getConnectedPeers().size());
-		// if (a == null) {
-		// a = new AffirmIdentity(peer, UUID.randomUUID());
-		// peer.getActivityManager().initiateActivity(a);
-		// peer.getActivityManager().start();
-		// }
-		// peer.updateNetworkProperties();
-		// System.out.println("Done yet?: " + a.getFuture().isDone());
-		// Not working, always empty:
 		Set<HGPeerIdentity> others = peer.getConnectedPeers();
 		for (HGPeerIdentity pi : others)
 		{
@@ -370,13 +311,7 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository
 			System.out.println("NetworkTarget: " + peer.getNetworkTarget(pi));
 		}
 		System.out.println(peer.getIdentity());
-		// peer
 	}
-
-	// public Future<RemoteRepositoryActionResult> fetch(VersionedOntology vo,
-	// HGPeerIdentity remote) {
-	// return null;
-	// }
 
 	/**
 	 * 
@@ -392,20 +327,20 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository
 		return activity;
 	}
 
-	public GetRemoteOntologyRevisionsActivity getRemoteRevisions(HGPersistentHandle ontologyUUID, HGPeerIdentity remote)
-	{
-		GetRemoteOntologyRevisionsActivity activity = new GetRemoteOntologyRevisionsActivity(peer, remote, ontologyUUID);
-		peer.getActivityManager().initiateActivity(activity);
-		return activity;
-	}
-
-	public GetRemoteOntologyChangesetActivity getRemoteChangeset(HGPersistentHandle ontologyUUID, HGPeerIdentity remote,
-			Revision revision)
-	{
-		GetRemoteOntologyChangesetActivity activity = new GetRemoteOntologyChangesetActivity(peer, remote, ontologyUUID, revision);
-		peer.getActivityManager().initiateActivity(activity);
-		return activity;
-	}
+//	public GetRemoteOntologyRevisionsActivity getRemoteRevisions(HGPersistentHandle ontologyUUID, HGPeerIdentity remote)
+//	{
+//		GetRemoteOntologyRevisionsActivity activity = new GetRemoteOntologyRevisionsActivity(peer, remote, ontologyUUID);
+//		peer.getActivityManager().initiateActivity(activity);
+//		return activity;
+//	}
+//
+//	public GetRemoteOntologyChangesetActivity getRemoteChangeset(HGPersistentHandle ontologyUUID, HGPeerIdentity remote,
+//			Revision revision)
+//	{
+//		GetRemoteOntologyChangesetActivity activity = new GetRemoteOntologyChangesetActivity(peer, remote, ontologyUUID, revision);
+//		peer.getActivityManager().initiateActivity(activity);
+//		return activity;
+//	}
 
 	/**
 	 * Pull onto an existing local distributed ontology.
@@ -441,25 +376,66 @@ public class VDHGDBOntologyRepository extends VHGDBOntologyRepository
 //		return activity;
 //	}
 
+	public RemoteRepository remoteRepo(final HGPeerIdentity id)
+	{
+		final HyperGraph graph = getHyperGraph();
+		return graph.getTransactionManager().ensureTransaction(new Callable<RemoteRepository>(){
+			public RemoteRepository call()
+			{
+				RemoteRepository remoteRepo = graph.getOne(hg.and(hg.type(RemoteRepository.class), hg.eq("peer", id)));
+				if (remoteRepo != null)
+					return remoteRepo;
+				remoteRepo = new RemoteRepository();
+				remoteRepo.setPeer(id);
+				graph.add(remoteRepo);
+				return remoteRepo;
+			}
+		});
+	}
+	
+	public RemoteOntology remoteOnto(final HGHandle ontologyHandle, final RemoteRepository remoteRepository)
+	{
+		final HyperGraph graph = getHyperGraph();
+		return graph.getTransactionManager().ensureTransaction(new Callable<RemoteOntology>(){
+			public RemoteOntology call()
+			{
+				RemoteOntology remoteOnto = graph.getOne(hg.and(hg.type(RemoteOntology.class), 
+																hg.eq("ontologyHandle", ontologyHandle),
+																hg.eq("repository", remoteRepository)));
+				if (remoteOnto != null)
+					return remoteOnto;
+				remoteOnto = new RemoteOntology();
+				remoteOnto.setOntologyHandle(ontologyHandle);
+				remoteOnto.setRepository(remoteRepository);
+				graph.add(remoteOnto);
+				return remoteOnto;
+			}
+		});		
+	}
+	
 	/**
-	 * Pull NEW from remote. UUID allow to pull vo's not yet available.
+	 * <p>
+	 * Clone an ontology with its full revision graph from another peer. An asynchronous
+	 * activity is created and returned. The activity will most likely not have completed
+	 * upon return of this method. To wait for it to complete call <code>getFuture().get()</code>.
+	 * </p> 
 	 * 
 	 * @param ontologyUUID
 	 * @param remote
 	 * @return
 	 */
-	public PullActivity pullNew(HGPersistentHandle ontologyUUID, HGPeerIdentity remote)
+	public VersionUpdateActivity pullNew(HGPersistentHandle ontologyHandle, HGPeerIdentity otherPeer)
 	{
-		// 1) Target available
-		// 2) Target has vo? No: no pull
-		// 3) Can pull == local master head revision is older and equal to one
-		// revision in remote
-		// branches history
-		// 4)
-		//
 		if (DBG)
-			System.out.println("Pulling versioned onto: " + ontologyUUID);
-		PullActivity activity = new PullActivity(peer, ontologyUUID, remote);
+			System.out.println("Pulling versioned onto: " + ontologyHandle);
+		final HyperGraph graph = getHyperGraph();
+		if (getHyperGraph().get(ontologyHandle) != null)
+			throw new IllegalArgumentException("Ontology " + 
+											   getHyperGraph().get(ontologyHandle) + 
+											   " already in local repository.");
+		RemoteOntology remoteOnto = remoteOnto(ontologyHandle, remoteRepo(otherPeer)); 
+		VersionUpdateActivity activity = new VersionUpdateActivity(peer)
+			.remoteOntology(graph.getHandle(remoteOnto)).action("pull");
 		peer.getActivityManager().initiateActivity(activity);
 		return activity;
 	}

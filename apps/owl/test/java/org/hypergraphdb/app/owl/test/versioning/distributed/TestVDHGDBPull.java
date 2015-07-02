@@ -17,6 +17,7 @@ import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowseRepositoryActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowseRepositoryActivity.BrowseEntry;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.PullActivity;
+import org.hypergraphdb.app.owl.versioning.distributed.activity.VersionUpdateActivity;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.workflow.ActivityResult;
@@ -114,12 +115,12 @@ public class TestVDHGDBPull
 					{
 						dr.printStatistics();
 						stopWatch.start();
-						PullActivity pullAct = dr.pullNew(entry.getUuid(), targetPeer);
+						VersionUpdateActivity pullAct = dr.pullNew(entry.getUuid(), targetPeer);
 						// block
 						System.out.print("PULLING Ontology" + entry.getOwlOntologyIRI() + " UUID: " + entry.getUuid() + " ...");
 						ActivityResult pullResult = pullAct.getFuture().get();
 						System.out.println("Done. Final State: " + pullAct.getState());
-						System.out.println("Completedmessage: " + pullAct.getCompletedMessage());
+						System.out.println("Completedmessage: " + pullAct.completedMessage());
 						stopWatch.stop("PULL TIME: ");
 						if (pullResult.getException() != null)
 						{

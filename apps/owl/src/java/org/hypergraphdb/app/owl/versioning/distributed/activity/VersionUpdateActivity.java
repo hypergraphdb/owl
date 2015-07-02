@@ -6,14 +6,14 @@ import java.util.UUID;
 import mjson.Json;
 
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
+import org.hypergraphdb.app.owl.versioning.OntologyVersionState;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.RemoteOntology;
-import org.hypergraphdb.app.owl.versioning.distributed.RemoteRepository;
-import org.hypergraphdb.peer.HGPeerIdentity;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.Messages;
 import org.hypergraphdb.peer.Performative;
@@ -62,10 +62,18 @@ public class VersionUpdateActivity extends FSMActivity
 		public WorkflowStateConstant state() { return stateConstant; }
 	}
 		
-	private RemoteOntology remoteOntology;	
+	private OntologyVersionState.Delta delta = null;
+	private HGHandle remoteOntologyHandle;	
 	private String action;
 	private String completedMessage;
 
+	private RemoteOntology remoteOnto() { return getThisPeer().getGraph().get(remoteOntologyHandle); }
+	
+	private VersionManager versionManager() 
+	{
+		return new VersionManager(getThisPeer().getGraph(), "fixme-VHDBOntologyRepository");		
+	}
+	
 	/**
 	 * @param thisPeer
 	 */
@@ -83,9 +91,9 @@ public class VersionUpdateActivity extends FSMActivity
 		super(thisPeer, id);
 	}
 	
-	public VersionUpdateActivity remoteOntology(RemoteOntology remoteOntology)
+	public VersionUpdateActivity remoteOntology(HGHandle remoteOntology)
 	{
-		this.remoteOntology = remoteOntology;
+		this.remoteOntologyHandle = remoteOntology;
 		return this;
 	}
 	
@@ -95,14 +103,20 @@ public class VersionUpdateActivity extends FSMActivity
 		return this;
 	}
 	
+	public String completedMessage()
+	{
+		return completedMessage;
+	}
+	
 	@Override
 	public void initiate()
 	{
+		RemoteOntology remoteOntology = getThisPeer().getGraph().get(remoteOntologyHandle);
 		Json msg;
 		if ("pull".equals(action))
 		{
 			getThisPeer().getActivityManager().initiateActivity(
-				new GetNewRevisionsActivity(getThisPeer(), remoteOntology), this, null);
+				new GetNewRevisionsActivity(getThisPeer(), remoteOntologyHandle), this, null);
 			getState().assign(WaitForRevisionChangeSet);
 		}
 		else if ("push".equals(action))
@@ -126,12 +140,14 @@ public class VersionUpdateActivity extends FSMActivity
 	@FromState("WaitForRevisionChangeSet")
 	@AtActivity(GetNewRevisionsActivity.TYPENAME)
 	@OnActivityState("Completed")
-	public WorkflowStateConstant askForChanges(GetNewRevisionsActivity getRevisionSetActivity)
+	public WorkflowStateConstant askForChanges(GetNewRevisionsActivity revisionSetActivity)
 	{
-		System.out.println("got revision set " + getRevisionSetActivity.newRevisions());
-		send(remoteOntology.getRepository().getPeer(), 
-			 createMessage(Performative.QueryRef, Json.object(REVISIONS, getRevisionSetActivity.newRevisions(),
-					 										  ONTOLOGY_HANDLE, remoteOntology.getOntologyHandle())));	
+		RemoteOntology remoteOnto = remoteOnto();
+		//System.out.println("got revision set " + getRevisionSetActivity.newRevisions());
+		delta = revisionSetActivity.delta();
+		send(remoteOnto.getRepository().getPeer(), 
+			 createMessage(Performative.QueryRef, Json.object(REVISIONS, delta.revisions,
+					 										  ONTOLOGY_HANDLE, remoteOnto.getOntologyHandle())));	
 		return WaitForRevisionObjects;
 	}
 	
@@ -140,10 +156,22 @@ public class VersionUpdateActivity extends FSMActivity
 	public WorkflowStateConstant receiveChanges(Json msg)
 	{
 		System.out.println("Got changes " + msg.at(Messages.CONTENT).asString());
-		VersionedOntology vo = ActivityUtils.storeVersionedOntology(
-				new StringDocumentSource(msg.at(Messages.CONTENT).asString()), 
-				HGOntologyManagerFactory.getOntologyManager(getThisPeer().getGraph().getLocation()));
-		System.out.println(vo.revision().parents());
+		HyperGraph graph = getThisPeer().getGraph();
+		HGDBOntologyManager manager = HGOntologyManagerFactory.getOntologyManager(graph.getLocation());
+		VOWLXMLDocument doc = ActivityUtils.parseVersionedDoc(manager, new StringDocumentSource(msg.at(Messages.CONTENT).asString()));
+		if (doc.getRevisionData().getOntologyID().isAnonymous()) // this is not a clone, so we have the IRI locally
+		{
+			HGHandle ontologyHandle = graph.get(graph.getHandleFactory().makeHandle(doc.getOntologyID()));
+			VersionedOntology vo = versionManager().versioned(ontologyHandle);
+			ActivityUtils.updateVersionedOntology(manager, vo, doc);
+		}
+		else
+			ActivityUtils.storeClonedOntology(manager, doc);
+		
+		RemoteOntology remoteOnto = remoteOnto();
+		remoteOnto.setRevisionHeads(delta.heads);		
+		System.out.println("New revision heads: " + delta.heads);
+		getThisPeer().getGraph().update(remoteOnto);
 		return WorkflowState.Completed;
 	}
 	
@@ -204,6 +232,10 @@ public class VersionUpdateActivity extends FSMActivity
 		return TYPENAME;
 	}
 
+	/**
+	 * This is to force complete static initialization which does not occur when just referring to the class during
+	 * bootstrap.
+	 */
 	@SuppressWarnings({ "static-access", "unchecked" })
 	public static Class<VersionUpdateActivity> initializedClass()
 	{

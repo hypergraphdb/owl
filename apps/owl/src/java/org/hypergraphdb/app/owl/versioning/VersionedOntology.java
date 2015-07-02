@@ -528,16 +528,20 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		throw new UnsupportedOperationException();
 	}
 
-	public Set<Revision> heads()
+	public Set<HGHandle> heads()
 	{
-		HashSet<Revision> result = new HashSet<Revision>();
+		// This is rather inefficient...we are traversing the whole revision graph to get to the end.
+		// We should have some more efficient query to start from the "leafs" somehow. That will probably
+		// entail an adjustment of the representation.
+		HashSet<HGHandle> result = new HashSet<HGHandle>();
 		HGSearchResult<HGHandle> rs = graph.find(hg.bfs(this.getRootRevision(), hg.type(ParentLink.class), null));
 		try
 		{
 			while (rs.hasNext())
 			{
-				Revision rev = graph.get(rs.next());
-				if (rev.branches().isEmpty())
+				HGHandle rev = rs.next();
+				if (graph.findAll(hg.and(hg.type(ParentLink.class), 
+										 hg.orderedLink(hg.anyHandle(), rev))).isEmpty())
 					result.add(rev);				
 			}
 		}

@@ -6,7 +6,6 @@ import static org.hypergraphdb.peer.Messages.getReply;
 import static org.hypergraphdb.peer.Messages.getSender;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -22,6 +21,7 @@ import org.hypergraphdb.app.owl.versioning.OntologyVersionState;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.Messages;
@@ -207,11 +207,7 @@ public class PullActivity extends OntologyTransmitActivity
 						List<Revision> revList = null;
 						msg.set(CONTENT, revList);
 						if (referenceHeads == null)
-						{
-							referenceHeads = new HashSet<HGHandle>();
-							for (Revision rev : repository.getOntologyManager().getVersionManager().versioned(o.getAtomHandle()).heads())
-								referenceHeads.add(graph.getHandle(rev));
-						}
+							referenceHeads = repository.getOntologyManager().getVersionManager().versioned(o.getAtomHandle()).heads();
 						msg.set(KEY_REFERENCE_HEADS, referenceHeads);
 						return msg;
 					}
@@ -312,9 +308,8 @@ public class PullActivity extends OntologyTransmitActivity
 				// TRANSACTION START
 				try
 				{
-					VersionedOntology vo = activityUtils.storeVersionedOntology(
-							new StringDocumentSource(vowlxmlStringOntology), repository.getOntologyManager());
-					graph.add(vo);
+					VOWLXMLDocument doc = ActivityUtils.parseVersionedDoc(repository.getOntologyManager(), new StringDocumentSource(vowlxmlStringOntology));
+					ActivityUtils.storeClonedOntology(repository.getOntologyManager(), doc);
 				}
 				catch (Exception e)
 				{

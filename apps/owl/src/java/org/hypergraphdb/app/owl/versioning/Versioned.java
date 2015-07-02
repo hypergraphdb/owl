@@ -3,6 +3,8 @@ package org.hypergraphdb.app.owl.versioning;
 import java.util.List;
 import java.util.Set;
 
+import org.hypergraphdb.HGHandle;
+
 /**
  * <p>
  * A versioned artifact is one that undergoes changes that are tracked through
@@ -19,7 +21,7 @@ public interface Versioned<T extends Versioned<T>>
 	 * last in its branch. One of the revision heads is always going to be
 	 * the current {@link #revision()}.
 	 */
-	Set<Revision> heads();
+	Set<HGHandle> heads();
 	
 	/**
 	 * Return the currently active revision.
