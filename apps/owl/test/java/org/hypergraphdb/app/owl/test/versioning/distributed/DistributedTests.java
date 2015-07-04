@@ -20,6 +20,7 @@ import org.hypergraphdb.app.owl.test.TU;
 import org.hypergraphdb.app.owl.test.versioning.TestContext;
 import org.hypergraphdb.app.owl.test.versioning.VersionedOntologiesTestData;
 import org.hypergraphdb.app.owl.test.versioning.VersioningTestBase;
+import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.distributed.RemoteOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
@@ -67,8 +68,8 @@ public class DistributedTests extends VersioningTestBase
 	@After
 	public void stopPeers()
 	{
-		peer1.stop();
-		peer2.stop();
+		dropPeer(peer1);
+		dropPeer(peer2);
 	}
 	
 	public HyperGraphPeer newPeer(String name) throws InterruptedException, ExecutionException, ClassNotFoundException
@@ -89,6 +90,13 @@ public class DistributedTests extends VersioningTestBase
 		peer.getActivityManager().registerActivityType(GetNewRevisionsActivity.TYPENAME, GetNewRevisionsActivity.class);
 		peer.getActivityManager().registerActivityType(VersionUpdateActivity.TYPENAME, VersionUpdateActivity.initializedClass());
 		return peer;
+	}
+	
+	public void dropPeer(HyperGraphPeer peer)
+	{
+		peer.stop();
+		peer.getGraph().close();
+		HGUtils.dropHyperGraphInstance(peer.getGraph().getLocation());
 	}
 	
 	@Test
@@ -132,7 +140,7 @@ public class DistributedTests extends VersioningTestBase
 																 vm2.versioned(sourceOntoHandle), 
 																 vm2.getGraph()));
 	}
-
+	
 	@Test
 	public void testPullRevisionChanges() throws Exception
 	{
@@ -144,23 +152,51 @@ public class DistributedTests extends VersioningTestBase
 			new VersionUpdateActivity(peer2)
 				.remoteOntology(ctx2.graph.getHandle(remoteOnto))
 				.action("pull")).get();
+		ctx2.vo = vm2.versioned(sourceOntoHandle);
+		ctx2.o = ctx2.vo.ontology();		
 		// now make some changes at peer 1 (source location) and pull them from peer 2
 		TU.ctx.set(ctx1);
 		aSubclassOf(owlClass("Employee"), owlClass("Manager"));
 		aInstanceOf(owlClass("Manager"), individual("Rapacious"));
 		ctx1.vo.commit("testuser", "Pull my new changes");
+		// now make some changes to peer2 so version diverge
+		TU.ctx.set(ctx2);
+		aInstanceOf(owlClass("LoyalCustomer"), individual("Brandon Broom"));
+		ctx2.vo.commit("testuser2", "New difference.");
 		peer2.getActivityManager().initiateActivity(
 				new VersionUpdateActivity(peer2)
 				.remoteOntology(ctx2.graph.getHandle(remoteOnto))
 				.action("pull")).get();
-		assertEquals(ctx1.vo.getCurrentRevision(), ctx2.vo.getCurrentRevision());
-		assertEquals(ctx1.vo.changes(ctx1.vo.revision()), ctx2.vo.changes(ctx2.vo.revision()));
+		assertEquals(2, ctx2.vo.heads().size());
+		assertTrue(ctx2.vo.heads().contains(ctx1.vo.getCurrentRevision()));
+		assertEquals(ctx1.vo.changes(ctx1.vo.revision()), ctx2.vo.changes((Revision)ctx2.graph.get(ctx1.vo.getCurrentRevision().getPersistent())));
 	}
 
 	@Test
 	public void testPushRevisionChanges() throws Exception
 	{
-		
+		TU.ctx.set(ctx1);
+		VersionedOntologiesTestData.revisionGraph_1(iri_prefix + "peer1data", null);
+		HGHandle sourceOntoHandle = TU.ctx().o.getAtomHandle();
+		RemoteOntology remoteOnto = repo2.remoteOnto(sourceOntoHandle, repo2.remoteRepo(peer1.getIdentity()));
+		peer2.getActivityManager().initiateActivity(
+			new VersionUpdateActivity(peer2)
+				.remoteOntology(ctx2.graph.getHandle(remoteOnto))
+				.action("pull")).get();
+		ctx2.vo = vm2.versioned(sourceOntoHandle);
+		ctx2.o = ctx2.vo.ontology();		
+		TU.ctx.set(ctx2);
+		aInstanceOf(owlClass("LoyalCustomer"), individual("Brandon_Broom"));
+		aInstanceOf(owlClass("LoyalCustomer"), individual("Clair_Zuckerbergengerber"));
+		ctx2.vo.commit("testuser2", "New difference.");
+		peer2.getActivityManager().initiateActivity(
+				new VersionUpdateActivity(peer2)
+				.remoteOntology(ctx2.graph.getHandle(remoteOnto))
+				.action("push")).get();
+		ctx1.vo.goTo((Revision)ctx1.graph.get(ctx2.vo.getCurrentRevision().getPersistent()));
+		assertEquals(ctx2.vo.getCurrentRevision(), ctx1.vo.getCurrentRevision());
+		assertEquals(ctx2.vo.changes(ctx2.vo.revision()), 
+					 ctx1.vo.changes(ctx1.vo.revision()));
 	}
 	
 	@Test
@@ -178,7 +214,7 @@ public class DistributedTests extends VersioningTestBase
 	public static void main(String []argv)
 	{
 		JUnitCore junit = new JUnitCore();
-		Result result = junit.run(Request.method(DistributedTests.class, "testPullRevisionChanges"));
+		Result result = junit.run(Request.method(DistributedTests.class, "testPushRevisionChanges"));
 		System.out.println("Failures " + result.getFailureCount());
 		if (result.getFailureCount() > 0)
 		{

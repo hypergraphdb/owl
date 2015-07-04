@@ -10,13 +10,13 @@ import org.semanticweb.owlapi.model.UnloadableImportException;
 public class ChangeRecordElementHandler extends AbstractVOWLElementHandler<ChangeRecord>
 {
 	private HyperGraph graph;
-	private ChangeRecord changeMark;
+	private ChangeRecord changeRecord;
 
 	public ChangeRecordElementHandler(HyperGraph graph, OWLXMLParserHandler handler)
 	{
 		super(handler);
 		this.graph = graph;
-		changeMark = new ChangeRecord();
+		changeRecord = new ChangeRecord();
 	}
 
 	@Override
@@ -24,15 +24,15 @@ public class ChangeRecordElementHandler extends AbstractVOWLElementHandler<Chang
 	{
 		if (localName.equals("target"))
 		{
-			changeMark.target(graph.getHandleFactory().makeHandle(value));
+			changeRecord.target(graph.getHandleFactory().makeHandle(value));
 		}
 		else if (localName.equals("changeSet"))
 		{
-			changeMark.changeSet(graph.getHandleFactory().makeHandle(value));
+			changeRecord.changeSet(graph.getHandleFactory().makeHandle(value));
 		}
 		else if (localName.equals("handle"))
 		{
-			changeMark.setAtomHandle(graph.getHandleFactory().makeHandle(value.trim()));
+			changeRecord.setAtomHandle(graph.getHandleFactory().makeHandle(value.trim()));
 		}		
 		else
 			throw new IllegalArgumentException("Unrecognized attribute '" + localName + " for RevisionMark");
@@ -46,6 +46,6 @@ public class ChangeRecordElementHandler extends AbstractVOWLElementHandler<Chang
 	@Override
 	public ChangeRecord getOWLObject() throws OWLXMLParserException
 	{
-		return changeMark;
+		return changeRecord;
 	}
 }

@@ -76,7 +76,7 @@ public class GetNewRevisionsActivity extends FSMActivity
 		OntologyVersionState versionState = new OntologyVersionState(revisionHeads);
 		VersionManager versionManager = new VersionManager(getThisPeer().getGraph(), "fixme-VHDBOntologyRepository");
 		if (!versionManager.isVersioned(ontologyHandle))
-			reply(msg, Performative.Failure, Json.object("error", "The ontology does not exist or is not versioned."));
+			reply(msg, Performative.Failure, "The ontology does not exist or is not versioned.");
 		else if (revisionHeads.isEmpty())
 		{
 			VersionedOntology vo = versionManager.versioned(ontologyHandle);

@@ -23,7 +23,7 @@ import org.hypergraphdb.HGQuery.hg;
  * </p>
  * 
  * <p>
- * The "target" of a change mark is the versioned object to which the
+ * The "target" of a change record is the versioned object to which the
  * change set is applied. The versioned object is the 1st target of the link
  * and the change set is the 2nd target.  
  * </p>

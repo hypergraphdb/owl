@@ -1,5 +1,10 @@
 package org.hypergraphdb.app.owl.versioning.distributed.activity;
 
+import static org.hypergraphdb.peer.Messages.CONTENT;
+import static org.hypergraphdb.peer.Messages.fromJson;
+import static org.hypergraphdb.peer.Messages.getReply;
+import static org.hypergraphdb.peer.Messages.getSender;
+
 import java.util.Set;
 import java.util.UUID;
 
@@ -13,7 +18,9 @@ import org.hypergraphdb.app.owl.versioning.OntologyVersionState;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.RemoteOntology;
+import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
+import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.Messages;
 import org.hypergraphdb.peer.Performative;
@@ -47,6 +54,7 @@ public class VersionUpdateActivity extends FSMActivity
 	
 	public static final WorkflowStateConstant WaitForRevisionChangeSet = WorkflowStateConstant.makeStateConstant("WaitForRevisionChangeSet");
 	public static final WorkflowStateConstant WaitForRevisionObjects = WorkflowStateConstant.makeStateConstant("WaitForRevisionObjects");
+	public static final WorkflowStateConstant PullRequested = WorkflowStateConstant.makeStateConstant("PullRequested");
 	public static final WorkflowStateConstant PushAccepted = WorkflowStateConstant.makeStateConstant("PushAccepted");
 	
 	public static enum States 
@@ -68,6 +76,13 @@ public class VersionUpdateActivity extends FSMActivity
 	private String completedMessage;
 
 	private RemoteOntology remoteOnto() { return getThisPeer().getGraph().get(remoteOntologyHandle); }
+	
+	private WorkflowStateConstant startPulling()
+	{
+		getThisPeer().getActivityManager().initiateActivity(
+				new GetNewRevisionsActivity(getThisPeer(), remoteOntologyHandle), this, null);
+		return WaitForRevisionChangeSet;
+	}
 	
 	private VersionManager versionManager() 
 	{
@@ -115,19 +130,22 @@ public class VersionUpdateActivity extends FSMActivity
 		Json msg;
 		if ("pull".equals(action))
 		{
-			getThisPeer().getActivityManager().initiateActivity(
-				new GetNewRevisionsActivity(getThisPeer(), remoteOntologyHandle), this, null);
-			getState().assign(WaitForRevisionChangeSet);
+			getState().assign(startPulling());
 		}
 		else if ("push".equals(action))
 		{
-			msg = createMessage(Performative.InformRef, Json.object());
+			msg = createMessage(Performative.Request, 
+								Json.object(ONTOLOGY_HANDLE, remoteOntology.getOntologyHandle(),
+											"heads", remoteOntology.getRevisionHeads(),
+											"action", "pull"));
+			getState().assign(PullRequested);
 			send(remoteOntology.getRepository().getPeer(), msg);				
 		}
 		else if ("synch".equals(action))
 		{
-			msg = createMessage(Performative.QueryRef, Json.object());			
-			send(remoteOntology.getRepository().getPeer(), msg);				
+			throw new UnsupportedOperationException("synch operation of version update not supported yet.");
+//			msg = createMessage(Performative.QueryRef, Json.object());			
+//			send(remoteOntology.getRepository().getPeer(), msg);				
 		}
 		else
 			throw new IllegalArgumentException("Possible values for version update action are 'push', 'pull' or 'synch' and '" +
@@ -158,10 +176,11 @@ public class VersionUpdateActivity extends FSMActivity
 		System.out.println("Got changes " + msg.at(Messages.CONTENT).asString());
 		HyperGraph graph = getThisPeer().getGraph();
 		HGDBOntologyManager manager = HGOntologyManagerFactory.getOntologyManager(graph.getLocation());
-		VOWLXMLDocument doc = ActivityUtils.parseVersionedDoc(manager, new StringDocumentSource(msg.at(Messages.CONTENT).asString()));
+		VOWLXMLDocument doc = ActivityUtils.parseVersionedDoc(manager, 
+									new StringDocumentSource(msg.at(Messages.CONTENT).asString()));
 		if (doc.getRevisionData().getOntologyID().isAnonymous()) // this is not a clone, so we have the IRI locally
 		{
-			HGHandle ontologyHandle = graph.get(graph.getHandleFactory().makeHandle(doc.getOntologyID()));
+			HGHandle ontologyHandle = graph.getHandleFactory().makeHandle(doc.getOntologyID());
 			VersionedOntology vo = versionManager().versioned(ontologyHandle);
 			ActivityUtils.updateVersionedOntology(manager, vo, doc);
 		}
@@ -172,18 +191,12 @@ public class VersionUpdateActivity extends FSMActivity
 		remoteOnto.setRevisionHeads(delta.heads);		
 		System.out.println("New revision heads: " + delta.heads);
 		getThisPeer().getGraph().update(remoteOnto);
+		if (msg.has(Messages.REPLY_WITH))
+			reply(msg, Performative.Confirm, Json.nil());
 		return WorkflowState.Completed;
 	}
 	
-	/**
-	 * Answer a pull request.
-	 *  
-	 * @param msg
-	 * @return
-	 */
-	@FromState("Started")
-	@OnMessage(performative="QueryRef")
-	public WorkflowStateConstant pullChanges(Json msg)
+	public String sendRequestedRevisions(Json msg)
 	{
 //		System.out.println("asked for revisions: " + msg.at(REVISIONS));
 		HGHandle ontologyHandle = Messages.fromJson(msg.at(Messages.CONTENT).at(ONTOLOGY_HANDLE));
@@ -192,8 +205,9 @@ public class VersionUpdateActivity extends FSMActivity
 														   "fixme-VHDBOntologyRepository");
 		if (!versionManager.isVersioned(ontologyHandle))
 		{
-			reply(msg, Performative.Failure, Json.object("error", "The ontology does not exist or is not versioned."));
-			return WorkflowState.Failed;
+			reply(msg, Performative.Failure, 
+					Json.object("error", "The ontology does not exist or is not versioned."));
+			return null;
 		}
 		try
 		{
@@ -204,26 +218,115 @@ public class VersionUpdateActivity extends FSMActivity
 			String serializedOntology = revisions.contains(versionedOntology.getRootRevision()) ?
 					ActivityUtils.renderVersionedOntology(versionedOntology) :
 					ActivityUtils.renderVersionedOntologyDelta(versionedOntology, revisions);
-			reply(msg, Performative.InformRef, serializedOntology);
+			return serializedOntology;
 		}
 		catch (Exception ex)
 		{
 			ex.printStackTrace(System.err);
 			throw new RuntimeException(ex);
-		}
+		}		
+	}
+	
+	/**
+	 * Answer a pull request.
+	 *  
+	 * @param msg
+	 * @return
+	 */
+	@FromState({"Started"})
+	@OnMessage(performative="QueryRef")
+	public WorkflowStateConstant pullChanges(Json msg)
+	{
+		String serializedOntology = sendRequestedRevisions(msg);
+		if (serializedOntology == null)
+			return WorkflowState.Failed;
+		reply(msg, Performative.InformRef, serializedOntology);
 		return WorkflowState.Completed;
 	}
 	
 	/**
-	 * Execute a push request
+	 * Answer a pull request during push - we don't want to complete immediately, we
+	 * wait for confirmation from peer before Activity can be marked as completed!
+	 *  
 	 * @param msg
 	 * @return
 	 */
-	@FromState("PushAccepted")
-	@OnMessage(performative="InformRef")
+	@FromState({"PushAccepted"})
+	@OnMessage(performative="QueryRef")
 	public WorkflowStateConstant pushChanges(Json msg)
 	{
-		return WorkflowStateConstant.Completed;
+		String serializedOntology = sendRequestedRevisions(msg);
+		if (serializedOntology == null)
+			return WorkflowState.Failed;
+		Json reply = getReply(msg, Performative.InformRef, serializedOntology)
+				 // this is just to indicate that we want a confirmation
+				 // any non-empty REPLY_WITH will force the receiveChanges to reply
+							.set(Messages.REPLY_WITH, "confirmation");
+        post(getSender(msg), reply);
+		return PushAccepted;
+	}	
+
+	@FromState({"PushAccepted"})
+	@OnMessage(performative="Confirm")
+	public WorkflowStateConstant changesPushed(Json msg)
+	{
+		return WorkflowState.Completed;
+	}	
+
+	/**
+	 * Answer a push request (peer is asking us to pull from it).
+	 *  
+	 * @param msg
+	 * @return
+	 */
+	@FromState("Started")
+	@OnMessage(performative="Request")
+	public WorkflowStateConstant pushRequested(Json msg)
+	{
+		if (!msg.at(CONTENT).has("action"))
+		{
+			reply(msg, Performative.Failure, "Missing action operand of request performative.");
+			return WorkflowStateConstant.Failed;
+		}
+		action = msg.at(CONTENT).at("action").asString();
+		if (action.equals("pull"))
+		{
+			HGHandle ontologyHandle = fromJson(msg.at(CONTENT).at(ONTOLOGY_HANDLE));
+			if (getThisPeer().getGraph().get(ontologyHandle) == null)
+			{
+				reply(msg, Performative.Refuse, "Unknown ontology.");
+				return WorkflowStateConstant.Failed;
+			}						
+			Set<HGHandle> heads = fromJson(msg.at(CONTENT).at("heads"));			
+			HGPeerIdentity otherPeer = getThisPeer().getIdentity(getSender(msg));			
+			VDHGDBOntologyRepository repo = new VDHGDBOntologyRepository(getThisPeer());
+			RemoteOntology remote = repo.remoteOnto(ontologyHandle, repo.remoteRepo(otherPeer));
+			remote.setRevisionHeads(heads);
+			getThisPeer().getGraph().update(remote);
+			remoteOntologyHandle = getThisPeer().getGraph().getHandle(remote);
+			reply(msg, Performative.Agree, Json.object());
+			return startPulling();
+		}
+		else
+		{
+			reply(msg, Performative.Failure, "Unrecognized action '" + action + "' of request performative.");
+			return WorkflowStateConstant.Failed;			
+		}
+	}
+	
+	@FromState("PullRequested")
+	@OnMessage(performative="Refuse")
+	public WorkflowStateConstant pushRefused(Json msg)
+	{
+		this.completedMessage = msg.at(CONTENT).asString();
+		return WorkflowStateConstant.Failed;
+	}
+
+	@FromState("PullRequested")
+	@OnMessage(performative="Agree")
+	public WorkflowStateConstant pushAccepted(Json msg)
+	{
+		return PushAccepted;
 	}
 	
 	@Override

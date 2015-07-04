@@ -24,9 +24,11 @@ import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.hypergraphdb.app.owl.core.OWLTempOntologyImpl;
+import org.hypergraphdb.app.owl.versioning.ChangeRecord;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.ParentLink;
 import org.hypergraphdb.app.owl.versioning.Revision;
+import org.hypergraphdb.app.owl.versioning.RevisionMark;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.change.VChange;
 import org.hypergraphdb.app.owl.versioning.distributed.DistributedOntology;
@@ -214,6 +216,17 @@ public class ActivityUtils
 			HGPersistentHandle versionedHandle = graph.getHandleFactory().makeHandle(doc.getVersionedID());			
 			graph.define(versionedHandle, vo);
 			manager.getVersionManager().manualVersioned(vo.getOntology());
+			updateVersionedOntology(manager, vo, doc);
+			Revision root = graph.get(vo.getRootRevision());
+			RevisionMark mark = graph.get(root.revisionMarks().iterator().next());
+			ChangeRecord record = graph.get(mark.changeRecord());
+			if (record == null) // limit case, during cloning this record is not serialzed
+			{
+				record = new ChangeRecord();
+				record.target(o.getAtomHandle());
+				record.changeSet(manager.getVersionManager().emptyChangeSetHandle());
+				graph.define(mark.changeRecord(), record);
+			}
 			return vo;
 		}
 		catch (Exception ex)
@@ -240,7 +253,7 @@ public class ActivityUtils
 		{
 			if (graph.get(object.getAtomHandle()) == null)
 			{
-//				System.out.println("Storing object " + object + " with handle " + object.getAtomHandle());
+				System.out.println("Storing object " + object + " with handle " + object.getAtomHandle());
 				graph.define(object.getAtomHandle(), object);
 			}
 		}

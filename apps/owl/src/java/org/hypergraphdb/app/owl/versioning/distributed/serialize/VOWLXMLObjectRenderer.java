@@ -92,6 +92,8 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 
 	private void writeMarkChanges(HyperGraph graph, HGHandle currentMarkHandle, HGHandle stop, HashSet<HGHandle> visited)
 	{
+	    if (currentMarkHandle.equals(stop))
+			return;
 		if (!visited.contains(currentMarkHandle))
 		{
 			ChangeRecord mark = graph.get(currentMarkHandle);
@@ -104,21 +106,16 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 				visited.add(changeSet.getAtomHandle());
 			}			
 		}
-	    if (currentMarkHandle.equals(stop))
-			return;
-		else
+		List<ParentLink> parentLinks = graph.getAll(
+			 hg.and(hg.type(ParentLink.class), 
+					hg.orderedLink(currentMarkHandle, hg.anyHandle())));			
+		for (ParentLink link : parentLinks)
 		{
-			List<ParentLink> parentLinks = graph.getAll(
-				 hg.and(hg.type(ParentLink.class), 
-						hg.orderedLink(currentMarkHandle, hg.anyHandle())));			
-			for (ParentLink link : parentLinks)
-			{
-				if (visited.contains(link.getAtomHandle()))
-					continue;
-				visit(link);
-				visited.add(link.getAtomHandle());
-				writeMarkChanges(graph, link.parent(), stop, visited);
-			}
+			if (visited.contains(link.getAtomHandle()))
+				continue;
+			visit(link);
+			visited.add(link.getAtomHandle());
+			writeMarkChanges(graph, link.parent(), stop, visited);
 		}
 	}
 	
@@ -160,8 +157,10 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 			// and its child, no change sets are needed. A head with a child seems like a contradiction
 			// but it is possible to manually designate some revisions as the last one to serialize, or
 			// if there was a new head created after the current revisions set was established
-			if (!revisions.contains(revisionLink.parent()) || !revisions.contains(revisionLink.child()))
-				continue;					
+			if (!revisions.contains(revisionLink.child()))
+				continue;
+			if (!revisions.contains(revisionLink.parent()) && configuration.roots().contains(revisionLink.child()))
+				continue;
 			RevisionMark parentMark = vo.getRevisionMark(revisionLink.parent());
 			RevisionMark childMark =  vo.getRevisionMark(revisionLink.child());
 			if (!visited.contains(parentMark.getAtomHandle()))

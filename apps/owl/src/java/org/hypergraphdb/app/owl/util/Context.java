@@ -30,6 +30,11 @@ public class Context
 		}
 	}
 	
+	public static void drop(Object ref)
+	{
+		contexts.remove(ref);
+	}
+	
 	Map<Class<?>, Object> singletons = new HashMap<Class<?>, Object>();
 	
 	public <T> T singleton(Class<T> type, Callable<T> factory)

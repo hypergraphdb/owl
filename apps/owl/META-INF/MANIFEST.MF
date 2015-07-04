@@ -55,7 +55,7 @@ Export-Package: org.hypergraphdb.app.owl; uses:="org.hypergraphdb.app.
  b.owlapi.vocab,  org.hypergraphdb.app.owl.util,  org.hypergraphdb.app
  .owl.core,  org.semanticweb.owlapi.model,  org.hypergraphdb,  org.hyp
  ergraphdb.annotation,  org.semanticweb.owlapi.util,  org.hypergraphdb
- .app.owl.model.axioms",org.hypergraphdb.app.owl.newver,org.hypergraph
+ .app.owl.model.axioms",org.hypergraph
  db.app.owl.query; uses:="org.hypergraphdb.atom,  org.semanticweb.owla
  pi.model,  org.hypergraphdb,  org.hypergraphdb.query",org.hypergraphd
  b.app.owl.repair; uses:="org.hypergraphdb.app.owl.core,  org.hypergra

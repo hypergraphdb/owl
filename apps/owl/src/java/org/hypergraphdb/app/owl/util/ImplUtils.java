@@ -27,6 +27,9 @@ import org.hypergraphdb.app.owl.model.OWLDataPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLDatatypeHGDB;
 import org.hypergraphdb.app.owl.model.OWLNamedIndividualHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectPropertyHGDB;
+import org.hypergraphdb.event.HGClosingEvent;
+import org.hypergraphdb.event.HGEvent;
+import org.hypergraphdb.event.HGListener;
 import org.hypergraphdb.handle.SequentialUUIDHandleFactory;
 import org.hypergraphdb.indexing.ByPartIndexer;
 import org.hypergraphdb.indexing.HGIndexer;
@@ -71,7 +74,7 @@ public class ImplUtils
 	static HashMap<String, HyperGraph> owlGraphs = new HashMap<String, HyperGraph>();
 	static HashMap<URI, HyperGraphPeer> owlPeers = new HashMap<URI, HyperGraphPeer>();
 
-	public static HyperGraph owldb(String location)
+	public static HyperGraph owldb(final String location)
 	{
 		synchronized (owlGraphs)
 		{
@@ -83,6 +86,15 @@ public class ImplUtils
 				else
 					graph = HGEnvironment.get(location);
 				HGManagement.ensureInstalled(graph, new HGDBApplication());
+				owlGraphs.put(location, graph);
+				graph.getEventManager().addListener(HGClosingEvent.class, new HGListener(){
+					public HGListener.Result handle(HyperGraph graph, HGEvent event)
+					{
+						Context.drop(graph);
+						owlGraphs.remove(location);
+						return Result.ok;
+					}
+				});
 			}
 			return graph;
 		}
@@ -140,7 +152,7 @@ public class ImplUtils
 		return url.toString();
 	}
 	
-	public static HyperGraphPeer peer(String connectionString)
+	public static HyperGraphPeer peer(final String connectionString)
 	{
 		synchronized (graphPeers)
 		{
@@ -150,6 +162,13 @@ public class ImplUtils
 				Json configuration = connectionStringToConfiguration(connectionString);
 				peer = new HyperGraphPeer(configuration);
 				graphPeers.put(connectionString, peer);
+				peer.getGraph().getEventManager().addListener(HGClosingEvent.class, new HGListener(){
+					public HGListener.Result handle(HyperGraph graph, HGEvent event)
+					{
+						graphPeers.remove(connectionString);
+						return Result.ok;
+					}
+				});				
 			}
 			return peer;
 		}
