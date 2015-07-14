@@ -192,43 +192,43 @@ public class PullActivity extends OntologyTransmitActivity
 	{
 		// Look up in repository
 		// TRANSACTION START
-		Json message = graph.getTransactionManager().ensureTransaction(new Callable<Json>()
-		{
-			public Json call()
-			{
-				HGDBOntology o = graph.get(ontologyUUID);
-				Json msg;
-				if (o != null)
-				{
-					if (repository.getOntologyManager().getVersionManager().isVersioned(ontologyUUID))
-					{
-						// Get Delta
-						msg = createMessage(Performative.Confirm, null);
-						List<Revision> revList = null;
-						msg.set(CONTENT, revList);
-						if (referenceHeads == null)
-							referenceHeads = repository.getOntologyManager().getVersionManager().versioned(o.getAtomHandle()).heads();
-						msg.set(KEY_REFERENCE_HEADS, referenceHeads);
-						return msg;
-					}
-					else
-					{
-						// Ontology but no versioning information - cannot pull
-						// How does this case arise? Through an import of some sorts?
-						throw new RuntimeException(new VOWLSourceTargetConflictException(
-								"Source ontology exists but is not shared. Cannot pull."));
-					}
-				}
-				else
-				{
-					// ontology unknown at source. Pull full or until
-					msg = createMessage(Performative.Disconfirm, null);
-					return msg;
-				}
-			}
-		});
-		message.set(KEY_ONTOLOGY_UUID, ontologyUUID);
-		send(targetPeerID, message);
+//		Json message = graph.getTransactionManager().ensureTransaction(new Callable<Json>()
+//		{
+//			public Json call()
+//			{
+//				HGDBOntology o = graph.get(ontologyUUID);
+//				Json msg;
+//				if (o != null)
+//				{
+//					if (repository.getOntologyManager().getVersionManager().isVersioned(ontologyUUID))
+//					{
+//						// Get Delta
+//						msg = createMessage(Performative.Confirm, null);
+//						List<Revision> revList = null;
+//						msg.set(CONTENT, revList);
+//						if (referenceHeads == null)
+//							referenceHeads = repository.getOntologyManager().getVersionManager().versioned(o.getAtomHandle()).heads();
+//						msg.set(KEY_REFERENCE_HEADS, referenceHeads);
+//						return msg;
+//					}
+//					else
+//					{
+//						// Ontology but no versioning information - cannot pull
+//						// How does this case arise? Through an import of some sorts?
+//						throw new RuntimeException(new VOWLSourceTargetConflictException(
+//								"Source ontology exists but is not shared. Cannot pull."));
+//					}
+//				}
+//				else
+//				{
+//					// ontology unknown at source. Pull full or until
+//					msg = createMessage(Performative.Disconfirm, null);
+//					return msg;
+//				}
+//			}
+//		});
+//		message.set(KEY_ONTOLOGY_UUID, ontologyUUID);
+//		send(targetPeerID, message);
 	}
 
 	// ------------------------------------------------------------------------------------
@@ -243,48 +243,48 @@ public class PullActivity extends OntologyTransmitActivity
 	public WorkflowStateConstant targetSendFullVersionedOntology(final Json msg) throws Throwable
 	{
 		// PROPOSE
-		Json reply;
-		String vowlxmlRendered = graph.getTransactionManager().ensureTransaction(new Callable<String>()
-		{
-			public String call()
-			{
-				// TRANSACTION START
-				ontologyUUID = Messages.fromJson(msg.at(CONTENT));
-				referenceHeads = Messages.fromJson(msg.at(KEY_REFERENCE_HEADS));
-				HGDBOntology onto = graph.get(ontologyUUID);
-				if (onto != null)
-				{
-					if (repository.getOntologyManager().getVersionManager().isVersioned(onto.getAtomHandle()))
-					{
-						try
-						{
-							// render FULL or render until last requested.
-							VersionedOntology versionedOntology = repository.getOntologyManager().getVersionManager().versioned(onto.getAtomHandle());							
-							Set<Revision> delta = new OntologyVersionState(referenceHeads).delta(versionedOntology);
-							return activityUtils.renderVersionedOntologyDelta(versionedOntology, /*delta*/ null);
-						}
-						catch (Exception e)
-						{
-							throw new RuntimeException(e);
-						}
-					}
-					else
-					{
-						throw new RuntimeException(new VOWLException("Ontology found at target, but not shared. Cannot Send."));
-					}
-				}
-				else
-				{
-					throw new RuntimeException(new VOWLException("Ontology does not exist at target. Cannot Send. Query UUID was: "
-							+ ontologyUUID));
-				}
-				// TRANSACTION END
-			}
-		}, HGTransactionConfig.READONLY);
-		reply = getReply(msg, Performative.Propose);
-		// send full head revision data, not versioned yet.
-		reply.set(CONTENT, vowlxmlRendered);
-		send(getSender(msg), reply);
+//		Json reply;
+//		String vowlxmlRendered = graph.getTransactionManager().ensureTransaction(new Callable<String>()
+//		{
+//			public String call()
+//			{
+//				// TRANSACTION START
+//				ontologyUUID = Messages.fromJson(msg.at(CONTENT));
+//				referenceHeads = Messages.fromJson(msg.at(KEY_REFERENCE_HEADS));
+//				HGDBOntology onto = graph.get(ontologyUUID);
+//				if (onto != null)
+//				{
+//					if (repository.getOntologyManager().getVersionManager().isVersioned(onto.getAtomHandle()))
+//					{
+//						try
+//						{
+//							// render FULL or render until last requested.
+//							VersionedOntology versionedOntology = repository.getOntologyManager().getVersionManager().versioned(onto.getAtomHandle());							
+//							Set<Revision> delta = new OntologyVersionState(referenceHeads).delta(versionedOntology);
+//							return activityUtils.renderVersionedOntologyDelta(versionedOntology, /*delta*/ null);
+//						}
+//						catch (Exception e)
+//						{
+//							throw new RuntimeException(e);
+//						}
+//					}
+//					else
+//					{
+//						throw new RuntimeException(new VOWLException("Ontology found at target, but not shared. Cannot Send."));
+//					}
+//				}
+//				else
+//				{
+//					throw new RuntimeException(new VOWLException("Ontology does not exist at target. Cannot Send. Query UUID was: "
+//							+ ontologyUUID));
+//				}
+//				// TRANSACTION END
+//			}
+//		}, HGTransactionConfig.READONLY);
+//		reply = getReply(msg, Performative.Propose);
+//		// send full head revision data, not versioned yet.
+//		reply.set(CONTENT, vowlxmlRendered);
+//		send(getSender(msg), reply);
 		return SendingInitial;
 	}
 
@@ -300,50 +300,50 @@ public class PullActivity extends OntologyTransmitActivity
 	// @AtActivity(CONTENT);
 	public WorkflowStateConstant sourceReceiveFullVersionedOntologyAsNew(Json msg) throws Throwable
 	{
-		final String vowlxmlStringOntology = msg.at(CONTENT).asString();
-		graph.getTransactionManager().ensureTransaction(new Callable<Object>()
-		{
-			public Object call()
-			{
-				// TRANSACTION START
-				try
-				{
-					VOWLXMLDocument doc = ActivityUtils.parseVersionedDoc(repository.getOntologyManager(), new StringDocumentSource(vowlxmlStringOntology));
-					ActivityUtils.storeClonedOntology(repository.getOntologyManager(), doc);
-				}
-				catch (Exception e)
-				{
-					throw new RuntimeException(e);
-				}
-				// TODO HANDLE EXCEPTION, GC created objects
-				// Neither Ontology, nor VersionedOntology was stored,
-				// but ontology axioms & entities, revisions and changeset,
-				// changes, axioms were.
-				// Run a GC, which also collects dangling changesets, changes
-				// and revisions?
-				if (DBG_RENDER_ONTOLOGIES_TO_FILE)
-				{
-					repository.printAllOntologies();
-					try
-					{
-//						activityUtils.saveVersionedOntologyXML(voParsed, 
-//															   "FULL-RECEIVED-SOURCE" + getThisPeer().getIdentity().getId());
-					}
-					catch (Exception e)
-					{
-						// Ignore DBG Exceptions
-						e.printStackTrace();
-					}
-				}
-				return null;
-				// TRANSACTION END
-			}
-		}, HGTransactionConfig.DEFAULT);
-		// RESPOND
-		Json reply = getReply(msg, Performative.AcceptProposal);
-		send(getSender(msg), reply);
-		setCompletedMessage("Full versioned ontology received. Size: " + 
-							(vowlxmlStringOntology.length() / 1024)	+ " kilo characters");
+//		final String vowlxmlStringOntology = msg.at(CONTENT).asString();
+//		graph.getTransactionManager().ensureTransaction(new Callable<Object>()
+//		{
+//			public Object call()
+//			{
+//				// TRANSACTION START
+//				try
+//				{
+//					VOWLXMLDocument doc = ActivityUtils.parseVersionedDoc(repository.getOntologyManager(), new StringDocumentSource(vowlxmlStringOntology));
+//					ActivityUtils.storeClonedOntology(repository.getOntologyManager(), doc);
+//				}
+//				catch (Exception e)
+//				{
+//					throw new RuntimeException(e);
+//				}
+//				// TODO HANDLE EXCEPTION, GC created objects
+//				// Neither Ontology, nor VersionedOntology was stored,
+//				// but ontology axioms & entities, revisions and changeset,
+//				// changes, axioms were.
+//				// Run a GC, which also collects dangling changesets, changes
+//				// and revisions?
+//				if (DBG_RENDER_ONTOLOGIES_TO_FILE)
+//				{
+//					repository.printAllOntologies();
+//					try
+//					{
+////						activityUtils.saveVersionedOntologyXML(voParsed, 
+////															   "FULL-RECEIVED-SOURCE" + getThisPeer().getIdentity().getId());
+//					}
+//					catch (Exception e)
+//					{
+//						// Ignore DBG Exceptions
+//						e.printStackTrace();
+//					}
+//				}
+//				return null;
+//				// TRANSACTION END
+//			}
+//		}, HGTransactionConfig.DEFAULT);
+//		// RESPOND
+//		Json reply = getReply(msg, Performative.AcceptProposal);
+//		send(getSender(msg), reply);
+//		setCompletedMessage("Full versioned ontology received. Size: " + 
+//							(vowlxmlStringOntology.length() / 1024)	+ " kilo characters");
 		return WorkflowStateConstant.Completed;
 	}
 
@@ -391,52 +391,52 @@ public class PullActivity extends OntologyTransmitActivity
 		{
 			public WorkflowStateConstant call()
 			{
-				Json reply;
-				WorkflowStateConstant nextState;
-				String owlxmlStringOntology;
-				HGDBOntology ontology = graph.get(ontologyUUID);
-				VersionedOntology versionedOntology = repository.getOntologyManager().getVersionManager().versioned(ontologyUUID);
-				if (ontology == null)
-					throw new IllegalStateException("Ontology " + ontologyUUID + " does not exist at target. Cannot send delta.");
-				reply = getReply(msg, Performative.Inform);
-				Set<Revision> delta = new OntologyVersionState(referenceHeads).delta(versionedOntology);
-				if (delta.isEmpty())
-				{
-					// target equals source
-					reply = getReply(msg, Performative.InformIf);
-					reply.set(CONTENT, "Target and Source are equal.");
-					setCompletedMessage("Target and Source are equal. Nothing to transmit.");
-					nextState = WorkflowStateConstant.Completed;
-				}
-				try
-				{
-					owlxmlStringOntology = activityUtils.renderVersionedOntologyDelta(versionedOntology, /*delta*/ null);
-				}
-				catch (Exception ex)
-				{
-					// TODO - better, generic exception handling for when something like this goes wrong
-					ex.printStackTrace();
-					owlxmlStringOntology = "";
-				}
-				reply.set(CONTENT, owlxmlStringOntology);				
-				setCompletedMessage("Target sent " + delta.size()
-									+ " changesets to source." + " size was : " + (owlxmlStringOntology.length() / 1024)
-									+ " kilo characters ");
-				nextState = SendingDelta;
-				if (DBG_RENDER_ONTOLOGIES_TO_FILE)
-				{
-					try
-					{
-						activityUtils.saveStringXML(owlxmlStringOntology, "DELTA-SENT-BY-PULL-TARGET");
-					}
-					catch (Exception e)
-					{
-						System.err.println("Pull: Exception during debug output ignored:");
-						e.printStackTrace();
-					}
-				}
-				// TRANSACTION END
-				send(getSender(msg), reply);
+//				Json reply;
+				WorkflowStateConstant nextState = null;
+//				String owlxmlStringOntology;
+//				HGDBOntology ontology = graph.get(ontologyUUID);
+//				VersionedOntology versionedOntology = repository.getOntologyManager().getVersionManager().versioned(ontologyUUID);
+//				if (ontology == null)
+//					throw new IllegalStateException("Ontology " + ontologyUUID + " does not exist at target. Cannot send delta.");
+//				reply = getReply(msg, Performative.Inform);
+//				Set<Revision> delta = new OntologyVersionState(referenceHeads).delta(versionedOntology);
+//				if (delta.isEmpty())
+//				{
+//					// target equals source
+//					reply = getReply(msg, Performative.InformIf);
+//					reply.set(CONTENT, "Target and Source are equal.");
+//					setCompletedMessage("Target and Source are equal. Nothing to transmit.");
+//					nextState = WorkflowStateConstant.Completed;
+//				}
+//				try
+//				{
+//					owlxmlStringOntology = activityUtils.renderVersionedOntologyDelta(versionedOntology, /*delta*/ null);
+//				}
+//				catch (Exception ex)
+//				{
+//					// TODO - better, generic exception handling for when something like this goes wrong
+//					ex.printStackTrace();
+//					owlxmlStringOntology = "";
+//				}
+//				reply.set(CONTENT, owlxmlStringOntology);				
+//				setCompletedMessage("Target sent " + delta.size()
+//									+ " changesets to source." + " size was : " + (owlxmlStringOntology.length() / 1024)
+//									+ " kilo characters ");
+//				nextState = SendingDelta;
+//				if (DBG_RENDER_ONTOLOGIES_TO_FILE)
+//				{
+//					try
+//					{
+//						activityUtils.saveStringXML(owlxmlStringOntology, "DELTA-SENT-BY-PULL-TARGET");
+//					}
+//					catch (Exception e)
+//					{
+//						System.err.println("Pull: Exception during debug output ignored:");
+//						e.printStackTrace();
+//					}
+//				}
+//				// TRANSACTION END
+//				send(getSender(msg), reply);
 				return nextState;
 			}
 		}, HGTransactionConfig.READONLY);
@@ -449,54 +449,54 @@ public class PullActivity extends OntologyTransmitActivity
 	// @AtActivity(CONTENT);
 	public WorkflowStateConstant sourceReceiveVersionedOntologyDelta(final Json msg) throws Throwable
 	{
-		String vowlxmlStringDelta = graph.getTransactionManager().ensureTransaction(new Callable<String>()
-		{
-			public String call()
-			{
-				// TRANSACTION START
-				VersionedOntology versionedOntology = repository.getOntologyManager().getVersionManager().versioned(ontologyUUID);
-				if (DBG)
-					System.out.println("RECEIVING PULLED delta");
-				String vowlxmlStringDelta = msg.at(CONTENT).asString();
-				OWLOntologyDocumentSource ds = new StringDocumentSource(vowlxmlStringDelta);
-				// Parse, apply and append the delta
-				try
-				{
-					activityUtils.appendDeltaTo(ds, versionedOntology, mergeWithUncommited);
-				}
-				catch (Exception e)
-				{
-					throw new RuntimeException(e);
-				}
-				// assert targetVersionedOntology contains delta
-				if (DBG_RENDER_ONTOLOGIES_TO_FILE)
-				{
-					repository.printAllOntologies();
-					try
-					{
-						activityUtils.saveVersionedOntologyXML(versionedOntology, "FULL-AFTER-DELTA-APPLIED-PULL-SOURCE");
-					}
-					catch (Exception e)
-					{
-						// DBG exception ignored.
-						e.printStackTrace();
-					}
-				}
-				return vowlxmlStringDelta;
-				// TRANSACTION END
-			}
-		}, HGTransactionConfig.DEFAULT);
-		Json reply = getReply(msg, Performative.AcceptProposal);
-		send(getSender(msg), reply);
-		if (mergeWithUncommited)
-		{
-			setCompletedMessage("Delta received, applied and merged with uncommitted changes. Size: "
-					+ (vowlxmlStringDelta.length() / 1024) + " kilo characters");
-		}
-		else
-		{
-			setCompletedMessage("Delta received and applied. Size: " + (vowlxmlStringDelta.length() / 1024) + " kilo characters");
-		}
+//		String vowlxmlStringDelta = graph.getTransactionManager().ensureTransaction(new Callable<String>()
+//		{
+//			public String call()
+//			{
+//				// TRANSACTION START
+//				VersionedOntology versionedOntology = repository.getOntologyManager().getVersionManager().versioned(ontologyUUID);
+//				if (DBG)
+//					System.out.println("RECEIVING PULLED delta");
+//				String vowlxmlStringDelta = msg.at(CONTENT).asString();
+//				OWLOntologyDocumentSource ds = new StringDocumentSource(vowlxmlStringDelta);
+//				// Parse, apply and append the delta
+//				try
+//				{
+//					activityUtils.appendDeltaTo(ds, versionedOntology, mergeWithUncommited);
+//				}
+//				catch (Exception e)
+//				{
+//					throw new RuntimeException(e);
+//				}
+//				// assert targetVersionedOntology contains delta
+//				if (DBG_RENDER_ONTOLOGIES_TO_FILE)
+//				{
+//					repository.printAllOntologies();
+//					try
+//					{
+//						activityUtils.saveVersionedOntologyXML(versionedOntology, "FULL-AFTER-DELTA-APPLIED-PULL-SOURCE");
+//					}
+//					catch (Exception e)
+//					{
+//						// DBG exception ignored.
+//						e.printStackTrace();
+//					}
+//				}
+//				return vowlxmlStringDelta;
+//				// TRANSACTION END
+//			}
+//		}, HGTransactionConfig.DEFAULT);
+//		Json reply = getReply(msg, Performative.AcceptProposal);
+//		send(getSender(msg), reply);
+//		if (mergeWithUncommited)
+//		{
+//			setCompletedMessage("Delta received, applied and merged with uncommitted changes. Size: "
+//					+ (vowlxmlStringDelta.length() / 1024) + " kilo characters");
+//		}
+//		else
+//		{
+//			setCompletedMessage("Delta received and applied. Size: " + (vowlxmlStringDelta.length() / 1024) + " kilo characters");
+//		}
 		return WorkflowStateConstant.Completed;
 	}
 

@@ -220,7 +220,7 @@ public class TestVDHGDBPull
 			dr.deleteAllOntologies();
 			dr.printStatistics();
 			System.out.println("ImportOntologies.importOntology " + TEST_ONTOLOGY);
-			IRI targetIRI = ImportOntologies.importOntology(new File(TEST_ONTOLOGY), dr.getOntologyManager());
+			IRI targetIRI = null;//ImportOntologies.importOntology(new File(TEST_ONTOLOGY), dr.getOntologyManager());
 			HGDBOntology o;
 			try
 			{

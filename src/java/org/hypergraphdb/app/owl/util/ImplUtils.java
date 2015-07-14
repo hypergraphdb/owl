@@ -152,6 +152,19 @@ public class ImplUtils
 		return url.toString();
 	}
 	
+	/**
+	 * <p>
+	 * Creating a peer connecting to the network with the specified connection
+	 * string. The connection string has the following format:
+	 * </p>
+	 * 
+	 * <p>
+	 * hgpeer://user:password@host:port#chatroom
+	 * </p>
+	 * 
+	 * @param connectionString
+	 * @return
+	 */
 	public static HyperGraphPeer peer(final String connectionString)
 	{
 		synchronized (graphPeers)

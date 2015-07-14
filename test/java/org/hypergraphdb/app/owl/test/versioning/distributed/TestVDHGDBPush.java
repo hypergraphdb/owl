@@ -194,7 +194,7 @@ public class TestVDHGDBPush
 			dr.deleteAllOntologies();
 			dr.printStatistics();
 			System.out.println("ImportOntologies.importOntology " + TEST_ONTOLOGY);
-			IRI targetIRI = ImportOntologies.importOntology(new File(TEST_ONTOLOGY), dr.getOntologyManager());
+			IRI targetIRI = null;//ImportOntologies.importOntology(new File(TEST_ONTOLOGY), dr.getOntologyManager());
 			HGDBOntology o;
 			try
 			{
@@ -225,12 +225,12 @@ public class TestVDHGDBPush
 		}
 		else
 		{
-			versionedOntology = dr.getVersionControlledOntologies().get(0);
-			// the workingsetdata is not loaded by the manager, we need to set
-			// it.
-			versionedOntology.ontology().setOWLOntologyManager(manager);
-			if (versionedOntology == null)
-				throw new IllegalStateException("We have NOT found a versioned ontololgy in the repository.");
+//			versionedOntology = dr.getVersionControlledOntologies().get(0);
+//			// the workingsetdata is not loaded by the manager, we need to set
+//			// it.
+//			versionedOntology.ontology().setOWLOntologyManager(manager);
+//			if (versionedOntology == null)
+//				throw new IllegalStateException("We have NOT found a versioned ontololgy in the repository.");
 		}
 		dr.startNetworking();
 	}

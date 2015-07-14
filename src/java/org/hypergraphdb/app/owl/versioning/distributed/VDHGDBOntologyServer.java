@@ -65,7 +65,7 @@ public class VDHGDBOntologyServer
 
 			dr = new VDHGDBOntologyRepository(databaseLocation, 
 											  ImplUtils.connectionStringFromConfiguration(config));
-			dr.setOntologyServer(true);
+//			dr.setOntologyServer(true);
 			dr.printAllOntologies();
 			dr.printStatistics();
 			boolean success = dr.startNetworking();

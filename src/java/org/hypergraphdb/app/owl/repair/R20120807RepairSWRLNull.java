@@ -10,7 +10,6 @@ import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.hypergraphdb.app.owl.model.swrl.SWRLClassAtomHGDB;
 import org.hypergraphdb.app.owl.model.swrl.SWRLDataRangeAtomHGDB;
-import org.hypergraphdb.app.owl.versioning.VHGDBOntologyRepository;
 import org.hypergraphdb.type.DefaultJavaTypeMapper;
 import org.hypergraphdb.type.HGAtomType;
 import org.hypergraphdb.type.HGCompositeType;

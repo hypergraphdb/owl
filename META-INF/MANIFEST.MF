@@ -55,76 +55,76 @@ Export-Package: org.hypergraphdb.app.owl; uses:="org.hypergraphdb.app.
  b.owlapi.vocab,  org.hypergraphdb.app.owl.util,  org.hypergraphdb.app
  .owl.core,  org.semanticweb.owlapi.model,  org.hypergraphdb,  org.hyp
  ergraphdb.annotation,  org.semanticweb.owlapi.util,  org.hypergraphdb
- .app.owl.model.axioms",org.hypergraph
- db.app.owl.query; uses:="org.hypergraphdb.atom,  org.semanticweb.owla
- pi.model,  org.hypergraphdb,  org.hypergraphdb.query",org.hypergraphd
- b.app.owl.repair; uses:="org.hypergraphdb.app.owl.core,  org.hypergra
- phdb.app.owl.versioning,  org.hypergraphdb.type,  org.semanticweb.owl
- api.model,  org.hypergraphdb,  org.hypergraphdb.query,  org.hypergrap
- hdb.app.owl.model.swrl",org.hypergraphdb.app.owl.type; uses:="org.hyp
- ergraphdb.storage,  org.hypergraphdb.app.owl.model,  org.semanticweb.
- owlapi.vocab,  uk.ac.manchester.cs.owl.owlapi,  org.semanticweb.owlap
- i.model,  org.hypergraphdb.query,  org.hypergraphdb.atom,  org.hyperg
- raphdb.util,  org.hypergraphdb.type.javaprimitive,  org.hypergraphdb.
- type,  org.hypergraphdb",org.hypergraphdb.app.owl.type.link;uses:="or
- g.hypergraphdb",org.hypergraphdb.app.owl.usage; uses:="org.hypergraph
- db.app.owl.util,  org.hypergraphdb.app.owl.core,  org.hypergraphdb.ap
- p.owl.versioning,  org.semanticweb.owlapi.model,  org.hypergraphdb,  
- org.hypergraphdb.app.owl",org.hypergraphdb.app.owl.util; uses:="org.s
- emanticweb.owlapi.apibinding,  org.hypergraphdb.app.owl.model,  mjson
- ,  org.hypergraphdb.app.owl.core,  org.semanticweb.owlapi.model,  org
- .hypergraphdb.query,  org.hypergraphdb.util,  org.hypergraphdb.indexi
- ng,  org.hypergraphdb.algorithms,  org.hypergraphdb,  org.hypergraphd
- b.app.management,  org.hypergraphdb.app.owl,  org.hypergraphdb.handle
- ",org.hypergraphdb.app.owl.versioning; uses:="org.hypergraphdb.app.ow
- l.versioning.change,  org.semanticweb.owlapi.apibinding,  org.hypergr
- aphdb.app.owl.util,  mjson,  org.hypergraphdb.app.owl.core,  org.sema
- nticweb.owlapi.model,  org.hypergraphdb.query,  org.hypergraphdb.util
- ,  org.hypergraphdb.app.owl.versioning.distributed,  org.hypergraphdb
- .peer.serializer,  org.hypergraphdb.app.owl.versioning.distributed.se
- rialize,  org.hypergraphdb.annotation,  org.hypergraphdb,  org.hyperg
- raphdb.transaction,  org.hypergraphdb.app.owl",org.hypergraphdb.app.o
- wl.versioning.change; uses:="org.hypergraphdb.app.owl.model,  org.hyp
- ergraphdb.util,  org.hypergraphdb.app.owl.versioning,  org.hypergraph
- db.app.owl.core,  org.semanticweb.owlapi.model,  org.hypergraphdb,  o
- rg.hypergraphdb.app.owl",org.hypergraphdb.app.owl.versioning.distribu
- ted; uses:="org.hypergraphdb.peer,  org.hypergraphdb.app.owl.util,  o
- rg.hypergraphdb.app.owl.core,  org.hypergraphdb.app.owl.versioning,  
- mjson,  org.semanticweb.owlapi.model,  org.hypergraphdb.query,  org.h
- ypergraphdb.peer.workflow,  org.hypergraphdb.util,  org.hypergraphdb.
- peer.xmpp,  org.hypergraphdb.transaction,  org.hypergraphdb,  org.hyp
- ergraphdb.app.owl.versioning.distributed.activity,  org.hypergraphdb.
- app.owl",org.hypergraphdb.app.owl.versioning.distributed.activity; us
- es:="org.hypergraphdb.app.owl.versioning.change,  org.hypergraphdb.pe
- er,  mjson,  org.hypergraphdb.app.owl.exception,  org.hypergraphdb.ap
- p.owl.core,  org.hypergraphdb.app.owl.versioning,  org.semanticweb.ow
- lapi.model,  org.hypergraphdb.peer.workflow,  org.hypergraphdb.util, 
-  org.hypergraphdb.app.owl.versioning.distributed,  org.semanticweb.ow
- lapi.io,  org.hypergraphdb.app.owl.versioning.distributed.serialize, 
-  org.hypergraphdb.transaction,  org.hypergraphdb,  org.hypergraphdb.a
- pp.owl",org.hypergraphdb.app.owl.versioning.distributed.serialize; us
- es:="org.hypergraphdb.app.owl.versioning.change,  org.hypergraphdb.ap
- p.owl.model,  org.coode.xml,  org.semanticweb.owlapi.vocab,  org.hype
- rgraphdb.app.owl.util,  org.hypergraphdb.app.owl.core,  org.hypergrap
- hdb.app.owl.versioning,  javax.xml.parsers,  org.semanticweb.owlapi.m
- odel,  org.semanticweb.owlapi.util,  org.coode.owlapi.owlxmlparser,  
- org.coode.owlapi.owlxml.renderer,  org.semanticweb.owlapi.io,  org.hy
- pergraphdb,  org.hypergraphdb.app.owl.versioning.distributed.serializ
- e.parse,  org.hypergraphdb.app.owl",org.hypergraphdb.app.owl.versioni
- ng.distributed.serialize.parse; uses:="org.hypergraphdb.app.owl.versi
- oning.change,  org.hypergraphdb.app.owl.model,  uk.ac.manchester.cs.o
- wl.owlapi,  org.hypergraphdb.app.owl.core,  org.hypergraphdb.app.owl.
- versioning,  org.semanticweb.owlapi.model,  org.hypergraphdb.app.owl.
- type.link,  org.hypergraphdb.query,  org.hypergraphdb.util,  org.cood
- e.owlapi.owlxmlparser,  org.semanticweb.owlapi.io,  org.hypergraphdb.
- app.owl.versioning.distributed.serialize,  org.hypergraphdb.transacti
- on,  org.hypergraphdb,  org.hypergraphdb.handle"
+ .app.owl.model.axioms",org.hypergraphdb.app.owl.query; uses:="org.hyp
+ ergraphdb.atom,  org.semanticweb.owlapi.model,  org.hypergraphdb,  or
+ g.hypergraphdb.query",org.hypergraphdb.app.owl.repair; uses:="org.hyp
+ ergraphdb.app.owl.core,  org.hypergraphdb.app.owl.versioning,  org.hy
+ pergraphdb.type,  org.semanticweb.owlapi.model,  org.hypergraphdb,  o
+ rg.hypergraphdb.query,  org.hypergraphdb.app.owl.model.swrl",org.hype
+ rgraphdb.app.owl.type; uses:="org.hypergraphdb.storage,  org.hypergra
+ phdb.app.owl.model,  org.semanticweb.owlapi.vocab,  uk.ac.manchester.
+ cs.owl.owlapi,  org.semanticweb.owlapi.model,  org.hypergraphdb.query
+ ,  org.hypergraphdb.atom,  org.hypergraphdb.util,  org.hypergraphdb.t
+ ype.javaprimitive,  org.hypergraphdb.type,  org.hypergraphdb",org.hyp
+ ergraphdb.app.owl.type.link;uses:="org.hypergraphdb",org.hypergraphdb
+ .app.owl.usage; uses:="org.hypergraphdb.app.owl.util,  org.hypergraph
+ db.app.owl.core,  org.hypergraphdb.app.owl.versioning,  org.semanticw
+ eb.owlapi.model,  org.hypergraphdb,  org.hypergraphdb.app.owl",org.hy
+ pergraphdb.app.owl.util; uses:="org.semanticweb.owlapi.apibinding,  o
+ rg.hypergraphdb.app.owl.model,  mjson,  org.hypergraphdb.app.owl.core
+ ,  org.semanticweb.owlapi.model,  org.hypergraphdb.query,  org.hyperg
+ raphdb.util,  org.hypergraphdb.indexing,  org.hypergraphdb.algorithms
+ ,  org.hypergraphdb,  org.hypergraphdb.app.management,  org.hypergrap
+ hdb.app.owl,  org.hypergraphdb.handle",org.hypergraphdb.app.owl.versi
+ oning; uses:="org.hypergraphdb.app.owl.versioning.change,  org.semant
+ icweb.owlapi.apibinding,  org.hypergraphdb.app.owl.util,  mjson,  org
+ .hypergraphdb.app.owl.core,  org.semanticweb.owlapi.model,  org.hyper
+ graphdb.query,  org.hypergraphdb.util,  org.hypergraphdb.app.owl.vers
+ ioning.distributed,  org.hypergraphdb.peer.serializer,  org.hypergrap
+ hdb.app.owl.versioning.distributed.serialize,  org.hypergraphdb.annot
+ ation,  org.hypergraphdb,  org.hypergraphdb.transaction,  org.hypergr
+ aphdb.app.owl",org.hypergraphdb.app.owl.versioning.change; uses:="org
+ .hypergraphdb.app.owl.model,  org.hypergraphdb.util,  org.hypergraphd
+ b.app.owl.versioning,  org.hypergraphdb.app.owl.core,  org.semanticwe
+ b.owlapi.model,  org.hypergraphdb,  org.hypergraphdb.app.owl",org.hyp
+ ergraphdb.app.owl.versioning.distributed; uses:="org.hypergraphdb.pee
+ r,  org.hypergraphdb.app.owl.util,  org.hypergraphdb.app.owl.core,  o
+ rg.hypergraphdb.app.owl.versioning,  mjson,  org.semanticweb.owlapi.m
+ odel,  org.hypergraphdb.query,  org.hypergraphdb.peer.workflow,  org.
+ hypergraphdb.util,  org.hypergraphdb.peer.xmpp,  org.hypergraphdb.tra
+ nsaction,  org.hypergraphdb,  org.hypergraphdb.app.owl.versioning.dis
+ tributed.activity,  org.hypergraphdb.app.owl",org.hypergraphdb.app.ow
+ l.versioning.distributed.activity; uses:="org.hypergraphdb.app.owl.ve
+ rsioning.change,  org.hypergraphdb.peer,  mjson,  org.hypergraphdb.ap
+ p.owl.exception,  org.hypergraphdb.app.owl.core,  org.hypergraphdb.ap
+ p.owl.versioning,  org.semanticweb.owlapi.model,  org.hypergraphdb.pe
+ er.workflow,  org.hypergraphdb.util,  org.hypergraphdb.app.owl.versio
+ ning.distributed,  org.semanticweb.owlapi.io,  org.hypergraphdb.app.o
+ wl.versioning.distributed.serialize,  org.hypergraphdb.transaction,  
+ org.hypergraphdb,  org.hypergraphdb.app.owl",org.hypergraphdb.app.owl
+ .versioning.distributed.serialize; uses:="org.hypergraphdb.app.owl.ve
+ rsioning.change,  org.hypergraphdb.app.owl.model,  org.coode.xml,  or
+ g.semanticweb.owlapi.vocab,  org.hypergraphdb.app.owl.util,  org.hype
+ rgraphdb.app.owl.core,  org.hypergraphdb.app.owl.versioning,  javax.x
+ ml.parsers,  org.semanticweb.owlapi.model,  org.semanticweb.owlapi.ut
+ il,  org.coode.owlapi.owlxmlparser,  org.coode.owlapi.owlxml.renderer
+ ,  org.semanticweb.owlapi.io,  org.hypergraphdb,  org.hypergraphdb.ap
+ p.owl.versioning.distributed.serialize.parse,  org.hypergraphdb.app.o
+ wl",org.hypergraphdb.app.owl.versioning.distributed.serialize.parse; 
+ uses:="org.hypergraphdb.app.owl.versioning.change,  org.hypergraphdb.
+ app.owl.model,  uk.ac.manchester.cs.owl.owlapi,  org.hypergraphdb.app
+ .owl.core,  org.hypergraphdb.app.owl.versioning,  org.semanticweb.owl
+ api.model,  org.hypergraphdb.app.owl.type.link,  org.hypergraphdb.que
+ ry,  org.hypergraphdb.util,  org.coode.owlapi.owlxmlparser,  org.sema
+ nticweb.owlapi.io,  org.hypergraphdb.app.owl.versioning.distributed.s
+ erialize,  org.hypergraphdb.transaction,  org.hypergraphdb,  org.hype
+ rgraphdb.handle"
 Ignore-Package: org.jivesoftware.smack,org.xml.sax.helpers,org.xml.sax
 Built-By: borislav
 Tool: Bnd-0.0.238
 Bundle-Name: HypergraphDB Owl-API Backend
 Created-By: Apache Maven Bundle Plugin
-Build-Jdk: 1.7.0_75
+Build-Jdk: 1.7.0_60
 Bundle-Version: 1.7.0
 Bnd-LastModified: 1418075807378
 Bundle-ManifestVersion: 2

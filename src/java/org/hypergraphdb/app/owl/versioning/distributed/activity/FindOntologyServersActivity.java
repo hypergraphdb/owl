@@ -25,6 +25,7 @@ import org.hypergraphdb.peer.workflow.WorkflowStateConstant;
  * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Sep 10, 2012
+ * @deprecated No client-server model anymore, this activity is not needed
  */
 public class FindOntologyServersActivity extends Activity
 {
@@ -132,15 +133,15 @@ public class FindOntologyServersActivity extends Activity
 
 	public void targetHandleQueryIf(Json msg)
 	{
-		Performative response;
-		if (repository.isOntologyServer())
-		{
-			response = Performative.Confirm;
-		}
-		else
-		{
-			response = Performative.Disconfirm;
-		}
+		Performative response = Performative.Disconfirm;
+//		if (repository.isOntologyServer())
+//		{
+//			response = Performative.Confirm;
+//		}
+//		else
+//		{
+//			response = Performative.Disconfirm;
+//		}
 		Future<Boolean> replyFuture = reply(msg, response, null);
 		try
 		{

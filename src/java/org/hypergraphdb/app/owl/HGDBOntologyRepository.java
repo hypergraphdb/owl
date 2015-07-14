@@ -1,7 +1,6 @@
 package org.hypergraphdb.app.owl;
 
 import java.io.PrintWriter;
-
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.util.Date;
@@ -20,6 +19,7 @@ import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDE
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyUUIDException;
 import org.hypergraphdb.app.owl.util.ImplUtils;
 import org.hypergraphdb.app.owl.util.Path;
+import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.query.HGQueryCondition;
 import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.semanticweb.owlapi.model.IRI;
@@ -45,15 +45,22 @@ public class HGDBOntologyRepository
 	private static boolean DBG = false;
 
 	private HyperGraph graph;
-
+	private VersionManager versionManager;
+	
 	/**
 	 * @param graph
 	 */
 	public HGDBOntologyRepository(String hypergraphDBLocation)
 	{
 		this.graph = ImplUtils.owldb(hypergraphDBLocation);
+		versionManager = new VersionManager(getHyperGraph(), "fixme-VHDBOntologyRepository");
 	}
 
+	public VersionManager getVersionManager()
+	{
+		return versionManager;
+	}
+	
 	/**
 	 * Creates an Ontology and adds it to the graph, if an Ontology with the
 	 * same ontologyID does not yet exist. The graph will create an Internals
@@ -272,35 +279,25 @@ public class HGDBOntologyRepository
 	 */
 	public boolean deleteOntology(final OWLOntologyID ontologyId)
 	{
-		// 2011.12.20 hilpold we just set the ontology ID and DocumentIRI to
-		// null
+		// To speed up a potentially very costly operation, we just set 
+		// the ontology ID and DocumentIRI to null
 		// so cleanup can remove it later and we remain responsive.
-		// 2012.04.03 We only set documentIRI null, OID must remain.
-		// OWL-API TestClass OWLImportsClosureTestCase fails with ERROR if set
-		// OID null on onto
-		// marked for deletion. This is to emulate in memory behaviour.
-		// 2012.04.04 we also need to change the PersistentStorage handle for
-		// the ontology, so a
-		// test for UUID fails.
-		return graph.getTransactionManager().ensureTransaction(
-				new Callable<Boolean>()
-				{
-					public Boolean call()
-					{
-						boolean ontologyFound;
-						HGHandle ontologyHandle = getOntologyHandleByID(ontologyId);
-						ontologyFound = ontologyHandle != null;
-						if (ontologyFound)
-						{
-							HGDBOntology o = graph.get(ontologyHandle);
-							// o.setOntologyID(null);
-							o.setDocumentIRI(null);
-							graph.replace(ontologyHandle, o);
-							// graph.
-						}
-						return ontologyFound;
-					}
-				});
+		return graph.getTransactionManager().ensureTransaction(new Callable<Boolean>() {				
+		public Boolean call()
+		{
+			boolean ontologyFound;
+			HGHandle ontologyHandle = getOntologyHandleByID(ontologyId);
+			ontologyFound = ontologyHandle != null;
+			if (ontologyFound)
+			{
+				if (versionManager.isVersioned(ontologyHandle))
+					versionManager.removeVersioning(ontologyHandle);
+				HGDBOntology o = graph.get(ontologyHandle);
+				o.setDocumentIRI(null);
+				graph.replace(ontologyHandle, o);
+			}
+			return ontologyFound;
+		}});
 	}
 
 	public HGHandle addOntology(HGDBOntology ontology)
