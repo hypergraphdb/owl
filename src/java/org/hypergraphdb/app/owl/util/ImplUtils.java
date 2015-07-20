@@ -1,7 +1,8 @@
 package org.hypergraphdb.app.owl.util;
 
+import java.io.InputStream;
+
 import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -107,8 +108,7 @@ public class ImplUtils
 	{
 		try
 		{
-			URL configTemplate = ImplUtils.class.getResource("/org/hypergraphdb/app/owl/versioning/distributed/VDHGDBConfig.p2p");
-			Json config = Json.read(configTemplate);			
+			Json config = Json.read(resourceAsString("/org/hypergraphdb/app/owl/versioning/distributed/VDHGDBConfig.p2p"));			
 			URI uri = new URI(connectionString);
 			if (!uri.getScheme().equals("hgpeer"))
 				throw new IllegalArgumentException("Invalid connection string " + connectionString);
@@ -165,7 +165,7 @@ public class ImplUtils
 	 * @param connectionString
 	 * @return
 	 */
-	public static HyperGraphPeer peer(final String connectionString)
+	public static HyperGraphPeer peer(final String connectionString, final String graphLocation)
 	{
 		synchronized (graphPeers)
 		{
@@ -173,7 +173,7 @@ public class ImplUtils
 			if (peer == null)
 			{
 				Json configuration = connectionStringToConfiguration(connectionString);
-				peer = new HyperGraphPeer(configuration);
+				peer = new HyperGraphPeer(configuration, owldb(graphLocation));
 				graphPeers.put(connectionString, peer);
 				peer.getGraph().getEventManager().addListener(HGClosingEvent.class, new HGListener(){
 					public HGListener.Result handle(HyperGraph graph, HGEvent event)
@@ -281,4 +281,25 @@ public class ImplUtils
 		return ss1.size() - ss2.size();
 	}
 
+    public static String resourceAsString(String classpathResource)
+    {
+    	InputStream in = ImplUtils.class.getResourceAsStream(classpathResource);
+    	try
+    	{
+        	java.io.Reader reader = new java.io.InputStreamReader(in);
+	    	StringBuilder content = new StringBuilder();
+	    	char [] buf = new char[1024];
+	    	for (int n = reader.read(buf); n > -1; n = reader.read(buf))
+	    	    content.append(buf, 0, n);
+	    	return content.toString();
+    	}
+    	catch (Exception ex)
+    	{
+    		throw new RuntimeException(ex);
+    	}
+    	finally
+    	{
+    		if (in != null) try { in.close(); } catch (Throwable t) { }
+        }
+    }
 }

@@ -25,7 +25,6 @@ import org.hypergraphdb.app.owl.versioning.distributed.activity.PushActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.VersionUpdateActivity;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
-import org.hypergraphdb.peer.PeerConfig;
 import org.hypergraphdb.peer.PeerInterface;
 import org.hypergraphdb.peer.PeerPresenceListener;
 import org.hypergraphdb.peer.xmpp.XMPPPeerInterface;
@@ -69,7 +68,7 @@ public class VDHGDBOntologyRepository extends HGDBOntologyRepository
 	public VDHGDBOntologyRepository(String location, String peerConnectionString)
 	{
 		super(location);
-		peer = new Constant<HyperGraphPeer>(ImplUtils.peer(peerConnectionString));
+		peer = new Constant<HyperGraphPeer>(ImplUtils.peer(peerConnectionString, location));
 		configurePeer();
 	}
 
@@ -125,7 +124,6 @@ public class VDHGDBOntologyRepository extends HGDBOntologyRepository
 
 	private void configurePeer()
 	{
-		peer.get().getConfiguration().set(PeerConfig.LOCAL_DB, this.getHyperGraph().getLocation());
 		peer.get().getObjectContext().put(OBJECTCONTEXT_REPOSITORY, this);
 		if (DBG)
 		{
@@ -193,7 +191,7 @@ public class VDHGDBOntologyRepository extends HGDBOntologyRepository
 		{
 		}
 		;
-		peer.get().getActivityManager().registerActivityType(VersionUpdateActivity.TYPENAME, VersionUpdateActivity.class);		
+		peer.get().getActivityManager().registerActivityType(VersionUpdateActivity.TYPENAME, VersionUpdateActivity.initializedClass());		
 //		peer.getActivityManager().registerActivityType(PushActivity.TYPENAME, PushActivity.class);
 //		peer.getActivityManager().registerActivityType(PullActivity.TYPENAME, PullActivity.class);
 		peer.get().getActivityManager().registerActivityType(BrowseRepositoryActivity.TYPENAME, BrowseRepositoryActivity.class);

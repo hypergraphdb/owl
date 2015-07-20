@@ -3,6 +3,7 @@ package org.hypergraphdb.app.owl.versioning;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -488,6 +489,18 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		return L;
 	}
 
+	public List<Revision> revisions()
+	{
+		List<Revision> L = hg.getAll(graph(), hg.and(hg.type(Revision.class), hg.incident(thisHandle)));
+		Collections.sort(L, new Comparator<Revision>(){
+			public int compare(Revision left, Revision right)
+			{
+				return Long.compare(left.timestamp(), right.timestamp());
+			}
+		});
+		return L;
+	}
+	
 	/**
 	 * <p>
 	 * Position the working copy of the ontology to a specific revision.
