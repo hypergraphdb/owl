@@ -136,7 +136,7 @@ public class OntologyVersionState implements VersionState<VersionedOntology>
 				if (heads.contains(parentHandle))
 					continue;
 				Revision parent = graph.get(parentHandle);
-				if (delta.revisions.containsAll(parent.branches()))
+				if (delta.revisions.containsAll(parent.children()))
 				{
 					toexamine.push(parent);
 					delta.revisions.add(parentHandle);

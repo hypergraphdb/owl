@@ -30,14 +30,37 @@ public interface Versioned<T extends Versioned<T>>
 	
 	/**
 	 * <p>
-	 * Create a new revision based on the current revision. 
-	 * All accumulated working changes over the 
-	 * currently active revision will be first committed.
+	 * Create a new revision for this ontology. The revision is created
+	 * regardless of whether there are any pending changes or not. If there are no
+	 * pending changes, the latest {@link ChangeRecord} is used and no flush is done.
+	 * If there are pending (i.e. working) changes, the {@link #flushChanges()} method
+	 * is invoked first to create a new <code>ChangeRecord</code>.
 	 * </p>
-	 * 
-	 * @return The newly created revision.
+	 * <p>
+	 * The branch of last revision (if any) will automatically be applied to the newly
+	 * created revision.
+	 * </p>
+	 * @param user The name of the user creating the revision.
+	 * @param comment Arbitrary comment string.
+	 * @return The newly created revision object.
 	 */
 	Revision commit(final String user, final String comment);
+
+	/**
+	 * <p>
+	 * Create a new revision with a new branch. The behavior is the same as 
+	 * the {@link #commit(String, String)} method except instead of carrying
+	 * over the branch of the current revision, a new branch with the specified
+	 * name will be created. 
+	 * </p>
+	 * 
+	 * @param user The user creating the new revision.
+	 * @param comment An arbitrary comment.
+	 * @param branch The new branch or <code>null</code> to switch to 
+	 * no branching mode (i.e. anonymous, unnamed branch).
+	 * @return The newly created revision object.
+	 */
+	Revision commit(final String user, final String comment, String branch);
 	
 	/**
 	 * Drop any un-flushed working set changes and return <code>this</code>.

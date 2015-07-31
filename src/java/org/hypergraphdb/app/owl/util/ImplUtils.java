@@ -1,7 +1,6 @@
 package org.hypergraphdb.app.owl.util;
 
 import java.io.InputStream;
-
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,6 +27,9 @@ import org.hypergraphdb.app.owl.model.OWLDataPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLDatatypeHGDB;
 import org.hypergraphdb.app.owl.model.OWLNamedIndividualHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectPropertyHGDB;
+import org.hypergraphdb.app.owl.versioning.TrackRevisionStructure;
+import org.hypergraphdb.event.HGAtomAddedEvent;
+import org.hypergraphdb.event.HGAtomRemovedEvent;
 import org.hypergraphdb.event.HGClosingEvent;
 import org.hypergraphdb.event.HGEvent;
 import org.hypergraphdb.event.HGListener;
@@ -96,6 +98,10 @@ public class ImplUtils
 						return Result.ok;
 					}
 				});
+				graph.getEventManager().addListener(HGAtomAddedEvent.class, 
+						new TrackRevisionStructure.AddRevisionOrParentListener());
+				graph.getEventManager().addListener(HGAtomRemovedEvent.class, 
+						new TrackRevisionStructure.RemoveRevisionOrParentListener());
 			}
 			return graph;
 		}

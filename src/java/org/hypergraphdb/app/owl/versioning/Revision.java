@@ -36,6 +36,7 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 	private HyperGraph graph;
 	private HGHandle thisHandle;
 	private HGHandle versioned;
+	private HGHandle branch;
 	private long timestamp;
 	private String user;	
 	private String comment;
@@ -46,8 +47,10 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 	
 	public Revision(HGHandle...targets)
 	{
-		assert targets.length == 1;
+		assert targets.length == 1 || targets.length == 2;
 		versioned = targets[0];
+		if (targets.length > 1)
+			branch = targets[1];
 	}
 
 	public Revision versioned(HGHandle version)
@@ -63,24 +66,39 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 	
 	public HGHandle getTargetAt(int i)
 	{
-		assert i == 0;
-		return versioned;
+		if (i == 0)
+			return versioned;
+		else if (i == 1)
+			if (branch != null)
+				return branch;
+		throw new IllegalArgumentException("Target " + i + " is out of bands, revision may not on a branch.");
 	}
 	
 	public int getArity()
 	{
-		return 2;
+		return branch == null ? 1 : 2;
 	}
 		
 	@Override
 	public void notifyTargetHandleUpdate(int i, HGHandle handle)
 	{
-		versioned = handle;
+		if (i == 0)
+			versioned = handle;
+		else if (i == 1)
+			branch = handle;
+		else 
+			throw new IllegalArgumentException("Target " + i + " out of bounds.");
 	}
 
 	@Override
 	public void notifyTargetRemoved(int i)
 	{
+		if (i == 0)
+			versioned = null;
+		else if (i == 1)
+			branch = null;
+		else 
+			throw new IllegalArgumentException("Target " + i + " out of bounds.");		
 	}
 
 	public String comment()
@@ -153,12 +171,24 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 		return S;
 	}
 
+	public Branch branch()
+	{
+		if (branch == null)
+			throw new NullPointerException("Revision " + this + " is not on a branch.");
+		return (Branch)graph.get(branch);
+	}
+	
+	public HGHandle branchHandle()
+	{
+		return branch;
+	}
+	
 	/**
 	 * Return the set of child revisions that "branch off" this revision. A head
 	 * revision will have no branches at all.  
 	 */
 	@SuppressWarnings("unchecked")
-	public Set<HGHandle> branches()
+	public Set<HGHandle> children()
 	{
 		HashSet<HGHandle> S = new HashSet<HGHandle>();
 		S.addAll((List<HGHandle>)(List<?>)graph.findAll(

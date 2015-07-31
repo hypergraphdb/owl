@@ -14,6 +14,7 @@ import java.util.concurrent.Callable;
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGHandleHolder;
+import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HGSearchResult;
 import org.hypergraphdb.HyperGraph;
@@ -22,6 +23,7 @@ import org.hypergraphdb.algorithms.GraphClassics;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.hypergraphdb.app.owl.versioning.change.VChange;
+import org.hypergraphdb.query.IndexCondition;
 import org.hypergraphdb.util.HGUtils;
 import org.hypergraphdb.util.Mapping;
 
@@ -41,6 +43,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	private HGHandle thisHandle;
 	private HGHandle ontology;
 	private HGHandle rootRevision;
+	private HGHandle bottomRevision;
 	private HGHandle currentRevision;
 	private HGHandle workingChanges;
 
@@ -261,34 +264,50 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		return graph.get(currentRevision);
 	}
 
-	/**
-	 * Create a new revision for this ontology. The revision is created
-	 * regardless of whether there are any pending changes or not. If there are no
-	 * pending changes, the latest {@link ChangeRecord} is used and no flush is done.
-	 * If there are pending (i.e. working) changes, the {@link #flushChanges()} method
-	 * is invoked first to create a new <code>ChangeRecord</code>.
-	 */
+	private HGHandle makeRevision(String user, String comment, HGHandle branch)
+	{
+		ChangeRecord mark = changes().isEmpty() ? latestChangeRecord() : flushChanges();
+		Revision revision = branch == null ? new Revision(thisHandle) 
+										   : new Revision(thisHandle, branch);
+		revision.user(user);
+		revision.comment(comment);
+		revision.timestamp(System.currentTimeMillis());
+		HGHandle revisionHandle = graph.add(revision);
+		graph.add(new RevisionMark(revisionHandle, graph.getHandle(mark)));
+		graph.add(new ParentLink(revisionHandle, currentRevision));
+		workingChanges = graph.add(new ChangeSet<VersionedOntology>());
+		return currentRevision = revisionHandle;		
+	}
+	
 	@Override
 	public Revision commit(final String user, final String comment)
 	{
 		graph.getTransactionManager().ensureTransaction(new Callable<HGHandle>(){
 		public HGHandle call()
 		{
-			ChangeRecord mark = changes().isEmpty() ? latestChangeRecord() : flushChanges();
-			Revision revision = new Revision(thisHandle);
-			revision.user(user);
-			revision.comment(comment);
-			revision.timestamp(System.currentTimeMillis());
-			HGHandle revisionHandle = graph.add(revision);
-			graph.add(new RevisionMark(revisionHandle, graph.getHandle(mark)));
-			graph.add(new ParentLink(revisionHandle, currentRevision));
-			workingChanges = graph.add(new ChangeSet<VersionedOntology>());
-			return currentRevision = revisionHandle;
+			return makeRevision(user, comment, revision().branchHandle());
 		}
 		});
 		return revision();
 	}
 
+	@Override
+	public Revision commit(final String user, final String comment, final String branch)
+	{
+		graph.getTransactionManager().ensureTransaction(new Callable<HGHandle>(){
+		public HGHandle call()
+		{
+			if (hg.findOne(graph, hg.and(hg.type(Branch.class), hg.eq("name", branch))) != null)
+				throw new IllegalArgumentException("Branch already exists: '" + branch + "'.");
+			HGHandle branchHandle = 
+				branch == null ? null 
+							   : graph.add(new Branch(branch, user, System.currentTimeMillis()));
+			return makeRevision(user, comment, branchHandle);
+		}
+		});
+		return revision();
+	}
+	
 	private Revision createMergedRevision(String user,
 										  String comment,
 										  HGHandle commonAncestor, 
@@ -363,7 +382,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		for (Revision r : revisions)
 		{
 			// Sanity check that all are head revisions with no changes after that.
-			if (!r.branches().isEmpty())
+			if (!r.children().isEmpty())
 				throw new IllegalArgumentException("Revision " + r + " is not a head revision.");			
 			
 			if (r.equals(currentRevision) && (!changes().isEmpty() || 
@@ -500,6 +519,25 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		});
 		return L;
 	}
+
+	public Revision branchHead(Branch branch)
+	{
+		HGHandle branchHandle = graph.getHandle(branch);
+		if (branchHandle == null)
+			branchHandle = hg.findOne(graph, hg.and(hg.type(Branch.class), hg.eq("name", branch.getName())));
+		if (branchHandle == null)
+			throw new IllegalArgumentException("Could not find branch locally: " + branch.getName());
+		return graph.getOne(hg.and(new IndexCondition<HGPersistentHandle, HGPersistentHandle>(
+					TrackRevisionStructure.revisionChildIndex(graph), 
+					getBottomRevision().getPersistent()), 
+					hg.incident(branchHandle)));		
+	}
+	
+	public VersionedOntology goTo(final Branch branch)
+	{
+		Revision branchHead = branchHead(branch);
+		return goTo(branchHead);
+	}
 	
 	/**
 	 * <p>
@@ -543,19 +581,20 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 
 	public Set<HGHandle> heads()
 	{
-		// This is rather inefficient...we are traversing the whole revision graph to get to the end.
-		// We should have some more efficient query to start from the "leafs" somehow. That will probably
-		// entail an adjustment of the representation.
 		HashSet<HGHandle> result = new HashSet<HGHandle>();
-		HGSearchResult<HGHandle> rs = graph.find(hg.bfs(this.getRootRevision(), hg.type(ParentLink.class), null));
+//		// This is rather inefficient...we are traversing the whole revision graph to get to the end.
+//		// We should have some more efficient query to start from the "leafs" somehow. That will probably
+//		// entail an adjustment of the representation.
+//		HGSearchResult<HGHandle> rs = graph.find(hg.bfs(this.getRootRevision(), hg.type(ParentLink.class), null));
+		HGSearchResult<HGPersistentHandle> rs = TrackRevisionStructure.revisionChildIndex(graph).find(getBottomRevision().getPersistent());
 		try
 		{
 			while (rs.hasNext())
 			{
-				HGHandle rev = rs.next();
-				if (graph.findAll(hg.and(hg.type(ParentLink.class), 
-										 hg.orderedLink(hg.anyHandle(), rev))).isEmpty())
-					result.add(rev);				
+//				HGHandle rev = rs.next();
+//				if (graph.findAll(hg.and(hg.type(ParentLink.class), 
+//										 hg.orderedLink(hg.anyHandle(), rev))).isEmpty())
+					result.add(rs.next());				
 			}
 		}
 		finally
@@ -578,6 +617,16 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	public void setOntology(HGHandle ontology)
 	{
 		this.ontology = ontology;
+	}
+	
+	public HGHandle getBottomRevision()
+	{
+		return bottomRevision;
+	}
+
+	public void setBottomRevision(HGHandle bottomRevision)
+	{
+		this.bottomRevision = bottomRevision;
 	}
 
 	public HGHandle getCurrentRevision()

@@ -22,6 +22,13 @@ public class VersionedProject implements Versioned<VersionedProject>
 	}
 
 	@Override
+	public Revision commit(final String user, final String comment, String branch)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
 	public Revision merge(String user, String comment, Revision... revisions)
 	{
 		// TODO Auto-generated method stub

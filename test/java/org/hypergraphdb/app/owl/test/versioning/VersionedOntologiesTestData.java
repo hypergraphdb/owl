@@ -57,7 +57,7 @@ public class VersionedOntologiesTestData
 			Revision revLeft = leftRepo.get(revisionHandle);
 			Revision revRight = rightRepo.get(revisionHandle);
 			if (!revLeft.parents().equals(revRight.parents()) ||
-				!revLeft.branches().equals(revRight.branches())  ||
+				!revLeft.children().equals(revRight.children())  ||
 				!revLeft.changeRecords().equals(revRight.changeRecords()))
 				return false;
 			for (HGHandle markHandle : revRight.revisionMarks())

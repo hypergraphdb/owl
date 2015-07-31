@@ -66,12 +66,18 @@ public class VersionManager
 															graph.getHandleFactory().nullHandle(), 
 															workingChanges);
 		graph.add(versioned);		
+		long now = System.currentTimeMillis();
 		HGHandle initialMark = graph.add(new ChangeRecord(ontology, emptyChangeSetHandle()));
 		Revision initialRevision = new Revision(versioned.getAtomHandle());
 		initialRevision.user(user);
-		initialRevision.timestamp(System.currentTimeMillis());
+		initialRevision.timestamp(now);
 		HGHandle revisionHandle = graph.add(initialRevision);
 		versioned.setRootRevision(revisionHandle);
+		Revision bottomRevision = new Revision(versioned.getAtomHandle());
+		bottomRevision.user(user);
+		bottomRevision.timestamp(now);
+		HGHandle bottomRevisionHandle = graph.add(bottomRevision);
+		versioned.setBottomRevision(bottomRevisionHandle);
 		graph.add(new RevisionMark(revisionHandle, initialMark));
 		versioned.setCurrentRevision(revisionHandle);
 		graph.update(versioned);
