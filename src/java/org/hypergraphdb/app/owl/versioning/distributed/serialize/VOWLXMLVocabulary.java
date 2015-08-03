@@ -16,6 +16,7 @@ public enum VOWLXMLVocabulary
     VERSIONED_ONTOLOGY("VersionedOntology"),
     CHANGE_SET("ChangeSet"),
     REVISION("Revision"),
+    BRANCH("Branch"),
     MARK_PARENT("ParentLink"),
     REVISION_MARK("RevisionMark"),    
     CHANGE_MARK("ChangeRecord"),

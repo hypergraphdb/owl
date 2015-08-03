@@ -9,6 +9,7 @@ import org.hypergraphdb.event.HGEvent;
 import org.hypergraphdb.event.HGListener;
 import org.hypergraphdb.storage.BAtoHandle;
 import org.hypergraphdb.type.HGHandleType;
+import org.hypergraphdb.util.HGUtils;
 
 /**
  * <p>
@@ -57,15 +58,20 @@ public class TrackRevisionStructure
 			else if (atom instanceof ParentLink)
 			{
 				ParentLink parentLink = (ParentLink)atom;
-				Object child = parentLink.child();
-				Object parent = parentLink.parent();
+				Object child = graph.get(parentLink.child());
+				Object parent = graph.get(parentLink.parent());
 				if (child instanceof Revision && parent instanceof Revision)
 				{
-					HGIndex<HGPersistentHandle, HGPersistentHandle> idx = revisionChildIndex(graph);
-					VersionedOntology versioned = graph.get(((Revision)child).versioned());
-					idx.removeEntry(versioned.getBottomRevision().getPersistent(), 
-									parentLink.parent().getPersistent());
-					idx.addEntry(parentLink.child().getPersistent(), parentLink.parent().getPersistent());
+					Revision childRevision = (Revision)child;
+					Revision parentRevision = (Revision)parent;
+					if (HGUtils.eq(childRevision.branchHandle(), parentRevision.branchHandle()))
+					{
+						HGIndex<HGPersistentHandle, HGPersistentHandle> idx = revisionChildIndex(graph);
+						VersionedOntology versioned = graph.get(((Revision)child).versioned());
+						idx.removeEntry(versioned.getBottomRevision().getPersistent(), 
+										parentLink.parent().getPersistent());
+						idx.addEntry(parentLink.child().getPersistent(), parentLink.parent().getPersistent());
+					}
 				}
 			}
 			return Result.ok;
@@ -87,18 +93,23 @@ public class TrackRevisionStructure
 			else if (atom instanceof ParentLink)
 			{
 				ParentLink parentLink = (ParentLink)atom;
-				Object child = parentLink.child();
-				Object parent = parentLink.parent();
+				Object child = graph.get(parentLink.child());
+				Object parent = graph.get(parentLink.parent());
 				if (child instanceof Revision && parent instanceof Revision)
 				{
-					HGIndex<HGPersistentHandle, HGPersistentHandle> idx = revisionChildIndex(graph);					
-					idx.removeEntry(parentLink.child().getPersistent(), parentLink.parent().getPersistent());
-					if (idx.findFirst(parentLink.child().getPersistent()) == null)
+					Revision childRevision = (Revision)child;
+					Revision parentRevision = (Revision)parent;
+					if (HGUtils.eq(childRevision.branchHandle(), parentRevision.branchHandle()))
 					{
-						VersionedOntology versioned = graph.get(((Revision)parent).versioned());						
-						idx.addEntry(versioned.getBottomRevision().getPersistent(),
-									 parentLink.parent().getPersistent());
-					}	
+						HGIndex<HGPersistentHandle, HGPersistentHandle> idx = revisionChildIndex(graph);					
+						idx.removeEntry(parentLink.child().getPersistent(), parentLink.parent().getPersistent());
+						if (idx.findFirst(parentLink.child().getPersistent()) == null)
+						{
+							VersionedOntology versioned = graph.get(((Revision)parent).versioned());						
+							idx.addEntry(versioned.getBottomRevision().getPersistent(),
+										 parentLink.parent().getPersistent());
+						}
+					}
 				}
 			}
 			return Result.ok;

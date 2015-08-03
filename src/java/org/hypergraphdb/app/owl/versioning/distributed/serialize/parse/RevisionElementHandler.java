@@ -44,10 +44,13 @@ public class RevisionElementHandler extends AbstractVOWLElementHandler<Revision>
 		{
 			revision.timestamp(Long.parseLong(value));
 		}
-
 		else if (localName.equals("comment"))
 		{
 			revision.comment(value);
+		}
+		else if (localName.equals("branch"))
+		{
+			revision.branchHandle(graph.getHandleFactory().makeHandle(value.trim()));
 		}
 		else
 		{

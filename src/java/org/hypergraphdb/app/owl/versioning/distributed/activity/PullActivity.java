@@ -2,8 +2,6 @@ package org.hypergraphdb.app.owl.versioning.distributed.activity;
 
 import static org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository.OBJECTCONTEXT_REPOSITORY;
 import static org.hypergraphdb.peer.Messages.CONTENT;
-import static org.hypergraphdb.peer.Messages.getReply;
-import static org.hypergraphdb.peer.Messages.getSender;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,23 +14,17 @@ import mjson.Json;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.HGDBOntology;
-import org.hypergraphdb.app.owl.versioning.OntologyVersionState;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.Messages;
-import org.hypergraphdb.peer.Performative;
 import org.hypergraphdb.peer.workflow.FromState;
 import org.hypergraphdb.peer.workflow.OnMessage;
 import org.hypergraphdb.peer.workflow.PossibleOutcome;
 import org.hypergraphdb.peer.workflow.WorkflowStateConstant;
 import org.hypergraphdb.transaction.HGTransactionConfig;
-import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
-import org.semanticweb.owlapi.io.StringDocumentSource;
 
 /**
  * PullActivity. Pulls all changes from a target repository, which has the same

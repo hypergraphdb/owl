@@ -2,15 +2,9 @@ package org.hypergraphdb.app.owl.test.versioning;
 
 import java.io.File;
 
-import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.app.owl.HGDBOntology;
-import org.hypergraphdb.app.owl.HGDBOntologyRepository;
-import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.gc.GarbageCollector;
-import org.hypergraphdb.app.owl.test.TU;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
-import org.hypergraphdb.util.HGUtils;
-import org.junit.BeforeClass;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 

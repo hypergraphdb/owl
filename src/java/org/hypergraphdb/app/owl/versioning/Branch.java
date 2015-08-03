@@ -1,5 +1,8 @@
 package org.hypergraphdb.app.owl.versioning;
 
+import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGHandleHolder;
+
 /**
  * <p>
  * Represents a revision branch. A branch is roughly what is thought of as a branch
@@ -30,8 +33,9 @@ package org.hypergraphdb.app.owl.versioning;
  * @author Borislav Iordanov
  *
  */
-public class Branch
+public class Branch implements HGHandleHolder
 {
+	private HGHandle thisHandle;
 	private String name;
 	private String createdBy;
 	private long   createdOn;
@@ -70,5 +74,65 @@ public class Branch
 	public void setCreatedOn(long createdOn)
 	{
 		this.createdOn = createdOn;
+	}
+
+	@Override
+	public HGHandle getAtomHandle()
+	{
+		return thisHandle;
+	}
+
+	@Override
+	public void setAtomHandle(HGHandle handle)
+	{
+		this.thisHandle = handle;
+	}
+
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((createdBy == null) ? 0 : createdBy.hashCode());
+		result = prime * result + (int) (createdOn ^ (createdOn >>> 32));
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((thisHandle == null) ? 0 : thisHandle.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Branch other = (Branch) obj;
+		if (createdBy == null)
+		{
+			if (other.createdBy != null)
+				return false;
+		}
+		else if (!createdBy.equals(other.createdBy))
+			return false;
+		if (createdOn != other.createdOn)
+			return false;
+		if (name == null)
+		{
+			if (other.name != null)
+				return false;
+		}
+		else if (!name.equals(other.name))
+			return false;
+		if (thisHandle == null)
+		{
+			if (other.thisHandle != null)
+				return false;
+		}
+		else if (!thisHandle.equals(other.thisHandle))
+			return false;
+		return true;
 	}	
 }

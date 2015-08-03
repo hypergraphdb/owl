@@ -82,6 +82,11 @@ public abstract class AbstractVOWLElementHandler<O> extends AbstractOWLElementHa
 	}
 
 	@Override
+	public void handleChild(BranchElementHandler h) throws OWLXMLParserException
+	{
+	}
+	
+	@Override
 	public void handleChild(ChangeSetElementHandler h) throws OWLXMLParserException
 	{
 	}

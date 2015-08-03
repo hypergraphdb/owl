@@ -2,6 +2,7 @@ package org.hypergraphdb.app.owl.versioning;
 
 
 import java.util.ArrayList;
+
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -33,6 +34,8 @@ import org.hypergraphdb.util.Mapping;
  * multiple such active copies within a repository. They are distinguished by
  * different version IRIs.
  * </p>
+ * 
+ * TODO - revisit transation boundaries for methods, some don't even have transactions...
  * 
  * @author Borislav Iordanov
  *
@@ -152,7 +155,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	 * Constructs a list of changes to be applied from <code>from</code>
 	 * to reach the state of <code>to</code>.
 	 */
-	private List<VChange<VersionedOntology>> collectChanges(HGHandle from, HGHandle to)
+	public List<VChange<VersionedOntology>> collectChanges(HGHandle from, HGHandle to)
 	{
 		Map<HGHandle, HGHandle> predecessorMatrix = new HashMap<HGHandle, HGHandle>();		
 		if (GraphClassics.dijkstra(
@@ -178,7 +181,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		HGHandle hPrev = predecessorMatrix.get(to);
 		do
 		{
-			Revision current = graph.get(hCurrent);
+			Revision current = graph.get(hCurrent);			
 			List<HGHandle> L = null;
 			if (current.parents().contains(hPrev))
 			{
@@ -204,6 +207,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 					result.addAll(cs.changes());
 				}
 			}
+			hPrev = predecessorMatrix.get(hPrev);			
 		} while (!hPrev.equals(from));
 		return result;
 	}
@@ -314,9 +318,9 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 										  List<VChange<VersionedOntology>> mergeChangeList,
 										  Revision...revisions)
 	{
-		System.out.println("CA:" + commonAncestor);
-		for (Revision r: revisions)
-			System.out.println("M - " + graph.getHandle(r));
+//		System.out.println("CA:" + commonAncestor);
+//		for (Revision r: revisions)
+//			System.out.println("M - " + graph.getHandle(r));
 		goTo((Revision)graph.get(commonAncestor));
 		// now we can normalize so only changes effective from the common
 		// merge ancestor will be recorded
@@ -527,10 +531,33 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 			branchHandle = hg.findOne(graph, hg.and(hg.type(Branch.class), hg.eq("name", branch.getName())));
 		if (branchHandle == null)
 			throw new IllegalArgumentException("Could not find branch locally: " + branch.getName());
-		return graph.getOne(hg.and(new IndexCondition<HGPersistentHandle, HGPersistentHandle>(
+		List<Revision> allheads = graph.getAll(hg.and(new IndexCondition<HGPersistentHandle, HGPersistentHandle>(
 					TrackRevisionStructure.revisionChildIndex(graph), 
 					getBottomRevision().getPersistent()), 
-					hg.incident(branchHandle)));		
+					hg.incident(branchHandle)));
+		if (allheads.size() > 1)
+			throw new IllegalArgumentException("Branch " + branch + " has multiple heads. They must be merged.");
+		else
+			return allheads.get(0);
+	}
+	
+	/**
+	 * <p>
+	 * Position the current working set to whatever is indicated by <code>pointer</code>.
+	 * </p>
+	 * @param pointer Could be pointing to a branch or a revision. 
+	 * @return <code>this</code>
+	 */
+	public VersionedOntology goTo(HGHandle pointer)
+	{
+		Object o = graph.get(pointer);
+		if (o instanceof Branch)
+			return goTo((Branch)o);
+		else if (o instanceof Revision)
+			return goTo((Revision)o);
+		else 
+			throw new IllegalArgumentException("Handle " + 
+					pointer + " doesn't point to anything identifying a revision.");
 	}
 	
 	public VersionedOntology goTo(final Branch branch)
@@ -552,7 +579,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 			return this;	
 		final List<VChange<VersionedOntology>> changes = 
 				collectChanges(currentRevision, revision.getAtomHandle());					
-		return graph.getTransactionManager().transact(new Callable<VersionedOntology>() {
+		return graph.getTransactionManager().ensureTransaction(new Callable<VersionedOntology>() {
 			public VersionedOntology call()
 			{
 				// Stash working changes

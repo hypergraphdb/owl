@@ -67,17 +67,21 @@ public class VersionManager
 															workingChanges);
 		graph.add(versioned);		
 		long now = System.currentTimeMillis();
-		HGHandle initialMark = graph.add(new ChangeRecord(ontology, emptyChangeSetHandle()));
+		Revision bottomRevision = new Revision(versioned.getAtomHandle());
+		bottomRevision.user(user);
+		bottomRevision.timestamp(now);
+		// chicken & egg: we have to have the bottomRevisionHandle available for the 
+		// listener in TrackRevisionStructure, so we set it first and do a graph.define here
+		// instead of graph.add
+		HGHandle bottomRevisionHandle = graph.getHandleFactory().makeHandle();
+		versioned.setBottomRevision(bottomRevisionHandle);
+		graph.define(bottomRevisionHandle, bottomRevision);		
+		HGHandle initialMark = graph.add(new ChangeRecord(ontology, emptyChangeSetHandle()));		
 		Revision initialRevision = new Revision(versioned.getAtomHandle());
 		initialRevision.user(user);
 		initialRevision.timestamp(now);
 		HGHandle revisionHandle = graph.add(initialRevision);
-		versioned.setRootRevision(revisionHandle);
-		Revision bottomRevision = new Revision(versioned.getAtomHandle());
-		bottomRevision.user(user);
-		bottomRevision.timestamp(now);
-		HGHandle bottomRevisionHandle = graph.add(bottomRevision);
-		versioned.setBottomRevision(bottomRevisionHandle);
+		versioned.setRootRevision(revisionHandle);		
 		graph.add(new RevisionMark(revisionHandle, initialMark));
 		versioned.setCurrentRevision(revisionHandle);
 		graph.update(versioned);

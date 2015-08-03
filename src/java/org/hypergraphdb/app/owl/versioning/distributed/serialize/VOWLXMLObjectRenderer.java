@@ -2,6 +2,7 @@ package org.hypergraphdb.app.owl.versioning.distributed.serialize;
 
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.*;
 import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.IMPORT;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
+import org.hypergraphdb.app.owl.versioning.Branch;
 import org.hypergraphdb.app.owl.versioning.ChangeRecord;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.ParentLink;
@@ -128,11 +130,14 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		writer.writeAttribute(VOWLXMLVocabulary.NAMESPACE + "versionedID", vo.getAtomHandle().toString());
 		
 		HashSet<ParentLink> parentLinks = new HashSet<ParentLink>();
+		HashSet<HGHandle> branches = new HashSet<HGHandle>();
 		
 		for (HGHandle revisionHandle : revisions)
 		{
 			Revision revision = graph.get(revisionHandle);
 			visit(revision);
+			if (revision.branchHandle() != null)
+				branches.add(revision.branchHandle());
 			List<ParentLink> links = hg.getAll(graph, hg.and(hg.type(ParentLink.class), 
 														     hg.incident(revisionHandle)));
 			for (ParentLink parentLink : links)
@@ -142,6 +147,11 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 				visit(parentLink);
 				parentLinks.add(parentLink);
 			}
+		}
+		
+		for (HGHandle branch : branches)
+		{
+			visit((Branch)graph.get(branch));
 		}
 		
 		// Now that we have the revision graph itself serialized, collect
@@ -176,9 +186,6 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 			writeMarkChanges(graph, childMark.changeRecord(), parentMark.changeRecord(), visited);
 		}
 		
-		// Data
-		
-		// TODO
 		if (configuration.revisionSnapshot() != null)
 		{
 			OWLOntologyEx ontologyData = vo.getCurrentRevision().equals(configuration.revisionSnapshot()) ?
@@ -233,6 +240,16 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		writer.writeEndElement();		
 	}
 	
+	public void visit(Branch branch)
+	{
+		writer.writeStartElement(BRANCH)
+			  .writeAttribute("name", branch.getName())
+			  .writeAttribute("createdOn", Long.toString(branch.getCreatedOn()))
+			  .writeAttribute("createdBy", branch.getCreatedBy())
+			  .writeAttribute("handle", branch.getAtomHandle())
+			  .writeEndElement();				
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -248,8 +265,10 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 			  .writeAttribute("handle", revision.getAtomHandle())
 			  .writeAttribute("user", revision.user())
 			  .writeAttribute("timestamp", "" + revision.timestamp())
-			  .writeAttribute("comment", revision.comment())
-			  .writeEndElement();
+			  .writeAttribute("comment", revision.comment());
+		if (revision.branchHandle() != null)
+			writer.writeAttribute("branch", revision.branchHandle());
+		writer.writeEndElement();
 	}
 
 	public void visit(ChangeSet<VersionedOntology> changeSet)

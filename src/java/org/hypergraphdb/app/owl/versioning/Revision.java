@@ -174,13 +174,19 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 	public Branch branch()
 	{
 		if (branch == null)
-			throw new NullPointerException("Revision " + this + " is not on a branch.");
+			return null;
 		return (Branch)graph.get(branch);
 	}
 	
 	public HGHandle branchHandle()
 	{
 		return branch;
+	}
+
+	public Revision branchHandle(HGHandle branch)
+	{
+		this.branch = branch;
+		return this;
 	}
 	
 	/**
@@ -346,7 +352,8 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 
 	public String toString()
 	{
-		return getAtomHandle().getPersistent().toString();
+		return "Revision[" + user() + "," + comment() + "," + new java.util.Date(timestamp) + "]"
+				+ "/" + getAtomHandle().getPersistent().toString();
 	}
 	
 	@Override

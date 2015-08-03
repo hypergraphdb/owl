@@ -1,9 +1,11 @@
 package org.hypergraphdb.app.owl.versioning.distributed.serialize;
 
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.CHANGE_SET;
+
 //import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.NAMESPACE;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.RENDER_CONFIGURATION;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.REVISION;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.BRANCH;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.REVISION_MARK;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.CHANGE_MARK;
 import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.MARK_PARENT;
@@ -208,6 +210,7 @@ import org.coode.owlapi.owlxmlparser.SWRLSameIndividualAtomElementHandler;
 import org.coode.owlapi.owlxmlparser.TranslatedOWLParserException;
 import org.coode.owlapi.owlxmlparser.TranslatedUnloadableImportException;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.BranchElementHandler;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.ChangeRecordElementHandler;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.ChangeSetElementHandler;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.ParentLinkElementHandler;
@@ -363,6 +366,14 @@ public class VOWLXMLParserHandler extends OWLXMLParserHandler
 			public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler)
 			{
 				return new RevisionMarkElementHandler(graph, handler);
+			}
+		});
+
+		addFactory(new AbstractVElementHandlerFactory(BRANCH)
+		{
+			public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler)
+			{
+				return new BranchElementHandler(graph, handler);
 			}
 		});
 		
