@@ -154,6 +154,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 			visit((Branch)graph.get(branch));
 		}
 		
+		
 		// Now that we have the revision graph itself serialized, collect
 		// the change sets between revisions. There may be many commits ("flushes")
 		// between two revisions and because of parent project merging, we may
@@ -397,7 +398,9 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		writer.writeStartElement(VOWLXMLVocabulary.RENDER_CONFIGURATION);
 		writer.writeAttribute(VOWLXMLVocabulary.NAMESPACE + "maxDepth", "" + configuration.maxDepth());
 		if (configuration.firstRevision() != null)
-			writer.writeAttribute(VOWLXMLVocabulary.NAMESPACE + "firstRevision", "" + configuration.firstRevision());	
+			writer.writeAttribute(VOWLXMLVocabulary.NAMESPACE + "firstRevision", "" + configuration.firstRevision());
+		if (configuration.bottomRevision() != null)
+			writer.writeAttribute(VOWLXMLVocabulary.NAMESPACE + "bottomRevision", "" + configuration.bottomRevision());			
 		if (configuration.revisionSnapshot() != null)
 			writer.writeAttribute(VOWLXMLVocabulary.NAMESPACE + "revisionSnapshot", "" + configuration.revisionSnapshot());
 		writer.writeStartElement(VOWLXMLVocabulary.ROOTS);

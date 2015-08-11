@@ -28,6 +28,7 @@ import org.hypergraphdb.HGHandle;
 public class VOWLXMLRenderConfiguration
 {
 	HGHandle firstRevision;
+	HGHandle bottomRevision;
 	HGHandle revisionSnapshot;
 	Set<HGHandle> heads = new HashSet<HGHandle>();
 	Set<HGHandle> roots = new HashSet<HGHandle>();
@@ -38,6 +39,17 @@ public class VOWLXMLRenderConfiguration
 	 */
 	public VOWLXMLRenderConfiguration()
 	{
+	}
+	
+	public HGHandle bottomRevision()
+	{
+		return bottomRevision;
+	}
+
+	public VOWLXMLRenderConfiguration bottomRevision(HGHandle bottomRevision)
+	{
+		this.bottomRevision = bottomRevision;
+		return this;
 	}
 	
 	public HGHandle firstRevision()

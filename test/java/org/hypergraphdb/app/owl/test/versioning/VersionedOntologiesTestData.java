@@ -11,6 +11,7 @@ import static org.hypergraphdb.app.owl.test.TU.oprop;
 import static org.hypergraphdb.app.owl.test.TU.owlClass;
 
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
@@ -24,7 +25,9 @@ import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.RevisionMark;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.util.HGUtils;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 /**
@@ -58,6 +61,7 @@ public class VersionedOntologiesTestData
 			Revision revRight = rightRepo.get(revisionHandle);
 			if (!revLeft.parents().equals(revRight.parents()) ||
 				!revLeft.children().equals(revRight.children())  ||
+				!HGUtils.eq(revLeft.branchHandle(), revRight.branchHandle()) ||
 				!revLeft.changeRecords().equals(revRight.changeRecords()))
 				return false;
 			for (HGHandle markHandle : revRight.revisionMarks())
@@ -152,5 +156,77 @@ public class VersionedOntologiesTestData
 		{
 			TU.ctx.set(saveCtx);
 		}
+	}
+	
+
+	public static String randomAlphaString(int len) 
+	{
+		String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
+		Random rnd = new Random();
+		StringBuilder sb = new StringBuilder(len);
+		for(int i = 0; i < len; i++) 
+			sb.append(AB.charAt(rnd.nextInt(AB.length())));
+		return sb.toString();
+	}	
+	
+	/**
+	 * Create a few random changes to add to the ontology in the passed in context.
+	 * The changes themselves are returned as a set of axioms so one can make checks
+	 * about them.
+	 * @param ctx
+	 */
+	public static Set<OWLAxiom> makeRevision(TestContext ctx)
+	{
+		TestContext saveCtx = TU.ctx();
+		try
+		{
+			if (ctx != null)
+				TU.ctx.set(ctx);
+			else
+				ctx = TU.ctx();
+			Set<OWLAxiom> result = new HashSet<OWLAxiom>();
+			Random random = new Random() ;
+	        int count = random.nextInt(9) + 1;
+	        for (int i = 0; i < count; i++)
+	        {
+	        	int r = random.nextInt() % 5;
+	        	switch (r)
+	        	{
+	        		case 0:
+	        			result.add(declare(individual(randomAlphaString(random.nextInt(10) + 3))));
+	        			break;
+	        		case 1:
+	        			result.add(aInstanceOf(owlClass(randomAlphaString(random.nextInt(10) + 3)), 
+	        						individual(randomAlphaString(random.nextInt(10) + 3))));
+	        			break;
+	        		case 2:
+	        			result.add(aProp(oprop(randomAlphaString(random.nextInt(10) + 3)), 
+	        					individual(randomAlphaString(random.nextInt(10) + 3)), 
+	        					individual(randomAlphaString(random.nextInt(10) + 3))));
+	        			break;
+	        		case 3:
+	        			result.add(aProp(dprop(randomAlphaString(random.nextInt(10) + 3)), 
+	        					individual(randomAlphaString(random.nextInt(10) + 3)), 
+	        					literal(randomAlphaString(random.nextInt(10) + 3))));
+	        			break;
+	        		case 4:
+	        			result.add(aSubclassOf(owlClass(randomAlphaString(random.nextInt(10) + 3)), 
+	        						owlClass(randomAlphaString(random.nextInt(10) + 3))));
+	        			break;
+	        		default:
+	        			result.add(declare(owlClass(randomAlphaString(random.nextInt(10) + 3))));
+	        			break;
+	        	}
+	        }
+	        return result;
+		}
+		catch (Exception e)
+		{
+			throw new RuntimeException(e);
+		}
+		finally
+		{
+			TU.ctx.set(saveCtx);
+		}		
 	}
 }

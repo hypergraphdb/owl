@@ -177,10 +177,10 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 			throw new IllegalArgumentException("Revisions " + from + " and " + to + 
 					" are not connected - are they part of the same version history?");
 		ArrayList<VChange<VersionedOntology>> result = new ArrayList<VChange<VersionedOntology>>();
-		HGHandle hCurrent = to;
-		HGHandle hPrev = predecessorMatrix.get(to);
+		HGHandle hCurrent = to;		
 		do
 		{
+			HGHandle hPrev = predecessorMatrix.get(hCurrent);
 			Revision current = graph.get(hCurrent);			
 			List<HGHandle> L = null;
 			if (current.parents().contains(hPrev))
@@ -207,8 +207,8 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 					result.addAll(cs.changes());
 				}
 			}
-			hPrev = predecessorMatrix.get(hPrev);			
-		} while (!hPrev.equals(from));
+			hCurrent = hPrev;	
+		} while (!hCurrent.equals(from));
 		return result;
 	}
 	
@@ -305,7 +305,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 				throw new IllegalArgumentException("Branch already exists: '" + branch + "'.");
 			HGHandle branchHandle = 
 				branch == null ? null 
-							   : graph.add(new Branch(branch, user, System.currentTimeMillis()));
+							   : graph.add(new Branch(branch, getAtomHandle(), user, System.currentTimeMillis()));
 			return makeRevision(user, comment, branchHandle);
 		}
 		});
@@ -524,19 +524,28 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		return L;
 	}
 
-	public Revision branchHead(Branch branch)
+	/**
+	 * <p>
+	 * Lookup a revision branch for this versioned ontology by name.
+	 * </p> 
+	 * @param name The name of the branch.
+	 * @return The {@link Branch} instance of <code>null</code> if not found.
+	 */
+	public Branch findBranch(String name)
 	{
-		HGHandle branchHandle = graph.getHandle(branch);
-		if (branchHandle == null)
-			branchHandle = hg.findOne(graph, hg.and(hg.type(Branch.class), hg.eq("name", branch.getName())));
-		if (branchHandle == null)
-			throw new IllegalArgumentException("Could not find branch locally: " + branch.getName());
+		return graph.getOne(hg.and(hg.type(Branch.class), 
+								   hg.eq("name", name), 
+								   hg.eq("versioned", thisHandle)));
+	}
+	
+	public Revision branchHead(HGHandle branchHandle)
+	{
 		List<Revision> allheads = graph.getAll(hg.and(new IndexCondition<HGPersistentHandle, HGPersistentHandle>(
 					TrackRevisionStructure.revisionChildIndex(graph), 
 					getBottomRevision().getPersistent()), 
 					hg.incident(branchHandle)));
 		if (allheads.size() > 1)
-			throw new IllegalArgumentException("Branch " + branch + " has multiple heads. They must be merged.");
+			throw new IllegalArgumentException("Branch " + graph.get(branchHandle) + " has multiple heads. They must be merged.");
 		else
 			return allheads.get(0);
 	}
@@ -562,7 +571,23 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	
 	public VersionedOntology goTo(final Branch branch)
 	{
-		Revision branchHead = branchHead(branch);
+		HGHandle branchHandle = graph.getHandle(branch);
+		if (branchHandle == null)
+			branchHandle = hg.findOne(graph, hg.and(hg.type(Branch.class), hg.eq("name", branch.getName())));
+		if (branchHandle == null)
+			throw new IllegalArgumentException("Could not find branch locally: " + branch.getName());		
+		Revision branchHead = branchHead(branchHandle);
+		return goTo(branchHead);
+	}
+
+	public VersionedOntology goTo(String branchName)
+	{
+		HGHandle branchHandle = hg.findOne(graph, 
+										   hg.and(hg.type(Branch.class), 
+									       hg.eq("name", branchName)));
+		if (branchHandle == null)
+			throw new IllegalArgumentException("Could not find branch locally: " + branchName);
+		Revision branchHead = branchHead(branchHandle);
 		return goTo(branchHead);
 	}
 	
@@ -606,6 +631,14 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		throw new UnsupportedOperationException();
 	}
 
+	/**
+	 * <p>
+	 * Return the set of head revisions for all branches. A revision may have
+	 * descendants of a different branch and it still be the head and the last
+	 * revision of its own branch. Thus one should assume that a head revision
+	 * has no children. 
+	 * </p>
+	 */
 	public Set<HGHandle> heads()
 	{
 		HashSet<HGHandle> result = new HashSet<HGHandle>();

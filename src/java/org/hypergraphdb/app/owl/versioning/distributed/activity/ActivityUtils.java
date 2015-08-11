@@ -12,9 +12,11 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGHandleHolder;
+import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
@@ -37,6 +39,7 @@ import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLParser;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLRenderConfiguration;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVersionedOntologyRenderer;
+import org.hypergraphdb.event.HGAtomAddedEvent;
 import org.hypergraphdb.query.HGAtomPredicate;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.OWLParserException;
@@ -90,9 +93,10 @@ public class ActivityUtils
 		HGAtomPredicate revisionOk = new HGAtomPredicate() {
 			public boolean satisfies(HyperGraph graph, HGHandle revision)
 			{
-				return graph.getType(revision).equals(revisionType) && 
+				boolean isok = graph.getType(revision).equals(revisionType) && 
 					   !sofar.contains(revision) &&
-					   !heads.contains(revision);
+					   !heads.contains(revision);				
+				return isok;
 			}
 		};
 		return graph.findAll(hg.bfs(root, hg.type(ParentLink.class), revisionOk));
@@ -127,6 +131,7 @@ public class ActivityUtils
 		{
 			VOWLXMLRenderConfiguration conf = new VOWLXMLRenderConfiguration();
 			conf.firstRevision(versionedOntology.getRootRevision());
+			conf.bottomRevision(versionedOntology.getBottomRevision());
 			conf.revisionSnapshot(versionedOntology.getCurrentRevision());
 			conf.roots().add(conf.firstRevision());
 			VOWLXMLVersionedOntologyRenderer owlxmlRenderer = new VOWLXMLVersionedOntologyRenderer(
@@ -213,8 +218,9 @@ public class ActivityUtils
 														 doc.getRenderConfig().revisionSnapshot(), 
 														 graph.add(workingChangeSet));
 			vo.setRootRevision(doc.getRenderConfig().firstRevision());
-			HGPersistentHandle versionedHandle = graph.getHandleFactory().makeHandle(doc.getVersionedID());			
-			graph.define(versionedHandle, vo);
+			vo.setBottomRevision(doc.getRenderConfig().bottomRevision());
+			HGPersistentHandle versionedHandle = graph.getHandleFactory().makeHandle(doc.getVersionedID());
+			graph.define(versionedHandle, vo);			
 			manager.getVersionManager().manualVersioned(vo.getOntology());
 			updateVersionedOntology(manager, vo, doc);
 			Revision root = graph.get(vo.getRootRevision());
@@ -248,14 +254,38 @@ public class ActivityUtils
 	@SuppressWarnings("unchecked")
 	public static void updateVersionedOntology(HGDBOntologyManager manager, VersionedOntology vo, VOWLXMLDocument doc)
 	{
-		HyperGraph graph = manager.getOntologyRepository().getHyperGraph();		
-		for (HGHandleHolder object : doc.revisionObjects())
+		final HyperGraph graph = manager.getOntologyRepository().getHyperGraph();		
+		// We need to first store the nodes and then the links so that graph
+		// indexing/tracking triggered by events works properly.
+		for (final HGHandleHolder object : doc.revisionObjects())
 		{
-			if (graph.get(object.getAtomHandle()) == null)
-			{
-				System.out.println("Storing object " + object + " with handle " + object.getAtomHandle());
-				graph.define(object.getAtomHandle(), object);
-			}
+			if (graph.get(object.getAtomHandle()) != null) continue;
+			if (object instanceof ParentLink) continue;
+			System.out.println("Storing object " + object + " with handle " + object.getAtomHandle());
+			graph.getTransactionManager().ensureTransaction(new Callable<Object>(){
+				public Object call()
+				{
+					graph.define(object.getAtomHandle(), object);
+					// TEMP, until HyperGraph.define starts firing this event (see issue #109 in github)			
+					graph.getEventManager().dispatch(graph, new HGAtomAddedEvent(object.getAtomHandle(), "HyperGraph.define"));				
+					return null;
+				}
+			});
+		}
+		
+		for (final HGHandleHolder object : doc.revisionObjects())
+		{
+			if (graph.get(object.getAtomHandle()) != null) continue;
+			System.out.println("Storing object " + object + " with handle " + object.getAtomHandle());
+			graph.getTransactionManager().ensureTransaction(new Callable<Object>(){
+				public Object call()
+				{
+					graph.define(object.getAtomHandle(), object);
+					// TEMP, until HyperGraph.define starts firing this event (see issue #109 in github)			
+					graph.getEventManager().dispatch(graph, new HGAtomAddedEvent(object.getAtomHandle(), "HyperGraph.define"));				
+					return null;
+				}
+			});		
 		}
 		for (ChangeSet<VersionedOntology> changeSet : doc.changeSetMap().keySet())
 		{

@@ -36,6 +36,7 @@ import org.hypergraphdb.HGHandleHolder;
 public class Branch implements HGHandleHolder
 {
 	private HGHandle thisHandle;
+	private HGHandle versioned;
 	private String name;
 	private String createdBy;
 	private long   createdOn;
@@ -44,9 +45,10 @@ public class Branch implements HGHandleHolder
 	{		
 	}
 	
-	public Branch(String name, String createdBy, long createdOn)
+	public Branch(String name, HGHandle versioned, String createdBy, long createdOn)
 	{
 		this.name = name;
+		this.versioned = versioned;
 		this.createdBy = createdBy;
 		this.createdOn = createdOn;
 	}
@@ -76,6 +78,16 @@ public class Branch implements HGHandleHolder
 		this.createdOn = createdOn;
 	}
 
+	public HGHandle getVersioned()
+	{
+		return versioned;
+	}
+
+	public void setVersioned(HGHandle versioned)
+	{
+		this.versioned = versioned;
+	}
+
 	@Override
 	public HGHandle getAtomHandle()
 	{
@@ -86,6 +98,11 @@ public class Branch implements HGHandleHolder
 	public void setAtomHandle(HGHandle handle)
 	{
 		this.thisHandle = handle;
+	}
+	
+	public String toString()
+	{
+		return "Branch[" + name + ", " + thisHandle + "]";
 	}
 
 	@Override

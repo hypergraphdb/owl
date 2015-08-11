@@ -127,45 +127,6 @@ public class NewVersioningTests extends VersioningTestBase
 	}
 	
 	@Test
-	public void testTags()
-	{
-		declare(owlClass("ClassCommit"));
-		declare(owlClass("ClassChangePush"));
-		aSubclassOf(owlClass("ClassCommit"), owlClass("ClassChangePush"));
-		Revision firstRevision = ctx.vonto().revision();				
-		ctx.vonto().revision().tag("initial");				
-		ctx.vonto().commit("test", "first changes");
-		Revision secondRevision = ctx.vonto().revision();		
-		secondRevision.tag("basic classes");
-		declare(owlClass("User"));
-		declare(oprop("hasAuthor"));
-		aInstanceOf(owlClass("User"), individual("Veve"));
-		ctx.vonto().flushChanges();
-		aProp(oprop("hasAuthor"), individual("GrandRelease"), individual("Veve"));
-		ctx.vonto().commit("test2", "second changes");
-		Revision thirdRevision = ctx.vonto().revision();
-		Revision found = ctx.vrepo().revisionWithTag("initial");
-		Assert.assertEquals(firstRevision, found);
-		found.tag("initial2");
-		found = ctx.vrepo().revisionWithTag("basic classes");
-		Assert.assertEquals(secondRevision, found);
-		found = ctx.vrepo().revisionWithTag("initial2");
-		Assert.assertEquals(firstRevision, found);
-		Assert.assertTrue(thirdRevision.tags().isEmpty());
-		try
-		{
-			thirdRevision.tag("initial2");
-		}
-		catch (IllegalArgumentException ex)
-		{
-			Assert.assertTrue(ex.getMessage().contains("already used"));
-		}
-		Assert.assertEquals(HGUtils.set("initial", "initial2"), firstRevision.tags());
-		secondRevision.untag("basic classes");
-		Assert.assertTrue(secondRevision.tags().isEmpty());
-	}
-	
-	@Test
 	public void testLabels()
 	{
 		declare(owlClass("ClassCommit"));

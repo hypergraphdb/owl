@@ -20,6 +20,7 @@ import org.hypergraphdb.app.owl.test.TU;
 import org.hypergraphdb.app.owl.test.versioning.TestContext;
 import org.hypergraphdb.app.owl.test.versioning.VersionedOntologiesTestData;
 import org.hypergraphdb.app.owl.test.versioning.VersioningTestBase;
+import org.hypergraphdb.app.owl.versioning.Branch;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.distributed.RemoteOntology;
@@ -28,6 +29,8 @@ import org.hypergraphdb.app.owl.versioning.distributed.activity.GetNewRevisionsA
 import org.hypergraphdb.app.owl.versioning.distributed.activity.VersionUpdateActivity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.bootstrap.AffirmIdentityBootstrap;
+import org.hypergraphdb.peer.workflow.ActivityResult;
+import org.hypergraphdb.peer.workflow.WorkflowState;
 import org.hypergraphdb.util.HGUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -153,6 +156,7 @@ public class DistributedTests extends VersioningTestBase
 				.remoteOntology(ctx2.graph.getHandle(remoteOnto))
 				.action("pull")).get();
 		ctx2.vo = vm2.versioned(sourceOntoHandle);
+		assertEquals(1, ctx2.vo.heads().size());
 		ctx2.o = ctx2.vo.ontology();		
 		// now make some changes at peer 1 (source location) and pull them from peer 2
 		TU.ctx.set(ctx1);
@@ -163,6 +167,7 @@ public class DistributedTests extends VersioningTestBase
 		TU.ctx.set(ctx2);
 		aInstanceOf(owlClass("LoyalCustomer"), individual("Brandon Broom"));
 		ctx2.vo.commit("testuser2", "New difference.");
+		assertEquals(1, ctx2.vo.heads().size());
 		peer2.getActivityManager().initiateActivity(
 				new VersionUpdateActivity(peer2)
 				.remoteOntology(ctx2.graph.getHandle(remoteOnto))
@@ -199,6 +204,96 @@ public class DistributedTests extends VersioningTestBase
 					 ctx1.vo.changes(ctx1.vo.revision()));
 	}
 	
+	@Test 
+	public void testCloneWithBranches() throws Exception
+	{
+		TU.ctx.set(ctx1);
+		VersionedOntologiesTestData.revisionGraph_1(iri_prefix + "peer1data", null);
+		ctx1.vo.commit("testuser", "create branch", "TestBranch1");
+		VersionedOntologiesTestData.makeRevision(ctx1);		
+		VersionedOntologiesTestData.makeRevision(ctx1);
+		ctx1.vo.commit("testuser", "create branch", "TestBranch2");
+		VersionedOntologiesTestData.makeRevision(ctx1);
+		ctx1.vo.goTo("TestBranch1");
+		VersionedOntologiesTestData.makeRevision(ctx1);
+		VersionedOntologiesTestData.makeRevision(ctx1);
+		ctx1.vo.goTo("TestBranch2");
+		VersionedOntologiesTestData.makeRevision(ctx1);
+		HGHandle sourceOntoHandle = TU.ctx().o.getAtomHandle();		
+		RemoteOntology remoteOnto = repo2.remoteOnto(sourceOntoHandle, repo2.remoteRepo(peer1.getIdentity()));
+		peer2.getActivityManager().initiateActivity(
+			new VersionUpdateActivity(peer2)
+				.remoteOntology(ctx2.graph.getHandle(remoteOnto)).action("pull")).get();
+		assertTrue(VersionedOntologiesTestData.compareOntologies(vm1.versioned(sourceOntoHandle), 
+																 vm1.getGraph(), 
+																 vm2.versioned(sourceOntoHandle), 
+																 vm2.getGraph()));
+	}
+
+	@Test 
+	public void testBranchConflicts() throws Exception
+	{
+		TU.ctx.set(ctx1);
+		VersionedOntologiesTestData.revisionGraph_1(iri_prefix + "peer1data", null);
+		ctx1.vo.commit("testuser", "create branch", "TestBranch1");
+		VersionedOntologiesTestData.makeRevision(ctx1);		
+
+		// clone
+		HGHandle sourceOntoHandle = TU.ctx().o.getAtomHandle();		
+		RemoteOntology remoteOnto = repo2.remoteOnto(sourceOntoHandle, repo2.remoteRepo(peer1.getIdentity()));
+		peer2.getActivityManager().initiateActivity(
+				new VersionUpdateActivity(peer2)
+					.remoteOntology(ctx2.graph.getHandle(remoteOnto)).action("pull")).get();
+		ctx2.vo = vm2.versioned(sourceOntoHandle);
+		ctx2.o = ctx2.vo.ontology();		
+
+		// now create two conflicts: rename a branch at peer1
+		Branch branch1 = ctx1.vo.findBranch("TestBranch1");
+		branch1.setName("TestBranch1_NewName");
+		ctx1.graph.update(branch1);
+		
+		// create another branch at peer1 
+		ctx1.vo.commit("testuser", "create branch", "TestBranch2");
+		VersionedOntologiesTestData.makeRevision(ctx1);
+
+		// and then a branch with the same name at peer2
+		VersionedOntologiesTestData.makeRevision(ctx2);
+		ctx2.vo.commit("testuser", "create branch", "TestBranch2");
+		VersionedOntologiesTestData.makeRevision(ctx2);
+
+		// Now pulling changes should result in 2 conflicts
+		VersionUpdateActivity updateActivity = new VersionUpdateActivity(peer2)
+			.remoteOntology(ctx2.graph.getHandle(remoteOnto))
+			.action("pull");
+		peer2.getActivityManager().initiateActivity(updateActivity).get();
+		Assert.assertEquals(WorkflowState.Failed, updateActivity.getState());
+		Assert.assertTrue(updateActivity.completedMessage().contains("2 branch conflicts found"));
+		
+		// change new peer2 branch name
+		Branch branch2 = ctx2.vo.findBranch("TestBranch2");
+		branch2.setName("Test Branch 3");
+		ctx2.graph.update(branch2);
+		
+		// now we should have only 1 conflict
+		updateActivity = new VersionUpdateActivity(peer2)
+				.remoteOntology(ctx2.graph.getHandle(remoteOnto))
+				.action("pull");
+		peer2.getActivityManager().initiateActivity(updateActivity).get();
+		Assert.assertEquals(WorkflowState.Failed, updateActivity.getState());
+		Assert.assertTrue(updateActivity.completedMessage().contains("1 branch conflict found"));
+		
+		// restore branch1 name
+		branch1.setName("TestBranch1");
+		ctx1.graph.update(branch1);
+		
+		// now we should have no conflicts
+		updateActivity = new VersionUpdateActivity(peer2)
+				.remoteOntology(ctx2.graph.getHandle(remoteOnto))
+				.action("pull");
+		peer2.getActivityManager().initiateActivity(updateActivity).get();
+		Assert.assertEquals(WorkflowState.Completed, updateActivity.getState());
+	}
+	
 	@Test
 	public void testPushWithConflict() throws Exception
 	{
@@ -214,7 +309,7 @@ public class DistributedTests extends VersioningTestBase
 	public static void main(String []argv)
 	{
 		JUnitCore junit = new JUnitCore();
-		Result result = junit.run(Request.method(DistributedTests.class, "testPushRevisionChanges"));
+		Result result = junit.run(Request.method(DistributedTests.class, "testBranchConflicts"));
 		System.out.println("Failures " + result.getFailureCount());
 		if (result.getFailureCount() > 0)
 		{

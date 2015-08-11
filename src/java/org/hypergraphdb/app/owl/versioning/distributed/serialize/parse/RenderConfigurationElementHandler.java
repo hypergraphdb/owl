@@ -32,6 +32,8 @@ public class RenderConfigurationElementHandler extends AbstractVOWLElementHandle
 	{
 		if (localName.equals("firstRevision"))
 			configuration.firstRevision(graph.getHandleFactory().makeHandle(value));
+		else if (localName.equals("bottomRevision"))
+			configuration.bottomRevision(graph.getHandleFactory().makeHandle(value));		
 		else if (localName.equals("revisionSnapshot"))
 			configuration.revisionSnapshot(graph.getHandleFactory().makeHandle(value));
 		else if (localName.equals("maxDepth"))

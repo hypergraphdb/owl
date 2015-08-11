@@ -230,24 +230,6 @@ public class VersionManager
 	}
 	
 	/**
-	 * Return the one {@link Revision} tagged with the specified tag, or null if
-	 * no revision has been tagged with that tag. 
-	 */
-	public Revision revisionWithTag(final String tag)
-	{
-		return graph.getTransactionManager().transact(new Callable<Revision>() {
-		public Revision call()
-		{
-			
-			HGHandle handle = graph.findOne(hg.and(hg.type(TagRevision.class), hg.eq("tag", tag)));
-			if (handle == null)
-				return null;
-			TagRevision tag = graph.get(handle);
-			return graph.get(tag.revision());
-		}});
-	}
-	
-	/**
 	 * Return the set of all revisions tagged with the given label (a possible empty set).
 	 */
 	public Set<Revision> revisionsWithLabel(final String label)

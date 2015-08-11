@@ -5,6 +5,7 @@ import static org.hypergraphdb.peer.Messages.fromJson;
 import static org.hypergraphdb.peer.Messages.getReply;
 import static org.hypergraphdb.peer.Messages.getSender;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -12,8 +13,10 @@ import mjson.Json;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
+import org.hypergraphdb.app.owl.versioning.Branch;
 import org.hypergraphdb.app.owl.versioning.OntologyVersionState;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
@@ -89,6 +92,32 @@ public class VersionUpdateActivity extends FSMActivity
 		return new VersionManager(getThisPeer().getGraph(), "fixme-VHDBOntologyRepository");		
 	}
 	
+	Set<String> checkBranchConflicts(HGHandle ontologyHandle, Set<Branch> branches)
+	{
+		HashSet<String> branchConflicts = new HashSet<String>(); 
+		for (Branch branch : branches)
+		{
+			Branch local = getThisPeer().getGraph().get(branch.getAtomHandle());
+			if (local != null)
+			{
+				if (!branch.getName().equals(local.getName()))
+					branchConflicts.add("Remote branch name '" + branch.getName() + 
+							"' differs from local name '" + local.getName() + "' for branch " + 
+							branch.getAtomHandle());
+				continue;
+			}
+			local = getThisPeer().getGraph().getOne(hg.and(
+					hg.type(Branch.class), 
+					hg.eq("name", branch.getName()),
+					hg.eq("versioned", branch.getVersioned())));
+			if (local != null)
+				branchConflicts.add("Remote branch '" + branch.getName() + 
+						"' from branch " + branch.getAtomHandle() + " conflicts with local branch " +
+						local.getAtomHandle());
+		}
+		return branchConflicts;
+	}
+	
 	/**
 	 * @param thisPeer
 	 */
@@ -144,8 +173,6 @@ public class VersionUpdateActivity extends FSMActivity
 		else if ("synch".equals(action))
 		{
 			throw new UnsupportedOperationException("synch operation of version update not supported yet.");
-//			msg = createMessage(Performative.QueryRef, Json.object());			
-//			send(remoteOntology.getRepository().getPeer(), msg);				
 		}
 		else
 			throw new IllegalArgumentException("Possible values for version update action are 'push', 'pull' or 'synch' and '" +
@@ -163,10 +190,23 @@ public class VersionUpdateActivity extends FSMActivity
 		RemoteOntology remoteOnto = remoteOnto();
 		//System.out.println("got revision set " + getRevisionSetActivity.newRevisions());
 		delta = revisionSetActivity.delta();
-		send(remoteOnto.getRepository().getPeer(), 
-			 createMessage(Performative.QueryRef, Json.object(REVISIONS, delta.revisions,
-					 										  ONTOLOGY_HANDLE, remoteOnto.getOntologyHandle())));	
-		return WaitForRevisionObjects;
+		Set<String> branchConflicts = checkBranchConflicts(remoteOnto.getOntologyHandle(), revisionSetActivity.branches());
+		if (branchConflicts.isEmpty())
+		{
+			send(remoteOnto.getRepository().getPeer(), 
+				 createMessage(Performative.QueryRef, Json.object(REVISIONS, delta.revisions,
+						 										  ONTOLOGY_HANDLE, remoteOnto.getOntologyHandle())));	
+			return WaitForRevisionObjects;
+		}
+		else
+		{
+			if (branchConflicts.size() > 1)
+				this.completedMessage = "" + branchConflicts.size() + 
+						" branch conflicts found : " + branchConflicts.toString();
+			else
+				this.completedMessage = "1 branch conflict found : " + branchConflicts.toString();				
+			return WorkflowState.Failed;
+		}
 	}
 	
 	@FromState("WaitForRevisionObjects")
