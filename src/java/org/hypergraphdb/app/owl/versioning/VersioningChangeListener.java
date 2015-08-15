@@ -31,19 +31,19 @@ public class VersioningChangeListener implements OWLOntologyChangeListener
 	@Override
 	public void ontologiesChanged(final List<? extends OWLOntologyChange> changes) throws OWLException
 	{
-		repo.getGraph().getTransactionManager().ensureTransaction(new Callable<Object>()
+		repo.graph().getTransactionManager().ensureTransaction(new Callable<Object>()
 		{
 			public Object call()
 			{
 				for (OWLOntologyChange c : changes)
 				{
-					HGHandle ontoHandle = repo.getGraph().getHandle(c.getOntology());
+					HGHandle ontoHandle = repo.graph().getHandle(c.getOntology());
 					if (ontoHandle == null)
 						continue;
 					if (repo.isVersioned(ontoHandle))
 					{
 						VersionedOntology vo = repo.versioned(ontoHandle);
-						VOWLChange vc = VOWLChangeFactory.create(c, repo.getGraph());
+						VOWLChange vc = VOWLChangeFactory.create(c, repo.graph());
 						vo.changes().add(vc);
 					}
 				}

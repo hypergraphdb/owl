@@ -30,6 +30,16 @@ import org.hypergraphdb.HGHandleHolder;
  * one's position, one must recognize that this view of branching looses no information 
  * and therefore subsumes the pointer-based approach that Git implements.
  * </p>
+ * 
+ * <p>
+ * <b>NOTE:</b> For property access this class supports a "fluid" pattern where
+ * the setter returns <code>this</code> and both getter and setter are just the name
+ * of the property. This is a departure from Java Beans conventions and therefore
+ * HyperGraphDB doesn't not automatically generate a type for the class. So, we've
+ * included standard Java Bean style property setter&getter as well, but that is 
+ * temporary, so please don't use them.
+ * </p>
+ 
  * @author Borislav Iordanov
  *
  */
@@ -52,7 +62,17 @@ public class Branch implements HGHandleHolder
 		this.createdBy = createdBy;
 		this.createdOn = createdOn;
 	}
-	
+		
+	public String name() { return name; }
+	public Branch name(String name) { this.name = name; return this; }
+	public HGHandle versioned() { return versioned; }
+	public Branch versioned(HGHandle versioned) { this.versioned = versioned; return this; }
+	public String createdBy() { return name; }
+	public Branch createdBy(String createdBy) { this.createdBy = createdBy; return this; }
+	public long createdOn() { return createdOn; }
+	public Branch createdOn(long createdOn) { this.createdOn = createdOn; return this; }
+
+	// TEMPORARY
 	public String getName()
 	{
 		return name;

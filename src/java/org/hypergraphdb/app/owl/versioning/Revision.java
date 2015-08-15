@@ -27,6 +27,15 @@ import org.hypergraphdb.HyperGraph;
  * There may be more than one change mark (a.k.a. "commit") associated with a
  * revision when the versioned object is {@link VersionedProject} for example.  
  * </p>
+ *
+ * <p>
+ * <b>NOTE:</b> For property access this class supports a "fluid" pattern where
+ * the setter returns <code>this</code> and both getter and setter are just the name
+ * of the property. This is a departure from Java Beans conventions and therefore
+ * HyperGraphDB doesn't not automatically generate a type for the class. So, we've
+ * included standard Java Bean style property setter&getter as well, but that is 
+ * temporary, so please don't use them.
+ * </p>
  * 
  * @author Borislav Iordanov
  *
@@ -318,5 +327,37 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 		else if (!thisHandle.equals(other.thisHandle))
 			return false;
 		return true;
+	}
+	
+	// TEMPORARY - conventional setters and getters
+	
+	public long getTimestamp()
+	{
+		return timestamp;
+	}
+
+	public void setTimestamp(long timestamp)
+	{
+		this.timestamp = timestamp;
+	}
+
+	public String getUser()
+	{
+		return user;
+	}
+
+	public void setUser(String user)
+	{
+		this.user = user;
+	}
+
+	public String getComment()
+	{
+		return comment;
+	}
+
+	public void setComment(String comment)
+	{
+		this.comment = comment;
 	}				
 }

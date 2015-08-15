@@ -260,7 +260,7 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 		return changes;
 	}
 
-	static <V extends Versioned<?>> 
+	static <V extends Versioned<V>> 
 	List<VChange<V>> normalize(V versioned, List<VChange<V>> L)
 	{
 		Set<Integer> toremove = new HashSet<Integer>();		
@@ -335,7 +335,7 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 		return normal;
 	}
 	
-	static <V extends Versioned<?>> 
+	static <V extends Versioned<V>> 
 	List<VChange<V>> merge(V versioned, List<VChange<V>> one, List<VChange<V>> two)
 	{
 		ArrayList<VChange<V>> result = new ArrayList<VChange<V>>();

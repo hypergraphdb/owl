@@ -47,6 +47,16 @@ public class BranchTests extends VersioningTestBase
 	}
 	
 	@Test
+	public void testBranchAsVersionedChange()
+	{
+		// creating a branch is like any other change, except it's
+		// tied to a commit
+		// if the revision is deleted altogether, wiped out, then
+		// the branch atom should be gone with it
+		
+	}
+	
+	@Test
 	public void testSimpleBranchLine()
 	{
 		declare(owlClass("ClassCommit"));

@@ -2,11 +2,11 @@ package org.hypergraphdb.app.owl.versioning;
 
 
 import java.util.ArrayList;
-
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,7 +14,6 @@ import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HGSearchResult;
@@ -35,12 +34,12 @@ import org.hypergraphdb.util.Mapping;
  * different version IRIs.
  * </p>
  * 
- * TODO - revisit transation boundaries for methods, some don't even have transactions...
+ * TODO - revisit transaction boundaries for methods, some don't even have transactions...
  * 
  * @author Borislav Iordanov
  *
  */
-public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphHolder, HGHandleHolder
+public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphHolder
 {
 	private HyperGraph graph;
 	private HGHandle thisHandle;
@@ -273,14 +272,14 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		ChangeRecord mark = changes().isEmpty() ? latestChangeRecord() : flushChanges();
 		Revision revision = branch == null ? new Revision(thisHandle) 
 										   : new Revision(thisHandle, branch);
-		revision.user(user);
-		revision.comment(comment);
-		revision.timestamp(System.currentTimeMillis());
+		revision.user(user).comment(comment).timestamp(System.currentTimeMillis());
 		HGHandle revisionHandle = graph.add(revision);
 		graph.add(new RevisionMark(revisionHandle, graph.getHandle(mark)));
 		graph.add(new ParentLink(revisionHandle, currentRevision));
 		workingChanges = graph.add(new ChangeSet<VersionedOntology>());
-		return currentRevision = revisionHandle;		
+		currentRevision = revisionHandle;
+		graph.update(this);
+		return this.currentRevision;
 	}
 	
 	@Override
@@ -344,6 +343,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 			graph.add(new ParentLink(revisionHandle, graph.getHandle(rev)));
 		workingChanges = graph.add(new ChangeSet<VersionedOntology>());
 		currentRevision = revisionHandle;
+		graph.update(this);
 		return revision();
 	}
 	
@@ -479,6 +479,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		HGHandle markHandle = graph.add(newmark);
 		graph.add(new ParentLink(markHandle, current.getAtomHandle()));
 		workingChanges = graph.add(new ChangeSet<VersionedOntology>());
+		graph.update(this);
 		return newmark;
 	}
 
@@ -515,6 +516,9 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	public List<Revision> revisions()
 	{
 		List<Revision> L = hg.getAll(graph(), hg.and(hg.type(Revision.class), hg.incident(thisHandle)));
+		for (Iterator<Revision> iter = L.iterator(); iter.hasNext(); )
+			if (iter.next().getAtomHandle().equals(this.bottomRevision))
+				iter.remove();
 		Collections.sort(L, new Comparator<Revision>(){
 			public int compare(Revision left, Revision right)
 			{
@@ -522,21 +526,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 			}
 		});
 		return L;
-	}
-
-	/**
-	 * <p>
-	 * Lookup a revision branch for this versioned ontology by name.
-	 * </p> 
-	 * @param name The name of the branch.
-	 * @return The {@link Branch} instance of <code>null</code> if not found.
-	 */
-	public Branch findBranch(String name)
-	{
-		return graph.getOne(hg.and(hg.type(Branch.class), 
-								   hg.eq("name", name), 
-								   hg.eq("versioned", thisHandle)));
-	}
+	}	
 	
 	public Revision branchHead(HGHandle branchHandle)
 	{

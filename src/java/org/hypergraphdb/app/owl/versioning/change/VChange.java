@@ -12,7 +12,7 @@ import org.hypergraphdb.app.owl.versioning.Versioned;
  *
  * @param <T>
  */
-public interface VChange<T extends Versioned<?>>
+public interface VChange<T extends Versioned<T>>
 {	
 	/**
 	 * Enact this change to the versioned object.

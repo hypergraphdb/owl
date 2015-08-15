@@ -43,9 +43,7 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
 public class HGDBOntologyRepository
 {
 	private static boolean DBG = false;
-
 	private HyperGraph graph;
-	private VersionManager versionManager;
 	
 	/**
 	 * @param graph
@@ -53,12 +51,6 @@ public class HGDBOntologyRepository
 	public HGDBOntologyRepository(String hypergraphDBLocation)
 	{
 		this.graph = ImplUtils.owldb(hypergraphDBLocation);
-		versionManager = new VersionManager(getHyperGraph(), "fixme-VHDBOntologyRepository");
-	}
-
-	public VersionManager getVersionManager()
-	{
-		return versionManager;
 	}
 	
 	/**
@@ -290,8 +282,9 @@ public class HGDBOntologyRepository
 			ontologyFound = ontologyHandle != null;
 			if (ontologyFound)
 			{
-				if (versionManager.isVersioned(ontologyHandle))
-					versionManager.removeVersioning(ontologyHandle);
+				VersionManager vm = new VersionManager(graph, null);
+				if (vm.isVersioned(ontologyHandle))
+					vm.removeVersioning(ontologyHandle);				
 				HGDBOntology o = graph.get(ontologyHandle);
 				o.setDocumentIRI(null);
 				graph.replace(ontologyHandle, o);

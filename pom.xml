@@ -10,11 +10,12 @@
 	<!-- <parent> <groupId>org.hypergraphdb</groupId> <artifactId>hgdbapps</artifactId> 
 		<version>1.3-SNAPSHOT</version> </parent> -->
 	<groupId>org.hypergraphdb</groupId>
-	<version>1.3</version>
+	<version>1.3-SNAPSHOT</version>
 	<properties>
 		<packageit>bundle</packageit>
 		<bundle.symbolicName>org.hypergraph.app.owl;singleton:=true</bundle.symbolicName>
 		<bundle.namespace>org.hypergraphdb.app.owl</bundle.namespace>
+        <hgdb.version>1.3</hgdb.version>
 	</properties>
 	<packaging>bundle</packaging>
 	<artifactId>hgdbowl</artifactId>
@@ -36,22 +37,22 @@
 		<dependency>
 			<groupId>org.hypergraphdb</groupId>
 			<artifactId>hgdb</artifactId>
-			<version>${project.version}</version>
+			<version>${hgdb.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.hypergraphdb</groupId>
 			<artifactId>hgdbmanagement</artifactId>
-			<version>${project.version}</version>
+			<version>${hgdb.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.hypergraphdb</groupId>
 			<artifactId>hgbdbje</artifactId>
-			<version>${project.version}</version>
+			<version>${hgdb.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.hypergraphdb</groupId>
 			<artifactId>hgdbp2p</artifactId>
-			<version>${project.version}</version>
+			<version>${hgdb.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>net.sourceforge.owlapi</groupId>

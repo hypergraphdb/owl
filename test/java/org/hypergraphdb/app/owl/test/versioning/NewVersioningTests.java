@@ -10,14 +10,18 @@ import static org.hypergraphdb.app.owl.test.TU.literal;
 import static org.hypergraphdb.app.owl.test.TU.oprop;
 import static org.hypergraphdb.app.owl.test.TU.owlClass;
 
+import java.util.Iterator;
+
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.test.TU;
+import org.hypergraphdb.app.owl.test.versioning.distributed.DistributedTests;
 import org.hypergraphdb.app.owl.versioning.ChangeRecord;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.type.HGCompositeType;
 import org.hypergraphdb.util.HGUtils;
 import org.junit.After;
 import org.junit.Assert;
@@ -25,6 +29,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.JUnitCore;
+import org.junit.runner.Request;
+import org.junit.runner.Result;
+import org.junit.runner.notification.Failure;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 
@@ -40,18 +48,28 @@ public class NewVersioningTests extends VersioningTestBase
 	
 	public static void main(String []argv)
 	{
-		try
+		JUnitCore junit = new JUnitCore();
+		Result result = junit.run(Request.method(NewVersioningTests.class, "testSimpleChanges"));
+		System.out.println("Failures " + result.getFailureCount());
+		if (result.getFailureCount() > 0)
 		{
-			setupDatabase();
-			NewVersioningTests t = new NewVersioningTests();						
-			t.beforeTest();
-			t.testSimpleMerge();
-			t.afterTest();
-		}
-		catch (Throwable t)
-		{
-			t.printStackTrace(System.err);
-		}
+			for (Failure failure : result.getFailures())
+			{
+				failure.getException().printStackTrace();
+			}
+		}		
+//		try
+//		{
+//			setupDatabase();
+//			NewVersioningTests t = new NewVersioningTests();						
+//			t.beforeTest();
+//			t.testSimpleMerge();
+//			t.afterTest();
+//		}
+//		catch (Throwable t)
+//		{
+//			t.printStackTrace(System.err);
+//		}
 	}
 		
 	
@@ -92,15 +110,27 @@ public class NewVersioningTests extends VersioningTestBase
 	@Test 
 	public void testSimpleChanges()
 	{
+		HGCompositeType type = (HGCompositeType)ctx.graph.getTypeSystem().getAtomType(Revision.class);
+		for (Iterator<String> iter = type.getDimensionNames(); iter.hasNext(); )
+			System.out.println("Dim : " + iter.next());
 		aInstanceOf(owlClass("ClassCommit"), individual("IndividualCommit"));	
 		ChangeSet<VersionedOntology> changeSet = ctx.vonto().changes();
 		// should have some changes here
-		System.out.println(changeSet.changes());
 		Revision revisionBefore = ctx.vonto().revision();
 		// new revision should be created
 		ctx.vonto().commit("test", "first changes");
+		System.out.println("handle = " + ctx.vonto().revision().getAtomHandle());
+		Assert.assertEquals("first changes", ctx.vonto().revision().comment());
+		// re-open graph so caches get flushed and we still have everything stored
+		// properly 
+		ctx.graph().close();
+		ctx.graph().open(ctx.graph().getLocation());
+		ctx.vo = ctx.vr.versioned(ctx.o.getAtomHandle());
+		System.out.println("handle = " + ctx.vonto().revision().getAtomHandle());
+		Assert.assertEquals("first changes", ctx.vonto().revision().comment());
+		Assert.assertTrue(System.currentTimeMillis() > ctx.vonto().revision().timestamp() &&
+						  (System.currentTimeMillis() - 1000*60) < ctx.vonto().revision().timestamp());
 		// no current changes
-		System.out.println(ctx.vonto().changes());
 		Assert.assertEquals(0, ctx.vonto().changes().size());		
 		HGHandle lastCommitted = ctx.vonto().revision().parents().iterator().next();
 		Assert.assertEquals(revisionBefore.getAtomHandle(), lastCommitted);

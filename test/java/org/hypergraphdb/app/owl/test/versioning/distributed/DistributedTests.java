@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl.test.versioning.distributed;
 
 import static org.hypergraphdb.app.owl.test.TU.aInstanceOf;
+
 import static org.hypergraphdb.app.owl.test.TU.aSubclassOf;
 import static org.hypergraphdb.app.owl.test.TU.individual;
 import static org.hypergraphdb.app.owl.test.TU.owlClass;
@@ -29,7 +30,6 @@ import org.hypergraphdb.app.owl.versioning.distributed.activity.GetNewRevisionsA
 import org.hypergraphdb.app.owl.versioning.distributed.activity.VersionUpdateActivity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.bootstrap.AffirmIdentityBootstrap;
-import org.hypergraphdb.peer.workflow.ActivityResult;
 import org.hypergraphdb.peer.workflow.WorkflowState;
 import org.hypergraphdb.util.HGUtils;
 import org.junit.After;
@@ -124,9 +124,9 @@ public class DistributedTests extends VersioningTestBase
 				.remoteOntology(ctx2.graph.getHandle(remoteOnto))
 				.action("pull")).get();
 		assertTrue(VersionedOntologiesTestData.compareOntologies(vm1.versioned(sourceOntoHandle), 
-																 vm1.getGraph(), 
+																 vm1.graph(), 
 																 vm2.versioned(sourceOntoHandle), 
-																 vm2.getGraph()));		
+																 vm2.graph()));		
 	}
 	
 	@Test public void testClone() throws Exception
@@ -139,9 +139,9 @@ public class DistributedTests extends VersioningTestBase
 			new VersionUpdateActivity(peer2)
 				.remoteOntology(ctx2.graph.getHandle(remoteOnto)).action("pull")).get();
 		assertTrue(VersionedOntologiesTestData.compareOntologies(vm1.versioned(sourceOntoHandle), 
-																 vm1.getGraph(), 
+																 vm1.graph(), 
 																 vm2.versioned(sourceOntoHandle), 
-																 vm2.getGraph()));
+																 vm2.graph()));
 	}
 	
 	@Test
@@ -225,9 +225,9 @@ public class DistributedTests extends VersioningTestBase
 			new VersionUpdateActivity(peer2)
 				.remoteOntology(ctx2.graph.getHandle(remoteOnto)).action("pull")).get();
 		assertTrue(VersionedOntologiesTestData.compareOntologies(vm1.versioned(sourceOntoHandle), 
-																 vm1.getGraph(), 
+																 vm1.graph(), 
 																 vm2.versioned(sourceOntoHandle), 
-																 vm2.getGraph()));
+																 vm2.graph()));
 	}
 
 	@Test 
@@ -249,8 +249,7 @@ public class DistributedTests extends VersioningTestBase
 
 		// now create two conflicts: rename a branch at peer1
 		Branch branch1 = ctx1.vo.findBranch("TestBranch1");
-		branch1.setName("TestBranch1_NewName");
-		ctx1.graph.update(branch1);
+		ctx1.vo.renameBranch(branch1, "TestBranch1_NewName");
 		
 		// create another branch at peer1 
 		ctx1.vo.commit("testuser", "create branch", "TestBranch2");

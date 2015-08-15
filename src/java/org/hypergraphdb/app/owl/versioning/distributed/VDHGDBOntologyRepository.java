@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl.versioning.distributed;
 
 import java.util.HashSet;
+
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -46,12 +47,7 @@ public class VDHGDBOntologyRepository extends HGDBOntologyRepository
 	public static final String OBJECTCONTEXT_REPOSITORY = "Repository";
 	public static final String CONFIG_KEY_SERVER = "OntologyServer";
 
-	/**
-	 * Expected to be UTF-8 encoded. Located by this.getClass().getResource()
-	 */
-	//private static String PEER_CONFIGURATION_FILE = "/org/hypergraphdb/app/owl/versioning/distributed/VDHGDBConfig.p2p";
-
-	Ref<HyperGraphPeer> peer;
+	private Ref<HyperGraphPeer> peer;
 
 	public VDHGDBOntologyRepository(String location, Ref<HyperGraphPeer> peer)
 	{
@@ -71,7 +67,7 @@ public class VDHGDBOntologyRepository extends HGDBOntologyRepository
 		peer = new Constant<HyperGraphPeer>(ImplUtils.peer(peerConnectionString, location));
 		configurePeer();
 	}
-
+	
 	public boolean isDistributed(HGDBOntology o)
 	{
 		return getDistributedOntology(o) != null;
@@ -84,7 +80,7 @@ public class VDHGDBOntologyRepository extends HGDBOntologyRepository
 		if (s.size() != l.size())
 			throw new IllegalStateException("Duplicates.");
 		return s;
-	}
+	}	
 
 	/**
 	 * Returns the distributed Ontology or null.

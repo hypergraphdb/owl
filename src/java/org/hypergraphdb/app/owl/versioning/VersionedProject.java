@@ -7,7 +7,8 @@ import org.hypergraphdb.HGHandle;
 
 public class VersionedProject implements Versioned<VersionedProject>
 {
-	Revision currentRevision;
+	private HGHandle thisHandle;
+	private Revision currentRevision;
 	
 	public Revision revision()
 	{
@@ -65,5 +66,17 @@ public class VersionedProject implements Versioned<VersionedProject>
 	{
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public HGHandle getAtomHandle()
+	{
+		return thisHandle;
+	}
+
+	@Override
+	public void setAtomHandle(HGHandle handle)
+	{
+		this.thisHandle = handle;
 	}
 }

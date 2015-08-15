@@ -20,6 +20,10 @@ import org.hypergraphdb.util.HGUtils;
  * </p>
  * 
  * <p>
+ * 
+ * TODO - remove this restriction, make sure this is also a lightweight object with
+ * no essential state so many can be quickly created at will
+ * 
  * A <code>VersionManager</code> should not be explicitly created. Rather, it is obtained
  * by the {@link HGDBOntologyManager}.
  * </p>
@@ -56,7 +60,16 @@ public class VersionManager
 		return emptyChangeSetHandle;
 	}
 	
-	public void manualVersioned(HGHandle O) { isversionedmap.put(O, true); }
+	/**
+	 * for internal use
+	 * @param O
+	 * @return
+	 */
+	public VersionManager manualVersioned(HGHandle O) 
+	{ 
+		isversionedmap.put(O, true);
+		return this; 
+	}
 	
 	private VersionedOntology startVersioning(HGHandle ontology)
 	{
@@ -102,22 +115,23 @@ public class VersionManager
 	public VersionManager(HyperGraph graph, String user)
 	{
 		this.graph = graph;
-		setUser(user);
+		user(user);
 	}
 	
-	public HyperGraph getGraph()
+	public HyperGraph graph()
 	{
 		return graph;
 	}
 	
-	public String getUser()
+	public String user()
 	{
 		return user;
 	}
 	
-	public void setUser(String user)
+	public VersionManager user(String user)
 	{
 		this.user = user == null ? System.getProperty("user.name") : user;
+		return this;
 	}
 	
 	/**

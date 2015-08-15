@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGHandleHolder;
 
 /**
  * <p>
@@ -14,7 +15,7 @@ import org.hypergraphdb.HGHandle;
  * @author Borislav Iordanov
  * @param T concrete type
  */
-public interface Versioned<T extends Versioned<T>>
+public interface Versioned<T extends Versioned<T>> extends HGHandleHolder
 {
 	/**
 	 * Return all version heads. A version head is a revision that is the
