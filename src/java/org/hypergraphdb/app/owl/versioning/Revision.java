@@ -4,8 +4,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
-
 import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGHandleHolder;
@@ -211,70 +209,7 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 						 hg.and(hg.type(ParentLink.class), 
 								hg.orderedLink(hg.anyHandle(), thisHandle)))));
 		return S;		
-	}
-	
-	/**
-	 * <p>
-	 * Label this revision with some meaningful string. Multiple labels 
-	 * per revision are possible. If the revision is already labeled with
-	 * the specified label, nothing happens.
-	 * </p>
-	 * @param label The revision label. The same label can used for more than one 
-	 * revision. 
-	 * @return this
-	 */	
-	public Revision label(final String label)
-	{
-		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
-			public Object call()
-			{
-				HGHandle labelHandle = hg.assertAtom(graph, label);
-				HGHandle labelLink = graph.findOne(hg.and(
-						hg.type(LabelLink.class), hg.incident(labelHandle), hg.incident(thisHandle)));
-				if (labelLink == null)
-					graph.add(new LabelLink(labelHandle, thisHandle));
-				return null;
-			}
-		});
-		return this;		
-	}
-	
-	/**
-	 * Remove a label from a revision. If the revision is not labeled with
-	 * the specified label, nothing happens. 
-	 * @param label
-	 * @return this.
-	 */	
-	public Revision unlabel(final String label)
-	{
-		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
-			public Object call()
-			{		
-				HGHandle labelHandle = graph.findOne(hg.eq(label));
-				if (labelHandle == null)
-					return this;
-				HGHandle labelLink = graph.findOne(hg.and(
-						hg.type(LabelLink.class), hg.incident(labelHandle), hg.incident(thisHandle)));
-				if (labelLink != null)
-					graph.remove(labelLink);
-				return null;
-			}
-		});
-		return this;					
-	}
-	
-	/**
-	 * Return the set of all labels with which this revision is labeled (possibly an
-	 * empty set). 
-	 */	
-	public Set<String> labels()
-	{
-		HashSet<String> S = new HashSet<String>();
-		List<LabelLink> allLabels = graph.getAll(hg.and(hg.type(LabelLink.class), hg.incident(thisHandle)));
-		for (LabelLink ll : allLabels)
-			S.add((String)graph.get(ll.label()));		
-		return S;
-	}
+	}	
 	
 	@Override
 	public HGHandle getAtomHandle()

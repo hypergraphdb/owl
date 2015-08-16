@@ -1,8 +1,6 @@
 package org.hypergraphdb.app.owl.versioning;
 
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -242,26 +240,4 @@ public class VersionManager
 		isversionedmap.put(ontology, false);		
 		return this;
 	}
-	
-	/**
-	 * Return the set of all revisions tagged with the given label (a possible empty set).
-	 */
-	public Set<Revision> revisionsWithLabel(final String label)
-	{
-		return graph.getTransactionManager().transact(new Callable<Set<Revision>>() {
-		public Set<Revision> call()
-		{
-			HashSet<Revision> S = new HashSet<Revision>();
-			HGHandle labelHandle = graph.findOne(hg.eq(label));
-			if (labelHandle == null)
-				return S;
-			for (HGHandle handle : graph.findAll(hg.and(hg.type(LabelLink.class), hg.incident(labelHandle))))
-			{
-				LabelLink labelLink = graph.get(handle);
-				S.add((Revision)graph.get(labelLink.atom()));				
-			}
-			return S;
-		}});
-		
-	}	
 }

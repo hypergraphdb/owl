@@ -1,6 +1,5 @@
 package org.hypergraphdb.app.owl.versioning.change;
 
-import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.versioning.Branch;
 import org.hypergraphdb.app.owl.versioning.Versioned;
@@ -15,19 +14,31 @@ import org.hypergraphdb.app.owl.versioning.Versioned;
  *
  * @param <T>
  */
-public class VBranchRenameChange<T extends Versioned<T>> extends VBranchChange<T>
+public class VBranchRenameChange<T extends Versioned<T>> extends VMetadataChange<T>
 {	
-	private HGHandle branchHandle;
+	private String currentName;
 	private String newname;
+	
+	public VBranchRenameChange()
+	{		
+	}
+	
+	public VBranchRenameChange(String currentName, String newname)
+	{		
+		this.currentName = currentName;
+		this.newname = newname;
+	}
 	
 	@Override
 	public void apply(T versioned)
 	{
-		Branch branch = graph.get(branchHandle);
-		assert branch.getVersioned().equals(graph.getHandle(versioned));
+		Branch branch = graph.findOne(hg.and(hg.type(Branch.class), 
+							hg.eq("name", currentName), 
+							hg.eq("versioned", versioned.getAtomHandle()))); 
+		assert branch != null;
 		assert graph.findOne(hg.and(hg.type(Branch.class), 
-									hg.eq("name", newname), 
-									hg.eq("versioned", branch.getVersioned()))) == null;
+							 hg.eq("name", newname), 
+							 hg.eq("versioned", branch.getVersioned()))) == null;
 		branch.setName(newname);
 		graph.update(branch);
 	}
@@ -35,26 +46,39 @@ public class VBranchRenameChange<T extends Versioned<T>> extends VBranchChange<T
 	@Override
 	public VChange<T> inverse()
 	{
-		VBranchRenameChange<T> inverse = new VBranchRenameChange<T>(); 
-		Branch branch = graph.get(branchHandle);
-		inverse.setBranchHandle(branchHandle);
-		inverse.setNewname(branch.getName());
-		return inverse;
+		return new VBranchRenameChange<T>(newname, currentName); 
 	}
 
 	@Override
 	public boolean conflictsWith(VChange<T> other)
 	{
-		return other instanceof VBranchRenameChange &&
-			((VBranchRenameChange<T>)other).getBranchHandle().equals(branchHandle);	
+		if (other instanceof VBranchRenameChange)
+		{
+			VBranchRenameChange<T> renaming = (VBranchRenameChange<T>)other;
+			return renaming.currentName.equals(currentName) &&
+				   !renaming.newname.equals(newname) ||
+				   
+				   !renaming.currentName.equals(currentName) &&
+				   renaming.newname.equals(newname);
+		}
+		else if (other instanceof VRemoveBranchChange)
+			return  ((VRemoveBranchChange<T>)other).getName().equals(currentName);				
+		else if (other instanceof VAddBranchChange)
+			return  ((VAddBranchChange<T>)other).getName().equals(currentName);
+		else
+			return false;
 	}
 
 	@Override
 	public boolean isEffective(T versioned)
 	{
-		Branch branch = graph.get(branchHandle);
-		assert branch.getVersioned().equals(graph.getHandle(versioned));		
-		return !newname.equals(branch.getName());
+		return graph.findOne(hg.and(hg.type(Branch.class),
+					hg.eq("name", currentName),
+					hg.eq("versioned", versioned.getAtomHandle()))) != null &&
+				
+			   graph.findOne(hg.and(hg.type(Branch.class),
+					hg.eq("name", newname),
+					hg.eq("versioned", versioned.getAtomHandle()))) == null;
 	}
 
 	@Override
@@ -63,14 +87,14 @@ public class VBranchRenameChange<T extends Versioned<T>> extends VBranchChange<T
 		return true;
 	}
 
-	public HGHandle getBranchHandle()
+	public String getCurrentName()
 	{
-		return branchHandle;
+		return currentName;
 	}
 
-	public void setBranchHandle(HGHandle branchHandle)
+	public void setCurrentName(String currentName)
 	{
-		this.branchHandle = branchHandle;
+		this.currentName = currentName;
 	}
 
 	public String getNewname()

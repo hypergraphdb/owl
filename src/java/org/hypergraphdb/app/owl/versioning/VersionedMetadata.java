@@ -1,12 +1,22 @@
 package org.hypergraphdb.app.owl.versioning;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGLink;
+import org.hypergraphdb.HGValueLink;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.HGQuery.hg;
+import org.hypergraphdb.app.owl.versioning.change.VAddBranchChange;
+import org.hypergraphdb.app.owl.versioning.change.VAddLabelChange;
 import org.hypergraphdb.app.owl.versioning.change.VBranchRenameChange;
+import org.hypergraphdb.app.owl.versioning.change.VChange;
+import org.hypergraphdb.app.owl.versioning.change.VMetadataChange;
+import org.hypergraphdb.app.owl.versioning.change.VRemoveLabelChange;
 
 /**
  * <p>
@@ -26,26 +36,59 @@ import org.hypergraphdb.app.owl.versioning.change.VBranchRenameChange;
  */
 public class VersionedMetadata<T extends Versioned<T>>
 {
+	private static final String METACHANGE_ROOT = "METACHANGE_ROOT"; 
 	private HyperGraph graph;
 	private T versioned;
-	private HGHandle [] metachanges;
 	
-	private void initialize()
+	// assuming we're in a transaction already
+	private void lastChange(HGHandle lastChange)
 	{
-		
+		HGHandle current = graph.findOne(hg.and(hg.eq(METACHANGE_ROOT), 
+				   hg.incident(versioned.getAtomHandle())));
+		if (current != null)
+			graph.remove(current);
+		graph.add(new HGValueLink(METACHANGE_ROOT, lastChange, versioned.getAtomHandle()));		
+	}
+	
+	private void performChange(VMetadataChange<T> change)
+	{
+		change.setHyperGraph(graph);		
+		change.apply(versioned);
+		lastChange(graph.add(change));
 	}
 	
 	public VersionedMetadata(HyperGraph graph, T versioned)
 	{
 		
 	}
-	
-	public HGHandle createBranch(String name, String user)
+
+	public HGHandle lastChange()
 	{
-		return graph.add(new Branch(name, 
-									versioned.getAtomHandle(), 
-									user, 
-									System.currentTimeMillis()));
+		HGLink link = graph.getOne(hg.and(hg.eq(METACHANGE_ROOT), 
+								   hg.incident(versioned.getAtomHandle())));
+		if (link == null)
+			return null;
+		else
+			return link.getTargetAt(0);
+	}
+	
+	public HGHandle createBranch(final String name, final String user)
+	{
+		return graph.getTransactionManager().ensureTransaction(new Callable<HGHandle>(){
+			public HGHandle call()
+			{
+				VAddBranchChange<T> change = new VAddBranchChange<T>();
+				change.setHyperGraph(graph);
+				change.setName(name);
+				change.setCreatedBy(user);
+				change.setCreatedOn(System.currentTimeMillis());
+				performChange(change);
+				return hg.findOne(graph, 
+						hg.and(hg.type(Branch.class), 
+							   hg.eq("name", name),
+							   hg.eq("versioned", versioned.getAtomHandle())));				
+			}
+		});
 	}
 	
 	/**
@@ -59,7 +102,7 @@ public class VersionedMetadata<T extends Versioned<T>>
 	{
 		return graph.getOne(hg.and(hg.type(Branch.class), 
 								   hg.eq("name", name), 
-								   hg.eq("versioned", versioned)));
+								   hg.eq("versioned", versioned.getAtomHandle())));
 	}
 	
 	/**
@@ -80,13 +123,111 @@ public class VersionedMetadata<T extends Versioned<T>>
 						hg.eq("versioned", branch.getVersioned()))) != null)
 					throw new IllegalArgumentException("Duplicate branch name '" + newname + "'.");
 				VBranchRenameChange<T> change = new VBranchRenameChange<T>();
-				change.setBranchHandle(branch.getAtomHandle());
+				change.setCurrentName(branch.getName());
 				change.setNewname(newname);
-				change.setHyperGraph(graph);
-//				changes().add(change);
-				change.apply(versioned);
+				performChange(change);
 				return branch;
 			}
 		});
+	}	
+	
+	/**
+	 * Return a collection of all branches for this versioned object.
+	 */
+	public Collection<Branch> allBranches()
+	{
+		return graph.getAll(hg.and(hg.type(Branch.class), 
+								   hg.eq("versioned", versioned.getAtomHandle())));
+	}
+	
+	/**
+	 * Return the set of all revisions tagged with the given label (a possible empty set).
+	 */
+	public Set<Revision> revisionsWithLabel(final String label)
+	{
+		return graph.getTransactionManager().transact(new Callable<Set<Revision>>() {
+		public Set<Revision> call()
+		{
+			HashSet<Revision> S = new HashSet<Revision>();
+			HGHandle labelHandle = graph.findOne(hg.eq(label));
+			if (labelHandle == null)
+				return S;
+			for (HGHandle handle : graph.findAll(hg.and(hg.type(LabelLink.class), 
+														hg.incident(labelHandle))))
+			{
+				LabelLink labelLink = graph.get(handle);
+				Revision rev = graph.get(labelLink.atom());
+				if (rev.versioned().equals(versioned.getAtomHandle()))
+					S.add(rev);				
+			}
+			return S;
+		}});
+	}	
+	
+	/**
+	 * <p>
+	 * Label this revision with some meaningful string. Multiple labels 
+	 * per revision are possible. If the revision is already labeled with
+	 * the specified label, nothing happens.
+	 * </p>
+	 * @param label The revision label. The same label can used for more than one 
+	 * revision. 
+	 * @return this
+	 */	
+	public VersionedMetadata<T> label(final HGHandle tolabel, final String label)
+	{
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+			public Object call()
+			{
+				HGHandle labelHandle = hg.assertAtom(graph, label);
+				HGHandle labelLink = graph.findOne(hg.and(
+						hg.type(LabelLink.class), 
+						hg.orderedLink(labelHandle, tolabel, versioned.getAtomHandle())));
+				if (labelLink == null)
+					performChange(new VAddLabelChange<T>(labelHandle, tolabel));
+				return null;
+			}
+		});
+		return this;		
+	}
+	
+	/**
+	 * Remove a label from a revision. If the revision is not labeled with
+	 * the specified label, nothing happens. 
+	 * @param label
+	 * @return this.
+	 */	
+	public VersionedMetadata<T> unlabel(final HGHandle tolabel, final String label)
+	{
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+			public Object call()
+			{		
+				HGHandle labelHandle = graph.findOne(hg.eq(label));
+				if (labelHandle == null)
+					return this;
+				HGHandle labelLink = graph.findOne(hg.and(
+						hg.type(LabelLink.class), 
+								hg.incident(labelHandle), 
+								hg.incident(tolabel)));
+				if (labelLink != null)
+					performChange(new VRemoveLabelChange<T>(labelHandle, tolabel));
+				return null;
+			}
+		});
+		return this;					
+	}
+	
+	/**
+	 * Return the set of all labels with which this revision is labeled (possibly an
+	 * empty set). 
+	 */	
+	public Set<String> labels(HGHandle labeled)
+	{
+		HashSet<String> S = new HashSet<String>();
+		List<LabelLink> allLabels = graph.getAll(hg.and(hg.type(LabelLink.class), 
+										hg.incident(labeled)));
+		for (LabelLink ll : allLabels)
+			S.add((String)graph.get(ll.label()));		
+		return S;
 	}	
 }

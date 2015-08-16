@@ -48,7 +48,8 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	private HGHandle bottomRevision;
 	private HGHandle currentRevision;
 	private HGHandle workingChanges;
-
+	private VersionedMetadata<VersionedOntology> metadata;
+	
 	/**
 	 * Get all change marks applied after the revision argument. 
 	 * 
@@ -245,8 +246,14 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	public void setHyperGraph(HyperGraph graph)
 	{
 		this.graph = graph;
+		this.metadata = new VersionedMetadata<VersionedOntology>(graph, this);
 	}
 
+	public VersionedMetadata<VersionedOntology> metadata()
+	{
+		return this.metadata;
+	}
+	
 	public HyperGraph graph()
 	{
 		return graph;
@@ -304,7 +311,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 				throw new IllegalArgumentException("Branch already exists: '" + branch + "'.");
 			HGHandle branchHandle = 
 				branch == null ? null 
-							   : graph.add(new Branch(branch, getAtomHandle(), user, System.currentTimeMillis()));
+							   : metadata.createBranch(branch, user);
 			return makeRevision(user, comment, branchHandle);
 		}
 		});

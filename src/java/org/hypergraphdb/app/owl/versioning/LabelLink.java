@@ -14,7 +14,7 @@ public class LabelLink implements HGLink
 		label = handles[0];
 		atom = handles[1];
 	}
-	
+		
 	public HGHandle label()
 	{
 		return label;

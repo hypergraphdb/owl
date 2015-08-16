@@ -3,10 +3,12 @@ package org.hypergraphdb.app.owl.versioning.change;
 import org.hypergraphdb.app.owl.versioning.Versioned;
 
 /**
+ * <p>
  * Represents a change to a versioned object. The methods in this interface 
  * support version management operations such as reverting to a previous
  * revision, normalizing a set of changes to remove redundancy and conflict
  * detection.
+ * </p>
  * 
  * @author Borislav Iordanov
  *
@@ -15,7 +17,14 @@ import org.hypergraphdb.app.owl.versioning.Versioned;
 public interface VChange<T extends Versioned<T>>
 {	
 	/**
-	 * Enact this change to the versioned object.
+	 * Enact this change to the versioned object. Note that applying a change
+	 * may be a complex operation involving a query and then a database write.
+	 * A complex database operations should of course be performed within a 
+	 * transaction. However, the <code>apply</code> implementations of this
+	 * interface will assume that they are already executing within a transaction.
+	 * The versioning API already ensures that transactions are created at the 
+	 * appropriate sites. But if you are developing extensions of the framework, 
+	 * please call <code>apply</code> only within a transaction. 
 	 */
 	void apply(T versioned);
 	

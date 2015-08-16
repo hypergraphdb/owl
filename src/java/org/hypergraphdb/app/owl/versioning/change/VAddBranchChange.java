@@ -1,9 +1,10 @@
 package org.hypergraphdb.app.owl.versioning.change;
 
+import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.versioning.Branch;
 import org.hypergraphdb.app.owl.versioning.Versioned;
 
-public class VAddBranchChange<T extends Versioned<T>> extends VBranchChange<T>
+public class VAddBranchChange<T extends Versioned<T>> extends VMetadataChange<T>
 {
 	private String name;
 	private String createdBy;
@@ -11,6 +12,11 @@ public class VAddBranchChange<T extends Versioned<T>> extends VBranchChange<T>
 	
 	public VAddBranchChange()
 	{		
+	}
+	
+	public VAddBranchChange(String name, String createdBy)
+	{
+		this(name, createdBy, System.currentTimeMillis());
 	}
 	
 	public VAddBranchChange(String name, String createdBy, long createdOn)
@@ -23,17 +29,22 @@ public class VAddBranchChange<T extends Versioned<T>> extends VBranchChange<T>
 	@Override
 	public void apply(T versioned)
 	{
-		Branch branch = new Branch();
-		branch.setName(name);
-		branch.setCreatedBy(createdBy);
-		branch.setCreatedOn(createdOn);
+		if (isEffective(versioned))
+		{
+			Branch branch = new Branch();
+			branch.setName(name);
+			branch.setCreatedBy(createdBy);
+			branch.setCreatedOn(createdOn);
+			branch.setVersioned(versioned.getAtomHandle());
+			graph.add(branch);
+		}
 	}
 
 	@Override
 	public boolean conflictsWith(VChange<T> other)
 	{
-		return other instanceof VAddBranchChange && 
-			  ((VAddBranchChange<T>)other).name.equals(name) ||
+		return other instanceof VRemoveBranchChange && 
+			  ((VRemoveBranchChange<T>)other).getName().equals(name) ||
 			  other instanceof VBranchRenameChange && 
 			  ((VBranchRenameChange<T>)other).getNewname().equals(name);
 	}
@@ -41,21 +52,21 @@ public class VAddBranchChange<T extends Versioned<T>> extends VBranchChange<T>
 	@Override
 	public VChange<T> inverse()
 	{
-		return new VRemoveBranchChange<T>(name);
+		return new VRemoveBranchChange<T>(name, createdBy);
 	}
 	
 	@Override
 	public boolean isEffective(T versioned)
 	{
-		// TODO Auto-generated method stub
-		return false;
+		return graph.findOne(hg.and(hg.type(Branch.class),
+				hg.eq("name", name),
+				hg.eq("versioned", versioned.getAtomHandle()))) == null;
 	}
 	
 	@Override
 	public boolean isIdempotent()
 	{
-		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 	
 	public String getName()
@@ -66,5 +77,25 @@ public class VAddBranchChange<T extends Versioned<T>> extends VBranchChange<T>
 	public void setName(String name)
 	{
 		this.name = name;
+	}
+
+	public String getCreatedBy()
+	{
+		return createdBy;
+	}
+
+	public void setCreatedBy(String createdBy)
+	{
+		this.createdBy = createdBy;
+	}
+
+	public long getCreatedOn()
+	{
+		return createdOn;
+	}
+
+	public void setCreatedOn(long createdOn)
+	{
+		this.createdOn = createdOn;
 	}
 }

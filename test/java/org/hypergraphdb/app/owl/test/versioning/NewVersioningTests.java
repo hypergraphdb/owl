@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl.test.versioning;
 
 import static org.hypergraphdb.app.owl.test.TU.aInstanceOf;
+
 import static org.hypergraphdb.app.owl.test.TU.aProp;
 import static org.hypergraphdb.app.owl.test.TU.aSubclassOf;
 import static org.hypergraphdb.app.owl.test.TU.declare;
@@ -15,11 +16,11 @@ import java.util.Iterator;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.test.TU;
-import org.hypergraphdb.app.owl.test.versioning.distributed.DistributedTests;
 import org.hypergraphdb.app.owl.versioning.ChangeRecord;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
+import org.hypergraphdb.app.owl.versioning.VersionedMetadata;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.type.HGCompositeType;
 import org.hypergraphdb.util.HGUtils;
@@ -159,32 +160,35 @@ public class NewVersioningTests extends VersioningTestBase
 	@Test
 	public void testLabels()
 	{
+		VersionedMetadata<VersionedOntology> metadata = ctx.vonto().metadata();
 		declare(owlClass("ClassCommit"));
 		declare(owlClass("ClassChangePush"));
 		aSubclassOf(owlClass("ClassCommit"), owlClass("ClassChangePush"));
 		Revision firstRevision = ctx.vonto().revision();				
-		ctx.vonto().revision().label("initial");				
+		metadata.label(firstRevision.getAtomHandle(), "initial");				
 		ctx.vonto().commit("test", "first changes");
 		Revision secondRevision = ctx.vonto().revision();		
 		declare(owlClass("User"));
 		declare(oprop("hasAuthor"));
 		aInstanceOf(owlClass("User"), individual("Veve"));
 		ctx.vonto().flushChanges();
-		secondRevision.label("basic classes"); // still labeling revision not change mark		
+		 // still labeling revision not change mark
+		metadata.label(secondRevision.getAtomHandle(), "basic classes");		
 		aProp(oprop("hasAuthor"), individual("GrandRelease"), individual("Veve"));
 		ctx.vonto().commit("test2", "second changes");
-		firstRevision.label("initial2");
+		metadata.label(firstRevision.getAtomHandle(), "initial2");
 		Revision thirdRevision = ctx.vonto().revision();
 		Assert.assertEquals(HGUtils.set(firstRevision), 
-							ctx.vrepo().revisionsWithLabel("initial"));
+							metadata.revisionsWithLabel("initial"));
 		Assert.assertEquals(HGUtils.set(secondRevision),
-							ctx.vrepo().revisionsWithLabel("basic classes"));		
-		thirdRevision.label("initial2");		
+							metadata.revisionsWithLabel("basic classes"));		
+		metadata.label(thirdRevision.getAtomHandle(), "initial2");		
 		Assert.assertEquals(HGUtils.set(firstRevision, thirdRevision),
-				ctx.vrepo().revisionsWithLabel("initial2"));			
-		thirdRevision.unlabel("initial2");
-		Assert.assertTrue(thirdRevision.labels().isEmpty());
-		Assert.assertEquals(HGUtils.set("initial", "initial2"), firstRevision.labels());
+				metadata.revisionsWithLabel("initial2"));			
+		metadata.unlabel(thirdRevision.getAtomHandle(), "initial2");
+		Assert.assertTrue(metadata.labels(thirdRevision.getAtomHandle()).isEmpty());
+		Assert.assertEquals(HGUtils.set("initial", "initial2"), 
+							metadata.labels(firstRevision.getAtomHandle()));
 	}	
 	
 	@Test

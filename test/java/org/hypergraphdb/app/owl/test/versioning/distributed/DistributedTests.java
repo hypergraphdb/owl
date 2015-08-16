@@ -248,8 +248,8 @@ public class DistributedTests extends VersioningTestBase
 		ctx2.o = ctx2.vo.ontology();		
 
 		// now create two conflicts: rename a branch at peer1
-		Branch branch1 = ctx1.vo.findBranch("TestBranch1");
-		ctx1.vo.renameBranch(branch1, "TestBranch1_NewName");
+		Branch branch1 = ctx1.vo.metadata().findBranch("TestBranch1");
+		ctx1.vo.metadata().renameBranch(branch1, "TestBranch1_NewName");
 		
 		// create another branch at peer1 
 		ctx1.vo.commit("testuser", "create branch", "TestBranch2");
@@ -269,7 +269,7 @@ public class DistributedTests extends VersioningTestBase
 		Assert.assertTrue(updateActivity.completedMessage().contains("2 branch conflicts found"));
 		
 		// change new peer2 branch name
-		Branch branch2 = ctx2.vo.findBranch("TestBranch2");
+		Branch branch2 = ctx2.vo.metadata().findBranch("TestBranch2");
 		branch2.setName("Test Branch 3");
 		ctx2.graph.update(branch2);
 		
