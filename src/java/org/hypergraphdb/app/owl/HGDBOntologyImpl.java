@@ -1869,8 +1869,9 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 			}
 			else
 			{
+				System.out.println("Graph location : " + graph.getLocation());
 				throw new IllegalStateException(
-						"getHandle(entity) for entity in memory returned null. Implement find?");
+						"getHandle(entity) for entity " + object + " in memory returned null. Implement find?");
 			}
 			// } else {
 			// // builtin not added to onto.

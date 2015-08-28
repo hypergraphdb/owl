@@ -1,20 +1,21 @@
 package org.hypergraphdb.app.owl.versioning.distributed.activity;
 
 import static org.hypergraphdb.peer.Messages.CONTENT;
+import static org.hypergraphdb.peer.Messages.fromJson;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import mjson.Json;
 
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.app.owl.versioning.Branch;
 import org.hypergraphdb.app.owl.versioning.OntologyVersionState;
-import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.change.VMetadataChange;
 import org.hypergraphdb.app.owl.versioning.distributed.RemoteOntology;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.Messages;
@@ -23,8 +24,6 @@ import org.hypergraphdb.peer.workflow.FSMActivity;
 import org.hypergraphdb.peer.workflow.FromState;
 import org.hypergraphdb.peer.workflow.OnMessage;
 import org.hypergraphdb.peer.workflow.WorkflowStateConstant;
-
-import static org.hypergraphdb.peer.Messages.*;
 
 /**
  * <p>
@@ -40,7 +39,7 @@ public class GetNewRevisionsActivity extends FSMActivity
 {
 	private HGHandle remoteOntologyHandle;
 	private OntologyVersionState.Delta delta = null;
-	private Set<Branch> branches = null;
+	private List<VMetadataChange<VersionedOntology>> metaChanges = null;
 	
 	public static final String TYPENAME = "get-new-revisions";
 
@@ -67,7 +66,8 @@ public class GetNewRevisionsActivity extends FSMActivity
 		RemoteOntology remoteOntology = getThisPeer().getGraph().get(remoteOntologyHandle);
 		Json msg = createMessage(Performative.QueryRef, this);
 		msg.set(CONTENT, Json.object("ontology", remoteOntology.getOntologyHandle(), 
-									 "heads", remoteOntology.getRevisionHeads()));
+									 "heads", remoteOntology.getRevisionHeads(),
+									 "lastMetaChange", remoteOntology.getLastMetaChange()));
 		send(remoteOntology.getRepository().getPeer(), msg);
 	}
 	
@@ -77,11 +77,12 @@ public class GetNewRevisionsActivity extends FSMActivity
 	{
 		HGHandle ontologyHandle = Messages.fromJson(msg.at(CONTENT).at("ontology"));
 		Set<HGHandle> revisionHeads = Messages.fromJson(msg.at(CONTENT).at("heads"));
+		HGHandle lastMetaChange = Messages.fromJson(msg.at(CONTENT).at("lastMetaChange"));
 		OntologyVersionState versionState = new OntologyVersionState(revisionHeads);
 		VersionManager versionManager = new VersionManager(getThisPeer().getGraph(), "fixme-VHDBOntologyRepository");
 		if (!versionManager.isVersioned(ontologyHandle))
 			reply(msg, Performative.Failure, "The ontology does not exist or is not versioned.");
-		else if (revisionHeads.isEmpty())
+		else if (revisionHeads.isEmpty()) // complete clone
 		{
 			VersionedOntology vo = versionManager.versioned(ontologyHandle);
 			OntologyVersionState.Delta delta = new OntologyVersionState.Delta();
@@ -89,32 +90,21 @@ public class GetNewRevisionsActivity extends FSMActivity
 			delta.roots = new HashSet<HGHandle>();
 			delta.roots.add(vo.getRootRevision());
 			delta.revisions = ActivityUtils.collectRevisions(vo, delta.roots, Collections.<HGHandle> emptySet());
-			branches = new HashSet<Branch>();
-			for (HGHandle revHandle : delta.revisions)
-			{
-				Revision revision = getThisPeer().getGraph().get(revHandle);
-				if (revision.branchHandle() != null)
-					branches.add(revision.branch());
-			}
+			metaChanges = ActivityUtils.collectMetaChanges(getThisPeer().getGraph(), vo, null);			
 			reply(msg, Performative.InformRef, Json.object()
 					.set("revisions", delta.revisions)
-					.set("branches", branches)
+					.set("metaChanges", metaChanges)
 					.set("heads", delta.heads)
 					.set("roots", delta.roots));
 		}
-		else
+		else // update
 		{
-			OntologyVersionState.Delta delta = versionState.findRevisionsSince(versionManager.versioned(ontologyHandle));
-			branches = new HashSet<Branch>();
-			for (HGHandle revHandle : delta.revisions)
-			{
-				Revision revision = getThisPeer().getGraph().get(revHandle);
-				if (revision.branchHandle() != null)
-					branches.add(revision.branch());
-			}			
+			VersionedOntology vo = versionManager.versioned(ontologyHandle);
+			OntologyVersionState.Delta delta = versionState.findRevisionsSince(vo);
+			metaChanges = ActivityUtils.collectMetaChanges(getThisPeer().getGraph(), vo, lastMetaChange);
 			reply(msg, Performative.InformRef, Json.object()
 					.set("revisions", delta.revisions)
-					.set("branches", branches)
+					.set("metaChanges", metaChanges)
 					.set("heads", delta.heads)
 					.set("roots", delta.roots));
 		}
@@ -129,8 +119,8 @@ public class GetNewRevisionsActivity extends FSMActivity
 		delta.revisions = fromJson(msg.at(CONTENT).at("revisions"));
 		delta.heads = fromJson(msg.at(CONTENT).at("heads"));
 		delta.roots = fromJson(msg.at(CONTENT).at("roots"));
-		branches = fromJson(msg.at(CONTENT).at("branches"));
-		System.out.println("new revisions: " + branches);
+		metaChanges = fromJson(msg.at(CONTENT).at("metaChanges"));
+		System.out.println("meta changes: " + metaChanges);
 		return WorkflowStateConstant.Completed;
 	}
 	
@@ -138,5 +128,5 @@ public class GetNewRevisionsActivity extends FSMActivity
 	public Set<HGHandle> newRoots() { return delta.roots; }
 	public Set<HGHandle> newHeads() { return delta.heads; }
 	public OntologyVersionState.Delta delta() { return delta; }
-	public Set<Branch> branches() { return branches; }
+	public List<VMetadataChange<VersionedOntology>> metaChanges() { return metaChanges; }
 }

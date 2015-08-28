@@ -24,7 +24,7 @@ public class ChangeRecordElementHandler extends AbstractVOWLElementHandler<Chang
 	{
 		if (localName.equals("target"))
 		{
-			changeRecord.target(graph.getHandleFactory().makeHandle(value));
+			changeRecord.versioned(graph.getHandleFactory().makeHandle(value));
 		}
 		else if (localName.equals("changeSet"))
 		{

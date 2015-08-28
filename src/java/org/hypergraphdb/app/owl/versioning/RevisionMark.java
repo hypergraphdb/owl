@@ -134,4 +134,10 @@ public class RevisionMark implements HGLink, HGHandleHolder
 			return false;
 		return true;
 	}	
+	
+	public String toString()
+	{
+		return "RevisionMark[" + this.hRevision+ ", " + this.hChangeRecord + "]"; 
+	}
+	
 }

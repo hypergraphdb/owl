@@ -114,4 +114,9 @@ public class ParentLink implements HGLink, HGHandleHolder
 		ParentLink mp = (ParentLink)obj;
 		return HGUtils.eq(parent, mp.parent) && HGUtils.eq(child, mp.child);
 	}		
+	
+	public String toString()
+	{
+		return "ParentLink[" + child + ", " + parent + "]"; 
+	}
 }

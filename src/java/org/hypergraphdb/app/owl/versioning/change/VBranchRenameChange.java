@@ -32,7 +32,7 @@ public class VBranchRenameChange<T extends Versioned<T>> extends VMetadataChange
 	@Override
 	public void apply(T versioned)
 	{
-		Branch branch = graph.findOne(hg.and(hg.type(Branch.class), 
+		Branch branch = graph.getOne(hg.and(hg.type(Branch.class), 
 							hg.eq("name", currentName), 
 							hg.eq("versioned", versioned.getAtomHandle()))); 
 		assert branch != null;

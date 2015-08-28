@@ -7,6 +7,7 @@ import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -16,7 +17,6 @@ import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGHandleHolder;
-import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
@@ -31,8 +31,11 @@ import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.ParentLink;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.RevisionMark;
+import org.hypergraphdb.app.owl.versioning.Versioned;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.versioning;
 import org.hypergraphdb.app.owl.versioning.change.VChange;
+import org.hypergraphdb.app.owl.versioning.change.VMetadataChange;
 import org.hypergraphdb.app.owl.versioning.distributed.DistributedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
@@ -115,6 +118,24 @@ public class ActivityUtils
 		return S;
 	}
 	
+	public static <T extends Versioned<T>> List<VMetadataChange<T>> collectMetaChanges(HyperGraph graph, T versioned, HGHandle lastKnown)
+	{
+		ArrayList<VMetadataChange<T>> metaChanges = new ArrayList<VMetadataChange<T>>();
+		HGHandle latest = versioned.metadata().lastChange();
+		if (latest != null)
+		{
+			List<VMetadataChange<T>> L = graph.getAll(hg.dfs(
+					latest, 
+					hg.type(ParentLink.class), 
+					lastKnown == null ? null : hg.not(hg.is(lastKnown)), 
+					false, 
+					true));
+			VMetadataChange<T> last = graph.get(latest);
+			L.add(last);
+			metaChanges.addAll(L);
+		}
+		return metaChanges;
+	}
 
 	/**
 	 * Renders a full versioned ontology (All Changesets, Revisions and Head
@@ -229,10 +250,13 @@ public class ActivityUtils
 			if (record == null) // limit case, during cloning this record is not serialzed
 			{
 				record = new ChangeRecord();
-				record.target(o.getAtomHandle());
+				record.versioned(o.getAtomHandle());
 				record.changeSet(manager.getVersionManager().emptyChangeSetHandle());
 				graph.define(mark.changeRecord(), record);
 			}
+//			System.out.println(vo);
+//			System.out.println("Stored cloned " + ontologyUUID + " at "+ graph.getLocation());
+			versioning.printRevisionGraph(graph, vo);
 			return vo;
 		}
 		catch (Exception ex)

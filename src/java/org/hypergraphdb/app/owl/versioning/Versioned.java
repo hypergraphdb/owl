@@ -17,6 +17,8 @@ import org.hypergraphdb.HGHandleHolder;
  */
 public interface Versioned<T extends Versioned<T>> extends HGHandleHolder
 {
+	VersionedMetadata<T> metadata();
+	
 	/**
 	 * Return all version heads. A version head is a revision that is the
 	 * last in its branch. One of the revision heads is always going to be

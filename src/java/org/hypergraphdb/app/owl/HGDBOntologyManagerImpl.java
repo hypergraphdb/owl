@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl;
 
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HyperGraph;
@@ -15,7 +16,9 @@ import org.hypergraphdb.app.owl.versioning.VersioningChangeListener;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.ActivityUtils;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
 import org.semanticweb.owlapi.io.FileDocumentSource;
+import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
@@ -248,4 +251,10 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 		}
 		return null;
 	}
+	
+//	@Override
+//	public List<OWLOntologyChange> addAxiom(OWLOntology o, OWLAxiom ax)
+//	{
+//		this.applyChange(new AddAxiom(o,ax));
+//	}
 }

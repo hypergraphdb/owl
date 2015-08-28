@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl.test.versioning;
 
 import static org.hypergraphdb.app.owl.test.TU.aInstanceOf;
+
 import static org.hypergraphdb.app.owl.test.TU.aProp;
 import static org.hypergraphdb.app.owl.test.TU.aSubclassOf;
 import static org.hypergraphdb.app.owl.test.TU.declare;
@@ -9,7 +10,7 @@ import static org.hypergraphdb.app.owl.test.TU.individual;
 import static org.hypergraphdb.app.owl.test.TU.literal;
 import static org.hypergraphdb.app.owl.test.TU.oprop;
 import static org.hypergraphdb.app.owl.test.TU.owlClass;
-
+import static org.junit.Assert.*;
 import java.util.Iterator;
 
 import org.hypergraphdb.HGHandle;
@@ -49,7 +50,7 @@ public class VersioningTests extends VersioningTestBase
 	public static void main(String []argv)
 	{
 		JUnitCore junit = new JUnitCore();
-		Result result = junit.run(Request.method(NewVersioningTests.class, "testSimpleChanges"));
+		Result result = junit.run(Request.method(VersioningTests.class, "testSimpleMerge"));
 		System.out.println("Failures " + result.getFailureCount());
 		if (result.getFailureCount() > 0)
 		{
@@ -124,7 +125,7 @@ public class VersioningTests extends VersioningTestBase
 		// re-open graph so caches get flushed and we still have everything stored
 		// properly 
 		ctx.graph().close();
-		ctx.graph().open(ctx.graph().getLocation());
+		TU.ctx.set(TU.newCtx(dblocation));
 		ctx.vo = ctx.vr.versioned(ctx.o.getAtomHandle());
 		System.out.println("handle = " + ctx.vonto().revision().getAtomHandle());
 		Assert.assertEquals("first changes", ctx.vonto().revision().comment());
@@ -136,6 +137,22 @@ public class VersioningTests extends VersioningTestBase
 		Assert.assertEquals(revisionBefore.getAtomHandle(), lastCommitted);
 		ChangeSet<?> fromLastCommitted = ctx.vonto().changes(ctx.vonto().revision()).get(0);
 		Assert.assertEquals(changeSet, fromLastCommitted);		
+	}
+	
+	@Test
+	public void testNoChangesRevisions()
+	{
+		HGHandle currentChanges = ctx.vonto().getWorkingChanges();
+		Revision rev = ctx.vonto().commit("test", "no changes revision");
+		ChangeRecord record = ctx.graph().get(ctx.vonto().getRevisionMark(rev.getAtomHandle()).changeRecord());
+		assertEquals(currentChanges, record.changeset());
+		aInstanceOf(owlClass("ClassNoChangesTest"), individual("NoEmptySetIfFlushAlready"));
+		aProp(dprop("theCount"), individual("NoEmptySetIfFlushAlready"), literal("10"));
+		currentChanges = ctx.vonto().getWorkingChanges();
+		assertEquals(currentChanges, ctx.vonto().flushChanges().changeset());
+		rev = ctx.vonto().commit("test", "flushed changes revision");
+		record = ctx.graph().get(ctx.vonto().getRevisionMark(rev.getAtomHandle()).changeRecord());
+		assertEquals(currentChanges, record.changeset());		
 	}
 	
 	@Test 
@@ -153,7 +170,9 @@ public class VersioningTests extends VersioningTestBase
 		set = ctx.graph.get(mark.changeset());
 		Assert.assertEquals(0, set.size());
 		ctx.vonto().commit("test", "second changes");
-		Assert.assertEquals(3, ctx.vonto().changes(ctx.vonto().revision()).size());
+		// a commit doesn't create a new change record if there are not working set changes and
+		// we already have a change record after the current/last revision
+		Assert.assertEquals(2, ctx.vonto().changes(ctx.vonto().revision()).size());
 	}
 	
 	@Test

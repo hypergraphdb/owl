@@ -35,7 +35,7 @@ public class ChangeRecord implements HGLink, HGGraphHolder, HGHandleHolder
 {
 	private HGHandle thisHandle;
 	private HyperGraph graph;
-	private HGHandle target, changeset;
+	private HGHandle versioned, changeset;
 	private long timestamp;
 	
 	public ChangeRecord()
@@ -46,7 +46,7 @@ public class ChangeRecord implements HGLink, HGGraphHolder, HGHandleHolder
 	{
 		if (targets.length != 2)
 			throw new IllegalArgumentException("Expecting exactly 2 targets: target object and changeset");
-		target = targets[0];
+		versioned = targets[0];
 		changeset = targets[1];
 	}
 	
@@ -106,19 +106,24 @@ public class ChangeRecord implements HGLink, HGGraphHolder, HGHandleHolder
 		return S;
 	}
 	
+	/**
+	 * <p>Return the revision with which this <code>ChangeRecord</code> is
+	 * associated or <code>null</code> if it is not associated with any revision
+	 * (e.g. it is an intermediary change flush). 
+	 */
 	public HGHandle revision()
 	{
 		return graph.findOne(hg.apply(hg.targetAt(graph, 0), 
 				hg.and(hg.type(RevisionMark.class), hg.incident(thisHandle))));
 	}
 	
-	public ChangeRecord target(HGHandle target)
+	public ChangeRecord versioned(HGHandle versioned)
 	{
-		this.target = target;
+		this.versioned = versioned;
 		return this;
 	}
 	
-	public HGHandle target()
+	public HGHandle versioned()
 	{
 		return getTargetAt(0);
 	}
@@ -155,14 +160,14 @@ public class ChangeRecord implements HGLink, HGGraphHolder, HGHandleHolder
 	{
 		if (i > 1)
 			throw new IndexOutOfBoundsException(" Target index " + i + " must 0 or 1");
-		return i == 0 ? target : changeset;
+		return i == 0 ? versioned : changeset;
 	}
 
 	@Override
 	public void notifyTargetHandleUpdate(int i, HGHandle handle)
 	{
 		if (i == 0)
-			target = handle;
+			versioned = handle;
 		else
 			changeset = handle;
 	}
@@ -202,4 +207,10 @@ public class ChangeRecord implements HGLink, HGGraphHolder, HGHandleHolder
 			return false;
 		return true;
 	}	
+	
+	public String toString()
+	{
+		return "ChangeRecord[" + versioned + ", " + changeset + "]"; 
+	}
+	
 }

@@ -1,7 +1,12 @@
 package org.hypergraphdb.app.owl.versioning;
 
+import java.util.HashSet;
+import java.util.concurrent.Callable;
+
+import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGIndex;
 import org.hypergraphdb.HGPersistentHandle;
+import org.hypergraphdb.HGSearchResult;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.event.HGAtomAddedEvent;
 import org.hypergraphdb.event.HGAtomRemovedEvent;
@@ -44,7 +49,7 @@ public class TrackRevisionStructure
 	
 	public static class AddRevisionOrParentListener implements HGListener 
 	{
-		public HGListener.Result handle(HyperGraph graph, HGEvent event)
+		private HGListener.Result doHandle(HyperGraph graph, HGEvent event)
 		{
 			Object atom = graph.get(((HGAtomAddedEvent)event).getAtomHandle());
 			if (atom instanceof Revision)
@@ -55,9 +60,11 @@ public class TrackRevisionStructure
 					System.out.println("oops no versioned for revision");
 				else if (versioned.getBottomRevision() == null)
 					System.out.println("oops not bottom revision for versioned"); */
+//				System.out.println("Current HEAD 1: " + versioned.heads());
 				revisionChildIndex(graph).addEntry(
 						versioned.getBottomRevision().getPersistent(),
-						revision.getAtomHandle().getPersistent());
+						revision.getAtomHandle().getPersistent());		
+//				System.out.println("Current HEAD 2: " + versioned.heads());
 			}
 			else if (atom instanceof ParentLink)
 			{
@@ -72,19 +79,42 @@ public class TrackRevisionStructure
 					{
 						HGIndex<HGPersistentHandle, HGPersistentHandle> idx = revisionChildIndex(graph);
 						VersionedOntology versioned = graph.get(((Revision)child).versioned());
+//						System.out.println("Current HEAD 3: " + versioned.heads());						
 						idx.removeEntry(versioned.getBottomRevision().getPersistent(), 
 										parentLink.parent().getPersistent());
 						idx.addEntry(parentLink.child().getPersistent(), parentLink.parent().getPersistent());
+//						System.out.println("Current HEAD 4: " + versioned.heads() + " " + parentLink.parent());						
 					}
+
 				}
 			}
-			return Result.ok;
+			return Result.ok;			
+		}
+		
+		public HGListener.Result handle(final HyperGraph graph, final HGEvent event)
+		{
+			return graph.getTransactionManager().ensureTransaction(new Callable<HGListener.Result>(){
+				public HGListener.Result call()
+				{
+					return doHandle(graph, event);
+				}
+			});
 		}
 	}
 
 	public static class RemoveRevisionOrParentListener implements HGListener 
 	{
-		public HGListener.Result handle(HyperGraph graph, HGEvent event)
+		public HGListener.Result handle(final HyperGraph graph, final HGEvent event)
+		{
+			return graph.getTransactionManager().ensureTransaction(new Callable<HGListener.Result>(){
+				public HGListener.Result call()
+				{
+					return doHandle(graph, event);
+				}
+			});			
+		}
+		
+		private HGListener.Result doHandle(HyperGraph graph, HGEvent event)
 		{
 			Object atom = graph.get(((HGAtomRemovedEvent)event).getAtomHandle());
 			if (atom instanceof Revision)

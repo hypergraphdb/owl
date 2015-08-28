@@ -6,6 +6,7 @@ import static org.hypergraphdb.peer.Messages.getReply;
 import static org.hypergraphdb.peer.Messages.getSender;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -13,13 +14,13 @@ import mjson.Json;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
-import org.hypergraphdb.app.owl.versioning.Branch;
 import org.hypergraphdb.app.owl.versioning.OntologyVersionState;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.versioning;
+import org.hypergraphdb.app.owl.versioning.change.VMetadataChange;
 import org.hypergraphdb.app.owl.versioning.distributed.RemoteOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
@@ -34,6 +35,7 @@ import org.hypergraphdb.peer.workflow.OnActivityState;
 import org.hypergraphdb.peer.workflow.OnMessage;
 import org.hypergraphdb.peer.workflow.WorkflowState;
 import org.hypergraphdb.peer.workflow.WorkflowStateConstant;
+import org.hypergraphdb.util.Pair;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 
 /**
@@ -43,6 +45,8 @@ import org.semanticweb.owlapi.io.StringDocumentSource;
  * to a peer, or pull from a peer, or synchronize two peers (which might
  * entail both a pull and a push).
  * </p>
+ *
+ * TODO - revisit this for transaction boundaries!
  * 
  * @author Borislav Iordanov
  *
@@ -54,6 +58,7 @@ public class VersionUpdateActivity extends FSMActivity
 	public static final String ONTOLOGY_HANDLE = "ontologyHandle";
 	public static final String REVISION_HEADS = "revisionHeads";
 	public static final String REVISIONS = "revisions";
+	public static final String LAST_META_CHANGE = "lastMetaChange";
 	
 	public static final WorkflowStateConstant WaitForRevisionChangeSet = WorkflowStateConstant.makeStateConstant("WaitForRevisionChangeSet");
 	public static final WorkflowStateConstant WaitForRevisionObjects = WorkflowStateConstant.makeStateConstant("WaitForRevisionObjects");
@@ -74,6 +79,7 @@ public class VersionUpdateActivity extends FSMActivity
 	}
 		
 	private OntologyVersionState.Delta delta = null;
+	private List<VMetadataChange<VersionedOntology>> metaChanges = null;	
 	private HGHandle remoteOntologyHandle;	
 	private String action;
 	private String completedMessage;
@@ -92,30 +98,23 @@ public class VersionUpdateActivity extends FSMActivity
 		return new VersionManager(getThisPeer().getGraph(), "fixme-VHDBOntologyRepository");		
 	}
 	
-	Set<String> checkBranchConflicts(HGHandle ontologyHandle, Set<Branch> branches)
+	Set<String> checkBranchConflicts(RemoteOntology remoteOnto, List<VMetadataChange<VersionedOntology>> metaChanges)
 	{
-		HashSet<String> branchConflicts = new HashSet<String>(); 
-		for (Branch branch : branches)
-		{
-			Branch local = getThisPeer().getGraph().get(branch.getAtomHandle());
-			if (local != null)
-			{
-				if (!branch.getName().equals(local.getName()))
-					branchConflicts.add("Remote branch name '" + branch.getName() + 
-							"' differs from local name '" + local.getName() + "' for branch " + 
-							branch.getAtomHandle());
-				continue;
-			}
-			local = getThisPeer().getGraph().getOne(hg.and(
-					hg.type(Branch.class), 
-					hg.eq("name", branch.getName()),
-					hg.eq("versioned", branch.getVersioned())));
-			if (local != null)
-				branchConflicts.add("Remote branch '" + branch.getName() + 
-						"' from branch " + branch.getAtomHandle() + " conflicts with local branch " +
-						local.getAtomHandle());
-		}
-		return branchConflicts;
+		HashSet<String> branchConflicts = new HashSet<String>();
+		if (metaChanges == null)
+			return branchConflicts;
+		VersionManager vm = versionManager();
+		if (!vm.isVersioned(remoteOnto.getOntologyHandle()))
+			return branchConflicts;
+		VersionedOntology vonto = vm.versioned(remoteOnto.getOntologyHandle());
+		List<VMetadataChange<VersionedOntology>> localList = ActivityUtils.collectMetaChanges(getThisPeer().getGraph(), vonto, remoteOnto.getLastMetaChange());
+		localList = versioning.normalize(vonto, localList);
+		metaChanges = versioning.normalize(vonto, metaChanges);
+		for (Pair<VMetadataChange<VersionedOntology>, VMetadataChange<VersionedOntology>> conf : 
+				versioning.findConflicts(localList, metaChanges))
+			branchConflicts.add("Incoming change " + conf.getFirst() + 
+								" conflicts with local change " + conf.getSecond());
+		return branchConflicts;		
 	}
 	
 	/**
@@ -190,7 +189,10 @@ public class VersionUpdateActivity extends FSMActivity
 		RemoteOntology remoteOnto = remoteOnto();
 		//System.out.println("got revision set " + getRevisionSetActivity.newRevisions());
 		delta = revisionSetActivity.delta();
-		Set<String> branchConflicts = checkBranchConflicts(remoteOnto.getOntologyHandle(), revisionSetActivity.branches());
+		metaChanges = revisionSetActivity.metaChanges();
+		for (VMetadataChange<VersionedOntology> change : metaChanges)
+			change.setHyperGraph(getThisPeer().getGraph());
+		Set<String> branchConflicts = checkBranchConflicts(remoteOnto, metaChanges);
 		if (branchConflicts.isEmpty())
 		{
 			send(remoteOnto.getRepository().getPeer(), 
@@ -218,18 +220,21 @@ public class VersionUpdateActivity extends FSMActivity
 		HGDBOntologyManager manager = HGOntologyManagerFactory.getOntologyManager(graph.getLocation());
 		VOWLXMLDocument doc = ActivityUtils.parseVersionedDoc(manager, 
 									new StringDocumentSource(msg.at(Messages.CONTENT).asString()));
+		VersionedOntology vo = null;
 		if (doc.getRevisionData().getOntologyID().isAnonymous()) // this is not a clone, so we have the IRI locally
 		{
 			HGHandle ontologyHandle = graph.getHandleFactory().makeHandle(doc.getOntologyID());
-			VersionedOntology vo = versionManager().versioned(ontologyHandle);
+			vo = versionManager().versioned(ontologyHandle);
 			ActivityUtils.updateVersionedOntology(manager, vo, doc);
 		}
 		else
-			ActivityUtils.storeClonedOntology(manager, doc);
-		
-		RemoteOntology remoteOnto = remoteOnto();
-		remoteOnto.setRevisionHeads(delta.heads);		
-		System.out.println("New revision heads: " + delta.heads);
+			vo = ActivityUtils.storeClonedOntology(manager, doc);
+
+		RemoteOntology remoteOnto = remoteOnto();		
+		remoteOnto.setRevisionHeads(delta.heads);	
+		if (metaChanges != null)
+			remoteOnto.setLastMetaChange(vo.metadata().applyChanges(metaChanges));
+		//System.out.println("New revision heads: " + delta.heads);
 		getThisPeer().getGraph().update(remoteOnto);
 		if (msg.has(Messages.REPLY_WITH))
 			reply(msg, Performative.Confirm, Json.nil());

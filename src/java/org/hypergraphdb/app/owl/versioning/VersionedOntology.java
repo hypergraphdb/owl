@@ -89,7 +89,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		for (RevisionMark markLink : L)
 		{
 			ChangeRecord mark = graph.get(markLink.changeRecord());
-			if (mark.target().equals(ontology))
+			if (mark.versioned().equals(ontology))
 				return markLink;
 		}
 		return null;
@@ -275,8 +275,10 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	}
 
 	private HGHandle makeRevision(String user, String comment, HGHandle branch)
-	{
-		ChangeRecord mark = changes().isEmpty() ? latestChangeRecord() : flushChanges();
+	{		
+		ChangeRecord mark = latestChangeRecord();
+		if (currentRevision.equals(mark.revision()))
+			mark = flushChanges();
 		Revision revision = branch == null ? new Revision(thisHandle) 
 										   : new Revision(thisHandle, branch);
 		revision.user(user).comment(comment).timestamp(System.currentTimeMillis());
@@ -330,7 +332,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		goTo((Revision)graph.get(commonAncestor));
 		// now we can normalize so only changes effective from the common
 		// merge ancestor will be recorded
-		mergeChangeList = ChangeSet.normalize(this, mergeChangeList);
+		mergeChangeList = versioning.normalize(this, mergeChangeList);
 		HGHandle [] mergeChanges = new HGHandle[mergeChangeList.size()];
 		int i = 0;
 		for (VChange<VersionedOntology> c : mergeChangeList)

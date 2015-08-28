@@ -22,9 +22,9 @@ public class TestContext implements OntologyContext
 	public VersionedOntology vo;
 	
 	public HyperGraph graph() { return graph; }
-	public OWLOntology ontology() { return o; }
+	public HGDBOntology ontology() { return o; }
 	public VersionedOntology vonto() { return vo; }
-	public OWLOntologyManager manager() { return o.getOWLOntologyManager(); }
+	public HGDBOntologyManager manager() { return m; }
 	public OWLDataFactory df() { return df; }
 	public HGDBOntologyRepository repo() { return r; }
 	public VersionManager vrepo() { return vr; }

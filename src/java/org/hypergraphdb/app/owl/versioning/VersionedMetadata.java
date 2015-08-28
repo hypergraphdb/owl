@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl.versioning;
 
 import java.util.Collection;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -14,7 +15,6 @@ import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.versioning.change.VAddBranchChange;
 import org.hypergraphdb.app.owl.versioning.change.VAddLabelChange;
 import org.hypergraphdb.app.owl.versioning.change.VBranchRenameChange;
-import org.hypergraphdb.app.owl.versioning.change.VChange;
 import org.hypergraphdb.app.owl.versioning.change.VMetadataChange;
 import org.hypergraphdb.app.owl.versioning.change.VRemoveLabelChange;
 
@@ -59,7 +59,8 @@ public class VersionedMetadata<T extends Versioned<T>>
 	
 	public VersionedMetadata(HyperGraph graph, T versioned)
 	{
-		
+		this.graph = graph;
+		this.versioned = versioned;
 	}
 
 	public HGHandle lastChange()
@@ -229,5 +230,16 @@ public class VersionedMetadata<T extends Versioned<T>>
 		for (LabelLink ll : allLabels)
 			S.add((String)graph.get(ll.label()));		
 		return S;
-	}	
+	}
+	
+	public HGHandle applyChanges(final List<VMetadataChange<T>> changes)
+	{		
+		return graph.getTransactionManager().ensureTransaction(new Callable<HGHandle>() {
+		public HGHandle call()
+		{		
+			for (VMetadataChange<T> change : changes)
+				VersionedMetadata.this.performChange(change);
+			return lastChange();
+		}});
+	}
 }

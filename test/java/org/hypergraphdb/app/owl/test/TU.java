@@ -9,6 +9,7 @@ import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.test.versioning.TestContext;
+import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -73,7 +74,7 @@ public class TU
 	
 	public static OWLAxiom a(OWLAxiom ax)
 	{
-		ctx().manager().addAxiom(ctx().ontology(), ax);
+		ctx().manager().applyChange(new AddAxiom(ctx().ontology(), ax));
 		return ax;
 	}
 	

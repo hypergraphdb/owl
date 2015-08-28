@@ -9,6 +9,12 @@ public class VersionedProject implements Versioned<VersionedProject>
 {
 	private HGHandle thisHandle;
 	private Revision currentRevision;
+	private VersionedMetadata<VersionedProject> metadata;
+	
+	public VersionedMetadata<VersionedProject> metadata()
+	{
+		return this.metadata;
+	}
 	
 	public Revision revision()
 	{

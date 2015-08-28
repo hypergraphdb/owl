@@ -235,7 +235,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 	public void visit(ChangeRecord changeMark)
 	{
 		writer.writeStartElement(CHANGE_MARK);
-		writer.writeAttribute("target", changeMark.target());
+		writer.writeAttribute("target", changeMark.versioned());
 		writer.writeAttribute("changeSet", changeMark.changeset());
 		writer.writeAttribute("handle", changeMark.getAtomHandle());
 		writer.writeEndElement();		

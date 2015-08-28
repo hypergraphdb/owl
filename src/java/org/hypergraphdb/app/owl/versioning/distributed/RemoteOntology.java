@@ -22,6 +22,7 @@ public class RemoteOntology
 	private RemoteRepository repository;
 	private HGHandle ontologyHandle;
 	private Set<HGHandle> revisionHeads = new HashSet<HGHandle>();
+	private HGHandle lastMetaChange = null;
 	
 	public RemoteOntology()
 	{		
@@ -66,4 +67,14 @@ public class RemoteOntology
 	{
 		this.revisionHeads = revisionHeads;
 	}
+
+	public HGHandle getLastMetaChange()
+	{
+		return lastMetaChange;
+	}
+
+	public void setLastMetaChange(HGHandle lastMetaChange)
+	{
+		this.lastMetaChange = lastMetaChange;
+	}	
 }
