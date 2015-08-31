@@ -107,9 +107,10 @@ public class VersionUpdateActivity extends FSMActivity
 		if (!vm.isVersioned(remoteOnto.getOntologyHandle()))
 			return branchConflicts;
 		VersionedOntology vonto = vm.versioned(remoteOnto.getOntologyHandle());
-		List<VMetadataChange<VersionedOntology>> localList = ActivityUtils.collectMetaChanges(getThisPeer().getGraph(), vonto, remoteOnto.getLastMetaChange());
-		localList = versioning.normalize(vonto, localList);
-		metaChanges = versioning.normalize(vonto, metaChanges);
+		List<VMetadataChange<VersionedOntology>> localList = 
+			ActivityUtils.collectMetaChanges(getThisPeer().getGraph(), vonto, remoteOnto.getLastMetaChange());
+		localList = versioning.normalize(vonto, localList, false);
+		metaChanges = versioning.normalize(vonto, metaChanges, false);
 		for (Pair<VMetadataChange<VersionedOntology>, VMetadataChange<VersionedOntology>> conf : 
 				versioning.findConflicts(localList, metaChanges))
 			branchConflicts.add("Incoming change " + conf.getFirst() + 

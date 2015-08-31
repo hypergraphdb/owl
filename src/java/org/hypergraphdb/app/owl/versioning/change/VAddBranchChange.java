@@ -1,26 +1,40 @@
 package org.hypergraphdb.app.owl.versioning.change;
 
+import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.versioning.Branch;
+import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.Versioned;
 
+/**
+ * Adding a branch is always in the context of a new revision with which it is
+ * associated, it is always created by someone, it always has a name and the change
+ * occurs at a specific time point - hence the 4 attributes here.
+ * 
+ * @author Borislav Iordanov
+ *
+ * @param <T>
+ */
 public class VAddBranchChange<T extends Versioned<T>> extends VMetadataChange<T>
 {
+	private HGHandle handle;
 	private String name;
 	private String createdBy;
 	private long createdOn;
+	private HGHandle revision;
 	
 	public VAddBranchChange()
 	{		
 	}
 	
-	public VAddBranchChange(String name, String createdBy)
+	public VAddBranchChange(HGHandle revision, String name, String createdBy)
 	{
-		this(name, createdBy, System.currentTimeMillis());
+		this(revision, name, createdBy, System.currentTimeMillis());
 	}
 	
-	public VAddBranchChange(String name, String createdBy, long createdOn)
+	public VAddBranchChange(HGHandle revision, String name, String createdBy, long createdOn)
 	{
+		this.revision = revision;
 		this.name = name;
 		this.createdBy = createdBy;
 		this.createdOn = createdOn;
@@ -36,14 +50,29 @@ public class VAddBranchChange<T extends Versioned<T>> extends VMetadataChange<T>
 			branch.setCreatedBy(createdBy);
 			branch.setCreatedOn(createdOn);
 			branch.setVersioned(versioned.getAtomHandle());
-			graph.add(branch);
+			if (handle == null)
+				handle = graph.add(branch);
+			else
+				graph.define(handle, branch);
+			Revision rev = graph.get(revision);
+			rev.branchHandle(handle);
+			graph.update(rev);
 		}
 	}
 
 	@Override
+	public VChange<T> reduce(VChange<T> previous)
+	{
+		return null;
+	}
+	
+	@Override
 	public boolean conflictsWith(VChange<T> other)
 	{
-		return other instanceof VRemoveBranchChange && 
+		return other instanceof VAddBranchChange &&
+				((VAddBranchChange<T>)other).getName().equals(name) &&
+				!((VAddBranchChange<T>)other).getRevision().equals(revision) ||
+			  other instanceof VRemoveBranchChange && 
 			  ((VRemoveBranchChange<T>)other).getName().equals(name) ||
 			  other instanceof VBranchRenameChange && 
 			  ((VBranchRenameChange<T>)other).getNewname().equals(name);
@@ -52,7 +81,7 @@ public class VAddBranchChange<T extends Versioned<T>> extends VMetadataChange<T>
 	@Override
 	public VChange<T> inverse()
 	{
-		return new VRemoveBranchChange<T>(name, createdBy);
+		return new VRemoveBranchChange<T>(revision, name, createdBy);
 	}
 	
 	@Override
@@ -60,7 +89,13 @@ public class VAddBranchChange<T extends Versioned<T>> extends VMetadataChange<T>
 	{
 		return graph.findOne(hg.and(hg.type(Branch.class),
 				hg.eq("name", name),
-				hg.eq("versioned", versioned.getAtomHandle()))) == null;
+				hg.eq("versioned", versioned.getAtomHandle()))) == null &&
+				((Revision)graph.get(revision)).branchHandle() == null;
+	}
+	
+	public String toString()
+	{
+		return "addBranch[" + name + ", " + revision + ", " + createdBy + ", " + createdOn + "]";
 	}
 	
 	@Override
@@ -98,4 +133,24 @@ public class VAddBranchChange<T extends Versioned<T>> extends VMetadataChange<T>
 	{
 		this.createdOn = createdOn;
 	}
+
+	public HGHandle getRevision()
+	{
+		return revision;
+	}
+
+	public void setRevision(HGHandle revision)
+	{
+		this.revision = revision;
+	}
+
+	public HGHandle getHandle()
+	{
+		return handle;
+	}
+
+	public void setHandle(HGHandle handle)
+	{
+		this.handle = handle;
+	}	
 }

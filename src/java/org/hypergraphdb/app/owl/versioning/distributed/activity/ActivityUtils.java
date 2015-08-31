@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl.versioning.distributed.activity;
 
 import java.io.File;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -33,7 +34,6 @@ import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.RevisionMark;
 import org.hypergraphdb.app.owl.versioning.Versioned;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
-import org.hypergraphdb.app.owl.versioning.versioning;
 import org.hypergraphdb.app.owl.versioning.change.VChange;
 import org.hypergraphdb.app.owl.versioning.change.VMetadataChange;
 import org.hypergraphdb.app.owl.versioning.distributed.DistributedOntology;
@@ -254,9 +254,6 @@ public class ActivityUtils
 				record.changeSet(manager.getVersionManager().emptyChangeSetHandle());
 				graph.define(mark.changeRecord(), record);
 			}
-//			System.out.println(vo);
-//			System.out.println("Stored cloned " + ontologyUUID + " at "+ graph.getLocation());
-			versioning.printRevisionGraph(graph, vo);
 			return vo;
 		}
 		catch (Exception ex)
@@ -285,7 +282,8 @@ public class ActivityUtils
 		{
 			if (graph.get(object.getAtomHandle()) != null) continue;
 			if (object instanceof ParentLink) continue;
-			System.out.println("Storing object " + object + " with handle " + object.getAtomHandle());
+			if (DBG)
+				System.out.println("Storing object " + object + " with handle " + object.getAtomHandle());
 			graph.getTransactionManager().ensureTransaction(new Callable<Object>(){
 				public Object call()
 				{
@@ -300,7 +298,8 @@ public class ActivityUtils
 		for (final HGHandleHolder object : doc.revisionObjects())
 		{
 			if (graph.get(object.getAtomHandle()) != null) continue;
-			System.out.println("Storing object " + object + " with handle " + object.getAtomHandle());
+			if (DBG)
+				System.out.println("Storing object " + object + " with handle " + object.getAtomHandle());
 			graph.getTransactionManager().ensureTransaction(new Callable<Object>(){
 				public Object call()
 				{

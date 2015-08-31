@@ -50,6 +50,12 @@ public class VRemoveLabelChange<T extends Versioned<T>> extends VMetadataChange<
 	}
 
 	@Override
+	public VChange<T> reduce(VChange<T> previous)
+	{
+		return null;
+	}
+	
+	@Override
 	public VChange<T> inverse()
 	{
 		return new VAddLabelChange<T>(label, labeled);

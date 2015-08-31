@@ -31,6 +31,12 @@ public abstract class VOWLChange implements VChange<VersionedOntology>, HGLink, 
 	}
 	
 	@Override
+	public VChange<VersionedOntology> reduce(VChange<VersionedOntology> previous)
+	{
+		return null;
+	}
+	
+	@Override
 	public boolean conflictsWith(VChange<VersionedOntology> other)
 	{
 		return !other.equals(this.inverse());

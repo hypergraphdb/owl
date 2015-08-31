@@ -16,7 +16,6 @@ import mjson.Json;
 import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.test.TU;
 import org.hypergraphdb.app.owl.test.versioning.TestContext;
 import org.hypergraphdb.app.owl.test.versioning.VersionedOntologiesTestData;
@@ -24,8 +23,6 @@ import org.hypergraphdb.app.owl.test.versioning.VersioningTestBase;
 import org.hypergraphdb.app.owl.versioning.Branch;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
-import org.hypergraphdb.app.owl.versioning.VersionedOntology;
-import org.hypergraphdb.app.owl.versioning.versioning;
 import org.hypergraphdb.app.owl.versioning.distributed.RemoteOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.GetNewRevisionsActivity;
@@ -81,7 +78,7 @@ public class DistributedTests extends VersioningTestBase
 	{
 		File location = new File(new File(dblocation), name);
 		HGUtils.dropHyperGraphInstance(location.getAbsolutePath());
-		HyperGraph graph = HGEnvironment.get(location.getAbsolutePath());
+		HyperGraph graph = HGEnvironment.get(location.getAbsolutePath());// ImplUtils.owldb(location.getAbsolutePath());		
 		Json config = Json.object("interfaceType", InProcessPeerInterface.class.getName(),
 				                  "bootstrap", Json.array(
 			Json.object("class", AffirmIdentityBootstrap.class.getName(), "config", Json.object())
@@ -265,7 +262,7 @@ public class DistributedTests extends VersioningTestBase
 		ctx2.vo = vm2.versioned(sourceOntoHandle);
 		ctx2.o = ctx2.vo.ontology();		
 
-		// now create two conflicts: rename a branch at peer1
+		// now create a conflict: rename a branch at peer1 should simply propagate at peer2
 		Branch branch1 = ctx1.vo.metadata().findBranch("TestBranch1");
 		ctx1.vo.metadata().renameBranch(branch1, "TestBranch1_NewName");
 		
@@ -273,42 +270,29 @@ public class DistributedTests extends VersioningTestBase
 		ctx1.vo.commit("testuser", "create branch", "TestBranch2");
 		VersionedOntologiesTestData.makeRevision(ctx1);
 
-		// and then a branch with the same name at peer2
+		// and then a branch with the same name at peer2, that's a conflict
 		VersionedOntologiesTestData.makeRevision(ctx2);
 		ctx2.vo.commit("testuser", "create branch", "TestBranch2");
 		VersionedOntologiesTestData.makeRevision(ctx2);
 
-		// Now pulling changes should result in 2 conflicts
+		// Now pulling changes should result in 1 conflict
 		VersionUpdateActivity updateActivity = new VersionUpdateActivity(peer2)
 			.remoteOntology(ctx2.graph.getHandle(remoteOnto))
 			.action("pull");
 		peer2.getActivityManager().initiateActivity(updateActivity).get();
 		Assert.assertEquals(WorkflowState.Failed, updateActivity.getState());
-		Assert.assertTrue(updateActivity.completedMessage().contains("2 branch conflicts found"));
+		Assert.assertTrue(updateActivity.completedMessage().contains("1 branch conflict"));
 		
 		// change new peer2 branch name
 		Branch branch2 = ctx2.vo.metadata().findBranch("TestBranch2");
-		branch2.setName("Test Branch 3");
-		ctx2.graph.update(branch2);
+		ctx2.vonto().metadata().renameBranch(branch2, "Test Branch 3");
 		
-		// now we should have only 1 conflict
+		// now we should no more conflicts
 		updateActivity = new VersionUpdateActivity(peer2)
 				.remoteOntology(ctx2.graph.getHandle(remoteOnto))
 				.action("pull");
 		peer2.getActivityManager().initiateActivity(updateActivity).get();
-		Assert.assertEquals(WorkflowState.Failed, updateActivity.getState());
-		Assert.assertTrue(updateActivity.completedMessage().contains("1 branch conflict found"));
-		
-		// restore branch1 name
-		branch1.setName("TestBranch1");
-		ctx1.graph.update(branch1);
-		
-		// now we should have no conflicts
-		updateActivity = new VersionUpdateActivity(peer2)
-				.remoteOntology(ctx2.graph.getHandle(remoteOnto))
-				.action("pull");
-		peer2.getActivityManager().initiateActivity(updateActivity).get();
-		Assert.assertEquals(WorkflowState.Completed, updateActivity.getState());
+		Assert.assertEquals(WorkflowState.Completed, updateActivity.getState());		
 	}
 	
 	@Test
@@ -329,8 +313,8 @@ public class DistributedTests extends VersioningTestBase
 		Result result = null;
 		do
 		{
-			result = junit.run(Request.method(DistributedTests.class, "testPullRevisionChanges"));
-		} while (result.getFailureCount() == 0);
+			result = junit.run(Request.method(DistributedTests.class, "testBranchConflicts"));
+		} while (false && result.getFailureCount() == 0);
 		System.out.println("Failures " + result.getFailureCount());
 		if (result.getFailureCount() > 0)
 		{

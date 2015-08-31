@@ -279,8 +279,9 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		ChangeRecord mark = latestChangeRecord();
 		if (currentRevision.equals(mark.revision()))
 			mark = flushChanges();
-		Revision revision = branch == null ? new Revision(thisHandle) 
-										   : new Revision(thisHandle, branch);
+		Revision revision = new Revision(thisHandle);
+		if (branch != null)
+			revision.branchHandle(branch);
 		revision.user(user).comment(comment).timestamp(System.currentTimeMillis());
 		HGHandle revisionHandle = graph.add(revision);
 		graph.add(new RevisionMark(revisionHandle, graph.getHandle(mark)));
@@ -297,6 +298,8 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		graph.getTransactionManager().ensureTransaction(new Callable<HGHandle>(){
 		public HGHandle call()
 		{
+			if (revision() == null)
+				System.out.println("WTF");
 			return makeRevision(user, comment, revision().branchHandle());
 		}
 		});
@@ -311,10 +314,10 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		{
 			if (hg.findOne(graph, hg.and(hg.type(Branch.class), hg.eq("name", branch))) != null)
 				throw new IllegalArgumentException("Branch already exists: '" + branch + "'.");
-			HGHandle branchHandle = 
-				branch == null ? null 
-							   : metadata.createBranch(branch, user);
-			return makeRevision(user, comment, branchHandle);
+			HGHandle revhandle = makeRevision(user, comment, null);
+			if (branch != null)
+				metadata.createBranch(revhandle, branch, user);
+			return revhandle;
 		}
 		});
 		return revision();

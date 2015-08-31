@@ -1,6 +1,8 @@
 package org.hypergraphdb.app.owl;
 
+import java.util.concurrent.Callable;
 import java.util.logging.Logger;
+
 
 
 
@@ -68,6 +70,7 @@ public class HGDBApplication extends HGApplication
 	 */
 	private void registerAllAtomTypes(HyperGraph graph)
 	{
+		System.out.println("Register types for " + graph.getLocation());
 		registerTypeIRI(graph);
 		registerTypeOntologyID(graph);
 		registerTypeOWLImportsDeclaration(graph);
@@ -183,11 +186,16 @@ public class HGDBApplication extends HGApplication
 	// HGApplication interface
 	//
 
-	public void install(HyperGraph graph)
+	public void install(final HyperGraph graph)
 	{
-		registerAllAtomTypes(graph);
-		registerIndices(graph);
-		ensureBuiltInObjects(graph);
+		graph.getTransactionManager().transact(new Callable<Object>(){
+		public Object call()
+		{
+			registerAllAtomTypes(graph);
+			registerIndices(graph);
+			ensureBuiltInObjects(graph);
+			return null;
+		}});
 	}
 
 	/**

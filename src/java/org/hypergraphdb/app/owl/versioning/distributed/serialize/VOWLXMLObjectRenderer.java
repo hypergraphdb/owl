@@ -130,14 +130,11 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		writer.writeAttribute(VOWLXMLVocabulary.NAMESPACE + "versionedID", vo.getAtomHandle().toString());
 		
 		HashSet<ParentLink> parentLinks = new HashSet<ParentLink>();
-		HashSet<HGHandle> branches = new HashSet<HGHandle>();
 		
 		for (HGHandle revisionHandle : revisions)
 		{
 			Revision revision = graph.get(revisionHandle);
 			visit(revision);
-			if (revision.branchHandle() != null)
-				branches.add(revision.branchHandle());
 			List<ParentLink> links = hg.getAll(graph, hg.and(hg.type(ParentLink.class), 
 														     hg.incident(revisionHandle)));
 			for (ParentLink parentLink : links)
@@ -147,11 +144,6 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 				visit(parentLink);
 				parentLinks.add(parentLink);
 			}
-		}
-		
-		for (HGHandle branch : branches)
-		{
-			visit((Branch)graph.get(branch));
 		}
 		
 		
@@ -267,8 +259,6 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 			  .writeAttribute("user", revision.user())
 			  .writeAttribute("timestamp", "" + revision.timestamp())
 			  .writeAttribute("comment", revision.comment());
-		if (revision.branchHandle() != null)
-			writer.writeAttribute("branch", revision.branchHandle());
 		writer.writeEndElement();
 	}
 

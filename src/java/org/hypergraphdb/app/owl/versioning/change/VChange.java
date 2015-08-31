@@ -36,6 +36,23 @@ public interface VChange<T extends Versioned<T>>
 	VChange<T> inverse();
 	
 	/**
+	 * <p>
+	 * Create a new change object that would represent an equivalent change 
+	 * operation to apply the <code>previous</code> argument and then <code>this</code>
+	 * change. This is an optional operation to be implemented whenever it makes
+	 * sense for a pair of changes to be combined into a single change object. The
+	 * operation is useful during a normalization process where a list of consecutive changes
+	 * is reduced to a minimum length list that is equivalent to the original one.
+	 * </p>
+	 * 
+	 * @param previous A change that was (or will be) applied before <code>this</code> one. 
+	 * @return A new change object to which the sequence of <code>previous</code> then
+	 * <code>this</code> can be reduced, or <code>null</code> if such a merge of the
+	 * two operations is not possible.
+	 */
+	VChange<T> reduce(VChange<T> previous);
+	
+	/**
 	 * Return <code>true</code> if there is a conflict between
 	 * this change and the <code>other</code> argument. Return 
 	 * <code>false</code> if there is no conflict and the two

@@ -1,5 +1,6 @@
 package org.hypergraphdb.app.owl.versioning.change;
 
+import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.versioning.Branch;
 import org.hypergraphdb.app.owl.versioning.Versioned;
@@ -44,6 +45,21 @@ public class VBranchRenameChange<T extends Versioned<T>> extends VMetadataChange
 	}
 
 	@Override
+	public VChange<T> reduce(VChange<T> previous)
+	{
+		if (previous instanceof VAddBranchChange)
+		{
+			VAddBranchChange<T> add = (VAddBranchChange<T>)previous;
+			if (add.getName().equals(currentName))
+				return new VAddBranchChange<T>(add.getRevision(), 
+											   getNewname(), 
+											   add.getCreatedBy(), 
+											   add.getCreatedOn());
+		}
+		return null;
+	}
+	
+	@Override
 	public VChange<T> inverse()
 	{
 		return new VBranchRenameChange<T>(newname, currentName); 
@@ -79,6 +95,11 @@ public class VBranchRenameChange<T extends Versioned<T>> extends VMetadataChange
 			   graph.findOne(hg.and(hg.type(Branch.class),
 					hg.eq("name", newname),
 					hg.eq("versioned", versioned.getAtomHandle()))) == null;
+	}
+	
+	public String toString()
+	{
+		return "renameBranch[" + currentName + ", " + newname + "]";		
 	}
 
 	@Override

@@ -29,13 +29,19 @@ public class versioning
 	public static <V extends Versioned<V>, C extends VChange<V>> 
 	List<C> normalize(V versioned, List<C> L)
 	{
+		return normalize(versioned, L, true);
+	}
+	
+	public static <V extends Versioned<V>, C extends VChange<V>> 
+	List<C> normalize(V versioned, List<C> L, boolean removeIneffective)
+	{
 		Set<Integer> toremove = new HashSet<Integer>();		
 		for (int i = 0; i < L.size(); i++)
 		{
 			if (toremove.contains(i))
 				continue;
 			VChange<V> c = L.get(i);
-			if (!c.isEffective(versioned))
+			if (removeIneffective && !c.isEffective(versioned))
 				toremove.add(i);
 			VChange<V> ic = c.inverse();			
 			if (c.isIdempotent())
@@ -54,13 +60,23 @@ public class versioning
 							toremove.add(last);
 							last = j;
 						}
+						else 
+						{
+							@SuppressWarnings("unchecked")
+							C merged = (C)next.reduce(c);
+							if (merged != null)
+							{
+								toremove.add(i);
+								L.set(j, merged);
+							}
+						}						
 					}
 				}
 				else // non-idempotent inverse 
 				{
 					for (int j = i + 1; j < L.size(); j++)
 					{
-						VChange<V> next = L.get(j);
+						C next = L.get(j);
 						if (next.equals(c))
 						{
 							toremove.add(i);
@@ -71,6 +87,16 @@ public class versioning
 							toremove.add(i);
 							toremove.add(j);
 							break;
+						}
+						else 
+						{
+							@SuppressWarnings("unchecked")
+							C merged = (C)next.reduce(c);
+							if (merged != null)
+							{
+								toremove.add(i);
+								L.set(j, merged);
+							}
 						}
 					}					
 				}
@@ -86,9 +112,30 @@ public class versioning
 						toremove.add(j);
 						break;
 					}
+					else 
+					{
+						@SuppressWarnings("unchecked")
+						C merged = (C)next.reduce(c);
+						if (merged != null)
+						{
+							toremove.add(i);
+							L.set(j, merged);
+						}
+					}					
 				}									
 			}
-			// else it's non-idempotent and it has no inverse, can't remove			
+			// else it's non-idempotent and it has no inverse, just try to merge with something else
+			else for (int j = i + 1; j < L.size(); j++)
+			{
+				VChange<V> next = L.get(j);
+				@SuppressWarnings("unchecked")
+				C merged = (C)next.reduce(c);
+				if (merged != null)
+				{
+					toremove.add(i);
+					L.set(j, merged);
+				}
+			}				
 		}
 		List<C> normal = new ArrayList<C>();		
 		for (int i = 0; i < L.size(); i++)
@@ -158,8 +205,9 @@ public class versioning
 		}
 	}
 	
-	public static void printRevisionGraph(HyperGraph graph, VersionedOntology versioned)
+	public static void printRevisionGraph(VersionedOntology versioned)
 	{
+		HyperGraph graph = versioned.graph();
 		int width = 5;
 		String hspace = "        ";
 		int idlength = 8; // graph.getHandleFactory().nullHandle().toString().length();

@@ -48,10 +48,6 @@ public class RevisionElementHandler extends AbstractVOWLElementHandler<Revision>
 		{
 			revision.comment(value);
 		}
-		else if (localName.equals("branch"))
-		{
-			revision.branchHandle(graph.getHandleFactory().makeHandle(value.trim()));
-		}
 		else
 		{
 			throw new OWLParserException("Attribute: " + localName + " not recognized.", getLineNumber(), getColumnNumber());
