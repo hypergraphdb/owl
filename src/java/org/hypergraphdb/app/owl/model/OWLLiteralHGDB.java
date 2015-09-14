@@ -216,7 +216,7 @@ public class OWLLiteralHGDB extends OWLObjectHGDB implements OWLLiteral, HGLink
 			final int prime = 31;
 			int result = 0;
 			result = prime * result
-					+ ((datatypeHandle == null) ? 0 : datatypeHandle.hashCode());
+					+ ((getDatatype() == null) ? 0 : getDatatype().hashCode());
 			result = prime * result + ((lang == null) ? 0 : lang.hashCode());
 			result = prime * result + ((literal == null) ? 0 : literal.hashCode());
 			this.setHashCodeInt(result);
@@ -231,15 +231,10 @@ public class OWLLiteralHGDB extends OWLObjectHGDB implements OWLLiteral, HGLink
 			return true;
 		if (!super.equals(obj))
 			return false;
-		if (getClass() != obj.getClass())
+		if (! (obj instanceof OWLLiteralHGDB) )
 			return false;
 		OWLLiteralHGDB other = (OWLLiteralHGDB) obj;
-		if (datatypeHandle == null)
-		{
-			if (other.datatypeHandle != null)
-				return false;
-		}
-		else if (!datatypeHandle.equals(other.datatypeHandle))
+		if (!getDatatype().equals(other.getDatatype()))
 			return false;
 		if (lang == null)
 		{

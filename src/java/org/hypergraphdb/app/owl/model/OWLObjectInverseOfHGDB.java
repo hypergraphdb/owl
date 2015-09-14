@@ -25,6 +25,7 @@ import org.semanticweb.owlapi.model.OWLSubPropertyAxiom;
  */
 public class OWLObjectInverseOfHGDB extends OWLObjectPropertyExpressionHGDB implements HGLink, OWLObjectInverseOf
 {
+	private static final long serialVersionUID = 1L;
 	// private OWLObjectPropertyExpression inverseProperty;
 	private HGHandle inversePropertyHandle;
 

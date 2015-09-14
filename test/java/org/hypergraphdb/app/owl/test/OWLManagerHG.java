@@ -144,36 +144,25 @@ public class OWLManagerHG
 		if (manchester)
 		{
 			ontologyManager = new OWLOntologyManagerImpl(dataFactory);
+			ontologyManager.addOntologyStorer(new RDFXMLOntologyStorer());
+			ontologyManager.addOntologyStorer(new OWLXMLOntologyStorer());
+			ontologyManager
+					.addOntologyStorer(new OWLFunctionalSyntaxOntologyStorer());
+			ontologyManager
+					.addOntologyStorer(new ManchesterOWLSyntaxOntologyStorer());
+			ontologyManager.addOntologyStorer(new OBOFlatFileOntologyStorer());
+			ontologyManager.addOntologyStorer(new KRSS2OWLSyntaxOntologyStorer());
+			ontologyManager.addOntologyStorer(new TurtleOntologyStorer());
+			ontologyManager.addOntologyStorer(new LatexOntologyStorer());
+			ontologyManager.addIRIMapper(new NonMappingOntologyIRIMapper());
+			ontologyManager.addOntologyFactory(new EmptyInMemOWLOntologyFactory());
+			ontologyManager.addOntologyFactory(new ParsableOWLOntologyFactory());
 		}
 		else
 		{
 			ontologyManager = new HGOntologyManagerFactory().buildOWLOntologyManager(dataFactory);
 			HGDBOntologyManagerImpl.setDeleteOntologiesOnRemove(true);
 		}
-
-		ontologyManager.addOntologyStorer(new RDFXMLOntologyStorer());
-		ontologyManager.addOntologyStorer(new OWLXMLOntologyStorer());
-		ontologyManager
-				.addOntologyStorer(new OWLFunctionalSyntaxOntologyStorer());
-		ontologyManager
-				.addOntologyStorer(new ManchesterOWLSyntaxOntologyStorer());
-		ontologyManager.addOntologyStorer(new OBOFlatFileOntologyStorer());
-		ontologyManager.addOntologyStorer(new KRSS2OWLSyntaxOntologyStorer());
-		ontologyManager.addOntologyStorer(new TurtleOntologyStorer());
-		ontologyManager.addOntologyStorer(new LatexOntologyStorer());
-		if (manchester)
-		{
-			// TODO For anonymous ontologies we still need: we should fix this.
-			ontologyManager.addIRIMapper(new NonMappingOntologyIRIMapper());
-		}
-		else
-		{
-			ontologyManager.addOntologyStorer(new HGDBStorer());
-			ontologyManager.addIRIMapper(new HTTPHGDBIRIMapper());
-			ontologyManager.addOntologyFactory(new HGDBOntologyFactory());
-		}
-		ontologyManager.addOntologyFactory(new EmptyInMemOWLOntologyFactory());
-		ontologyManager.addOntologyFactory(new ParsableOWLOntologyFactory());
 
 		ontologyManagerCreated(ontologyManager);
 

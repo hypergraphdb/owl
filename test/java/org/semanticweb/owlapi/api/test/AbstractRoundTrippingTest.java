@@ -92,9 +92,9 @@ public abstract class AbstractRoundTrippingTest extends AbstractOWLAPITestCase {
         roundTripOntology(ont, new ManchesterOWLSyntaxOntologyFormat());
     }
 
-    public void testHyperGraphRoundTrip() throws Exception {
-        roundTripOntology(ont, new HGDBOntologyFormat());
-    }
+//    public void testHyperGraphRoundTrip() throws Exception {
+//        roundTripOntology(ont, new HGDBOntologyFormat());
+//    }
 
     @Override
 	protected void handleSaved(StringDocumentTarget target, OWLOntologyFormat format) {

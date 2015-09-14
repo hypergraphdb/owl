@@ -39,7 +39,11 @@
 
 package org.semanticweb.owlapi.api.test;
 
+import java.util.Collections;
+
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -58,7 +62,8 @@ public class RenameToExistingOntologyTestCase extends AbstractOWLAPITestCase {
         try {
             OWLOntologyManager manager = getManager();
             IRI ontologyAIRI = IRI.create("http://www.semanticweb.org/ontologies/ontologyA");
-            manager.createOntology(ontologyAIRI);
+            OWLOntology ontologyA = manager.createOntology(ontologyAIRI);
+            getManager().addAxiom(ontologyA, manager.getOWLDataFactory().getOWLDeclarationAxiom(getOWLClass("A")));
             IRI ontologyBIRI = IRI.create("http://www.semanticweb.org/ontologies/ontologyB");
             OWLOntology ontologyB = manager.createOntology(ontologyBIRI);
             manager.applyChange(new SetOntologyID(ontologyB, new OWLOntologyID(ontologyAIRI)));

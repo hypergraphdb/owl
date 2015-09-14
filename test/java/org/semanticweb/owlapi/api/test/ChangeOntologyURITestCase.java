@@ -75,14 +75,7 @@ public class ChangeOntologyURITestCase extends AbstractOWLAPITestCase {
         assertEquals(man.getOntology(newIRI).getOntologyID().getOntologyIRI(), newIRI);
         assertTrue(man.getImportsClosure(importingOnt).contains(ont));
         assertNotNull(man.getOntologyDocumentIRI(ont));
-        // Document IRI will still be the same (in this case the old ont URI)
-        if (!(man instanceof HGDBOntologyManager)) {
-        	assertEquals(man.getOntologyDocumentIRI(ont), oldIRI);
-        } else {
-        	//HGDB
-        	IRI mappedOLDIRI = new HTTPHGDBIRIMapper().getDocumentIRI(oldIRI);
-        	assertEquals(man.getOntologyDocumentIRI(ont), mappedOLDIRI);
-        }
+       	assertEquals(man.getOntologyDocumentIRI(ont), oldIRI);
         assertNotNull(man.getOntologyFormat(ont));
 
     }

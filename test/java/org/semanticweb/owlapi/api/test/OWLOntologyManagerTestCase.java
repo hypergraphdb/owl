@@ -41,10 +41,7 @@ package org.semanticweb.owlapi.api.test;
 
 import junit.framework.TestCase;
 
-import org.hypergraphdb.app.owl.HGDBOntologyFormat;
-import org.hypergraphdb.app.owl.HGDBOntologyManagerImpl;
 import org.hypergraphdb.app.owl.test.OWLManagerHG;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
@@ -81,12 +78,7 @@ public class OWLOntologyManagerTestCase extends TestCase {
         assertEquals(ontologyIRI, ontology.getOntologyID().getDefaultDocumentIRI());
         assertEquals(ontologyIRI, ontology.getOntologyID().getOntologyIRI());
         assertNull(ontology.getOntologyID().getVersionIRI());
-        if (manager instanceof HGDBOntologyManagerImpl) {
-        	IRI docIRI = HGDBOntologyFormat.convertToHGDBDocumentIRI(ontologyIRI);
-        	assertEquals(docIRI, manager.getOntologyDocumentIRI(ontology));
-        } else {
-        	assertEquals(ontologyIRI, manager.getOntologyDocumentIRI(ontology));
-        }
+       	assertEquals(ontologyIRI, manager.getOntologyDocumentIRI(ontology));
     }
 
     public void testCreateOntologyWithIRIAndVersionIRI() throws Exception {
@@ -99,9 +91,6 @@ public class OWLOntologyManagerTestCase extends TestCase {
         assertEquals(versionIRI, ontology.getOntologyID().getDefaultDocumentIRI());
         assertEquals(ontologyIRI, ontology.getOntologyID().getOntologyIRI());
         assertEquals(versionIRI, ontology.getOntologyID().getVersionIRI());
-        if (manager instanceof HGDBOntologyManagerImpl) {
-        	versionIRI = HGDBOntologyFormat.convertToHGDBDocumentIRI(versionIRI);
-        }
     	assertEquals(versionIRI, manager.getOntologyDocumentIRI(ontology));
     }
 

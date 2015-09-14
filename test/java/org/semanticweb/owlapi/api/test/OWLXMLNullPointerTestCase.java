@@ -69,7 +69,7 @@ public class OWLXMLNullPointerTestCase extends AbstractOWLAPITestCase {
 
     public void testRoundTrip() {
         try {
-            OWLOntologyManager manager = getManagerOther();//OWLManager.createOWLOntologyManager();
+            OWLOntologyManager manager = getManager();//OWLManager.createOWLOntologyManager();
             OWLOntology ontology = manager.createOntology(IRI.create(NS));
             OWLDataFactory factory = manager.getOWLDataFactory();
 
@@ -87,7 +87,7 @@ public class OWLXMLNullPointerTestCase extends AbstractOWLAPITestCase {
             // 
             manager.removeOntology(ontology);
             //
-            OWLOntologyManager manager2 = getManagerOther();//OWLManager.createOWLOntologyManager();
+            OWLOntologyManager manager2 = getManager();//OWLManager.createOWLOntologyManager();
             manager2.loadOntologyFromOntologyDocument(tmpFile);
         }
         catch (OWLOntologyCreationException e) {

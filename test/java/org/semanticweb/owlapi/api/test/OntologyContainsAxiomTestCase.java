@@ -44,6 +44,7 @@ import java.io.FileOutputStream;
 import java.util.Collections;
 
 import org.coode.owlapi.turtle.TurtleOntologyFormat;
+import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
 import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
@@ -187,7 +188,7 @@ public class OntologyContainsAxiomTestCase extends AbstractOWLAPITestCase {
         getManager().saveOntology(ont2, format, writer2);
 
 
-        OWLOntologyManager man = getManagerOther();//OWLManager.createOWLOntologyManager();
+        OWLOntologyManager man = HGOntologyManagerFactory.getOntologyManager(HGOntologyManagerFactory.graphLocation() + "_other");
 
         OWLOntology ont1L = man.loadOntologyFromOntologyDocument(savedLocation1);
         OWLOntology ont2L = man.loadOntologyFromOntologyDocument(savedLocation2);
@@ -295,7 +296,7 @@ public class OntologyContainsAxiomTestCase extends AbstractOWLAPITestCase {
         getManager().saveOntology(ont2, format, writer2);
         
         
-        OWLOntologyManager man = getManagerOther();//OWLManager.createOWLOntologyManager();
+        OWLOntologyManager man = HGOntologyManagerFactory.getOntologyManager(HGOntologyManagerFactory.graphLocation() + "_other");                
         
         @SuppressWarnings("unused")
 		OWLOntology ont1L = man.loadOntologyFromOntologyDocument(savedLocation1);

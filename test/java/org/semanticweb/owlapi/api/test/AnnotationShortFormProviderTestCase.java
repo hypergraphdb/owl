@@ -65,7 +65,7 @@ public class AnnotationShortFormProviderTestCase extends AbstractOWLAPITestCase 
 
     public void testLiteralWithoutLanguageValue() throws Exception {
 
-        OWLOntologyManager man = getManagerOther();//OWLManager.createOWLOntologyManager();
+        OWLOntologyManager man = getManager();
         PrefixManager pm = new DefaultPrefixManager("http://org.semanticweb.owlapi/ont#");
         OWLAnnotationProperty prop = AnnotationProperty("prop", pm);
         OWLNamedIndividual root = NamedIndividual("ind", pm);
@@ -81,7 +81,7 @@ public class AnnotationShortFormProviderTestCase extends AbstractOWLAPITestCase 
     }
 
     public void testLiteralWithLanguageValue() throws Exception {
-        OWLOntologyManager man = getManagerOther();//OWLManager.createOWLOntologyManager();
+        OWLOntologyManager man = getManager();
         PrefixManager pm = new DefaultPrefixManager("http://org.semanticweb.owlapi/ont#");
         OWLAnnotationProperty prop = AnnotationProperty("prop", pm);
         OWLNamedIndividual root = NamedIndividual("ind", pm);
@@ -101,7 +101,7 @@ public class AnnotationShortFormProviderTestCase extends AbstractOWLAPITestCase 
     }
 
     public void testIRIValue() throws Exception {
-        OWLOntologyManager man = getManagerOther();//OWLManager.createOWLOntologyManager();
+        OWLOntologyManager man = getManager();
         PrefixManager pm = new DefaultPrefixManager("http://org.semanticweb.owlapi/ont#");
         OWLAnnotationProperty prop = AnnotationProperty("prop", pm);
         OWLNamedIndividual root = NamedIndividual("ind", pm);

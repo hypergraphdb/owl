@@ -80,7 +80,7 @@ public class LoadAnnotationAxiomsTestCase extends AbstractOWLAPITestCase {
 
 
     public void testIgnoreAnnotations() throws Exception {
-        OWLOntologyManager man = getManagerOther();//OWLManager.createOWLOntologyManager();
+        OWLOntologyManager man = getManager();//OWLManager.createOWLOntologyManager();
         OWLOntology ont = man.createOntology();
         OWLDataFactory df = man.getOWLDataFactory();
         OWLClass clsA = df.getOWLClass(IRI.create("http://ont.com#A"));
@@ -137,7 +137,7 @@ public class LoadAnnotationAxiomsTestCase extends AbstractOWLAPITestCase {
 
         man.saveOntology(ontology, format, new FileDocumentTarget(tempFile));
 
-        OWLOntologyManager man2 = getManagerOther(); //OWLManager.createOWLOntologyManager();
+        OWLOntologyManager man2 = getManager(); //OWLManager.createOWLOntologyManager();
         OWLOntology reloaded =  man2.loadOntologyFromOntologyDocument(new FileDocumentSource(tempFile), configuration);
         man2.removeAxioms(reloaded, new HashSet<OWLAxiom>(reloaded.getAxioms(AxiomType.DECLARATION)));
         return reloaded;

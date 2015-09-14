@@ -61,7 +61,7 @@ import de.uulm.ecs.ai.owlapi.krssrenderer.KRSS2OWLSyntaxOntologyStorer;
  */
 public class HGOntologyManagerFactory implements OWLOntologyManagerFactory
 {
-	private static String graphLocation()
+	public static String graphLocation()
 	{
 		String location = System.getProperty("hgdbowl.defaultdb");
 		if (location == null)
@@ -104,11 +104,11 @@ public class HGOntologyManagerFactory implements OWLOntologyManagerFactory
 		ontologyManager.addOntologyStorer(new LatexOntologyStorer());
 		ontologyManager.addOntologyStorer(new HGDBStorer());
 		ontologyManager.addOntologyStorer(new VOWLXMLOntologyStorer());
-		ontologyManager.addIRIMapper(new NonMappingOntologyIRIMapper());
-		// a HDBGIRI mapper cannot be added here because the repo is not known.
+//		ontologyManager.addIRIMapper(new HGDBIRIMapper(repository));
+//		ontologyManager.addIRIMapper(new NonMappingOntologyIRIMapper());
 		ontologyManager.addOntologyFactory(new EmptyInMemOWLOntologyFactory());
 		ontologyManager.addOntologyFactory(new ParsableOWLOntologyFactory());
-		ontologyManager.addOntologyFactory(new HGDBOntologyFactory());
+		ontologyManager.addOntologyFactory(new HGDBOntologyFactory());		
 		return ontologyManager;
 	}
 	

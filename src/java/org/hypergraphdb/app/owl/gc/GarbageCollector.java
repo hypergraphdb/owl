@@ -1098,15 +1098,17 @@ public class GarbageCollector implements HGDBTask
 	private void collectOtherObjects(GarbageCollectorStatistics stats, boolean analyzeMode, Set<HGHandle> analyzeRemovedSet)
 	{
 		stopWatch.start();
-		List<HGHandle> handlesToRemove = hg.findAll(
-				graph,
-				hg.and(hg.disconnected(), hg.typePlus(OWLObjectHGDB.class), hg.not(hg.typePlus(OWLEntity.class)),
-						hg.not(hg.typePlus(OWLAxiomHGDB.class))));
+		List<HGHandle> handlesToRemove = hg.findAll(graph,
+				hg.and(hg.disconnected(), 
+					   hg.typePlus(OWLObjectHGDB.class), 
+					   hg.not(hg.typePlus(OWLEntity.class)),
+					   hg.not(hg.typePlus(OWLAxiomHGDB.class))));
 		taskProgess = 0;
 		taskSize = handlesToRemove.size();
 		stopWatch.stop("Disconnected Others query time: Found: " + handlesToRemove.size() + " Duration:");
 		for (HGHandle h : handlesToRemove)
 		{
+//			System.out.println("Removing " + graph.get(h));
 			if (isCancelTask())
 				break;
 			progressTask();

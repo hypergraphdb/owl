@@ -20,6 +20,8 @@ import org.semanticweb.owlapi.vocab.OWLFacet;
  */
 public class OWLFacetRestrictionHGDB extends OWLObjectHGDB implements HGLink, OWLFacetRestriction
 {
+	private static final long serialVersionUID = 1L;
+
 	private OWLFacet facet;
 	// private OWLFacet facet;
 

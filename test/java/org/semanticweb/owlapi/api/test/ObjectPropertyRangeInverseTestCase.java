@@ -42,6 +42,14 @@ package org.semanticweb.owlapi.api.test;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.hypergraphdb.app.owl.HGDBOntologyManager;
+import org.hypergraphdb.app.owl.gc.GarbageCollector;
+import org.hypergraphdb.app.owl.gc.GarbageCollectorStatistics;
+import org.hypergraphdb.app.owl.test.versioning.distributed.DistributedTests;
+import org.junit.runner.JUnitCore;
+import org.junit.runner.Request;
+import org.junit.runner.Result;
+import org.junit.runner.notification.Failure;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
 /**
@@ -55,7 +63,8 @@ public class ObjectPropertyRangeInverseTestCase extends AbstractAxiomsRoundTripp
     @Override
 	protected Set<? extends OWLAxiom> createAxioms() {
         Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
-        axioms.add(getFactory().getOWLObjectPropertyRangeAxiom(getOWLObjectProperty("p").getInverseProperty(), getOWLClass("A")));
+        axioms.add(getFactory().getOWLObjectPropertyRangeAxiom(
+        		getOWLObjectProperty("p").getInverseProperty(), getOWLClass("A")));
         return axioms;
     }
 
@@ -63,5 +72,35 @@ public class ObjectPropertyRangeInverseTestCase extends AbstractAxiomsRoundTripp
     public void testManchesterOWLSyntax() throws Exception {
         // Can't represent inverse object property frames in Manchester OWL Syntax
 //        super.testManchesterOWLSyntax();
+    }
+    
+    public static void main(String [] argv)
+    {
+    	ObjectPropertyRangeInverseTestCase test = new ObjectPropertyRangeInverseTestCase();
+    	try
+    	{
+    		test.setUp();
+    		test.testRDFXML();
+			GarbageCollectorStatistics stats = new GarbageCollector(((HGDBOntologyManager)test.getManager())
+						.getOntologyRepository()).runGarbageCollection();
+    		test.tearDown();
+    	}
+    	catch (Throwable t)
+    	{
+    		t.printStackTrace();
+    		System.exit(0);
+    	}
+//		JUnitCore junit = new JUnitCore();
+//		Result result = junit.run(Request.method(ObjectPropertyRangeInverseTestCase.class, 
+//					"testRDFXML"));
+//		System.out.println("Failures " + result.getFailureCount());
+//		if (result.getFailureCount() > 0)
+//		{
+//			for (Failure failure : result.getFailures())
+//			{
+//				failure.getException().printStackTrace();
+//			}
+//		}
+    	
     }
 }

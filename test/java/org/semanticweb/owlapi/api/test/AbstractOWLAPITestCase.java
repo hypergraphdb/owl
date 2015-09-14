@@ -41,6 +41,7 @@ package org.semanticweb.owlapi.api.test;
 
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Set;
 
 import junit.framework.TestCase;
@@ -49,10 +50,14 @@ import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyFormat;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGDBOntologyOutputTarget;
+import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.gc.GarbageCollector;
 import org.hypergraphdb.app.owl.gc.GarbageCollectorStatistics;
+import org.hypergraphdb.app.owl.model.OWLDataPropertyHGDB;
 import org.hypergraphdb.app.owl.test.HTTPHGDBIRIMapper;
 import org.hypergraphdb.app.owl.test.OWLManagerHG;
+import org.hypergraphdb.app.owl.util.ImplUtils;
+import org.hypergraphdb.util.HGUtils;
 import org.semanticweb.owlapi.io.RDFOntologyFormat;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.io.StringDocumentSource;
@@ -91,9 +96,9 @@ public abstract class AbstractOWLAPITestCase extends TestCase
 
 	public boolean MANCHESTER_FIRST = true;
 
-	private OWLOntologyManager managerManchester;
+	//private OWLOntologyManager managerManchester;
 
-	private HGDBOntologyManager managerHGDB;
+	private HGDBOntologyManager manager;
 
 	private IRI uriBase;
 
@@ -110,74 +115,41 @@ public abstract class AbstractOWLAPITestCase extends TestCase
 		uriBase = IRI.create("http://www.semanticweb.org/owlapi/test");
 	}
 
+	HashMap<Class<?>, Boolean> classSetup = new HashMap<Class<?>, Boolean>();
+	
 	@Override
 	protected void setUp() throws Exception
 	{
-		if (managerManchester != null)
-			System.out.println("Creating new manager. Old not cleared.");
-		managerManchester = OWLManagerHG.createManchesterOWLOntologyManager();
-		managerHGDB = OWLManagerHG.createHGDBOWLOntologyManager();
-		// if (manager instanceof HGDBOntologyManagerImpl) {
-		// System.out.print("HGDB IMPLEMENTATION TEST");
-		// HGDBOntologyManagerImpl hgdbman = (HGDBOntologyManagerImpl)manager;
-		managerHGDB.getOntologyRepository().deleteAllOntologies();
+		if (classSetup.get(this.getClass()) == null)
+		{
+			HGUtils.dropHyperGraphInstance(HGOntologyManagerFactory.graphLocation());
+			HGUtils.dropHyperGraphInstance(HGOntologyManagerFactory.graphLocation() + "_other");
+			classSetup.put(this.getClass(), Boolean.TRUE);
+		}
+//		if (managerManchester != null)
+//			System.out.println("Creating new manager. Old not cleared.");
+//		managerManchester = OWLManagerHG.createManchesterOWLOntologyManager();
+		manager = OWLManagerHG.createHGDBOWLOntologyManager();
+		manager.getOntologyRepository().deleteAllOntologies();
 		if (RUN_GC_AFTER_DELETE)
 		{
-			GarbageCollectorStatistics stats = new GarbageCollector(managerHGDB.getOntologyRepository()).runGarbageCollection();
-			System.out
-					.println("Garbage Collection done. Collected total Atoms: "
-							+ stats.getTotalAtoms());
+			GarbageCollectorStatistics stats = new GarbageCollector(manager.getOntologyRepository()).runGarbageCollection();
+			System.out.println("Garbage Collection done. Collected total Atoms: " + stats.getTotalAtoms());
 		}
-		managerHGDB.getOntologyRepository().printStatistics();
+		manager.getOntologyRepository().printStatistics();
 	}
 
 	public OWLOntologyManager getManager()
 	{
-		if (MANCHESTER_FIRST)
-		{
-			return managerManchester;
-		}
-		else
-		{
-			return managerHGDB;
-		}
+		return manager;
 	}
 
-	public OWLOntologyManager getManagerOther()
-	{
-		if (MANCHESTER_FIRST)
-		{
-			return managerHGDB;
-		}
-		else
-		{
-			return managerManchester;
-		}
-	}
 
 	public OWLDataFactory getFactory()
 	{
-		if (MANCHESTER_FIRST)
-		{
-			return managerManchester.getOWLDataFactory();
-		}
-		else
-		{
-			return managerHGDB.getOWLDataFactory();
-		}
+		return getManager().getOWLDataFactory();
 	}
 
-	public OWLDataFactory getFactoryOther()
-	{
-		if (MANCHESTER_FIRST)
-		{
-			return managerHGDB.getOWLDataFactory();
-		}
-		else
-		{
-			return managerManchester.getOWLDataFactory();
-		}
-	}
 
 	public OWLOntology getOWLOntology(String name)
 	{
@@ -275,22 +247,15 @@ public abstract class AbstractOWLAPITestCase extends TestCase
 	 * @param format
 	 *            The format to use when doing the round trip.
 	 */
-	public OWLOntology roundTripOntology(OWLOntology ont,
-			OWLOntologyFormat format) throws Exception
+	public OWLOntology roundTripOntology(OWLOntology ont, OWLOntologyFormat format) throws Exception
 	{
-		// try {
 		roundtripcounter++;
-		System.out.println("*** ROUNDTRIP #" + roundtripcounter + "FORMAT: "
-				+ format.getClass() + " Ont class: " + ont.getClass());
-		if (format instanceof HGDBOntologyFormat)
-		{
-			return roundTripOntologyHypergraph(ont, (HGDBOntologyFormat) format);
-		}
+		System.out.println("*** ROUNDTRIP #" + roundtripcounter + 
+						   "FORMAT: " + format.getClass() + " Ont class: " + ont.getClass());
 		UnparsableOntologyException.setIncludeStackTraceInMessage(true);
 		StringDocumentTarget target = new StringDocumentTarget();
 		OWLOntologyFormat fromFormat = getManager().getOntologyFormat(ont);
-		if (fromFormat instanceof PrefixOWLOntologyFormat
-				&& format instanceof PrefixOWLOntologyFormat)
+		if (fromFormat instanceof PrefixOWLOntologyFormat && format instanceof PrefixOWLOntologyFormat)
 		{
 			PrefixOWLOntologyFormat fromPrefixFormat = (PrefixOWLOntologyFormat) fromFormat;
 			PrefixOWLOntologyFormat toPrefixFormat = (PrefixOWLOntologyFormat) format;
@@ -300,27 +265,14 @@ public abstract class AbstractOWLAPITestCase extends TestCase
 		{
 			((RDFOntologyFormat) format).setAddMissingTypes(false);
 		}
-		System.out.println("AXIOMS IN ONTOLOGY before Render:  "
-				+ ont.getAxioms().size());
-		System.out.println("SIGNATURE IN ONTOLOGY before Render:  "
-				+ ont.getSignature().size());
+		System.out.println("AXIOMS IN ONTOLOGY before Render:  " + ont.getAxioms().size());
+		System.out.println("SIGNATURE IN ONTOLOGY before Render:  " + ont.getSignature().size());
+		//getManager()
 		getManager().saveOntology(ont, format, target);
 		handleSaved(target, format);
-		// OWLOntologyManager man = OWLManagerHG.createOWLOntologyManager();
-		OWLOntologyManager man = getManagerOther();
-		// If HGDB --> IMPORT ONTOLOGY AND USER HGDB ONTOLOGY as ont2
-		OWLOntology ont2;
-		if (man instanceof HGDBOntologyManager)
-		{
-			ont2 = importOntology(ont, target, (HGDBOntologyManager) man,
-					format);
-		}
-		else
-		{
-			ont2 = man
-					.loadOntologyFromOntologyDocument(new StringDocumentSource(
-							target.toString()));
-		}
+		OWLOntologyManager man = HGOntologyManagerFactory.getOntologyManager(HGOntologyManagerFactory.graphLocation() + "_other");
+		//OWLOntologyManager man = OWLManagerHG.createManchesterOWLOntologyManager();
+		OWLOntology ont2 = man.loadOntologyFromOntologyDocument(new StringDocumentSource(target.toString()));
 		if (!ont.isAnonymous() && !ont2.isAnonymous())
 		{
 			assertEquals(ont, ont2);
@@ -366,7 +318,7 @@ public abstract class AbstractOWLAPITestCase extends TestCase
 				getManager().getOWLDataFactory());
 		axioms1 = normaliser1.getNormalisedAxioms(axioms1);
 		AnonymousIndividualsNormaliser normaliser2 = new AnonymousIndividualsNormaliser(
-				getManagerOther().getOWLDataFactory());
+				man.getOWLDataFactory());
 		axioms2 = normaliser2.getNormalisedAxioms(axioms2);
 		if (!axioms1.equals(axioms2))
 		{
@@ -433,131 +385,16 @@ public abstract class AbstractOWLAPITestCase extends TestCase
 
 	}
 
-	/**
-	 * Saves the specified ontology in the specified format and reloads it.
-	 * Calling this method from a test will cause the test to fail if the
-	 * ontology could not be stored, could not be reloaded, or was reloaded and
-	 * the reloaded version is not equal (in terms of ontology URI and axioms)
-	 * with the original.
-	 * 
-	 * @param ont
-	 *            The ontology to be round tripped.
-	 * @param format
-	 *            The format to use when doing the round trip.
-	 */
-	public OWLOntology roundTripOntologyHypergraph(OWLOntology ont,
-			HGDBOntologyFormat format) throws Exception
-	{
-		// try {
-		// TODO DIABLED FOR NOW
-		System.out.println("DISABLED HG ROUNDTRIP");
-		return ont;
-		// roundtripcounterHG ++;
-		// System.out.println("*** ROUNDTRIP HYPERGRAPH #" + roundtripcounterHG
-		// + " FORMAT: " + format.getClass() + " Ont class: " + ont.getClass());
-		// System.out.println("*** ROUNDTRIP HYPERGRAPH #" + roundtripcounterHG
-		// + " FROM FORMAT: " + manager.getOntologyFormat(ont) + " Ont class: "
-		// + ont.getClass());
-		// UnparsableOntologyException.setIncludeStackTraceInMessage(true);
-		// IRI targetIRI;
-		// if (ont.getOntologyID().isAnonymous()) {
-		// targetIRI = IRI.create("hgdb://ANONYMOUS");
-		// } else {
-		// targetIRI = IRI.create("hgdb://" +
-		// ont.getOntologyID().getOntologyIRI().getFragment());
-		// }
-		// HGDBOntologyOutputTarget target = new
-		// HGDBOntologyOutputTarget(targetIRI);
-		// OWLOntologyFormat fromFormat = manager.getOntologyFormat(ont);
-		// // if (fromFormat instanceof PrefixOWLOntologyFormat && format
-		// instanceof PrefixOWLOntologyFormat) {
-		// // PrefixOWLOntologyFormat fromPrefixFormat =
-		// (PrefixOWLOntologyFormat) fromFormat;
-		// // PrefixOWLOntologyFormat toPrefixFormat = (PrefixOWLOntologyFormat)
-		// format;
-		// // toPrefixFormat.copyPrefixesFrom(fromPrefixFormat);
-		// // }
-		// // if(format instanceof RDFOntologyFormat) {
-		// // ((RDFOntologyFormat) format).setAddMissingTypes(false);
-		// // }
-		// manager.saveOntology(ont, format, target);
-		// handleSaved(target, format);
-		// HGDBOntologyManagerImpl man =
-		// (HGDBOntologyManagerImpl)OWLManagerHG.createOWLOntologyManager();
-		// //OWLOntology ont2 = man.loadOntologyFromOntologyDocument(new
-		// StringDocumentSource(target.toString()));
-		// OWLOntology ont2 = man.loadOntology(targetIRI);
-		// if (!(ont2 instanceof HGDBOntologyImpl)) throw new
-		// IllegalStateException("NO HGDBOntologyImpl loaded, was: " +
-		// ont2.getClass());
-		// if (!ont.isAnonymous() && !ont2.isAnonymous()) {
-		// assertEquals(ont, ont2);
-		// }
-		// Set<OWLAxiom> axioms1;
-		// Set<OWLAxiom> axioms2;
-		// if (!isIgnoreDeclarationAxioms(format)) {
-		// axioms1 = ont.getAxioms();
-		// axioms2 = ont2.getAxioms();
-		// }
-		// else {
-		// axioms1 = AxiomType.getAxiomsWithoutTypes(ont.getAxioms(),
-		// AxiomType.DECLARATION);
-		// axioms2 = AxiomType.getAxiomsWithoutTypes(ont2.getAxioms(),
-		// AxiomType.DECLARATION);
-		// }
-		// // This isn't great - we normalise axioms by changing the ids of
-		// individuals. This relies on the fact that
-		// // we iterate over objects in the same order for the same set of
-		// axioms!
-		// AnonymousIndividualsNormaliser normaliser1 = new
-		// AnonymousIndividualsNormaliser(manager.getOWLDataFactory());
-		// axioms1 = normaliser1.getNormalisedAxioms(axioms1);
-		// AnonymousIndividualsNormaliser normaliser2 = new
-		// AnonymousIndividualsNormaliser(manager.getOWLDataFactory());
-		// axioms2 = normaliser2.getNormalisedAxioms(axioms2);
-		// try {
-		// if (!axioms1.equals(axioms2)) {
-		// StringBuilder sb = new StringBuilder();
-		// for (OWLAxiom ax : axioms1) {
-		// if (!axioms2.contains(ax)) {
-		// sb.append("Rem axiom: ");
-		// sb.append(ax);
-		// sb.append("\n");
-		// }
-		// }
-		// for (OWLAxiom ax : axioms2) {
-		// if (!axioms1.contains(ax)) {
-		// sb.append("Add axiom: ");
-		// sb.append(ax);
-		// sb.append("\n");
-		// }
-		// }
-		// System.out.println(sb.toString());
-		// fail(sb.toString());
-		// }
-		// assertEquals(ont.getAnnotations(), ont2.getAnnotations());
-		// //
-		// //REMOVE ONTOLOGY FROM GRAPH
-		// } finally {
-		// man.removeOntology(ont2);
-		// man.getOntologyRepository().deleteOntology(ont2.getOntologyID());
-		// }
-		//
-		// return ont2;
-	}
-
 	protected boolean isIgnoreDeclarationAxioms(OWLOntologyFormat format)
 	{
 		return true;
 	}
 
-	protected void handleSaved(StringDocumentTarget target,
-			OWLOntologyFormat format)
+	protected void handleSaved(StringDocumentTarget target, OWLOntologyFormat format)
 	{
 		System.out.println("Saved: ");
 		System.out.println(target.toString());
-		System.out
-				.println("------------------------------------------------------------");
+		System.out.println("------------------------------------------------------------");
 	}
 
 	protected void handleSaved(HGDBOntologyOutputTarget target,

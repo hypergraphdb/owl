@@ -200,8 +200,7 @@ public abstract class OWLObjectPropertyExpressionHGDB
 	public Set<OWLObjectPropertyExpression> getInverses(OWLOntology ontology)
 	{
 		Set<OWLObjectPropertyExpression> result = new TreeSet<OWLObjectPropertyExpression>();
-		for (OWLInverseObjectPropertiesAxiom ax : ontology
-				.getInverseObjectPropertyAxioms(this))
+		for (OWLInverseObjectPropertiesAxiom ax : ontology.getInverseObjectPropertyAxioms(this))
 		{
 			if (ax.getFirstProperty().equals(this))
 			{
@@ -215,8 +214,7 @@ public abstract class OWLObjectPropertyExpressionHGDB
 		return result;
 	}
 
-	public Set<OWLObjectPropertyExpression> getInverses(
-			Set<OWLOntology> ontologies)
+	public Set<OWLObjectPropertyExpression> getInverses(Set<OWLOntology> ontologies)
 	{
 		Set<OWLObjectPropertyExpression> result = new TreeSet<OWLObjectPropertyExpression>();
 		for (OWLOntology ont : ontologies)
@@ -245,7 +243,10 @@ public abstract class OWLObjectPropertyExpressionHGDB
 
 	public OWLObjectPropertyExpression getInverseProperty()
 	{
-		if (inverse == null)
+		// We have to check that the inverse expression is still in the DB because
+		// it could have been GC-ed. This is a side-effect of the way GC has been 
+		// designed and it needs to be fixed, see issue: https://github.com/hypergraphdb/owl/issues/4
+		if (inverse == null || getHyperGraph().getHandle(inverse) == null) 
 		{
 			inverse = getOWLDataFactory().getOWLObjectInverseOf(this);
 		}
@@ -257,8 +258,7 @@ public abstract class OWLObjectPropertyExpressionHGDB
 		OWLObjectPropertyExpression simp = getSimplified();
 		if (simp.isAnonymous())
 		{
-			return ((OWLObjectInverseOf) simp).getInverse()
-					.asOWLObjectProperty();
+			return ((OWLObjectInverseOf) simp).getInverse().asOWLObjectProperty();
 		}
 		else
 		{

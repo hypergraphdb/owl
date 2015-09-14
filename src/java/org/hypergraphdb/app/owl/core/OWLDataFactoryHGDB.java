@@ -2362,8 +2362,7 @@ public class OWLDataFactoryHGDB implements OWLDataFactory
 				EMPTY_ANNOTATIONS_SET);
 	}
 
-	public OWLObjectInverseOf getOWLObjectInverseOf(
-			OWLObjectPropertyExpression property)
+	public OWLObjectInverseOf getOWLObjectInverseOf(OWLObjectPropertyExpression property)
 	{
 		if (property == null)
 			throw new IllegalArgumentException("property null");

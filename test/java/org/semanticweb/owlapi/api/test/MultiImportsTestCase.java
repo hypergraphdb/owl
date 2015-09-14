@@ -39,13 +39,11 @@
 
 package org.semanticweb.owlapi.api.test;
 
-import java.io.File;
-
-import org.semanticweb.owlapi.apibinding.OWLManager;
+import java.net.URISyntaxException;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.util.AutoIRIMapper;
 
 /**
  * Author: Matthew Horridge<br>
@@ -53,49 +51,73 @@ import org.semanticweb.owlapi.util.AutoIRIMapper;
  * Bio-Health Informatics Group<br>
  * Date: 01-Jul-2010
  */
-public class MultiImportsTestCase extends AbstractOWLAPITestCase {
-	public void testImports() throws Exception {
-		try {
-			OWLOntologyManager manager = getManagerOther();//OWLManager.createOWLOntologyManager();
-			manager.addIRIMapper(new AutoIRIMapper(new File(
-					"apibinding/src/test/resources/imports"), true));
-			//OWLOntology o = 
-				manager.loadOntologyFromOntologyDocument(this
-					.getClass().getResourceAsStream("/imports/D.owl"));
-		} catch (OWLOntologyCreationException e) {
-			//Thread.dumpStack();
+public class MultiImportsTestCase extends AbstractOWLAPITestCase
+{
+	OWLOntologyIRIMapper mapper(final String relativePath)
+	{
+		return new OWLOntologyIRIMapper()
+		{
+			public IRI getDocumentIRI(IRI ontologyIRI)
+			{
+				try
+				{
+					String[] parts = ontologyIRI.toURI().getRawPath().split("/");
+					return IRI.create(this.getClass().getResource(relativePath + "/" + parts[parts.length - 1]));
+				}
+				catch (URISyntaxException e)
+				{
+					throw new RuntimeException(e);
+				}
+			}
+		};
+	}
+
+	public void testImports() throws Exception
+	{
+		try
+		{
+			OWLOntologyManager manager = getManager();// OWLManager.createOWLOntologyManager();
+			final Class<?> clazz = this.getClass();
+			manager.addIRIMapper(mapper("/imports"));
+			manager.loadOntologyFromOntologyDocument(clazz.getResourceAsStream("/imports/D.owl"));
+		}
+		catch (OWLOntologyCreationException e)
+		{
+			// Thread.dumpStack();
 			e.printStackTrace();
 			fail(e.getMessage());
 		}
 	}
 
-	public void testCyclicImports() throws Exception {
-		try {
-			OWLOntologyManager manager = getManagerOther();//OWLManager.createOWLOntologyManager();
-			manager.addIRIMapper(new AutoIRIMapper(new File(
-					"apibinding/src/test/resources/importscyclic"), true));
-			//OWLOntology o = 
-				manager.loadOntologyFromOntologyDocument(this
-					.getClass().getResourceAsStream("/importscyclic/D.owl"));
-		} catch (OWLOntologyCreationException e) {
-			//Thread.dumpStack();
+	public void testCyclicImports() throws Exception
+	{
+		try
+		{
+			OWLOntologyManager manager = getManager();// OWLManager.createOWLOntologyManager();
+			manager.addIRIMapper(mapper("/importscyclic"));
+			// OWLOntology o =
+			manager.loadOntologyFromOntologyDocument(this.getClass().getResourceAsStream("/importscyclic/D.owl"));
+		}
+		catch (OWLOntologyCreationException e)
+		{
+			// Thread.dumpStack();
 			e.printStackTrace();
 			fail(e.getMessage());
 		}
 	}
 
-	public void testCyclicImports2() throws Exception {
-		try {
-			OWLOntologyManager manager = getManagerOther();//OWLManager.createOWLOntologyManager();
-			manager.addIRIMapper(new AutoIRIMapper(new File(
-					"apibinding/src/test/resources/importscyclic"), true));
-			//OWLOntology o = 
-				manager
-					.loadOntologyFromOntologyDocument(IRI
-							.create(new File(
-									"apibinding/src/test/resources/importscyclic/D.owl")));
-		} catch (OWLOntologyCreationException e) {
-			//Thread.dumpStack();
+	public void testCyclicImports2() throws Exception
+	{
+		try
+		{
+			OWLOntologyManager manager = getManager();
+			manager.addIRIMapper(mapper("/importscyclic"));
+			manager.loadOntologyFromOntologyDocument(
+					IRI.create(this.getClass().getResource("/importscyclic/D.owl")));
+		}
+		catch (OWLOntologyCreationException e)
+		{
+			// Thread.dumpStack();
 			e.printStackTrace();
 			fail(e.getMessage());
 		}

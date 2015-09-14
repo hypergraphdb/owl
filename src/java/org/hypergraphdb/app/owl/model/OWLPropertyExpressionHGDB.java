@@ -22,6 +22,8 @@ import org.semanticweb.owlapi.model.OWLSubPropertyAxiom;
 public abstract class OWLPropertyExpressionHGDB<R extends OWLPropertyRange, P extends OWLPropertyExpression<R, P>> extends
 		OWLObjectHGDB implements OWLPropertyExpression<R, P>
 {
+	private static final long serialVersionUID = 1L;
+
 	public Set<R> getRanges(OWLOntology ontology)
 	{
 		Set<R> result = new TreeSet<R>();
