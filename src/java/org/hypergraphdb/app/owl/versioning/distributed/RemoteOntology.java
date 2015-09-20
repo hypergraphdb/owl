@@ -8,9 +8,15 @@ import org.hypergraphdb.annotation.AtomReference;
 
 /**
  * <p>
- * Represents an association with a remotely stored versioned ontology. This object
+ * Represents an association of the local copy of a distributed ontology 
+ * with a remotely stored version of it. This object
  * maintains the local state about the remote: a user friendly name, the peer identity,
  * the set of revision heads last fetched (representing the last known version state). 
+ * </p>
+ * 
+ * <p>
+ * There may be multiple such association for a locally stored ontology, one per each
+ * remote peer.
  * </p>
  * 
  * @author Borislav Iordanov

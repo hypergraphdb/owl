@@ -8,7 +8,6 @@ import static org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepo
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
@@ -16,11 +15,8 @@ import mjson.Json;
 
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.versioning.distributed.ClientCentralizedOntology;
-import org.hypergraphdb.app.owl.versioning.distributed.DistributedOntology;
-import org.hypergraphdb.app.owl.versioning.distributed.ServerCentralizedOntology;
+import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
-import org.hypergraphdb.app.owl.versioning.distributed.VDRenderer;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.Messages;
@@ -112,18 +108,15 @@ public class BrowseRepositoryActivity extends FSMActivity
 	public WorkflowStateConstant targetQueryOntologyIds(final Json msg) throws Throwable
 	{
 		Json reply = getReply(msg, Performative.Inform);
-		List<BrowseEntry> ontologyIDsAndUUIDs = graph.getTransactionManager().ensureTransaction(new Callable<List<BrowseEntry>>()
+		Json ontologyIDsAndUUIDs = graph.getTransactionManager().ensureTransaction(new Callable<Json>()
 		{
-			public List<BrowseEntry> call()
+			public Json call()
 			{
 				// TRANSACTION START
-				List<BrowseEntry> ontologyIDsAndUUIDs = new ArrayList<BrowseEntry>();
-				Set<DistributedOntology> ontologies = repository.getDistributedOntologies();
-				for (DistributedOntology o : ontologies)
-				{
-					BrowseEntry entry = new BrowseEntry(o);
-					ontologyIDsAndUUIDs.add(entry);
-				}
+				Json ontologyIDsAndUUIDs = Json.array();
+				List<HGDBOntology> ontologies = repository.getOntologies();
+				for (HGDBOntology o : ontologies)
+					ontologyIDsAndUUIDs.add(new BrowseEntry(o));
 				// TRANSACTION END
 				return ontologyIDsAndUUIDs;
 			}
@@ -165,41 +158,22 @@ public class BrowseRepositoryActivity extends FSMActivity
 
 		private static final long serialVersionUID = 240951418825364623L;
 
-		public static final String DIST_CLIENT = "Client";
-		public static final String DIST_PEER = "Peer";
-		public static final String DIST_SERVER = "Server";
-
 		private String owlOntologyIRI;
 		private String owlOntologyVersionIRI;
 		private String owlOntologyDocumentIRI;
 		private HGPersistentHandle uuid;
-		private String distributionMode;
-		private String lastRevision;
 
 		public BrowseEntry()
 		{
 		}
 
-		public BrowseEntry(DistributedOntology dOnto)
+		public BrowseEntry(HGDBOntology dOnto)
 		{
-			if (dOnto instanceof ClientCentralizedOntology)
-			{
-				distributionMode = DIST_CLIENT;
-			}
-			else if (dOnto instanceof ServerCentralizedOntology)
-			{
-				distributionMode = DIST_SERVER;
-			}
-			else
-			{
-				distributionMode = DIST_PEER;
-			}
-			OWLOntologyID oId = dOnto.getWorkingSetData().getOntologyID();
+			OWLOntologyID oId = dOnto.getOntologyID();
 			this.owlOntologyIRI = "" + oId.getOntologyIRI();
 			this.owlOntologyVersionIRI = oId.getVersionIRI() == null ? null : oId.getVersionIRI().toString();
-			this.owlOntologyDocumentIRI = dOnto.getWorkingSetData().getDocumentIRI().toString();
-			this.uuid = dOnto.getWorkingSetData().getAtomHandle().getPersistent();
-			this.lastRevision = VDRenderer.render(dOnto.getVersionedOntology().revision());
+			this.owlOntologyDocumentIRI = dOnto.getDocumentIRI().toString();
+			this.uuid = dOnto.getAtomHandle().getPersistent();
 		}
 
 		/**
@@ -270,43 +244,9 @@ public class BrowseRepositoryActivity extends FSMActivity
 			this.uuid = uuid;
 		}
 
-		/**
-		 * @return the distributionMode
-		 */
-		public String getDistributionMode()
-		{
-			return distributionMode;
-		}
-
-		/**
-		 * @param distributionMode
-		 *            the distributionMode to set
-		 */
-		public void setDistributionMode(String distributionMode)
-		{
-			this.distributionMode = distributionMode;
-		}
-
-		/**
-		 * @return the lastRevision
-		 */
-		public String getLastRevision()
-		{
-			return lastRevision;
-		}
-
-		/**
-		 * @param lastRevision
-		 *            the lastRevision to set
-		 */
-		public void setLastRevision(String lastRevision)
-		{
-			this.lastRevision = lastRevision;
-		}
-
 		public String toString()
 		{
-			return "" + getOwlOntologyIRI() + " [" + getUuid() + "] " + getDistributionMode();
+			return "" + getOwlOntologyIRI() + " [" + getUuid() + "] ";
 		}
 	}
 }

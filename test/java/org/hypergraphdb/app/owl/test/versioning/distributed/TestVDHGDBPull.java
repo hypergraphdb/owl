@@ -115,7 +115,7 @@ public class TestVDHGDBPull
 					{
 						dr.printStatistics();
 						stopWatch.start();
-						VersionUpdateActivity pullAct = dr.pullNew(entry.getUuid(), targetPeer);
+						VersionUpdateActivity pullAct = dr.cloneOntology(entry.getUuid(), targetPeer);
 						// block
 						System.out.print("PULLING Ontology" + entry.getOwlOntologyIRI() + " UUID: " + entry.getUuid() + " ...");
 						ActivityResult pullResult = pullAct.getFuture().get();

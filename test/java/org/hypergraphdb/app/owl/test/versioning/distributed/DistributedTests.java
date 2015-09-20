@@ -134,9 +134,32 @@ public class DistributedTests extends VersioningTestBase
 		VersionedOntologiesTestData.revisionGraph_1(iri_prefix + "peer1data", null);
 		HGHandle sourceOntoHandle = TU.ctx().o.getAtomHandle();
 		RemoteOntology remoteOnto = repo2.remoteOnto(sourceOntoHandle, repo2.remoteRepo(peer1.getIdentity()));
-		peer2.getActivityManager().initiateActivity(
-			new VersionUpdateActivity(peer2)
-				.remoteOntology(ctx2.graph.getHandle(remoteOnto)).action("pull")).get();
+		VersionUpdateActivity activity = new VersionUpdateActivity(peer2)
+			.remoteOntology(ctx2.graph.getHandle(remoteOnto))
+			.action(VersionUpdateActivity.ActionType.clone.name());
+		peer2.getActivityManager().initiateActivity(activity).get();
+		assertEquals(WorkflowState.Completed, activity.getState());
+		assertTrue(VersionedOntologiesTestData.compareOntologies(vm1.versioned(sourceOntoHandle), 
+																 vm1.graph(), 
+																 vm2.versioned(sourceOntoHandle), 
+																 vm2.graph()));
+	}
+	
+	/**
+	 * Same as clone but initiated from the sending end.
+	 * @throws Exception
+	 */
+	@Test public void testPublish() throws Exception
+	{
+		TU.ctx.set(ctx1);
+		VersionedOntologiesTestData.revisionGraph_1(iri_prefix + "peer1data", null);
+		HGHandle sourceOntoHandle = TU.ctx().o.getAtomHandle();
+		RemoteOntology remoteOnto = repo1.remoteOnto(sourceOntoHandle, repo1.remoteRepo(peer2.getIdentity()));
+		VersionUpdateActivity activity = new VersionUpdateActivity(peer1)
+			.remoteOntology(ctx1.graph.getHandle(remoteOnto))
+			.action(VersionUpdateActivity.ActionType.publish.name());
+		peer1.getActivityManager().initiateActivity(activity).get();
+		assertEquals(WorkflowState.Completed, activity.getState());
 		assertTrue(VersionedOntologiesTestData.compareOntologies(vm1.versioned(sourceOntoHandle), 
 																 vm1.graph(), 
 																 vm2.versioned(sourceOntoHandle), 
@@ -238,7 +261,7 @@ public class DistributedTests extends VersioningTestBase
 		RemoteOntology remoteOnto = repo2.remoteOnto(sourceOntoHandle, repo2.remoteRepo(peer1.getIdentity()));
 		peer2.getActivityManager().initiateActivity(
 			new VersionUpdateActivity(peer2)
-				.remoteOntology(ctx2.graph.getHandle(remoteOnto)).action("pull")).get();
+				.remoteOntology(ctx2.graph.getHandle(remoteOnto)).action("clone")).get();
 		assertTrue(VersionedOntologiesTestData.compareOntologies(vm1.versioned(sourceOntoHandle), 
 																 vm1.graph(), 
 																 vm2.versioned(sourceOntoHandle), 
@@ -313,7 +336,7 @@ public class DistributedTests extends VersioningTestBase
 		Result result = null;
 		do
 		{
-			result = junit.run(Request.method(DistributedTests.class, "testBranchConflicts"));
+			result = junit.run(Request.method(DistributedTests.class, "testPublish"));
 		} while (false && result.getFailureCount() == 0);
 		System.out.println("Failures " + result.getFailureCount());
 		if (result.getFailureCount() > 0)

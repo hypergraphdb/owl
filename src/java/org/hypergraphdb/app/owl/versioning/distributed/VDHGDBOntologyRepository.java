@@ -319,7 +319,7 @@ public class VDHGDBOntologyRepository extends HGDBOntologyRepository
 	 * @param remote
 	 * @return
 	 */
-	public VersionUpdateActivity pullNew(HGPersistentHandle ontologyHandle, HGPeerIdentity otherPeer)
+	public VersionUpdateActivity cloneOntology(HGHandle ontologyHandle, HGPeerIdentity otherPeer)
 	{
 		if (DBG)
 			System.out.println("Pulling versioned onto: " + ontologyHandle);
@@ -335,23 +335,25 @@ public class VDHGDBOntologyRepository extends HGDBOntologyRepository
 		return activity;
 	}
 
-	public PushActivity push(DistributedOntology dvo, HGPeerIdentity remote)
+	public VersionUpdateActivity publishOntology(HGHandle ontologyHandle, HGPeerIdentity otherPeer)
 	{
-		// 1) Target available
-		// 2) Target has vo? No: Push everything vo + all changesets using
-		// pushNew
-		// 3) Can push == target master head revision is older and equal to one
-		// revision in my
-		// branches history
-		// 4) find last Changeset that is not in target.
-		// 5) push each changeset/Revision pair after that. This is the Delta.
-		// 6) remote will receive one changeset/Revision, then apply those
-		// changes within one transaction
-		//
-		//
-		// System.out.println("Pushing versioned onto: " +
-		// vo.getWorkingSetData().getOntologyID());
-		PushActivity activity = new PushActivity(peer.get(), dvo, remote);
+		if (DBG)
+			System.out.println("Publishing ontology: " + ontologyHandle + " to " + otherPeer);
+		final HyperGraph graph = getHyperGraph();
+		RemoteOntology remoteOnto = remoteOnto(ontologyHandle, remoteRepo(otherPeer)); 
+		VersionUpdateActivity activity = new VersionUpdateActivity(peer.get())
+			.remoteOntology(graph.getHandle(remoteOnto))
+			.action("publish");
+		peer.get().getActivityManager().initiateActivity(activity);
+		return activity;		
+	}
+	
+	public VersionUpdateActivity push(HGHandle ontologyHandle, HGPeerIdentity otherPeer)
+	{
+		final HyperGraph graph = getHyperGraph();		
+		RemoteOntology remoteOnto = remoteOnto(ontologyHandle, remoteRepo(otherPeer));
+		VersionUpdateActivity activity = new VersionUpdateActivity(peer.get())
+				.remoteOntology(graph.getHandle(remoteOnto)).action("push");		
 		peer.get().getActivityManager().initiateActivity(activity);
 		return activity;
 	}

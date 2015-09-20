@@ -64,6 +64,8 @@ public class VersionUpdateActivity extends FSMActivity
 	public static final WorkflowStateConstant WaitForRevisionObjects = WorkflowStateConstant.makeStateConstant("WaitForRevisionObjects");
 	public static final WorkflowStateConstant PullRequested = WorkflowStateConstant.makeStateConstant("PullRequested");
 	public static final WorkflowStateConstant PushAccepted = WorkflowStateConstant.makeStateConstant("PushAccepted");
+	public static final WorkflowStateConstant CloneRequested = WorkflowStateConstant.makeStateConstant("CloneRequested");
+	public static final WorkflowStateConstant PublishAccepted = WorkflowStateConstant.makeStateConstant("PublishAccepted");
 	
 	public static enum States 
 	{
@@ -78,6 +80,15 @@ public class VersionUpdateActivity extends FSMActivity
 		public WorkflowStateConstant state() { return stateConstant; }
 	}
 		
+	public static enum ActionType
+	{
+		pull,
+		push,
+		sync,
+		clone,
+		publish
+	}
+	
 	private OntologyVersionState.Delta delta = null;
 	private List<VMetadataChange<VersionedOntology>> metaChanges = null;	
 	private HGHandle remoteOntologyHandle;	
@@ -118,18 +129,11 @@ public class VersionUpdateActivity extends FSMActivity
 		return branchConflicts;		
 	}
 	
-	/**
-	 * @param thisPeer
-	 */
 	public VersionUpdateActivity(HyperGraphPeer thisPeer)
 	{
 		super(thisPeer);
 	}
 
-	/**
-	 * @param thisPeer
-	 * @param id
-	 */
 	public VersionUpdateActivity(HyperGraphPeer thisPeer, UUID id)
 	{
 		super(thisPeer, id);
@@ -157,20 +161,35 @@ public class VersionUpdateActivity extends FSMActivity
 	{
 		RemoteOntology remoteOntology = getThisPeer().getGraph().get(remoteOntologyHandle);
 		Json msg;
-		if ("pull".equals(action))
+		if (ActionType.clone.name().equals(action))
+		{
+			msg = createMessage(Performative.QueryRef, 
+								Json.object(ONTOLOGY_HANDLE, remoteOntology.getOntologyHandle()));
+			send(remoteOntology.getRepository().getPeer(), msg);							 										  
+			getState().assign(WaitForRevisionObjects);			
+		}
+		else if (ActionType.publish.name().equals(action))
+		{
+			msg = createMessage(Performative.Request, 
+					Json.object(ONTOLOGY_HANDLE, remoteOntology.getOntologyHandle(),
+								"action", ActionType.clone.name()));
+			send(remoteOntology.getRepository().getPeer(), msg);				
+			getState().assign(CloneRequested);						
+		}
+		else if (ActionType.pull.name().equals(action))
 		{
 			getState().assign(startPulling());
 		}
-		else if ("push".equals(action))
+		else if (ActionType.push.name().equals(action))
 		{
 			msg = createMessage(Performative.Request, 
 								Json.object(ONTOLOGY_HANDLE, remoteOntology.getOntologyHandle(),
 											"heads", remoteOntology.getRevisionHeads(),
-											"action", "pull"));
-			getState().assign(PullRequested);
+											"action", ActionType.pull.name()));
 			send(remoteOntology.getRepository().getPeer(), msg);				
+			getState().assign(PullRequested);			
 		}
-		else if ("synch".equals(action))
+		else if (ActionType.sync.name().equals(action))
 		{
 			throw new UnsupportedOperationException("synch operation of version update not supported yet.");
 		}
@@ -231,8 +250,11 @@ public class VersionUpdateActivity extends FSMActivity
 		else
 			vo = ActivityUtils.storeClonedOntology(manager, doc);
 
-		RemoteOntology remoteOnto = remoteOnto();		
-		remoteOnto.setRevisionHeads(delta.heads);	
+		RemoteOntology remoteOnto = remoteOnto();	
+		if (delta != null)
+			remoteOnto.setRevisionHeads(delta.heads);
+		else
+			remoteOnto.setRevisionHeads(vo.heads());
 		if (metaChanges != null)
 			remoteOnto.setLastMetaChange(vo.metadata().applyChanges(metaChanges));
 		//System.out.println("New revision heads: " + delta.heads);
@@ -258,10 +280,10 @@ public class VersionUpdateActivity extends FSMActivity
 		try
 		{
 			VersionedOntology versionedOntology = versionManager.versioned(ontologyHandle);
-			System.out.println("At source parents " + versionedOntology.revision().parents());
-			// If this is a clone, we send also the latest snapshot of the ontology, otherwise
-			// we just send the revisions and change sets
-			String serializedOntology = revisions.contains(versionedOntology.getRootRevision()) ?
+//			System.out.println("At source parents " + versionedOntology.revision().parents());
+			String serializedOntology =
+				// are we cloning?
+				revisions == null || revisions.contains(versionedOntology.getRootRevision()) ?
 					ActivityUtils.renderVersionedOntology(versionedOntology) :
 					ActivityUtils.renderVersionedOntologyDelta(versionedOntology, revisions);
 			return serializedOntology;
@@ -274,7 +296,7 @@ public class VersionUpdateActivity extends FSMActivity
 	}
 	
 	/**
-	 * Answer a pull request.
+	 * Answer a pull or a clone request.
 	 *  
 	 * @param msg
 	 * @return
@@ -297,7 +319,7 @@ public class VersionUpdateActivity extends FSMActivity
 	 * @param msg
 	 * @return
 	 */
-	@FromState({"PushAccepted"})
+	@FromState({"PushAccepted", "PublishAccepted"})
 	@OnMessage(performative="QueryRef")
 	public WorkflowStateConstant pushChanges(Json msg)
 	{
@@ -327,7 +349,7 @@ public class VersionUpdateActivity extends FSMActivity
 	 */
 	@FromState("Started")
 	@OnMessage(performative="Request")
-	public WorkflowStateConstant pushRequested(Json msg)
+	public WorkflowStateConstant transferRequested(Json msg)
 	{
 		if (!msg.at(CONTENT).has("action"))
 		{
@@ -335,7 +357,7 @@ public class VersionUpdateActivity extends FSMActivity
 			return WorkflowStateConstant.Failed;
 		}
 		action = msg.at(CONTENT).at("action").asString();
-		if (action.equals("pull"))
+		if (ActionType.pull.name().equals(action))
 		{
 			HGHandle ontologyHandle = fromJson(msg.at(CONTENT).at(ONTOLOGY_HANDLE));
 			if (getThisPeer().getGraph().get(ontologyHandle) == null)
@@ -352,6 +374,24 @@ public class VersionUpdateActivity extends FSMActivity
 			remoteOntologyHandle = getThisPeer().getGraph().getHandle(remote);
 			reply(msg, Performative.Agree, Json.object());
 			return startPulling();
+		}
+		else if (ActionType.clone.name().equals(action))
+		{
+			HGHandle ontologyHandle = fromJson(msg.at(CONTENT).at(ONTOLOGY_HANDLE));
+			if (getThisPeer().getGraph().get(ontologyHandle) != null)
+			{
+				reply(msg, Performative.Refuse, "Ontology already known.");
+				return WorkflowStateConstant.Failed;
+			}
+			reply(msg, Performative.Agree, Json.object());			
+			HGPeerIdentity otherPeer = getThisPeer().getIdentity(getSender(msg));			
+			VDHGDBOntologyRepository repo = new VDHGDBOntologyRepository(getThisPeer());
+			RemoteOntology remote = repo.remoteOnto(ontologyHandle, repo.remoteRepo(otherPeer));
+			remoteOntologyHandle = getThisPeer().getGraph().getHandle(remote);
+			msg = createMessage(Performative.QueryRef, 
+							   Json.object(ONTOLOGY_HANDLE, remote.getOntologyHandle()));
+			send(otherPeer, msg);							 										  
+			return WaitForRevisionObjects;
 		}
 		else
 		{
@@ -373,6 +413,21 @@ public class VersionUpdateActivity extends FSMActivity
 	public WorkflowStateConstant pushAccepted(Json msg)
 	{
 		return PushAccepted;
+	}
+	
+	@FromState("CloneRequested")
+	@OnMessage(performative="Refuse")
+	public WorkflowStateConstant cloneRefused(Json msg)
+	{
+		this.completedMessage = msg.at(CONTENT).asString();
+		return WorkflowStateConstant.Failed;
+	}
+
+	@FromState("CloneRequested")
+	@OnMessage(performative="Agree")
+	public WorkflowStateConstant cloneAccepted(Json msg)
+	{
+		return PublishAccepted;
 	}
 	
 	@Override
