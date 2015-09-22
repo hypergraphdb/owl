@@ -117,7 +117,7 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 					HGHandle changeHandle = graph.add(change);
 					changes.add(changeHandle);
 				}
-				graph.update(ChangeSet.this);
+				graph.replace(getAtomHandle(), ChangeSet.this);
 				return null;
 			}
 		});

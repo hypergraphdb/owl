@@ -142,7 +142,13 @@
 						<Bundle-Version>1.7.0</Bundle-Version>
 						<!-- <Bundle-RequiredExecutionEnvironment>J2SE-1.5,JavaSE-1.6</Bundle-RequiredExecutionEnvironment> -->
 						<Export-Package>org.hypergraphdb.app.owl.*</Export-Package>
-						<Import-Package>!.,!org.apache.*,!org.w3c.dom.*,!org.xml.sax.*,!org.jivesoftware.*,
+						<Import-Package>!.,!org.apache.*,!org.w3c.dom.*,
+                            javax.xml.parsers,
+                            org.w3c.dom,
+                            org.xml.sax,
+                            org.xml.sax.ext,
+                            org.xml.sax.helpers,						
+						    org.xml.sax.*,!org.jivesoftware.*,
 							org.hypergraphdb,org.hypergraphdb.algorithms,org.hypergraphdb.query,
 							org.hypergraphdb.util,org.hypergraphdb.type,org.hypergraphdb.annotation,
 							org.hypergraphdb.atom,org.hypergraphdb.cache,org.hypergraphdb.event,

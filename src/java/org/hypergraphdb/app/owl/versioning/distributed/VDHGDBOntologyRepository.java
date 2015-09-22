@@ -1,7 +1,6 @@
 package org.hypergraphdb.app.owl.versioning.distributed;
 
 import java.util.HashSet;
-
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -19,9 +18,9 @@ import org.hypergraphdb.app.owl.HGDBOntologyRepository;
 import org.hypergraphdb.app.owl.util.ImplUtils;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowseRepositoryActivity;
+import org.hypergraphdb.app.owl.versioning.distributed.activity.GetNewRevisionsActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.GetRemoteOntologyChangesetActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.GetRemoteOntologyRevisionsActivity;
-import org.hypergraphdb.app.owl.versioning.distributed.activity.PullActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.PushActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.VersionUpdateActivity;
 import org.hypergraphdb.peer.HGPeerIdentity;
@@ -186,8 +185,9 @@ public class VDHGDBOntologyRepository extends HGDBOntologyRepository
 		if (PushActivity.ReceivingInitial == null)
 		{
 		}
-		;
-		peer.get().getActivityManager().registerActivityType(VersionUpdateActivity.TYPENAME, VersionUpdateActivity.initializedClass());		
+		
+		peer.get().getActivityManager().registerActivityType(VersionUpdateActivity.TYPENAME, VersionUpdateActivity.initializedClass());
+		peer.get().getActivityManager().registerActivityType(GetNewRevisionsActivity.TYPENAME, GetNewRevisionsActivity.class);		
 //		peer.getActivityManager().registerActivityType(PushActivity.TYPENAME, PushActivity.class);
 //		peer.getActivityManager().registerActivityType(PullActivity.TYPENAME, PullActivity.class);
 		peer.get().getActivityManager().registerActivityType(BrowseRepositoryActivity.TYPENAME, BrowseRepositoryActivity.class);
@@ -262,11 +262,14 @@ public class VDHGDBOntologyRepository extends HGDBOntologyRepository
 	 * @param remote
 	 * @return
 	 */
-	public PullActivity pull(VersionedOntology ontology, HGPeerIdentity remote)
+	public VersionUpdateActivity pull(VersionedOntology ontology, HGPeerIdentity remote)
 	{
 		if (DBG)
 			System.out.println("Pulling distributed onto: " + ontology);
-		PullActivity activity = new PullActivity(peer.get(), ontology, remote);
+		final HyperGraph graph = getHyperGraph();		
+		RemoteOntology remoteOnto = remoteOnto(ontology.getOntology(), remoteRepo(remote));
+		VersionUpdateActivity activity = new VersionUpdateActivity(peer.get())
+				.remoteOntology(graph.getHandle(remoteOnto)).action("pull");		
 		peer.get().getActivityManager().initiateActivity(activity);
 		return activity;
 	}

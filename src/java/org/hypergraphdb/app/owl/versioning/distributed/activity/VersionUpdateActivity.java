@@ -241,7 +241,7 @@ public class VersionUpdateActivity extends FSMActivity
 		VOWLXMLDocument doc = ActivityUtils.parseVersionedDoc(manager, 
 									new StringDocumentSource(msg.at(Messages.CONTENT).asString()));
 		VersionedOntology vo = null;
-		if (doc.getRevisionData().getOntologyID().isAnonymous()) // this is not a clone, so we have the IRI locally
+		if (ActionType.pull.name().equals(action))
 		{
 			HGHandle ontologyHandle = graph.getHandleFactory().makeHandle(doc.getOntologyID());
 			vo = versionManager().versioned(ontologyHandle);
