@@ -33,6 +33,7 @@ public class VOWLXMLRenderConfiguration
 	Set<HGHandle> heads = new HashSet<HGHandle>();
 	Set<HGHandle> roots = new HashSet<HGHandle>();
 	int maxDepth = Integer.MAX_VALUE;
+	boolean writeMetadata = false;
 	
 	/**
 	 * Default is render all revisions, head data but no uncommitted changes.
@@ -93,5 +94,16 @@ public class VOWLXMLRenderConfiguration
 	public Set<HGHandle> heads()
 	{
 		return heads;
+	}
+	
+	public VOWLXMLRenderConfiguration writeMetadata(boolean writeMetadata)
+	{
+		this.writeMetadata = writeMetadata;
+		return this;
+	}
+	
+	public boolean writeMetadata()
+	{
+		return this.writeMetadata;
 	}
 }

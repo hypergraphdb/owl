@@ -74,7 +74,7 @@ public class HGDBStorer implements OWLOntologyStorer, HGDBTask
 		if (DBG)
 			System.out.println("HGDBStorer.storeOntology ");
 		HGDBOntologyManager man = (HGDBOntologyManager) manager;
-		HGDBOntologyRepository repo = man.getOntologyRepository();
+		OntologyDatabase repo = man.getOntologyRepository();
 		HGDBOntologyFormat format = (HGDBOntologyFormat) ontologyFormat;
 		StopWatch stopWatch = new StopWatch(true);
 		HGDBOntology newOnto = null;
@@ -190,7 +190,7 @@ public class HGDBStorer implements OWLOntologyStorer, HGDBTask
 	//
 	//
 
-	private void printProgress(HGDBOntologyRepository repo)
+	private void printProgress(OntologyDatabase repo)
 	{
 		System.out.println("Saved axioms: " + taskProgess + " of " + taskSize + " at " + new Date());
 		repo.printStatistics();

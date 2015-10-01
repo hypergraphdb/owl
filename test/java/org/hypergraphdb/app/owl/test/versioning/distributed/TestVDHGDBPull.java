@@ -12,7 +12,7 @@ import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.gc.GarbageCollector;
 import org.hypergraphdb.app.owl.util.StopWatch;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
-import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
+import org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowseRepositoryActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowseRepositoryActivity.BrowseEntry;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.VersionUpdateActivity;
@@ -86,7 +86,7 @@ public class TestVDHGDBPull
 			dir.mkdir();
 		System.out.println("Creating Repository : " + dir);
 		HGDBOntologyManager manager = new HGOntologyManagerFactory().getOntologyManager(dir.getAbsolutePath());
-		VDHGDBOntologyRepository dr = (VDHGDBOntologyRepository) manager.getOntologyRepository();
+		OntologyDatabasePeer dr = (OntologyDatabasePeer) manager.getOntologyRepository();
 		if (argv[0].contains("1"))
 		{
 			System.out.println("INIT LOCAL PULL INITIATOR: " + PEER_USERNAME);
@@ -113,7 +113,7 @@ public class TestVDHGDBPull
 					{
 						dr.printStatistics();
 						stopWatch.start();
-						VersionUpdateActivity pullAct = dr.cloneOntology(entry.getUuid(), targetPeer);
+						VersionUpdateActivity pullAct = dr.clone(entry.getUuid(), targetPeer);
 						// block
 						System.out.print("PULLING Ontology" + entry.getOwlOntologyIRI() + " UUID: " + entry.getUuid() + " ...");
 						ActivityResult pullResult = pullAct.getFuture().get();
@@ -206,7 +206,7 @@ public class TestVDHGDBPull
 	/**
 	 * @param dr
 	 */
-	private static void initializePullTarget(HGDBOntologyManager manager, VDHGDBOntologyRepository dr)
+	private static void initializePullTarget(HGDBOntologyManager manager, OntologyDatabasePeer dr)
 	{
 		// Ensure Test ontology loaded
 		System.out.println("INIT PULL TARGET");
@@ -264,7 +264,7 @@ public class TestVDHGDBPull
 	/**
 	 * @param dr
 	 */
-	private static void initializePullInitiator(VDHGDBOntologyRepository dr)
+	private static void initializePullInitiator(OntologyDatabasePeer dr)
 	{
 		if (dr.getOntologies().size() > 0)
 		{
@@ -279,7 +279,7 @@ public class TestVDHGDBPull
 	 * @param dr
 	 * 
 	 */
-	private static void waitForOnePeer(VDHGDBOntologyRepository dr)
+	private static void waitForOnePeer(OntologyDatabasePeer dr)
 	{
 		System.out.println("WAIT FOR PEERS: START");
 		Set<HGPeerIdentity> connectedPeers;

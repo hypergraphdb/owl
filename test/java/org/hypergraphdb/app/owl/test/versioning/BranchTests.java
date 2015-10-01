@@ -18,6 +18,7 @@ import org.hypergraphdb.app.owl.versioning.Branch;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.util.HGUtils;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -45,6 +46,12 @@ public class BranchTests extends VersioningTestBase
 		ctx.vr = new VersionManager(ctx.graph, "testuser");
 		ctx.vo = ctx.vr.versioned(ctx.graph.getHandle(ctx.o));				
 	}
+
+	@After public void afterTest() throws Exception
+	{ 
+		ctx = (TestContext)TU.ctx();
+		ctx.m.removeOntology(ctx.o); 
+	}
 	
 	@Test
 	public void testBranchAsVersionedChange()
@@ -63,11 +70,14 @@ public class BranchTests extends VersioningTestBase
 		declare(owlClass("ClassChangePush"));
 		aSubclassOf(owlClass("ClassCommit"), owlClass("ClassChangePush"));
 		Revision revision1 = ctx.vonto().revision();
-		Assert.assertNull(revision1.branchHandle());
+		Assert.assertNotNull(revision1.branchHandle());
+		Assert.assertNotNull(ctx.vr.defaultBranchName(), revision1.branch().getName());
 		// master branch
 		ctx.vonto().commit("test", "first changes", "master");
 		// we should have a branch named "master" automatically created now
-		final HGHandle masterBranch = hg.findOne(ctx.graph, hg.and(hg.type(Branch.class), hg.eq("name", "master")));
+		final HGHandle masterBranch = hg.findOne(ctx.graph, hg.and(hg.type(Branch.class), 
+																   hg.eq("versioned", ctx.vonto().getAtomHandle()),	
+																   hg.eq("name", "master")));
 		Assert.assertNotNull(masterBranch);
 		Revision revision2 = ctx.vonto().revision();
 		Assert.assertEquals(masterBranch, revision2.branchHandle());

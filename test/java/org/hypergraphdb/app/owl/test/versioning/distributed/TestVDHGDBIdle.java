@@ -10,7 +10,7 @@ import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.gc.GarbageCollector;
 import org.hypergraphdb.app.owl.util.ImplUtils;
-import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
+import org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.PeerConfig;
@@ -69,7 +69,7 @@ public class TestVDHGDBIdle
 		if (!dir.exists())
 			dir.mkdir();
 		System.out.println("Repository at : " + dir);
-		VDHGDBOntologyRepository dr = new VDHGDBOntologyRepository(dir.getAbsolutePath(), 
+		OntologyDatabasePeer dr = new OntologyDatabasePeer(dir.getAbsolutePath(), 
 				  ImplUtils.connectionStringFromConfiguration(config));
 		System.out.println("INIT LOCAL IDLE PEER REPOSITORY: " + config.at("interfaceConfig").at("user"));
 		initializeVDRepository(dr);
@@ -99,7 +99,7 @@ public class TestVDHGDBIdle
 	/**
 	 * @param dr
 	 */
-	private static void initializeVDRepository(VDHGDBOntologyRepository dr)
+	private static void initializeVDRepository(OntologyDatabasePeer dr)
 	{
 		if (DELETE_ALL_ONTOLOGIES && dr.getOntologies().size() > 0)
 		{
@@ -119,7 +119,7 @@ public class TestVDHGDBIdle
 	 * @param dr
 	 * 
 	 */
-	private static void waitForOnePeer(VDHGDBOntologyRepository dr)
+	private static void waitForOnePeer(OntologyDatabasePeer dr)
 	{
 		System.out.println("WAIT FOR PEERS: START");
 		Set<HGPeerIdentity> connectedPeers;

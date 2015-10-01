@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl;
 
 import java.io.File;
+
 import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HyperGraph;
@@ -15,6 +16,7 @@ import org.hypergraphdb.app.owl.versioning.VersioningChangeListener;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.ActivityUtils;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
 import org.semanticweb.owlapi.io.FileDocumentSource;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
@@ -39,7 +41,7 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 	 */
 	private static boolean deleteOntologiesOnRemove = true;
 
-	HGDBOntologyRepository ontologyRepository;
+	OntologyDatabase ontologyRepository;
 	VersionManager versionManager;
 	
 	/**
@@ -59,7 +61,7 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 		HGDBOntologyManagerImpl.deleteOntologiesOnRemove = deleteOntologiesOnRemove;
 	}
 
-	public HGDBOntologyManagerImpl(OWLDataFactoryHGDB dataFactory, HGDBOntologyRepository ontologyRepository)
+	public HGDBOntologyManagerImpl(OWLDataFactoryHGDB dataFactory, OntologyDatabase ontologyRepository)
 	{
 		super(dataFactory);
 		this.ontologyRepository = ontologyRepository;
@@ -75,7 +77,7 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 	 * @see org.hypergraphdb.app.owl.HGDBOntologyManager#getOntologyRepository()
 	 */
 	@Override
-	public HGDBOntologyRepository getOntologyRepository()
+	public OntologyDatabase getOntologyRepository()
 	{
 		return ontologyRepository;
 	}
@@ -171,6 +173,25 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 		});
 	}
 
+
+	public HGDBOntology importOntology(IRI documentIRI)
+	{
+		try
+		{
+			OWLOntology o = loadOntologyFromOntologyDocument(documentIRI);
+			HGDBOntologyFormat format = new HGDBOntologyFormat();
+			IRI hgdbDocumentIRI = HGDBOntologyFormat.convertToHGDBDocumentIRI(documentIRI);
+			setOntologyFormat(o, format);
+			setOntologyDocumentIRI(o, hgdbDocumentIRI);
+			saveOntology(o, format, hgdbDocumentIRI);
+			return ontologyRepository.getOntologyByDocumentIRI(hgdbDocumentIRI);
+		}
+		catch (Exception ex)
+		{
+			throw new RuntimeException(ex);
+		}
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 

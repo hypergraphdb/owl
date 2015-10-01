@@ -22,7 +22,7 @@ import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.versioning;
 import org.hypergraphdb.app.owl.versioning.change.VMetadataChange;
 import org.hypergraphdb.app.owl.versioning.distributed.RemoteOntology;
-import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
+import org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
@@ -150,6 +150,12 @@ public class VersionUpdateActivity extends FSMActivity
 		this.action = action;
 		return this;
 	}
+
+	public VersionUpdateActivity action(ActionType action)
+	{
+		this.action = action.name();
+		return this;
+	}
 	
 	public String completedMessage()
 	{
@@ -238,8 +244,8 @@ public class VersionUpdateActivity extends FSMActivity
 		System.out.println("Got changes " + msg.at(Messages.CONTENT).asString());
 		HyperGraph graph = getThisPeer().getGraph();
 		HGDBOntologyManager manager = HGOntologyManagerFactory.getOntologyManager(graph.getLocation());
-		VOWLXMLDocument doc = ActivityUtils.parseVersionedDoc(manager, 
-									new StringDocumentSource(msg.at(Messages.CONTENT).asString()));
+		VOWLXMLDocument doc = ActivityUtils.parseVersionedDoc(manager,  
+												new StringDocumentSource(msg.at(Messages.CONTENT).asString()));
 		VersionedOntology vo = null;
 		if (ActionType.pull.name().equals(action))
 		{
@@ -264,7 +270,7 @@ public class VersionUpdateActivity extends FSMActivity
 		return WorkflowState.Completed;
 	}
 	
-	public String sendRequestedRevisions(Json msg)
+	private String changeData(Json msg)
 	{
 //		System.out.println("asked for revisions: " + msg.at(REVISIONS));
 		HGHandle ontologyHandle = Messages.fromJson(msg.at(Messages.CONTENT).at(ONTOLOGY_HANDLE));
@@ -286,6 +292,8 @@ public class VersionUpdateActivity extends FSMActivity
 				revisions == null || revisions.contains(versionedOntology.getRootRevision()) ?
 					ActivityUtils.renderVersionedOntology(versionedOntology) :
 					ActivityUtils.renderVersionedOntologyDelta(versionedOntology, revisions);
+			// if we are cloning, we send all branches along, otherwise, the GetNewRevisions 
+			// task would have been performed and the delta calculated already.
 			return serializedOntology;
 		}
 		catch (Exception ex)
@@ -305,10 +313,10 @@ public class VersionUpdateActivity extends FSMActivity
 	@OnMessage(performative="QueryRef")
 	public WorkflowStateConstant pullChanges(Json msg)
 	{
-		String serializedOntology = sendRequestedRevisions(msg);
-		if (serializedOntology == null)
+		String data = changeData(msg);
+		if (data == null)
 			return WorkflowState.Failed;
-		reply(msg, Performative.InformRef, serializedOntology);
+		reply(msg, Performative.InformRef, data);
 		return WorkflowState.Completed;
 	}
 	
@@ -323,10 +331,10 @@ public class VersionUpdateActivity extends FSMActivity
 	@OnMessage(performative="QueryRef")
 	public WorkflowStateConstant pushChanges(Json msg)
 	{
-		String serializedOntology = sendRequestedRevisions(msg);
-		if (serializedOntology == null)
+		String data = changeData(msg);
+		if (data == null)
 			return WorkflowState.Failed;
-		Json reply = getReply(msg, Performative.InformRef, serializedOntology)
+		Json reply = getReply(msg, Performative.InformRef, data)
 				 // this is just to indicate that we want a confirmation
 				 // any non-empty REPLY_WITH will force the receiveChanges to reply
 							.set(Messages.REPLY_WITH, "confirmation");
@@ -367,7 +375,7 @@ public class VersionUpdateActivity extends FSMActivity
 			}						
 			Set<HGHandle> heads = fromJson(msg.at(CONTENT).at("heads"));			
 			HGPeerIdentity otherPeer = getThisPeer().getIdentity(getSender(msg));			
-			VDHGDBOntologyRepository repo = new VDHGDBOntologyRepository(getThisPeer());
+			OntologyDatabasePeer repo = new OntologyDatabasePeer(getThisPeer());
 			RemoteOntology remote = repo.remoteOnto(ontologyHandle, repo.remoteRepo(otherPeer));
 			remote.setRevisionHeads(heads);
 			getThisPeer().getGraph().update(remote);
@@ -385,7 +393,7 @@ public class VersionUpdateActivity extends FSMActivity
 			}
 			reply(msg, Performative.Agree, Json.object());			
 			HGPeerIdentity otherPeer = getThisPeer().getIdentity(getSender(msg));			
-			VDHGDBOntologyRepository repo = new VDHGDBOntologyRepository(getThisPeer());
+			OntologyDatabasePeer repo = new OntologyDatabasePeer(getThisPeer());
 			RemoteOntology remote = repo.remoteOnto(ontologyHandle, repo.remoteRepo(otherPeer));
 			remoteOntologyHandle = getThisPeer().getGraph().getHandle(remote);
 			msg = createMessage(Performative.QueryRef, 

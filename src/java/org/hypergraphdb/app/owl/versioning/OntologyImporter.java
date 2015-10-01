@@ -7,7 +7,7 @@ import java.util.Date;
 
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
-import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
+import org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer;
 
 /**
  * OntologyImporter imports all versioned ontologies from a directory
@@ -81,9 +81,9 @@ public class OntologyImporter
 			return;
 		}
 		System.out.print("  Starting repository... ");
-		VDHGDBOntologyRepository dr = null;
+		OntologyDatabasePeer dr = null;
 		HGDBOntologyManager manager = new HGOntologyManagerFactory().getOntologyManager(targetRepo.getAbsolutePath());
-		dr = (VDHGDBOntologyRepository) manager.getOntologyRepository();
+		dr = (OntologyDatabasePeer) manager.getOntologyRepository();
 		System.out.println("done. ");
 		System.out.print("  Scanning directory... ");
 		if (!(sourceDir.exists() && sourceDir.isDirectory()))

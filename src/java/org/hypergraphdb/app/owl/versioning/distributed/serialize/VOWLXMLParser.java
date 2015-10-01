@@ -62,7 +62,10 @@ public class VOWLXMLParser extends OWLXMLParser
 			isrc = getInputSource(documentSource); // TODO that null parameter
 													// was just to compile with
 													// 3.4.4
-			VOWLXMLParserHandler handler = new VOWLXMLParserHandler(graph, versionedOntologyRoot, null, loaderConfig);
+			VOWLXMLParserHandler handler = new VOWLXMLParserHandler(graph, 
+																	versionedOntologyRoot, 
+																	null, 
+																	loaderConfig);
 			parser.parse(isrc, handler);
 			Map<String, String> prefix2NamespaceMap = handler.getPrefixName2PrefixMap();
 			for (String prefix : prefix2NamespaceMap.keySet())

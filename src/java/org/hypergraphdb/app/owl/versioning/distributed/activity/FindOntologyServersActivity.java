@@ -1,6 +1,6 @@
 package org.hypergraphdb.app.owl.versioning.distributed.activity;
 
-import static org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository.OBJECTCONTEXT_REPOSITORY;
+import static org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer.OBJECTCONTEXT_REPOSITORY;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -12,7 +12,7 @@ import java.util.concurrent.TimeoutException;
 
 import mjson.Json;
 
-import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
+import org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.Messages;
@@ -32,7 +32,7 @@ public class FindOntologyServersActivity extends Activity
 	public static int TIMEOUT_SECONDS = 30;
 	public static final String TYPENAME = "Find-Ontology-Servers";
 
-	VDHGDBOntologyRepository repository;
+	OntologyDatabasePeer repository;
 	Set<HGPeerIdentity> ontologyServers;
 	Set<HGPeerIdentity> nonOntologyServers;
 
@@ -66,7 +66,7 @@ public class FindOntologyServersActivity extends Activity
 			throw new IllegalArgumentException(
 					"Peer's object context must contain OBJECTCONTEXT_REPOSITORY.");
 		}
-		repository = (VDHGDBOntologyRepository) getThisPeer()
+		repository = (OntologyDatabasePeer) getThisPeer()
 				.getObjectContext().get(OBJECTCONTEXT_REPOSITORY);
 		ontologyServers = new HashSet<HGPeerIdentity>();
 		nonOntologyServers = new HashSet<HGPeerIdentity>();

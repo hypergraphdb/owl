@@ -26,6 +26,16 @@ import org.hypergraphdb.util.Pair;
  */
 public class versioning
 {
+	/**
+	 * Return true if revision <code>preceeding</code> is an ancestor
+	 * in the {@link ParentLink} DAG of <code>subsequent</code>.
+	 */
+	public static boolean isPrior(HyperGraph graph, HGHandle preceeding, HGHandle subsequent)
+	{
+		return hg.findAll(graph, hg.dfs(preceeding, hg.type(ParentLink.class), null, true, false))
+				 .contains(subsequent);
+	}
+	
 	public static <V extends Versioned<V>, C extends VChange<V>> 
 	List<C> normalize(V versioned, List<C> L)
 	{

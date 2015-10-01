@@ -91,7 +91,7 @@ public class HGOntologyManagerFactory implements OWLOntologyManagerFactory
 	}		  
 	
 	private static HGDBOntologyManagerImpl createOWLOntologyManager(final OWLDataFactoryHGDB dataFactory,
-													 		 final HGDBOntologyRepository repository)
+													 		 final OntologyDatabase repository)
 	{
 		final HGDBOntologyManagerImpl ontologyManager = new HGDBOntologyManagerImpl(dataFactory, repository);
 		ontologyManager.addOntologyStorer(new RDFXMLOntologyStorer());
@@ -123,7 +123,7 @@ public class HGOntologyManagerFactory implements OWLOntologyManagerFactory
 			public HGDBOntologyManager call()
 			{
 				return createOWLOntologyManager(OWLDataFactoryHGDB.get(graph), 
-						   new HGDBOntologyRepository(graphLocation));
+						   new OntologyDatabase(graphLocation));
 				
 			}		
 		});
@@ -141,7 +141,7 @@ public class HGOntologyManagerFactory implements OWLOntologyManagerFactory
 		if (df instanceof OWLDataFactoryHGDB)			
 			return createOWLOntologyManager(
 				(OWLDataFactoryHGDB)df, 
-				new HGDBOntologyRepository(((OWLDataFactoryHGDB)df).getHyperGraph().getLocation()));	
+				new OntologyDatabase(((OWLDataFactoryHGDB)df).getHyperGraph().getLocation()));	
 		else
 			return inMemoryManager(df);
 	}

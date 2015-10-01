@@ -26,7 +26,7 @@ public class P001RepositoryPerformanceTest extends OntologyManagerTest {
 
 	/**
 	 * Test method for
-	 * {@link org.hypergraphdb.app.owl.HGDBOntologyRepository#HGDBOntologyRepository()}
+	 * {@link org.hypergraphdb.app.owl.OntologyDatabase#HGDBOntologyRepository()}
 	 * .
 	 */
 	@Test

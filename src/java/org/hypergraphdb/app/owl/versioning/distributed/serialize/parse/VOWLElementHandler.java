@@ -16,6 +16,7 @@ public interface VOWLElementHandler<O> extends OWLElementHandler<O>
 	void handleChild(RevisionElementHandler h) throws OWLXMLParserException;
 	void handleChild(BranchElementHandler h) throws OWLXMLParserException;	
 	void handleChild(RenderConfigurationElementHandler h) throws OWLXMLParserException;
+	void handleChild(MetadataElementHandler h) throws OWLXMLParserException;
 	void handleChild(ChangeSetElementHandler h) throws OWLXMLParserException;
 	void handleChild(VersionedOntologyElementHandler h) throws OWLXMLParserException;
 	void handleChild(VOWLChangeElementHandler h) throws OWLXMLParserException;

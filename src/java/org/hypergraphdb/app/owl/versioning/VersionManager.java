@@ -1,5 +1,6 @@
 package org.hypergraphdb.app.owl.versioning;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,6 +36,11 @@ public class VersionManager
 	private HGHandle emptyChangeSetHandle;
 	private String user;
 	private Map<HGHandle, Boolean> isversionedmap = new ConcurrentHashMap<HGHandle, Boolean>();
+
+	public String defaultBranchName()
+	{
+		return "master";
+	}
 	
 	/**
 	 * for internal use, TODO - hide this better...
@@ -87,13 +93,14 @@ public class VersionManager
 		HGHandle bottomRevisionHandle = graph.getHandleFactory().makeHandle();
 		versioned.setBottomRevision(bottomRevisionHandle);
 		graph.define(bottomRevisionHandle, bottomRevision);		
-		HGHandle initialMark = graph.add(new ChangeRecord(ontology, emptyChangeSetHandle()));		
+		HGHandle initialChangeRecord = graph.add(new ChangeRecord(ontology, emptyChangeSetHandle()));		
 		Revision initialRevision = new Revision(versioned.getAtomHandle());
 		initialRevision.user(user);
 		initialRevision.timestamp(now);
 		HGHandle revisionHandle = graph.add(initialRevision);
+		versioned.metadata().createBranch(revisionHandle, defaultBranchName(), user);
 		versioned.setRootRevision(revisionHandle);		
-		graph.add(new RevisionMark(revisionHandle, initialMark));
+		graph.add(new RevisionMark(revisionHandle, initialChangeRecord));
 		versioned.setCurrentRevision(revisionHandle);
 		graph.update(versioned);
 		isversionedmap.put(ontology, true);
@@ -190,30 +197,23 @@ public class VersionManager
 				{
 					VersionedOntology vOntology = versioned(ontology);
 					HGHandle voHandle = graph.getHandle(vOntology);
-					HGSearchResult<HGHandle> rs = graph.find(hg.dfs(vOntology.getRootRevision(),
-																    hg.type(ParentLink.class),
-																    hg.type(Revision.class)));
+					versioning.printRevisionGraph(vOntology);
+					List<HGHandle> revisions = graph.findAll(hg.dfs(vOntology.getRootRevision(),
+														     hg.type(ParentLink.class),
+															 hg.type(Revision.class)));
 					// TODO: how much of this stuff should be left for garbage collection
 					// we do want this to be a fast operation since it's going to be user performed.
 					// The problem with leaving it to GC is that an immediate (re)clone of the same
 					// ontology will hit a conflict with the partially removed, not GC-ed yet one
 					// since all HGHandles are the same.
-					try
-					{
-						while (rs.hasNext()) 
-						{
-							HGHandle revisionHandle = rs.next();
-							// remove ParentLink links as well, hopefully no issue with ongoing traversal!
-							graph.remove(revisionHandle, false); 
-						}
-					}
-					finally
-					{
-						HGUtils.closeNoException(rs);
+					for (HGHandle revisionHandle : revisions) 
+					{						 
+						// remove ParentLink links as well, hopefully no issue with ongoing traversal!
+						graph.remove(revisionHandle, false); 
 					}
 					graph.remove(vOntology.getRootRevision(), true);
-					rs = graph.find(hg.and(hg.incident(vOntology.ontology().getAtomHandle()), 
-										   hg.type(ChangeRecord.class)));
+					HGSearchResult<HGHandle> rs = graph.find(hg.and(hg.incident(vOntology.ontology().getAtomHandle()), 
+										   							hg.type(ChangeRecord.class)));
 					try
 					{
 						while (rs.hasNext()) 

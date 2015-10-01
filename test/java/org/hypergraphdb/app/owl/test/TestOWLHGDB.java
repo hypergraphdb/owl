@@ -6,7 +6,7 @@ import java.util.Date;
 import org.hypergraphdb.app.owl.HGDBOntologyFormat;
 import org.hypergraphdb.app.owl.HGDBOntologyManagerImpl;
 import org.hypergraphdb.app.owl.HGDBOntologyOutputTarget;
-import org.hypergraphdb.app.owl.HGDBOntologyRepository;
+import org.hypergraphdb.app.owl.OntologyDatabase;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
@@ -42,7 +42,7 @@ public class TestOWLHGDB
 	// "c:/work/cirmservices/src/ontology";
 	public static String ONTOLOGY_DIRECTORY = "c:/_CIRM/testontos/2012.03 Boris";
 	private static OWLOntologyManager manager;
-	private static HGDBOntologyRepository repository;
+	private static OntologyDatabase repository;
 
 	private static String databaseLocation = "c:/temp/ontdb";
 

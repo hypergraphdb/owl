@@ -8,7 +8,7 @@ import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyImpl;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
-import org.hypergraphdb.app.owl.HGDBOntologyRepository;
+import org.hypergraphdb.app.owl.OntologyDatabase;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.util.StopWatch;
 import org.hypergraphdb.util.HGUtils;
@@ -70,7 +70,7 @@ public abstract class OntologyManagerTest
 	/**
 	 * A HGDBOntologyRepository (Only use during usingHypergraphMode).
 	 */
-	protected static HGDBOntologyRepository r;
+	protected static OntologyDatabase r;
 
 	protected final static IRI ontoIRI = IRI.create("hgdb://UNITTESTONTO1");
 
@@ -116,7 +116,7 @@ public abstract class OntologyManagerTest
 		if (m instanceof HGDBOntologyManager)
 		{
 			HGDBOntologyManager mHgdb = (HGDBOntologyManager) m;
-			HGDBOntologyRepository r = mHgdb.getOntologyRepository();
+			OntologyDatabase r = mHgdb.getOntologyRepository();
 			System.out.println("-------------------------------------------------------------------------------");
 			System.out.print("Dropping Hypergraph containing " + r.getOntologies().size() + " Ontologies and ");
 			System.out.print(r.getHyperGraph().count(hg.all()));

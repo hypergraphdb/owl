@@ -1,13 +1,10 @@
 package org.hypergraphdb.app.owl.versioning.distributed.activity;
 
+import static org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer.OBJECTCONTEXT_REPOSITORY;
 import static org.hypergraphdb.peer.Messages.CONTENT;
-
-
 import static org.hypergraphdb.peer.Messages.getReply;
 import static org.hypergraphdb.peer.Messages.getSender;
-import static org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository.OBJECTCONTEXT_REPOSITORY;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -20,11 +17,10 @@ import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.versioning.Revision;
+import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.DistributedOntology;
-import org.hypergraphdb.app.owl.versioning.distributed.PeerDistributedOntology;
-import org.hypergraphdb.app.owl.versioning.distributed.ServerCentralizedOntology;
-import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
+import org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.Messages;
@@ -34,9 +30,6 @@ import org.hypergraphdb.peer.workflow.OnMessage;
 import org.hypergraphdb.peer.workflow.PossibleOutcome;
 import org.hypergraphdb.peer.workflow.WorkflowStateConstant;
 import org.hypergraphdb.transaction.HGTransactionConfig;
-import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
-import org.semanticweb.owlapi.io.OWLRendererException;
-import org.semanticweb.owlapi.io.StringDocumentSource;
 
 /**
  * PushActivity. Pushes all changes to a target repository, which has the same
@@ -65,7 +58,7 @@ public class PushActivity extends OntologyTransmitActivity
 	public static final WorkflowStateConstant SendingDelta = WorkflowStateConstant.makeStateConstant("SendingDelta");
 	public static final WorkflowStateConstant ReceivingDelta = WorkflowStateConstant.makeStateConstant("ReceivingDelta");
 
-	private VDHGDBOntologyRepository repository;
+	private OntologyDatabasePeer repository;
 	private DistributedOntology sourceDistributedOnto;
 	private boolean sourceDistributedExistsOnTarget;
 	private int sourceNrOfRevisionsPushed;
@@ -90,7 +83,7 @@ public class PushActivity extends OntologyTransmitActivity
 			System.err.println("PROBLEM DETECTED: NO OBJECTCONTEXT REPO");
 			throw new IllegalArgumentException("Peer's object context must contain OBJECTCONTEXT_REPOSITORY.");
 		}
-		repository = (VDHGDBOntologyRepository) thisPeer.getObjectContext().get(OBJECTCONTEXT_REPOSITORY);
+		repository = (OntologyDatabasePeer) thisPeer.getObjectContext().get(OBJECTCONTEXT_REPOSITORY);
 		graph = repository.getHyperGraph();
 	}
 
@@ -107,7 +100,7 @@ public class PushActivity extends OntologyTransmitActivity
 			System.err.println("PROBLEM DETECTED: NO OBJECTCONTEXT REPO");
 			throw new IllegalArgumentException("Peer's object context must contain OBJECTCONTEXT_REPOSITORY.");
 		}
-		repository = (VDHGDBOntologyRepository) sourcePeer.getObjectContext().get(OBJECTCONTEXT_REPOSITORY);
+		repository = (OntologyDatabasePeer) sourcePeer.getObjectContext().get(OBJECTCONTEXT_REPOSITORY);
 		graph = repository.getHyperGraph();
 	}
 
@@ -180,13 +173,14 @@ public class PushActivity extends OntologyTransmitActivity
 				HGDBOntology o = graph.get(headRevisionOntologyID);
 				if (o != null)
 				{
-					DistributedOntology targetDistributedOnto = repository.getDistributedOntology(o);
-					if (targetDistributedOnto != null)
+					VersionManager versionManager = new VersionManager(getThisPeer().getGraph(), "fixme-VHDBOntologyRepository");
+					if (versionManager.isVersioned(o.getAtomHandle()))
 					{
+						VersionedOntology vo = versionManager.versioned(o.getAtomHandle());
 						// send Confirm with existing revisions objects
 						// and tell if we have uncommitted changes.
 						// TODO send content hash
-						if (targetDistributedOnto.getVersionedOntology().changes().isEmpty())
+						if (vo.changes().isEmpty())
 						{
 							Json reply = getReply(msg, Performative.Confirm);
 							Json revList = Json.array();

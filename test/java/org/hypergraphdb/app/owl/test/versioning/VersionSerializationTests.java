@@ -2,7 +2,7 @@ package org.hypergraphdb.app.owl.test.versioning;
 
 import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.app.owl.HGDBOntology;
-import org.hypergraphdb.app.owl.HGDBOntologyRepository;
+import org.hypergraphdb.app.owl.OntologyDatabase;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.test.TU;
 import org.hypergraphdb.app.owl.versioning.ChangeRecord;
@@ -37,7 +37,7 @@ public class VersionSerializationTests extends VersioningTestBase
 		HGUtils.dropHyperGraphInstance(dblocation);
 		TestContext ctx = new TestContext();
 		ctx.graph = HGEnvironment.get(dblocation);
-		ctx.r = new HGDBOntologyRepository(dblocation);
+		ctx.r = new OntologyDatabase(dblocation);
 		ctx.m = HGOntologyManagerFactory.getOntologyManager(dblocation);
 		ctx.df = ctx.m.getOWLDataFactory();
 		TU.ctx.set(ctx);

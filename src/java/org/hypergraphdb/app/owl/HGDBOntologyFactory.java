@@ -25,7 +25,7 @@ public class HGDBOntologyFactory implements OWLOntologyFactory
 	private static final Logger logger = Logger.getLogger(HGDBOntologyFactory.class.getName());
 
 	private HGDBOntologyManager manager;
-	private HGDBOntologyRepository repository;
+	private OntologyDatabase repository;
 
 	@Override
 	public void setOWLOntologyManager(OWLOntologyManager owlOntologyManager)

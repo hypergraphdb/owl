@@ -29,8 +29,10 @@ public class VOWLXMLDocument
 	public final static DateFormat DATE_FORMAT = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG, Locale.US);
 
 	private VOWLXMLRenderConfiguration renderConfig;
+	private VOWLXMLMetadata metadata;
 	private Set<HGHandleHolder> revisionObjects = new HashSet<HGHandleHolder>();
-	private Map<ChangeSet<VersionedOntology>, List<VOWLChange>> changeSetMap = new HashMap<ChangeSet<VersionedOntology>, List<VOWLChange>>();
+	private Map<ChangeSet<VersionedOntology>, List<VOWLChange>> changeSetMap = 
+					new HashMap<ChangeSet<VersionedOntology>, List<VOWLChange>>();
 	private OWLOntologyEx revisionData;
 	private String ontologyID;
 	private String versionedID;
@@ -76,6 +78,16 @@ public class VOWLXMLDocument
 		this.renderConfig = renderConfig;
 	}
 
+	public void setMetadata(VOWLXMLMetadata metadata)
+	{
+		this.metadata = metadata;
+	}
+	
+	public VOWLXMLMetadata getMetadata()
+	{
+		return this.metadata;
+	}
+	
 	/**
 	 * @return the revisionData
 	 */

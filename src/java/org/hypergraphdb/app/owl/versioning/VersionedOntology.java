@@ -49,7 +49,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	private HGHandle currentRevision;
 	private HGHandle workingChanges;
 	private VersionedMetadata<VersionedOntology> metadata;
-	
+		
 	/**
 	 * Get all change marks applied after the revision argument. 
 	 * 
@@ -80,7 +80,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	 * Return the {@link RevisionMark} for a revision
 	 * that asserts what change mark created the given revision for this ontology that.
 	 * 
-	 * @param revisionHandle The handle of the revision who {@link ChangeRecord} 
+	 * @param revisionHandle The handle of the revision whose {@link ChangeRecord} 
 	 * association is desired.
 	 */
 	public RevisionMark getRevisionMark(HGHandle revisionHandle)
@@ -298,8 +298,6 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		graph.getTransactionManager().ensureTransaction(new Callable<HGHandle>(){
 		public HGHandle call()
 		{
-			if (revision() == null)
-				System.out.println("WTF");
 			return makeRevision(user, comment, revision().branchHandle());
 		}
 		});
@@ -312,15 +310,49 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		graph.getTransactionManager().ensureTransaction(new Callable<HGHandle>(){
 		public HGHandle call()
 		{
-			if (hg.findOne(graph, hg.and(hg.type(Branch.class), hg.eq("name", branch))) != null)
+			HGHandle existingBranch = branch != null ? metadata.findBranchHandle(branch) : null;
+			if (existingBranch != null && !existingBranch.equals(revision().branchHandle()))
 				throw new IllegalArgumentException("Branch already exists: '" + branch + "'.");
-			HGHandle revhandle = makeRevision(user, comment, null);
-			if (branch != null)
+			if (existingBranch != null)
+				System.out.println("Committing on existing branch "+ existingBranch + " with name " + branch);
+			HGHandle revhandle = makeRevision(user, comment, existingBranch);
+			if (branch != null && existingBranch == null)
+			{
+				System.out.println("Creaning new branch  with name " + branch);
 				metadata.createBranch(revhandle, branch, user);
+			}
 			return revhandle;
 		}
 		});
 		return revision();
+	}
+	
+	/**
+	 * Construct a change list that represents the difference left-right. That is, the return change list
+	 * is such if it is applied after the 'right' change list, that would be equivalent to applied the 'left'
+	 * change list. That is 'result = left - right'. It is expected that both left and right arguments are
+	 * normalized. This means that all changes in them are commutative (order of application doesn't matter).
+	 * And in particular there aren't any inverse pairs (a pair consistent of a change ands its inverse). 
+	 */
+	private List<VChange<VersionedOntology>> changeListDiff(List<VChange<VersionedOntology>> left, 
+															List<VChange<VersionedOntology>> right)
+	{
+		List<VChange<VersionedOntology>> result = new ArrayList<VChange<VersionedOntology>>();
+		for (VChange<VersionedOntology> change : left)
+		{
+			if (!right.contains(change))
+				result.add(change);
+		}
+		return result;
+	}
+	
+	private HGHandle addChangeSet(List<VChange<VersionedOntology>> changeList)
+	{
+		HGHandle [] changes = new HGHandle[changeList.size()];
+		int i = 0;
+		for (VChange<VersionedOntology> c : changeList)
+			changes[i++] = hg.assertAtom(graph, c);
+		return graph.add(new ChangeSet<VersionedOntology>(changes));
 	}
 	
 	private Revision createMergedRevision(String user,
@@ -336,12 +368,13 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		// now we can normalize so only changes effective from the common
 		// merge ancestor will be recorded
 		mergeChangeList = versioning.normalize(this, mergeChangeList);
-		HGHandle [] mergeChanges = new HGHandle[mergeChangeList.size()];
-		int i = 0;
-		for (VChange<VersionedOntology> c : mergeChangeList)
-			mergeChanges[i++] = hg.assertAtom(graph, c);
-		ChangeSet<VersionedOntology> changeSet = new ChangeSet<VersionedOntology>(mergeChanges);
-		HGHandle hChangeSet = graph.add(changeSet);
+//		HGHandle [] mergeChanges = new HGHandle[mergeChangeList.size()];
+//		int i = 0;
+//		for (VChange<VersionedOntology> c : mergeChangeList)
+//			mergeChanges[i++] = hg.assertAtom(graph, c);
+//		ChangeSet<VersionedOntology> changeSet = new ChangeSet<VersionedOntology>(mergeChanges);
+		HGHandle hChangeSet = addChangeSet(mergeChangeList); 
+		ChangeSet<VersionedOntology> changeSet = graph.get(hChangeSet);
 		Revision revision = new Revision(thisHandle);
 		revision.user(user);
 		revision.comment(comment);
@@ -351,8 +384,23 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		HGHandle mark = graph.add(new ChangeRecord(ontology, hChangeSet));
 		graph.add(new ParentLink(mark, this.getRevisionMark(commonAncestor).changeRecord()));
 		graph.add(new RevisionMark(revisionHandle, mark));
+		
+		// Create a parent-child relationship between each of the revisions being
+		// merged and the resulting "merge" revision. Not only each of those revisions
+		// must be declared as a parent, but we must also make sure that it is
+		// possible to move the state of the versioned ontology from parent to child
+		// and vice versa easily. Therefore, we must compute the change sets between
+		// each parent revision and the merge result.		
 		for (Revision rev : revisions)
+		{ 
+			List<VChange<VersionedOntology>> diff = this.changeListDiff(mergeChangeList, 
+																		collectChanges(commonAncestor, 
+																					   rev.getAtomHandle()));			
+			mark = graph.add(new ChangeRecord(ontology, addChangeSet(diff)));
+			graph.add(new ParentLink(mark, this.getRevisionMark(rev.getAtomHandle()).changeRecord()));
+			graph.add(new RevisionMark(revisionHandle, mark));			
 			graph.add(new ParentLink(revisionHandle, graph.getHandle(rev)));
+		}
 		workingChanges = graph.add(new ChangeSet<VersionedOntology>());
 		currentRevision = revisionHandle;
 		graph.update(this);
@@ -540,6 +588,14 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		return L;
 	}	
 	
+	/**
+	 * <p>
+	 * Return the head revision of a given branch.
+	 * </p>
+	 * 
+	 * @param branchHandle
+	 * @return
+	 */
 	public Revision branchHead(HGHandle branchHandle)
 	{
 		List<Revision> allheads = graph.getAll(hg.and(new IndexCondition<HGPersistentHandle, HGPersistentHandle>(
@@ -575,7 +631,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	{
 		HGHandle branchHandle = graph.getHandle(branch);
 		if (branchHandle == null)
-			branchHandle = hg.findOne(graph, hg.and(hg.type(Branch.class), hg.eq("name", branch.getName())));
+			branchHandle = metadata.findBranchHandle(branch.getName());
 		if (branchHandle == null)
 			throw new IllegalArgumentException("Could not find branch locally: " + branch.getName());		
 		Revision branchHead = branchHead(branchHandle);
@@ -584,9 +640,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 
 	public VersionedOntology goTo(String branchName)
 	{
-		HGHandle branchHandle = hg.findOne(graph, 
-										   hg.and(hg.type(Branch.class), 
-									       hg.eq("name", branchName)));
+		HGHandle branchHandle = metadata.findBranchHandle(branchName);
 		if (branchHandle == null)
 			throw new IllegalArgumentException("Could not find branch locally: " + branchName);
 		Revision branchHead = branchHead(branchHandle);
@@ -612,10 +666,12 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 				// Stash working changes
 				ChangeSet<VersionedOntology> workingSet = graph.get(workingChanges); 
 				if (workingSet.size() > 0)
-				{
-					workingSet.reverseApply(VersionedOntology.this);					
-					graph.add(new StashLink(workingChanges, currentRevision));
-				}
+					throw new RuntimeException("Refusing to move to a different revision " + 
+							"with uncommitted working changes. Please commit, undo or stash/shelve them.");
+//				{
+//					workingSet.reverseApply(VersionedOntology.this);					
+//					graph.add(new StashLink(workingChanges, currentRevision));
+//				}
 				
 				for (VChange<VersionedOntology> c : changes)
 					c.inverse().apply(VersionedOntology.this);

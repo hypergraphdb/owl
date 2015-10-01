@@ -1,6 +1,6 @@
 package org.hypergraphdb.app.owl;
 
-import org.hypergraphdb.app.owl.HGDBOntologyRepository;
+import org.hypergraphdb.app.owl.OntologyDatabase;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 /**
@@ -14,9 +14,9 @@ public class HGDBIRIMapper implements OWLOntologyIRIMapper {
 	
 	public static boolean DBG = false;
 	
-	HGDBOntologyRepository ontologyRepository;
+	OntologyDatabase ontologyRepository;
 	
-	public HGDBIRIMapper(HGDBOntologyRepository ontologyRepository) {
+	public HGDBIRIMapper(OntologyDatabase ontologyRepository) {
 		this.ontologyRepository = ontologyRepository;
 	}
 	

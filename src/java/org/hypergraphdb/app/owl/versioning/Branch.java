@@ -6,16 +6,16 @@ import org.hypergraphdb.HGHandleHolder;
 /**
  * <p>
  * Represents a revision branch. A branch is roughly what is thought of as a branch
- * in versioning systems and like versioning systems, this comes with its own rules
- * and assumptions. Here are ours:  
+ * in versioning systems and, like in other versioning systems, the notion comes with its 
+ * own rules and assumptions. Here are ours:  
  * </p>
  * 
  * <ul>
- * <li>A branch has a name that must be unique in any repository. However
+ * <li>A branch has a name that must be unique for a given versioned artifact (e.g. ontology). However
  * a branch is also a graph object on its and the name is just one of its attributes
- * that can be changed. Its identity remains stable.</li>
- * <li>When a new revision it may be placed on a branch or not. If it is placed on
- * a branch, it remains part of that branch forever.</li>
+ * that can be changed. Its HyperGraphDB atom identity is what remains stable.</li>
+ * <li>When creating a new revision, it may be placed on a branch or not. If it is placed on
+ * a branch, which is the default behavior, it remains part of that branch forever.</li>
  * <li>A branch is always linear. Therefore, a more accurate term would be 
  * <code>lineage</code>. However, we use the term <code>branch</code> because it is
  * the most common term of similar concepts. The API will not allow two divergent paths

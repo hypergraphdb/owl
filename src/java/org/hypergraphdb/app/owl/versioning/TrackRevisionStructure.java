@@ -56,9 +56,9 @@ public class TrackRevisionStructure
 			{
 				Revision revision = (Revision)atom;
 				VersionedOntology versioned = graph.get(revision.versioned());	
-/*				if (versioned == null)
+				if (versioned == null)
 					System.out.println("oops no versioned for revision");
-				else if (versioned.getBottomRevision() == null)
+/*				else if (versioned.getBottomRevision() == null)
 					System.out.println("oops not bottom revision for versioned"); */
 //				System.out.println("Current HEAD 1: " + versioned.heads());
 				revisionChildIndex(graph).addEntry(

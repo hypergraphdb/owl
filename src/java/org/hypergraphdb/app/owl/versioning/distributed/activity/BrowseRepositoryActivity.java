@@ -3,7 +3,7 @@ package org.hypergraphdb.app.owl.versioning.distributed.activity;
 import static org.hypergraphdb.peer.Messages.CONTENT;
 import static org.hypergraphdb.peer.Messages.getReply;
 import static org.hypergraphdb.peer.Messages.getSender;
-import static org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository.OBJECTCONTEXT_REPOSITORY;
+import static org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer.OBJECTCONTEXT_REPOSITORY;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -16,7 +16,7 @@ import mjson.Json;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
-import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
+import org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.Messages;
@@ -41,7 +41,7 @@ public class BrowseRepositoryActivity extends FSMActivity
 	public static final String TYPENAME = "browse-Repository";
 
 	private HGPeerIdentity targetPeerID;
-	private VDHGDBOntologyRepository repository;
+	private OntologyDatabasePeer repository;
 	private HyperGraph graph;
 	private List<BrowseEntry> repositoryBrowseEntries;
 
@@ -53,7 +53,7 @@ public class BrowseRepositoryActivity extends FSMActivity
 			System.err.println("PROBLEM DETECTED: NO OBJECTCONTEXT REPO");
 			throw new IllegalArgumentException("Peer's object context must contain OBJECTCONTEXT_REPOSITORY.");
 		}
-		repository = (VDHGDBOntologyRepository) thisPeer.getObjectContext().get(OBJECTCONTEXT_REPOSITORY);
+		repository = (OntologyDatabasePeer) thisPeer.getObjectContext().get(OBJECTCONTEXT_REPOSITORY);
 		graph = repository.getHyperGraph();
 	}
 
@@ -69,7 +69,7 @@ public class BrowseRepositoryActivity extends FSMActivity
 			System.err.println("PROBLEM DETECTED: NO OBJECTCONTEXT REPO");
 			throw new IllegalArgumentException("Peer's object context must contain OBJECTCONTEXT_REPOSITORY.");
 		}
-		repository = (VDHGDBOntologyRepository) sourcePeer.getObjectContext().get(OBJECTCONTEXT_REPOSITORY);
+		repository = (OntologyDatabasePeer) sourcePeer.getObjectContext().get(OBJECTCONTEXT_REPOSITORY);
 		graph = repository.getHyperGraph();
 	}
 

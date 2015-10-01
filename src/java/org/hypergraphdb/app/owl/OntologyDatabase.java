@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl;
 
 import java.io.PrintWriter;
+
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.util.Date;
@@ -34,21 +35,32 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
 /**
- * HGDBOntologyRepository, the repository for database backed OWL ontologies.
+ * <p>
+ * Represents a HyperGraph instance storing OWL ontologies.
+ * </p>
  * 
+ * <p>
  * This is a lightweight object, tied to the underlying graph database. 
+ * </p>
  * 
- * @author Thomas Hilpold (GIC/Miami-Dade County)
+ * @author Thomas Hilpold (GIC/Miami-Dade County), Borislav Iordanov
  */
-public class HGDBOntologyRepository
+public class OntologyDatabase
 {
 	private static boolean DBG = false;
 	private HyperGraph graph;
 	
+	private HGHandle addOntology(HGDBOntology ontology)
+	{
+		if (DBG)
+			printAllOntologies();
+		return graph.add(ontology);
+	}
+	
 	/**
 	 * @param graph
 	 */
-	public HGDBOntologyRepository(String hypergraphDBLocation)
+	public OntologyDatabase(String hypergraphDBLocation)
 	{
 		this.graph = ImplUtils.owldb(hypergraphDBLocation);
 	}
@@ -66,10 +78,9 @@ public class HGDBOntologyRepository
 	 * @throws HGDBOntologyAlreadyExistsByDocumentIRIException
 	 * @throws HGDBOntologyAlreadyExistsByOntologyIDException
 	 */
-	public HGDBOntology createOWLOntology(OWLOntologyID ontologyID,
-			IRI documentIRI)
-			throws HGDBOntologyAlreadyExistsByDocumentIRIException,
-			HGDBOntologyAlreadyExistsByOntologyIDException
+	public HGDBOntology createOWLOntology(OWLOntologyID ontologyID, IRI documentIRI)
+		throws HGDBOntologyAlreadyExistsByDocumentIRIException,
+			   HGDBOntologyAlreadyExistsByOntologyIDException
 	{
 		if (ontologyID == null || documentIRI == null)
 			throw new IllegalArgumentException();
@@ -99,11 +110,10 @@ public class HGDBOntologyRepository
 	 * @throws HGDBOntologyAlreadyExistsByOntologyIDException
 	 * @throws HGDBOntologyAlreadyExistsByOntologyUUIDException
 	 */
-	public HGDBOntology createOWLOntology(OWLOntologyID ontologyID,
-			IRI documentIRI, HGPersistentHandle ontologyUUID)
+	public HGDBOntology createOWLOntology(OWLOntologyID ontologyID, IRI documentIRI, HGPersistentHandle ontologyUUID)
 			throws HGDBOntologyAlreadyExistsByDocumentIRIException,
-			HGDBOntologyAlreadyExistsByOntologyIDException,
-			HGDBOntologyAlreadyExistsByOntologyUUIDException
+				   HGDBOntologyAlreadyExistsByOntologyIDException,
+				   HGDBOntologyAlreadyExistsByOntologyUUIDException
 	{
 		if (ontologyID == null || documentIRI == null)
 			throw new IllegalArgumentException();
@@ -120,7 +130,7 @@ public class HGDBOntologyRepository
 		graph.define(ontologyUUID, o);
 		return o;
 	}
-
+	
 	public List<HGDBOntology> getOntologies()
 	{
 		// 2011.12.01 HGException: Transaction configured as read-only was used
@@ -291,13 +301,6 @@ public class HGDBOntologyRepository
 			}
 			return ontologyFound;
 		}});
-	}
-
-	public HGHandle addOntology(HGDBOntology ontology)
-	{
-		if (DBG)
-			printAllOntologies();
-		return graph.add(ontology);
 	}
 
 	public void printStatistics()

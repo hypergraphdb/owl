@@ -6,7 +6,7 @@ import java.util.List;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.HGDBOntologyRepository;
+import org.hypergraphdb.app.owl.OntologyDatabase;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.hypergraphdb.app.owl.model.swrl.SWRLClassAtomHGDB;
 import org.hypergraphdb.app.owl.model.swrl.SWRLDataRangeAtomHGDB;
@@ -47,7 +47,7 @@ public class R20120807RepairSWRLNull {
 		exit();
 		// HGDBOntologyRepository.setHypergraphDBLocation(args[0]);
 		System.out.println("Opening Repository at " + args[0]);
-		HGDBOntologyRepository vrep = new HGDBOntologyRepository(args[0]); // .getInstance();
+		OntologyDatabase vrep = new OntologyDatabase(args[0]); // .getInstance();
 		HyperGraph graph = vrep.getHyperGraph();
 		System.out.println("Number of SWRLClassAtomHGDB: " + vrep.getNrOfAtomsByType(SWRLClassAtomHGDB.class));
 		System.out.println("Number of SWRLDataRangeAtomHGDB: " + vrep.getNrOfAtomsByType(SWRLDataRangeAtomHGDB.class));

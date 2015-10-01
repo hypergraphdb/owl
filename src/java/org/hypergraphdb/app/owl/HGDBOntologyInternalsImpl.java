@@ -801,7 +801,8 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB
 				if (h != null && ontology.isMember(h))
 				{
 					PERFCOUNTER_FIND_BY_MEMBERSHIP++;
-					System.out.println("member " + h);
+					if (DBG)
+						System.out.println("member " + h);
 					return true;
 				}
 				else

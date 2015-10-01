@@ -20,6 +20,7 @@ import org.hypergraphdb.app.owl.versioning.ParentLink;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.RevisionMark;
 import org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor;
+import org.hypergraphdb.app.owl.versioning.VersionedMetadata;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.change.VAddAxiomChange;
 import org.hypergraphdb.app.owl.versioning.change.VAddImportChange;
@@ -130,11 +131,14 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		writer.writeAttribute(VOWLXMLVocabulary.NAMESPACE + "versionedID", vo.getAtomHandle().toString());
 		
 		HashSet<ParentLink> parentLinks = new HashSet<ParentLink>();
-		
+		HashSet<HGHandle> visited = new HashSet<HGHandle>();		
 		for (HGHandle revisionHandle : revisions)
 		{
 			Revision revision = graph.get(revisionHandle);
 			visit(revision);
+			RevisionMark mark =  vo.getRevisionMark(revisionHandle);
+			visit(mark);
+			visited.add(mark.getAtomHandle());					
 			List<ParentLink> links = hg.getAll(graph, hg.and(hg.type(ParentLink.class), 
 														     hg.incident(revisionHandle)));
 			for (ParentLink parentLink : links)
@@ -151,8 +155,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		// the change sets between revisions. There may be many commits ("flushes")
 		// between two revisions and because of parent project merging, we may
 		// have a change set with multiple parents so we don't want to serialize 
-		// any object twice. 
-		HashSet<HGHandle> visited = new HashSet<HGHandle>();		
+		// any object twice. 		
 		for (ParentLink revisionLink : parentLinks)
 		{
 			// If this is a link between a root revision (i.e. either the very first revision of the
@@ -163,7 +166,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 			if (!revisions.contains(revisionLink.child()))
 				continue;
 			if (!revisions.contains(revisionLink.parent()) && configuration.roots().contains(revisionLink.child()))
-				continue;
+				continue;			
 			RevisionMark parentMark = vo.getRevisionMark(revisionLink.parent());
 			RevisionMark childMark =  vo.getRevisionMark(revisionLink.child());
 			if (!visited.contains(parentMark.getAtomHandle()))
@@ -175,7 +178,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 			{
 				visit(childMark);
 				visited.add(childMark.getAtomHandle());
-			}
+			} 
 			writeMarkChanges(graph, childMark.changeRecord(), parentMark.changeRecord(), visited);
 		}
 		
@@ -234,22 +237,15 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 	}
 	
 	public void visit(Branch branch)
-	{
+	{			
 		writer.writeStartElement(BRANCH)
 			  .writeAttribute("name", branch.getName())
 			  .writeAttribute("createdOn", Long.toString(branch.getCreatedOn()))
 			  .writeAttribute("createdBy", branch.getCreatedBy())
+			  .writeAttribute("versioned", branch.versioned())
 			  .writeAttribute("handle", branch.getAtomHandle())
 			  .writeEndElement();				
 	}
-	
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor#visit(org.hypergraphdb
-	 * .app.owl.versioning.Revision)
-	 */
 	
 	public void visit(Revision revision)
 	{
@@ -257,6 +253,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 			  .writeAttribute("ontology", revision.versioned())
 			  .writeAttribute("handle", revision.getAtomHandle())
 			  .writeAttribute("user", revision.user())
+			  .writeAttribute("branch", revision.branchHandle())
 			  .writeAttribute("timestamp", "" + revision.timestamp())
 			  .writeAttribute("comment", revision.comment());
 		writer.writeEndElement();
@@ -412,4 +409,13 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		writer.writeEndElement();
 	}
 
+	public void visit(VersionedMetadata<VersionedOntology> metadata)
+	{
+		writer.writeStartElement(VOWLXMLVocabulary.METADATA);
+		for (Branch branch : metadata.allBranches())
+		{
+			visit(branch);
+		}
+		writer.writeEndElement();
+	}
 }

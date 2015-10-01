@@ -15,7 +15,7 @@ import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.HGDBOntologyManager;
-import org.hypergraphdb.app.owl.HGDBOntologyRepository;
+import org.hypergraphdb.app.owl.OntologyDatabase;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.hypergraphdb.app.owl.core.OWLTempOntologyImpl;
@@ -26,7 +26,7 @@ import org.hypergraphdb.app.owl.gc.GarbageCollector;
 import org.hypergraphdb.app.owl.usage.ImportOntologies;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
-import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
+import org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLParser;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLRenderConfiguration;
@@ -74,7 +74,7 @@ public class TestVersionedOntoRenderAndParse
 		List<File> renderedFiles = new ArrayList<File>();
 		String dblocation = System.getProperty("java.io.tmpdir") + File.separator + "hgdbtest";
 		HGDBOntologyManager manager = HGOntologyManagerFactory.getOntologyManager(dblocation);
-		HGDBOntologyRepository repo = new HGDBOntologyRepository(dblocation);
+		OntologyDatabase repo = new OntologyDatabase(dblocation);
 		VersionManager versionManager = manager.getVersionManager();
 		HyperGraph graph = manager.getOntologyRepository().getHyperGraph();
 		

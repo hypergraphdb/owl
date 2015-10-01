@@ -2,10 +2,8 @@ package org.hypergraphdb.app.owl.versioning.distributed;
 
 import java.io.File;
 
-import mjson.Json;
 
-import org.hypergraphdb.app.owl.HGDBOntologyManager;
-import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
+import mjson.Json;
 import org.hypergraphdb.app.owl.util.ImplUtils;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
@@ -42,7 +40,7 @@ public class VDHGDBOntologyServer
 		File file = new File(args[0]);
 		if (!file.exists())
 			die("File " + args[0] + " could not be found.");
-		VDHGDBOntologyRepository dr = null;
+		OntologyDatabasePeer dr = null;
 		try
 		{
 			Json config = Json.read(file.toURI().toURL());
@@ -63,7 +61,7 @@ public class VDHGDBOntologyServer
 							config.at(PeerConfig.LOCAL_DB) + " with peer name "
 							+ config.at(PeerConfig.PEER_NAME));
 
-			dr = new VDHGDBOntologyRepository(databaseLocation, 
+			dr = new OntologyDatabasePeer(databaseLocation, 
 											  ImplUtils.connectionStringFromConfiguration(config));
 //			dr.setOntologyServer(true);
 			dr.printAllOntologies();
@@ -77,16 +75,6 @@ public class VDHGDBOntologyServer
 			else
 			{
 				System.out.println("Networking failed.: " + dr.getPeer());
-			}
-			// Map<String, Object> xmppConfig =
-			// (Map<String,Object>)configuration.get("interfaceConfig");
-			// dr.startNetworking(xmppConfig.get("user").toString(),
-			// xmppConfig.get("password").toString(),
-			// xmppConfig.get("serverUrl").toString());
-			System.out.println("Versioned distributed ontologies are:");
-			for (DistributedOntology O : dr.getDistributedOntologies())
-			{
-				System.out.println(O.getVersionedOntology());
 			}
 
 			while (true)

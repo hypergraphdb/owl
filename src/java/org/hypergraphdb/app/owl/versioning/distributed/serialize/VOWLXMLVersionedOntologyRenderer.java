@@ -45,8 +45,11 @@ public class VOWLXMLVersionedOntologyRenderer extends AbstractOWLRenderer
 		render(vonto, revisions, writer, new VOWLXMLRenderConfiguration());
 	}
 
-	public void render(VersionedOntology vonto, Set<HGHandle> revisions, Writer writer, VOWLXMLRenderConfiguration configuration)
-			throws OWLRendererException
+	public void render(VersionedOntology vonto, 
+					   Set<HGHandle> revisions, 
+					   Writer writer, 
+					   VOWLXMLRenderConfiguration configuration)
+		throws OWLRendererException
 	{
 		StopWatch s = new StopWatch(true);
 		try
@@ -62,6 +65,8 @@ public class VOWLXMLVersionedOntologyRenderer extends AbstractOWLRenderer
 			vw.writePrefix(VOWLXMLVocabulary.NAMESPACE_PREFIX.toString(), VOWLXMLVocabulary.NAMESPACE.toString());
 			VOWLXMLObjectRenderer vren = new VOWLXMLObjectRenderer(vw, configuration);
 			vren.visit(configuration);
+			if (configuration.writeMetadata())
+				vren.visit(vonto.metadata());
 			vren.visit(vonto, revisions);
 			vw.endDocument();
 			writer.flush();

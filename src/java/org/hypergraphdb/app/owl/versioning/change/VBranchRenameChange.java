@@ -1,6 +1,5 @@
 package org.hypergraphdb.app.owl.versioning.change;
 
-import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.versioning.Branch;
 import org.hypergraphdb.app.owl.versioning.Versioned;
@@ -36,10 +35,13 @@ public class VBranchRenameChange<T extends Versioned<T>> extends VMetadataChange
 		Branch branch = graph.getOne(hg.and(hg.type(Branch.class), 
 							hg.eq("name", currentName), 
 							hg.eq("versioned", versioned.getAtomHandle()))); 
-		assert branch != null;
-		assert graph.findOne(hg.and(hg.type(Branch.class), 
+		if (branch == null)
+			throw new NullPointerException("No branch with name " + currentName + " in versioned " + versioned);
+		if (graph.findOne(hg.and(hg.type(Branch.class), 
 							 hg.eq("name", newname), 
-							 hg.eq("versioned", branch.getVersioned()))) == null;
+							 hg.eq("versioned", branch.getVersioned()))) != null)
+			throw new IllegalArgumentException("Attempting to rename branch  " + currentName + " to  " + newname + 
+					", but " + newname + " already exists.");
 		branch.setName(newname);
 		graph.update(branch);
 	}

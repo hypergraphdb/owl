@@ -1,7 +1,6 @@
 package org.hypergraphdb.app.owl.versioning.distributed.activity;
 
 import java.io.File;
-
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -27,6 +26,7 @@ import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.hypergraphdb.app.owl.core.OWLTempOntologyImpl;
+import org.hypergraphdb.app.owl.versioning.Branch;
 import org.hypergraphdb.app.owl.versioning.ChangeRecord;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.ParentLink;
@@ -37,8 +37,9 @@ import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.change.VChange;
 import org.hypergraphdb.app.owl.versioning.change.VMetadataChange;
 import org.hypergraphdb.app.owl.versioning.distributed.DistributedOntology;
-import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
+import org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLMetadata;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLParser;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLRenderConfiguration;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVersionedOntologyRenderer;
@@ -155,6 +156,7 @@ public class ActivityUtils
 			conf.bottomRevision(versionedOntology.getBottomRevision());
 			conf.revisionSnapshot(versionedOntology.getCurrentRevision());
 			conf.roots().add(conf.firstRevision());
+			conf.writeMetadata(true);
 			VOWLXMLVersionedOntologyRenderer owlxmlRenderer = new VOWLXMLVersionedOntologyRenderer(
 					HGOntologyManagerFactory.getOntologyManager(versionedOntology.graph().getLocation()));
 			StringWriter stringWriter = new StringWriter(RENDER_BUFFER_DELTA_INITIAL_SIZE);
@@ -244,6 +246,7 @@ public class ActivityUtils
 			graph.define(versionedHandle, vo);			
 			manager.getVersionManager().manualVersioned(vo.getOntology());
 			updateVersionedOntology(manager, vo, doc);
+			storeMetadata(graph, doc.getMetadata());
 			Revision root = graph.get(vo.getRootRevision());
 			RevisionMark mark = graph.get(root.revisionMarks().iterator().next());
 			ChangeRecord record = graph.get(mark.changeRecord());
@@ -259,6 +262,14 @@ public class ActivityUtils
 		catch (Exception ex)
 		{
 			throw new RuntimeException(ex);
+		}
+	}
+	
+	public static void storeMetadata(HyperGraph graph, VOWLXMLMetadata metadata)
+	{
+		for (Branch branch : metadata.branches())
+		{
+			graph.define(branch.getAtomHandle(), branch);
 		}
 	}
 	
@@ -288,7 +299,7 @@ public class ActivityUtils
 				public Object call()
 				{
 					graph.define(object.getAtomHandle(), object);
-					// TEMP, until HyperGraph.define starts firing this event (see issue #109 in github)			
+					// TEMP, until HyperGraph.define starts firing this event (see issue #109 in github)
 					graph.getEventManager().dispatch(graph, new HGAtomAddedEvent(object.getAtomHandle(), "HyperGraph.define"));				
 					return null;
 				}
@@ -313,120 +324,12 @@ public class ActivityUtils
 		for (ChangeSet<VersionedOntology> changeSet : doc.changeSetMap().keySet())
 		{
 //			if (graph.get(changeSet.getAtomHandle()) == null)
-				storeChangeSet(graph, changeSet, (List<VChange<VersionedOntology>>)(List<?>)doc.changeSetMap().get(changeSet));
+				storeChangeSet(graph, 
+							   changeSet, 
+							   (List<VChange<VersionedOntology>>)(List<?>)doc.changeSetMap().get(changeSet));
 		}
 		if (doc.getRenderConfig().revisionSnapshot() != null)
 			vo.goTo((Revision)graph.get(doc.getRenderConfig().revisionSnapshot()));
-	}
-
-	/**
-	 * Appends the given Changeset and Revision delta information to the
-	 * targetVersionedOntology. The vowlxmlDeltaSource has to contain at least
-	 * one Revision and zero Changesets. The first revision has to match the
-	 * head of targetVersionedOntology.
-	 * 
-	 * Call within transaction.
-	 * 
-	 * @param vowlxmlDeltaSource
-	 * @param targetVersionedOntology
-	 * @throws OWLOntologyChangeException
-	 * @throws UnloadableImportException
-	 * @throws OWLParserException
-	 * @throws IOException
-	 */
-	public VOWLXMLDocument appendDeltaTo(OWLOntologyDocumentSource vowlxmlDeltaSource, VersionedOntology targetVersionedOntology,
-			boolean mergeWithUncommitted) throws OWLOntologyChangeException, UnloadableImportException, OWLParserException,
-			IOException
-	{
-		throw new UnsupportedOperationException();
-//		if (!mergeWithUncommitted && !targetVersionedOntology.getWorkingSetChanges().isEmpty())
-//		{
-//			throw new IllegalStateException("There must not be uncommitted changes on appending delta without merge.");
-//		}
-//		VOWLXMLParser vowlxmlParser = new VOWLXMLParser();
-//		HGDBOntologyManager manager = (HGDBOntologyManager) targetVersionedOntology.getWorkingSetData().getOWLOntologyManager();
-//		// Create an dummy in mem onto with a hgdb manager and hgdb data factory
-//		// to use.
-//		OWLOntologyEx dummyOnto = new OWLTempOntologyImpl(manager, new OWLOntologyID());
-//		VOWLXMLDocument vowlxmlDoc = new VOWLXMLDocument(dummyOnto);
-//		// The newly created ontology will hold the manager and the parser will
-//		// use the manager's
-//		// data factory.
-//		vowlxmlParser.parse(vowlxmlDeltaSource, vowlxmlDoc, new OWLOntologyLoaderConfiguration());
-//		VOWLXMLRenderConfiguration renderConf = vowlxmlDoc.getRenderConfig();
-//		if (renderConf.isLastRevisionData() || renderConf.isUncommittedChanges())
-//		{
-//			throw new IllegalStateException("Transmitted data contains unexpected content: revision data or uncommitted.");
-//		}
-//		List<Revision> deltaRevisions = vowlxmlDoc.getRevisions();
-//		List<ChangeSet> deltaChangeSets = vowlxmlDoc.getChangesets();
-//		if (deltaRevisions.size() != deltaChangeSets.size() + 1)
-//		{
-//			throw new IllegalStateException("Expecting exactly one more Revision than changesets."
-//					+ "The workingset changeset after head must not be included in the transmission");
-//		}
-//		if (mergeWithUncommitted)
-//		{
-//			System.out.println("MERGING: " + targetVersionedOntology.getWorkingSetChanges().size()
-//					+ " uncommitted changes by reapplying them after applying " + deltaChangeSets.size() + " delta changesets ");
-//		}
-//		targetVersionedOntology.addApplyDelta(deltaRevisions, deltaChangeSets, mergeWithUncommitted);
-//		return vowlxmlDoc;
-	}
-
-	/**
-	 * Returns the VersionedOntology specified by the revision object and
-	 * checks, if it is ready to have delta applied to it. In particular it
-	 * checks, if a vo with the revision UUID is available, if the given
-	 * revision matches the head and that all changes are committed.
-	 * 
-	 * Call within transaction.
-	 * 
-	 * @param lastMatchingRevision
-	 * @return a valid versionedontology and never null (will throw exception
-	 *         instead)
-	 * @throws IllegalStateException
-	 *             in all problem cases.
-	 */
-	public DistributedOntology getDistributedOntologyForDeltaFrom(Revision lastMatchingRevision, VDHGDBOntologyRepository repository,
-			boolean mergeWithUncommittedMode) throws IllegalStateException
-	{
-		throw new UnsupportedOperationException();
-//		HGPersistentHandle ontoUUID = lastMatchingRevision.getOntologyUUID();
-//		HGDBOntology onto = (HGDBOntology) repository.getHyperGraph().get(ontoUUID);
-//		if (onto == null)
-//		{
-//			// somebody removed the onto in the meantime or the source sent
-//			// wrong revision.
-//			throw new IllegalStateException("Delta refers to an ontology that does currently not exist.");
-//		}
-//		onto.setOWLOntologyManager(repository.getOntologyManager());
-//		DistributedOntology targetDistributedOntology = repository.getDistributedOntology(onto);
-//		VersionedOntology targetVersionedOntology = targetDistributedOntology.getVersionedOntology();
-//		if (targetVersionedOntology != null)
-//		{
-//			if (targetVersionedOntology.getHeadRevision().equals(lastMatchingRevision))
-//			{
-//				if (targetVersionedOntology.getWorkingSetChanges().isEmpty() || mergeWithUncommittedMode)
-//				{
-//					return targetDistributedOntology;
-//				}
-//				else
-//				{
-//					throw new IllegalStateException(
-//							"Delta not applicable, because uncommitted changes exist in target and no merge was allowed.");
-//				}
-//			}
-//			else
-//			{
-//				throw new IllegalStateException("Delta not applicable to head revision. Might have changed.");
-//			}
-//		}
-//		else
-//		{
-//			// somebody removed version control in the meantime
-//			throw new IllegalStateException("Delta refers to an ontology that is currently not version controlled.");
-//		}
 	}
 
 	public static String renderVersionedOntologyDelta(VersionedOntology versionedOntology, 
@@ -450,36 +353,6 @@ public class ActivityUtils
 		return stringWriter.toString();
 	}
 	
-	/**
-	 * Renders the revisions and changesets starting with the given index.
-	 * 
-	 * Call within transaction.
-	 * 
-	 * @param versionedOntology
-	 *            with workingsetdata and manager set.
-	 * @param startRevisionIndex
-	 * @return
-	 * @throws OWLRendererException
-	 */
-	public String renderVersionedOntologyDelta(VersionedOntology versionedOntology, int startRevisionIndex) throws OWLRendererException
-	{
-		return renderVersionedOntologyDelta(versionedOntology, startRevisionIndex, Integer.MAX_VALUE);
-	}
-
-	public String renderVersionedOntologyDelta(VersionedOntology versionedOntology, int startRevisionIndex, int lastRevisionIndex)
-			throws OWLRendererException
-	{
-		throw new UnsupportedOperationException();
-//		VOWLXMLRenderConfiguration conf = new VOWLXMLRenderConfiguration(startRevisionIndex);
-//		conf.setLastRevisionIndex(lastRevisionIndex);
-//		HGDBOntologyManager manager = (HGDBOntologyManager) versionedOntology.getWorkingSetData().getOWLOntologyManager();
-//		StringWriter stringWriter = new StringWriter(RENDER_BUFFER_DELTA_INITIAL_SIZE);
-//		VOWLXMLVersionedOntologyRenderer owlxmlRenderer = new VOWLXMLVersionedOntologyRenderer(manager);
-//		// owlxmlRenderer.render(sourceVersionedOnto, stringWriter, conf);
-//		owlxmlRenderer.render(versionedOntology, stringWriter, conf);
-//		return stringWriter.toString();
-	}
-
 	/**
 	 * Shallow copies all axioms, ontology annotations and importdeclarations
 	 * from any ontology and adds them to an HGDBOntology by applying the

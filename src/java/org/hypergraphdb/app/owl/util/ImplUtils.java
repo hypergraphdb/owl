@@ -19,7 +19,7 @@ import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.management.HGManagement;
 import org.hypergraphdb.app.owl.HGDBApplication;
-import org.hypergraphdb.app.owl.HGDBOntologyRepository;
+import org.hypergraphdb.app.owl.OntologyDatabase;
 import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
 import org.hypergraphdb.app.owl.model.OWLAnnotationPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLClassHGDB;
@@ -53,7 +53,7 @@ public class ImplUtils
 	static HyperGraph openHypergraph(String location)
 	{
 		HGConfiguration config = new HGConfiguration();
-		config.setClassLoader(HGDBOntologyRepository.class.getClassLoader());
+		config.setClassLoader(OntologyDatabase.class.getClassLoader());
 		config.setUseSystemAtomAttributes(false);
 		// Avoid counting incidence sets and cache all of them, since there's no
 		// representation that

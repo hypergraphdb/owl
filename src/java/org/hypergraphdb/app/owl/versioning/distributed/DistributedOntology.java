@@ -10,6 +10,9 @@ import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 /**
  * DistributedOntology.
  * 
+ * TODO -this is largely unused, pending code cleanup of the places 
+ * that refer to it still...
+ * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Aug 23, 2012
  */

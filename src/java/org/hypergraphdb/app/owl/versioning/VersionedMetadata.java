@@ -1,7 +1,6 @@
 package org.hypergraphdb.app.owl.versioning;
 
 import java.util.Collection;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -111,9 +110,18 @@ public class VersionedMetadata<T extends Versioned<T>>
 	 */
 	public Branch findBranch(String name)
 	{
-		return graph.getOne(hg.and(hg.type(Branch.class), hg.eq("name", name), hg.eq("versioned", versioned.getAtomHandle())));
+		return graph.getOne(hg.and(hg.type(Branch.class), 
+								   hg.eq("name", name), 
+								   hg.eq("versioned", versioned.getAtomHandle())));
 	}
 
+	public HGHandle findBranchHandle(String name)
+	{
+		return hg.findOne(graph, hg.and(hg.type(Branch.class),
+										hg.eq("versioned", versioned.getAtomHandle()),
+										hg.eq("name", name)));		
+	}
+	
 	/**
 	 * Change the name of this branch. For proper revisiont tracking, this
 	 * method must be used instead of {@link #setName(String)} which is only a

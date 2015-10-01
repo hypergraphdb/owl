@@ -385,7 +385,7 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 	
 	public String toString()
 	{
-		return getAtomHandle().toString();
+		return getAtomHandle() != null ? getAtomHandle().toString() : null;
 	}
 
 	@Override

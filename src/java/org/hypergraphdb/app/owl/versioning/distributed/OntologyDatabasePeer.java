@@ -1,7 +1,5 @@
 package org.hypergraphdb.app.owl.versioning.distributed;
 
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -10,11 +8,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.HGDBOntology;
-import org.hypergraphdb.app.owl.HGDBOntologyRepository;
+import org.hypergraphdb.app.owl.OntologyDatabase;
 import org.hypergraphdb.app.owl.util.ImplUtils;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowseRepositoryActivity;
@@ -28,95 +24,41 @@ import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.PeerInterface;
 import org.hypergraphdb.peer.PeerPresenceListener;
 import org.hypergraphdb.peer.xmpp.XMPPPeerInterface;
-import org.hypergraphdb.transaction.HGTransactionConfig;
 import org.hypergraphdb.util.Constant;
 import org.hypergraphdb.util.Ref;
-import org.semanticweb.owlapi.model.OWLOntology;
 
 /**
- * VDHGDBOntologyRepository extends versioning by Peer2Peer and Client/Server
- * sharing of VersionedOntologies.
+ * OntologyDatabasePeer extends the {@link OntologyDatabase} by adding 
+ * P2P operations for {@link VersionedOntology}'s.
  * 
- * @author Thomas Hilpold (CIAO/Miami-Dade County)
+ * @author Thomas Hilpold (CIAO/Miami-Dade County), Borislav Iordanov
  * @created Feb 16, 2012
  */
-public class VDHGDBOntologyRepository extends HGDBOntologyRepository
+public class OntologyDatabasePeer extends OntologyDatabase
 {
 	private static boolean DBG = false;
 	public static final String OBJECTCONTEXT_REPOSITORY = "Repository";
-	public static final String CONFIG_KEY_SERVER = "OntologyServer";
 
 	private Ref<HyperGraphPeer> peer;
 
-	public VDHGDBOntologyRepository(String location, Ref<HyperGraphPeer> peer)
+	public OntologyDatabasePeer(String location, Ref<HyperGraphPeer> peer)
 	{
 		super(location);
 		this.peer = peer;
 	}
 	
-	public VDHGDBOntologyRepository(HyperGraphPeer peer)
+	public OntologyDatabasePeer(HyperGraphPeer peer)
 	{
 		super(peer.getGraph().getLocation());
 		this.peer = new Constant<HyperGraphPeer>(peer);
 	}
 	
-	public VDHGDBOntologyRepository(String location, String peerConnectionString)
+	public OntologyDatabasePeer(String location, String peerConnectionString)
 	{
 		super(location);
 		peer = new Constant<HyperGraphPeer>(ImplUtils.peer(peerConnectionString, location));
 		configurePeer();
-	}
-	
-	public boolean isDistributed(HGDBOntology o)
-	{
-		return getDistributedOntology(o) != null;
-	}
-
-	public Set<DistributedOntology> getDistributedOntologies()
-	{
-		List<DistributedOntology> l = getHyperGraph().getAll(hg.typePlus(DistributedOntology.class));
-		HashSet<DistributedOntology> s = new HashSet<DistributedOntology>(l);
-		if (s.size() != l.size())
-			throw new IllegalStateException("Duplicates.");
-		return s;
 	}	
-
-	/**
-	 * Returns the distributed Ontology or null.
-	 * 
-	 * @param onto
-	 * @return the versioned ontology or null, if not found.
-	 */
-	public DistributedOntology getDistributedOntology(final OWLOntology onto)
-	{
-		return getHyperGraph().getTransactionManager().ensureTransaction(new Callable<DistributedOntology>()
-		{
-			public DistributedOntology call()
-			{
-				// TODO maybe not loaded here? -> NPE; Check out callers
-				HGHandle ontoHandle = getHyperGraph().getHandle(onto);
-				if (ontoHandle == null)
-				{
-					if (DBG)
-						System.out.println("NULL for onto " + onto);
-					return null;
-				}
-				else
-				{
-					HGPersistentHandle ontoPHandle = ontoHandle.getPersistent();
-					for (DistributedOntology distO : getDistributedOntologies())
-					{
-						if (distO.getVersionedOntology().revision().versioned().equals(ontoPHandle))
-						{
-							return distO;
-						}
-					}
-					return null;
-				}
-			}
-		}, HGTransactionConfig.READONLY);
-	}
-
 	private void configurePeer()
 	{
 		peer.get().getObjectContext().put(OBJECTCONTEXT_REPOSITORY, this);
@@ -254,25 +196,6 @@ public class VDHGDBOntologyRepository extends HGDBOntologyRepository
 		peer.get().getActivityManager().initiateActivity(activity);
 		return activity;
 	}
-
-	/**
-	 * Pull onto an existing local distributed ontology.
-	 * 
-	 * @param dOnto
-	 * @param remote
-	 * @return
-	 */
-	public VersionUpdateActivity pull(VersionedOntology ontology, HGPeerIdentity remote)
-	{
-		if (DBG)
-			System.out.println("Pulling distributed onto: " + ontology);
-		final HyperGraph graph = getHyperGraph();		
-		RemoteOntology remoteOnto = remoteOnto(ontology.getOntology(), remoteRepo(remote));
-		VersionUpdateActivity activity = new VersionUpdateActivity(peer.get())
-				.remoteOntology(graph.getHandle(remoteOnto)).action("pull");		
-		peer.get().getActivityManager().initiateActivity(activity);
-		return activity;
-	}
 	
 	public RemoteRepository remoteRepo(final HGPeerIdentity id)
 	{
@@ -322,7 +245,7 @@ public class VDHGDBOntologyRepository extends HGDBOntologyRepository
 	 * @param remote
 	 * @return
 	 */
-	public VersionUpdateActivity cloneOntology(HGHandle ontologyHandle, HGPeerIdentity otherPeer)
+	public VersionUpdateActivity clone(HGHandle ontologyHandle, HGPeerIdentity otherPeer)
 	{
 		if (DBG)
 			System.out.println("Pulling versioned onto: " + ontologyHandle);
@@ -333,12 +256,12 @@ public class VDHGDBOntologyRepository extends HGDBOntologyRepository
 											   " already in local repository.");
 		RemoteOntology remoteOnto = remoteOnto(ontologyHandle, remoteRepo(otherPeer)); 
 		VersionUpdateActivity activity = new VersionUpdateActivity(peer.get())
-			.remoteOntology(graph.getHandle(remoteOnto)).action("pull");
+			.remoteOntology(graph.getHandle(remoteOnto)).action(VersionUpdateActivity.ActionType.clone.name());
 		peer.get().getActivityManager().initiateActivity(activity);
 		return activity;
 	}
 
-	public VersionUpdateActivity publishOntology(HGHandle ontologyHandle, HGPeerIdentity otherPeer)
+	public VersionUpdateActivity publish(HGHandle ontologyHandle, HGPeerIdentity otherPeer)
 	{
 		if (DBG)
 			System.out.println("Publishing ontology: " + ontologyHandle + " to " + otherPeer);
@@ -351,6 +274,26 @@ public class VDHGDBOntologyRepository extends HGDBOntologyRepository
 		return activity;		
 	}
 	
+	/**
+	 * Pull onto an existing local distributed ontology.
+	 * 
+	 * @param dOnto
+	 * @param remote
+	 * @return
+	 */
+	public VersionUpdateActivity pull(VersionedOntology ontology, HGPeerIdentity remote)
+	{
+		if (DBG)
+			System.out.println("Pulling distributed onto: " + ontology);
+		final HyperGraph graph = getHyperGraph();		
+		RemoteOntology remoteOnto = remoteOnto(ontology.getOntology(), remoteRepo(remote));
+		VersionUpdateActivity activity = new VersionUpdateActivity(peer.get())
+											.remoteOntology(graph.getHandle(remoteOnto))
+											.action("pull");		
+		peer.get().getActivityManager().initiateActivity(activity);
+		return activity;
+	}
+	
 	public VersionUpdateActivity push(HGHandle ontologyHandle, HGPeerIdentity otherPeer)
 	{
 		final HyperGraph graph = getHyperGraph();		
@@ -359,15 +302,6 @@ public class VDHGDBOntologyRepository extends HGDBOntologyRepository
 				.remoteOntology(graph.getHandle(remoteOnto)).action("push");		
 		peer.get().getActivityManager().initiateActivity(activity);
 		return activity;
-	}
-
-	public void printDistributedOntologies()
-	{
-		Set<DistributedOntology> dontos = getDistributedOntologies();
-		for (DistributedOntology donto : dontos)
-		{
-			System.out.println(donto.toString());
-		}
 	}
 
 	public void printIdentity()

@@ -37,6 +37,10 @@ public class BranchElementHandler extends AbstractVOWLElementHandler<Branch>
 		{
 			branch.setAtomHandle(graph.getHandleFactory().makeHandle(value));
 		}		
+		else if (localName.equals("versioned"))
+		{
+			branch.versioned(graph.getHandleFactory().makeHandle(value));
+		}		
 		else
 			throw new IllegalArgumentException("Unrecognized attribute '" + localName + " for RevisionMark");
 	}

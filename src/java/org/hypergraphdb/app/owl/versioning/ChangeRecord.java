@@ -17,15 +17,27 @@ import org.hypergraphdb.HGQuery.hg;
  * the change set has been applied, it becomes immutable and cannot be 
  * modified any further. The versioned object itself can be positioned 
  * at different point in the version graph which means change sets will be
- * rolled back and re-applied, however after they are marked (i.e. after
+ * rolled back and re-applied, however after they are market (i.e. after
  * there is at least one ChangeRecord link pointing to a changeset), they
- * are readonly and cannot be altered.
+ * are read only and cannot be altered.
  * </p>
  * 
  * <p>
  * The "target" of a change record is the versioned object to which the
  * change set is applied. The versioned object is the 1st target of the link
  * and the change set is the 2nd target.  
+ * </p>
+ * 
+ * <p>
+ * Applying a change set is normally referred to as a <em>commit</em> in
+ * version control systems. However, in version control system, a commit 
+ * normally leads to the creation of a new revision. In this system, a commit
+ * does not necessarily create a new revision of the <code>versioned</code>
+ * entity it applies to. Hence, we have chosen a different term in order
+ * to avoid confusion. One can say that a change record is like a commit that
+ * does not necessarily mean a new revision. If a new revision is created as
+ * the result of a <code>ChangeRecord</code>, the two are linked through
+ * a {@link RevisionMark}.
  * </p>
  * 
  * @author Borislav Iordanov

@@ -1,9 +1,10 @@
 package org.hypergraphdb.app.owl.versioning.distributed.activity;
 
 import static org.hypergraphdb.peer.Messages.CONTENT;
+
 import static org.hypergraphdb.peer.Messages.getReply;
 import static org.hypergraphdb.peer.Messages.getSender;
-import static org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository.OBJECTCONTEXT_REPOSITORY;
+import static org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer.OBJECTCONTEXT_REPOSITORY;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,9 +18,9 @@ import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.versioning.Revision;
+import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
-import org.hypergraphdb.app.owl.versioning.distributed.DistributedOntology;
-import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
+import org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.Messages;
@@ -43,7 +44,7 @@ public class GetRemoteOntologyRevisionsActivity extends FSMActivity
 	public static final String TYPENAME = "get-remote-ontology-revisions";
 
 	private HGPeerIdentity targetPeerID;
-	private VDHGDBOntologyRepository repository;
+	private OntologyDatabasePeer repository;
 	private HyperGraph graph;
 	private HGPersistentHandle sourceDistributedOntologyUUID;
 	private List<Revision> revisionsFromTarget;
@@ -56,7 +57,7 @@ public class GetRemoteOntologyRevisionsActivity extends FSMActivity
 			System.err.println("PROBLEM DETECTED: NO OBJECTCONTEXT REPO");
 			throw new IllegalArgumentException("Peer's object context must contain OBJECTCONTEXT_REPOSITORY.");
 		}
-		repository = (VDHGDBOntologyRepository) thisPeer.getObjectContext().get(OBJECTCONTEXT_REPOSITORY);
+		repository = (OntologyDatabasePeer) thisPeer.getObjectContext().get(OBJECTCONTEXT_REPOSITORY);
 		graph = repository.getHyperGraph();
 	}
 
@@ -73,7 +74,7 @@ public class GetRemoteOntologyRevisionsActivity extends FSMActivity
 			System.err.println("PROBLEM DETECTED: NO OBJECTCONTEXT REPO");
 			throw new IllegalArgumentException("Peer's object context must contain OBJECTCONTEXT_REPOSITORY.");
 		}
-		repository = (VDHGDBOntologyRepository) sourcePeer.getObjectContext().get(OBJECTCONTEXT_REPOSITORY);
+		repository = (OntologyDatabasePeer) sourcePeer.getObjectContext().get(OBJECTCONTEXT_REPOSITORY);
 		graph = repository.getHyperGraph();
 		sourceDistributedOntologyUUID = ontologyUUID;
 	}
@@ -124,11 +125,11 @@ public class GetRemoteOntologyRevisionsActivity extends FSMActivity
 				HGDBOntology o = graph.get(sourceUUID);
 				if (o != null)
 				{
-					DistributedOntology sourceDistributedOnto = repository.getDistributedOntology(o);
-					if (sourceDistributedOnto != null)
+					VersionManager versionManager = new VersionManager(getThisPeer().getGraph(), "fixme-VHDBOntologyRepository");
+					if (versionManager.isVersioned(o.getAtomHandle()))
 					{
+						VersionedOntology vo = versionManager.versioned(o.getAtomHandle());
 						reply = getReply(msg, Performative.Inform);
-						VersionedOntology vo = sourceDistributedOnto.getVersionedOntology();
 						List<Revision> revList = graph.getAll(hg.apply(hg.targetAt(graph, 0), 
 															hg.and(hg.type(Revision.class), 
 															  	   hg.incident(vo.getAtomHandle()))));

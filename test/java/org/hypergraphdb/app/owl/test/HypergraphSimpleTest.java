@@ -6,7 +6,7 @@ import java.util.Date;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.HGDBOntologyRepository;
+import org.hypergraphdb.app.owl.OntologyDatabase;
 import org.hypergraphdb.app.owl.util.StopWatch;
 import org.junit.After;
 import org.junit.Before;
@@ -32,7 +32,7 @@ public class HypergraphSimpleTest
 	@Before
 	public void setUp() throws Exception
 	{
-		HGDBOntologyRepository r = new HGDBOntologyRepository(System.getProperty("java.io.tmpdir") + File.separator
+		OntologyDatabase r = new OntologyDatabase(System.getProperty("java.io.tmpdir") + File.separator
 				+ "hgdbtest");
 		graph = r.getHyperGraph();
 	}

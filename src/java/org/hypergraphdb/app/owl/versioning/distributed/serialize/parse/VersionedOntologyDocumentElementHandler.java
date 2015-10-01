@@ -36,6 +36,12 @@ public class VersionedOntologyDocumentElementHandler extends AbstractVOWLElement
 	}
 
 	@Override
+	public void handleChild(MetadataElementHandler h) throws OWLXMLParserException
+	{
+		versionedOntologyDocument.setMetadata(h.getOWLObject());
+	}
+	
+	@Override
 	public void handleChild(VersionedOntologyElementHandler h) throws OWLXMLParserException
 	{
 		System.out.println("The onot: " + h.getText());

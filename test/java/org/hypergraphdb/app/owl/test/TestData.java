@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.hypergraphdb.app.owl.HGDBOntologyRepository;
+import org.hypergraphdb.app.owl.OntologyDatabase;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
@@ -36,7 +36,7 @@ public class TestData
 	public static String baseOntoURI = "http://www.miamidade.gov/ontologies/generatedTestData/TestA";
 	public static String baseOntoPhysURI = "hgdb://generatedTestData/TestA";
 
-	public static void ensureTestData(HGDBOntologyRepository r, int howMany)
+	public static void ensureTestData(OntologyDatabase r, int howMany)
 	{
 		// PHGDBOntologyManagerImpl m =
 		// HGDBOntologyRepository.createOWLOntologyManager();

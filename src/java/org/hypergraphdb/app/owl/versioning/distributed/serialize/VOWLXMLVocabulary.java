@@ -13,6 +13,7 @@ public enum VOWLXMLVocabulary
 {
     VERSIONED_ONTOLOGY_ROOT("VOWLXMLDocument"),
     RENDER_CONFIGURATION("RenderConfiguration"),
+    METADATA("Metadata"),
     VERSIONED_ONTOLOGY("VersionedOntology"),
     CHANGE_SET("ChangeSet"),
     REVISION("Revision"),

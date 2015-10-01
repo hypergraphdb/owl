@@ -72,6 +72,11 @@ public abstract class AbstractVOWLElementHandler<O> extends AbstractOWLElementHa
 	}
 
 	@Override
+	public void handleChild(MetadataElementHandler h) throws OWLXMLParserException
+	{
+	}
+	
+	@Override
 	public void handleChild(VersionedOntologyElementHandler h) throws OWLXMLParserException
 	{
 	}

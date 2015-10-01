@@ -16,19 +16,23 @@ import mjson.Json;
 import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.app.owl.HGDBOntology;
+import org.hypergraphdb.app.owl.HGDBOntologyFormat;
 import org.hypergraphdb.app.owl.test.TU;
 import org.hypergraphdb.app.owl.test.versioning.TestContext;
 import org.hypergraphdb.app.owl.test.versioning.VersionedOntologiesTestData;
 import org.hypergraphdb.app.owl.test.versioning.VersioningTestBase;
+import org.hypergraphdb.app.owl.util.ImplUtils;
 import org.hypergraphdb.app.owl.versioning.Branch;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.distributed.RemoteOntology;
-import org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOntologyRepository;
+import org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.GetNewRevisionsActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.VersionUpdateActivity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.bootstrap.AffirmIdentityBootstrap;
+import org.hypergraphdb.peer.workflow.ActivityResult;
 import org.hypergraphdb.peer.workflow.WorkflowState;
 import org.hypergraphdb.util.HGUtils;
 import org.junit.After;
@@ -38,6 +42,8 @@ import org.junit.runner.JUnitCore;
 import org.junit.runner.Request;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLOntology;
 
 public class DistributedTests extends VersioningTestBase
 {
@@ -49,13 +55,21 @@ public class DistributedTests extends VersioningTestBase
 	HyperGraphPeer peer1, peer2;
 	VersionManager vm1, vm2;
 	TestContext ctx1, ctx2;
-	VDHGDBOntologyRepository repo1, repo2;
+	OntologyDatabasePeer repo1, repo2;
 	
 	@Before
 	public void createPeers() throws Exception
 	{
-		peer1 = newPeer("peer1");
-		peer2 = newPeer("peer2");
+		if (Boolean.getBoolean("use.xmpp"))
+		{
+			peer1 = newXMPPPeer("junit1", "password");
+			peer2 = newXMPPPeer("junit2", "password");			
+		}
+		else
+		{
+			peer1 = newInMemoryPeer("peer1");
+			peer2 = newInMemoryPeer("peer2");
+		}
 		while (peer2.getConnectedPeers().isEmpty())
 			Thread.sleep(100);
 		vm1 = new VersionManager(peer1.getGraph(),"testpeer1");
@@ -63,8 +77,8 @@ public class DistributedTests extends VersioningTestBase
 		
 		ctx1 = TU.newCtx(peer1.getGraph().getLocation());
 		ctx2 = TU.newCtx(peer2.getGraph().getLocation());
-		repo1 = new VDHGDBOntologyRepository(peer1);
-		repo2 = new VDHGDBOntologyRepository(peer2);
+		repo1 = new OntologyDatabasePeer(peer1);
+		repo2 = new OntologyDatabasePeer(peer2);
 	}
 	
 	@After
@@ -74,16 +88,35 @@ public class DistributedTests extends VersioningTestBase
 		dropPeer(peer2);
 	}
 	
-	public HyperGraphPeer newPeer(String name) throws InterruptedException, ExecutionException, ClassNotFoundException
+	public HyperGraphPeer newInMemoryPeer(String name) throws InterruptedException, ExecutionException, ClassNotFoundException
 	{
 		File location = new File(new File(dblocation), name);
 		HGUtils.dropHyperGraphInstance(location.getAbsolutePath());
-		HyperGraph graph = HGEnvironment.get(location.getAbsolutePath());// ImplUtils.owldb(location.getAbsolutePath());		
+		HyperGraph graph = HGEnvironment.get(location.getAbsolutePath());		
 		Json config = Json.object("interfaceType", InProcessPeerInterface.class.getName(),
 				                  "bootstrap", Json.array(
 			Json.object("class", AffirmIdentityBootstrap.class.getName(), "config", Json.object())
         ));		
 		HyperGraphPeer peer = new HyperGraphPeer(config, graph);
+		if (!peer.start().get())
+		{
+			peer.getStartupFailedException().printStackTrace(System.err);
+			Assert.fail("Exception during peer startup, see console for stack trace.");
+		}
+		peer.getActivityManager().registerActivityType(GetNewRevisionsActivity.TYPENAME, GetNewRevisionsActivity.class);
+		peer.getActivityManager().registerActivityType(VersionUpdateActivity.TYPENAME, VersionUpdateActivity.initializedClass());
+		return peer;
+	}
+	
+	public HyperGraphPeer newXMPPPeer(String user, String password) throws InterruptedException, ExecutionException, ClassNotFoundException
+	{
+		File location = new File(new File(dblocation), user);
+		HGUtils.dropHyperGraphInstance(location.getAbsolutePath());
+		HyperGraph graph = HGEnvironment.get(location.getAbsolutePath());
+		String connectionString = "hgpeer://" + user + ":" + 
+				password +  "@" + "hypergraphdb.org" + "#" + "junit@conference.chat.evalhalla.com";
+		HyperGraphPeer peer = ImplUtils.peer(connectionString, 
+											 graph.getLocation());		
 		if (!peer.start().get())
 		{
 			peer.getStartupFailedException().printStackTrace(System.err);
@@ -121,7 +154,7 @@ public class DistributedTests extends VersioningTestBase
 		peer2.getActivityManager().initiateActivity(
 			new VersionUpdateActivity(peer2)
 				.remoteOntology(ctx2.graph.getHandle(remoteOnto))
-				.action("pull")).get();
+				.action(VersionUpdateActivity.ActionType.clone)).get();
 		assertTrue(VersionedOntologiesTestData.compareOntologies(vm1.versioned(sourceOntoHandle), 
 																 vm1.graph(), 
 																 vm2.versioned(sourceOntoHandle), 
@@ -179,7 +212,7 @@ public class DistributedTests extends VersioningTestBase
 		peer2.getActivityManager().initiateActivity(
 			new VersionUpdateActivity(peer2)
 				.remoteOntology(ctx2.graph.getHandle(remoteOnto))
-				.action("pull")).get();
+				.action(VersionUpdateActivity.ActionType.clone)).get();
 		ctx2.vo = vm2.versioned(sourceOntoHandle);
 //		versioning.printRevisionGraph(ctx1.graph(), ctx1.vonto());
 //		if (ctx2.vonto().toString().contains("fixme-VHDBOntologyRepository"))
@@ -225,7 +258,7 @@ public class DistributedTests extends VersioningTestBase
 		peer2.getActivityManager().initiateActivity(
 			new VersionUpdateActivity(peer2)
 				.remoteOntology(ctx2.graph.getHandle(remoteOnto))
-				.action("pull")).get();
+				.action(VersionUpdateActivity.ActionType.clone)).get();
 		ctx2.vo = vm2.versioned(sourceOntoHandle);
 		ctx2.o = ctx2.vo.ontology();		
 		TU.ctx.set(ctx2);
@@ -281,10 +314,10 @@ public class DistributedTests extends VersioningTestBase
 		RemoteOntology remoteOnto = repo2.remoteOnto(sourceOntoHandle, repo2.remoteRepo(peer1.getIdentity()));
 		peer2.getActivityManager().initiateActivity(
 				new VersionUpdateActivity(peer2)
-					.remoteOntology(ctx2.graph.getHandle(remoteOnto)).action("pull")).get();
+					.remoteOntology(ctx2.graph.getHandle(remoteOnto)).action(VersionUpdateActivity.ActionType.clone)).get();
 		ctx2.vo = vm2.versioned(sourceOntoHandle);
 		ctx2.o = ctx2.vo.ontology();		
-
+		
 		// now create a conflict: rename a branch at peer1 should simply propagate at peer2
 		Branch branch1 = ctx1.vo.metadata().findBranch("TestBranch1");
 		ctx1.vo.metadata().renameBranch(branch1, "TestBranch1_NewName");
@@ -301,7 +334,7 @@ public class DistributedTests extends VersioningTestBase
 		// Now pulling changes should result in 1 conflict
 		VersionUpdateActivity updateActivity = new VersionUpdateActivity(peer2)
 			.remoteOntology(ctx2.graph.getHandle(remoteOnto))
-			.action("pull");
+			.action(VersionUpdateActivity.ActionType.pull);
 		peer2.getActivityManager().initiateActivity(updateActivity).get();
 		Assert.assertEquals(WorkflowState.Failed, updateActivity.getState());
 		Assert.assertTrue(updateActivity.completedMessage().contains("1 branch conflict"));
@@ -319,9 +352,21 @@ public class DistributedTests extends VersioningTestBase
 	}
 	
 	@Test
-	public void testPushWithConflict() throws Exception
+	public void testPullWithMerge() throws Exception
 	{
+		HGDBOntology o = ctx1.m.importOntology(
+				IRI.create(getClass().getResource("/ontologies/opencirmupper.owl").toURI()));
+		ctx1.vo = vm1.versioned(o.getAtomHandle());
+		RemoteOntology remoteOnto = repo2.remoteOnto(o.getAtomHandle(), 
+										repo2.remoteRepo(peer1.getIdentity()));
+		VersionUpdateActivity activity = new VersionUpdateActivity(peer2)
+			.remoteOntology(ctx2.graph.getHandle(remoteOnto))
+			.action(VersionUpdateActivity.ActionType.clone.name());		
+		peer2.getActivityManager().initiateActivity(activity);
+		activity.getFuture().get();
+		Assert.assertTrue(activity.getState().isCompleted());
 		
+		// TODO....
 	}
 	
 	@Test
@@ -336,7 +381,7 @@ public class DistributedTests extends VersioningTestBase
 		Result result = null;
 		do
 		{
-			result = junit.run(Request.method(DistributedTests.class, "testPublish"));
+			result = junit.run(Request.method(DistributedTests.class, "testPullWithMerge"));
 		} while (false && result.getFailureCount() == 0);
 		System.out.println("Failures " + result.getFailureCount());
 		if (result.getFailureCount() > 0)

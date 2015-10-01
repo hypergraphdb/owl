@@ -19,7 +19,7 @@ import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.IncidenceSet;
 import org.hypergraphdb.algorithms.HGDepthFirstTraversal;
 import org.hypergraphdb.app.owl.HGDBOntology;
-import org.hypergraphdb.app.owl.HGDBOntologyRepository;
+import org.hypergraphdb.app.owl.OntologyDatabase;
 import org.hypergraphdb.app.owl.core.HGDBTask;
 import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
 import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
@@ -138,9 +138,9 @@ public class GarbageCollector implements HGDBTask
 	public static final int MODE_DISCONNECTED_ENTITIES = 4;
 
 	private HyperGraph graph;
-	private HGDBOntologyRepository repository;
+	private OntologyDatabase repository;
 
-	public GarbageCollector(HGDBOntologyRepository repository)
+	public GarbageCollector(OntologyDatabase repository)
 	{
 		this.repository = repository;
 		this.graph = repository.getHyperGraph();
@@ -1215,7 +1215,7 @@ public class GarbageCollector implements HGDBTask
 	/**
 	 * @return the repository
 	 */
-	public HGDBOntologyRepository getRepository()
+	public OntologyDatabase getRepository()
 	{
 		return repository;
 	}

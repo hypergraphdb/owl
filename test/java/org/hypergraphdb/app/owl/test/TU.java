@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hypergraphdb.HGEnvironment;
-import org.hypergraphdb.app.owl.HGDBOntologyRepository;
+import org.hypergraphdb.app.owl.OntologyDatabase;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.test.versioning.TestContext;
 import org.semanticweb.owlapi.model.AddAxiom;
@@ -39,7 +39,7 @@ public class TU
 	{
 		TestContext ctx = new TestContext();
 		ctx.graph = HGEnvironment.get(dblocation);
-		ctx.r = new HGDBOntologyRepository(dblocation);
+		ctx.r = new OntologyDatabase(dblocation);
 		ctx.m = HGOntologyManagerFactory.getOntologyManager(dblocation);
 		ctx.df = ctx.m.getOWLDataFactory();
 		return ctx;
