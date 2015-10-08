@@ -41,12 +41,7 @@ public class VersionedProject implements Versioned<VersionedProject>
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
-	public ChangeRecord flushChanges()
-	{
-		return null;
-	}
-	
+		
 	@Override
 	public ChangeSet<VersionedProject> changes()
 	{

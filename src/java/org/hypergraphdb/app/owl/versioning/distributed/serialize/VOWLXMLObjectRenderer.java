@@ -14,11 +14,9 @@ import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.hypergraphdb.app.owl.versioning.Branch;
-import org.hypergraphdb.app.owl.versioning.ChangeRecord;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
-import org.hypergraphdb.app.owl.versioning.ParentLink;
+import org.hypergraphdb.app.owl.versioning.ChangeLink;
 import org.hypergraphdb.app.owl.versioning.Revision;
-import org.hypergraphdb.app.owl.versioning.RevisionMark;
 import org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor;
 import org.hypergraphdb.app.owl.versioning.VersionedMetadata;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
@@ -52,7 +50,7 @@ import org.semanticweb.owlapi.vocab.Namespaces;
  * and the change set graph. Both are DAGs and in both cases the graphs basically
  * grow indefinitely by adding more and more descendants over time. So the connections
  * that matter from the vantage point of a node are the connections to the parents.
- * So for both revisions and change sets, we serialize the ParentLinks. 
+ * So for both revisions and change sets, we serialize the {@link ChangeLink}s. 
  * The change sets are not explicitly defined as part of the serialization. They
  * are implicitly pulled because of the revisions. So, given a revision R, we care
  * about all the changes that need to be made to its parent revisions so as to reach
@@ -93,35 +91,6 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		owlObjectRenderer = new OWLXMLObjectRenderer(writer);
 	}
 
-	private void writeMarkChanges(HyperGraph graph, HGHandle currentMarkHandle, HGHandle stop, HashSet<HGHandle> visited)
-	{
-	    if (currentMarkHandle.equals(stop))
-			return;
-		if (!visited.contains(currentMarkHandle))
-		{
-			ChangeRecord mark = graph.get(currentMarkHandle);
-			visit(mark);
-			visited.add(currentMarkHandle);
-			ChangeSet<VersionedOntology> changeSet = graph.get(mark.changeset());
-			if (!visited.contains(changeSet.getAtomHandle()))
-			{
-				visit(changeSet);
-				visited.add(changeSet.getAtomHandle());
-			}			
-		}
-		List<ParentLink> parentLinks = graph.getAll(
-			 hg.and(hg.type(ParentLink.class), 
-					hg.orderedLink(currentMarkHandle, hg.anyHandle())));			
-		for (ParentLink link : parentLinks)
-		{
-			if (visited.contains(link.getAtomHandle()))
-				continue;
-			visit(link);
-			visited.add(link.getAtomHandle());
-			writeMarkChanges(graph, link.parent(), stop, visited);
-		}
-	}
-	
 	public void visit(VersionedOntology vo, Set<HGHandle> revisions)
 	{
 		HyperGraph graph = vo.ontology().getHyperGraph();
@@ -130,56 +99,40 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		writer.writeAttribute(VOWLXMLVocabulary.NAMESPACE + "ontologyID", vo.getOntology().toString());
 		writer.writeAttribute(VOWLXMLVocabulary.NAMESPACE + "versionedID", vo.getAtomHandle().toString());
 		
-		HashSet<ParentLink> parentLinks = new HashSet<ParentLink>();
+		HashSet<ChangeLink> changeLinks = new HashSet<ChangeLink>();
 		HashSet<HGHandle> visited = new HashSet<HGHandle>();		
 		for (HGHandle revisionHandle : revisions)
 		{
 			Revision revision = graph.get(revisionHandle);
 			visit(revision);
-			RevisionMark mark =  vo.getRevisionMark(revisionHandle);
-			visit(mark);
-			visited.add(mark.getAtomHandle());					
-			List<ParentLink> links = hg.getAll(graph, hg.and(hg.type(ParentLink.class), 
+			List<ChangeLink> links = hg.getAll(graph, hg.and(hg.type(ChangeLink.class), 
 														     hg.incident(revisionHandle)));
-			for (ParentLink parentLink : links)
+			for (ChangeLink changeLink : links)
 			{
-				if (parentLinks.contains(parentLink))
+				if (changeLinks.contains(changeLink))
 					continue;
-				visit(parentLink);
-				parentLinks.add(parentLink);
+				visit(changeLink);
+				changeLinks.add(changeLink);
 			}
 		}
 		
 		
 		// Now that we have the revision graph itself serialized, collect
-		// the change sets between revisions. There may be many commits ("flushes")
-		// between two revisions and because of parent project merging, we may
-		// have a change set with multiple parents so we don't want to serialize 
-		// any object twice. 		
-		for (ParentLink revisionLink : parentLinks)
+		// the change sets between revisions. 
+		for (ChangeLink changeLink : changeLinks)
 		{
 			// If this is a link between a root revision (i.e. either the very first revision of the
 			// ontology or already known at destination) and its parent, or between a head revision
 			// and its child, no change sets are needed. A head with a child seems like a contradiction
 			// but it is possible to manually designate some revisions as the last one to serialize, or
 			// if there was a new head created after the current revisions set was established
-			if (!revisions.contains(revisionLink.child()))
+			if (!revisions.contains(changeLink.child()))
 				continue;
-			if (!revisions.contains(revisionLink.parent()) && configuration.roots().contains(revisionLink.child()))
+			if (!revisions.contains(changeLink.parent()) && configuration.roots().contains(changeLink.child()))
 				continue;			
-			RevisionMark parentMark = vo.getRevisionMark(revisionLink.parent());
-			RevisionMark childMark =  vo.getRevisionMark(revisionLink.child());
-			if (!visited.contains(parentMark.getAtomHandle()))
-			{
-				visit(parentMark);
-				visited.add(parentMark.getAtomHandle());
-			}
-			if (!visited.contains(childMark.getAtomHandle()))
-			{
-				visit(childMark);
-				visited.add(childMark.getAtomHandle());
-			} 
-			writeMarkChanges(graph, childMark.changeRecord(), parentMark.changeRecord(), visited);
+			ChangeSet<VersionedOntology> changeSet = graph.get(changeLink.change());
+			visit(changeSet);
+			visited.add(changeSet.getAtomHandle());
 		}
 		
 		if (configuration.revisionSnapshot() != null)
@@ -209,31 +162,14 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		writer.writeEndElement();
 	}
 
-	public void visit(ParentLink parentLink)
+	public void visit(ChangeLink parentLink)
 	{
 		writer.writeStartElement(MARK_PARENT);
 		writer.writeAttribute("parent", parentLink.parent());
 		writer.writeAttribute("child", parentLink.child());
+		writer.writeAttribute("change", parentLink.change());
 		writer.writeAttribute("handle", parentLink.getAtomHandle());
 		writer.writeEndElement();
-	}
-
-	public void visit(RevisionMark revisionMark)
-	{
-		writer.writeStartElement(REVISION_MARK);
-		writer.writeAttribute("revision", revisionMark.revision());
-		writer.writeAttribute("mark", revisionMark.changeRecord());
-		writer.writeAttribute("handle", revisionMark.getAtomHandle());
-		writer.writeEndElement();
-	}
-
-	public void visit(ChangeRecord changeMark)
-	{
-		writer.writeStartElement(CHANGE_MARK);
-		writer.writeAttribute("target", changeMark.versioned());
-		writer.writeAttribute("changeSet", changeMark.changeset());
-		writer.writeAttribute("handle", changeMark.getAtomHandle());
-		writer.writeEndElement();		
 	}
 	
 	public void visit(Branch branch)

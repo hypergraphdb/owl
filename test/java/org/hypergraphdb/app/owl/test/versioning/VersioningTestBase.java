@@ -38,8 +38,6 @@ public class VersioningTestBase
 	
 	protected void remove(VersionedOntology vo)
 	{
-		if (ctx.graph.get(vo.getOntology()) != null)
-			ctx.vr.removeVersioning(vo.getOntology());
 		if (ctx.graph.getHandle(vo.ontology()) != null)
 			ctx.m.removeOntology(vo.ontology());
 		new GarbageCollector(ctx.repo()).runGarbageCollection();

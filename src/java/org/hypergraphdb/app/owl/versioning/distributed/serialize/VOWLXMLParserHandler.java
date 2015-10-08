@@ -1,113 +1,7 @@
 package org.hypergraphdb.app.owl.versioning.distributed.serialize;
 
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.CHANGE_SET;
-
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.METADATA;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.RENDER_CONFIGURATION;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.REVISION;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.BRANCH;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.REVISION_MARK;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.CHANGE_MARK;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.MARK_PARENT;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_AXIOM_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_IMPORT_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_ONTOLOGY_ANNOTATION_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_ADD_PREFIX_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_MODIFY_ONTOLOGY_ID_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_MODIFY_ONTOLOGY_ID_NEW_ID;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_MODIFY_ONTOLOGY_ID_OLD_ID;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_REMOVE_AXIOM_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_REMOVE_IMPORT_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_REMOVE_ONTOLOGY_ANNOTATION_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.V_REMOVE_PREFIX_CHANGE;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.VERSIONED_ONTOLOGY;
-import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.VERSIONED_ONTOLOGY_ROOT;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.ABBREVIATED_IRI_ELEMENT;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.ANNOTATION;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.ANNOTATION_ASSERTION;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.ANNOTATION_PROPERTY;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.ANNOTATION_PROPERTY_DOMAIN;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.ANNOTATION_PROPERTY_RANGE;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.ANONYMOUS_INDIVIDUAL;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.ASYMMETRIC_OBJECT_PROPERTY;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.BODY;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.BUILT_IN_ATOM;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.CLASS;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.CLASS_ASSERTION;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.CLASS_ATOM;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DATATYPE;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DATATYPE_DEFINITION;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DATATYPE_RESTRICTION;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DATA_ALL_VALUES_FROM;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DATA_COMPLEMENT_OF;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DATA_EXACT_CARDINALITY;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DATA_HAS_VALUE;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DATA_INTERSECTION_OF;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DATA_MAX_CARDINALITY;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DATA_MIN_CARDINALITY;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DATA_ONE_OF;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DATA_PROPERTY;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DATA_PROPERTY_ASSERTION;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DATA_PROPERTY_ATOM;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DATA_PROPERTY_DOMAIN;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DATA_PROPERTY_RANGE;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DATA_SOME_VALUES_FROM;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DATA_UNION_OF;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DECLARATION;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DIFFERENT_INDIVIDUALS;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DIFFERENT_INDIVIDUALS_ATOM;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DISJOINT_CLASSES;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DISJOINT_DATA_PROPERTIES;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DISJOINT_OBJECT_PROPERTIES;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DISJOINT_UNION;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.DL_SAFE_RULE;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.EQUIVALENT_CLASSES;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.EQUIVALENT_DATA_PROPERTIES;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.EQUIVALENT_OBJECT_PROPERTIES;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.FACET_RESTRICTION;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.FUNCTIONAL_DATA_PROPERTY;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.FUNCTIONAL_OBJECT_PROPERTY;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.HAS_KEY;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.HEAD;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.IMPORT;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.INVERSE_FUNCTIONAL_OBJECT_PROPERTY;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.INVERSE_OBJECT_PROPERTIES;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.IRI_ELEMENT;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.IRREFLEXIVE_OBJECT_PROPERTY;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.LITERAL;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.NAMED_INDIVIDUAL;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.NEGATIVE_DATA_PROPERTY_ASSERTION;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.NEGATIVE_OBJECT_PROPERTY_ASSERTION;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.OBJECT_ALL_VALUES_FROM;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.OBJECT_COMPLEMENT_OF;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.OBJECT_EXACT_CARDINALITY;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.OBJECT_HAS_SELF;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.OBJECT_HAS_VALUE;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.OBJECT_INTERSECTION_OF;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.OBJECT_INVERSE_OF;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.OBJECT_MAX_CARDINALITY;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.OBJECT_MIN_CARDINALITY;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.OBJECT_ONE_OF;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.OBJECT_PROPERTY;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.OBJECT_PROPERTY_ASSERTION;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.OBJECT_PROPERTY_ATOM;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.OBJECT_PROPERTY_CHAIN;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.OBJECT_PROPERTY_DOMAIN;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.OBJECT_PROPERTY_RANGE;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.OBJECT_SOME_VALUES_FROM;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.OBJECT_UNION_OF;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.ONTOLOGY;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.REFLEXIVE_OBJECT_PROPERTY;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.SAME_INDIVIDUAL;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.SAME_INDIVIDUAL_ATOM;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.SUB_ANNOTATION_PROPERTY_OF;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.SUB_CLASS_OF;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.SUB_DATA_PROPERTY_OF;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.SUB_OBJECT_PROPERTY_OF;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.SYMMETRIC_OBJECT_PROPERTY;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.TRANSITIVE_OBJECT_PROPERTY;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.UNION_OF;
-import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.VARIABLE;
+import static org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVocabulary.*;
+import static org.semanticweb.owlapi.vocab.OWLXMLVocabulary.*;
 
 import java.io.IOException;
 import java.net.URI;
@@ -118,119 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
-import org.coode.owlapi.owlxmlparser.AbbreviatedIRIElementHandler;
-import org.coode.owlapi.owlxmlparser.AbstractElementHandlerFactory;
-import org.coode.owlapi.owlxmlparser.IRIElementHandler;
-import org.coode.owlapi.owlxmlparser.LegacyEntityAnnotationElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLAnnotationAssertionElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLAnnotationElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLAnnotationPropertyDomainElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLAnnotationPropertyElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLAnnotationPropertyRangeElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLAnonymousIndividualElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLAsymmetricObjectPropertyElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLClassAssertionAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLClassElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDataAllValuesFromElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDataComplementOfElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDataExactCardinalityElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDataHasValueElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDataIntersectionOfElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDataMaxCardinalityElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDataMinCardinalityElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDataOneOfElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDataPropertyAssertionAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDataPropertyDomainAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDataPropertyElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDataPropertyRangeAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDataSomeValuesFromElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDataUnionOfElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDatatypeDefinitionElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDatatypeElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDatatypeFacetRestrictionElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDatatypeRestrictionElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDeclarationAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDifferentIndividualsAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDisjointClassesAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDisjointDataPropertiesAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDisjointObjectPropertiesAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLDisjointUnionElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLElementHandlerFactory;
-import org.coode.owlapi.owlxmlparser.OWLEquivalentClassesAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLEquivalentDataPropertiesAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLEquivalentObjectPropertiesAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLFunctionalDataPropertyAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLFunctionalObjectPropertyAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLHasKeyElementHandler;
-//import org.coode.owlapi.owlxmlparser.OWLImportsHandler;
-import org.coode.owlapi.owlxmlparser.OWLIndividualElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLInverseFunctionalObjectPropertyAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLInverseObjectPropertiesAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLInverseObjectPropertyElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLIrreflexiveObjectPropertyAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLLiteralElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLNegativeDataPropertyAssertionAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLNegativeObjectPropertyAssertionAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLObjectAllValuesFromElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLObjectComplementOfElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLObjectExactCardinalityElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLObjectExistsSelfElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLObjectHasValueElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLObjectIntersectionOfElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLObjectMaxCardinalityElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLObjectMinCardinalityElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLObjectOneOfElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLObjectPropertyAssertionAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLObjectPropertyDomainElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLObjectPropertyElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLObjectPropertyRangeAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLObjectSomeValuesFromElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLObjectUnionOfElementHandler;
-//import org.coode.owlapi.owlxmlparser.OWLOntologyHandler;
-import org.coode.owlapi.owlxmlparser.OWLReflexiveObjectPropertyAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLSameIndividualsAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLSubAnnotationPropertyOfElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLSubClassAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLSubDataPropertyOfAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLSubObjectPropertyChainElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLSubObjectPropertyOfAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLSymmetricObjectPropertyAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLTransitiveObjectPropertyAxiomElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLUnionOfElementHandler;
-import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
-import org.coode.owlapi.owlxmlparser.OWLXMLParserHandler;
-import org.coode.owlapi.owlxmlparser.SWRLBuiltInAtomElementHandler;
-import org.coode.owlapi.owlxmlparser.SWRLClassAtomElementHandler;
-import org.coode.owlapi.owlxmlparser.SWRLDataPropertyAtomElementHandler;
-import org.coode.owlapi.owlxmlparser.SWRLDifferentIndividualsAtomElementHandler;
-import org.coode.owlapi.owlxmlparser.SWRLObjectPropertyAtomElementHandler;
-import org.coode.owlapi.owlxmlparser.SWRLRuleElementHandler;
-import org.coode.owlapi.owlxmlparser.SWRLSameIndividualAtomElementHandler;
-import org.coode.owlapi.owlxmlparser.TranslatedOWLParserException;
-import org.coode.owlapi.owlxmlparser.TranslatedUnloadableImportException;
+import org.coode.owlapi.owlxmlparser.*;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.BranchElementHandler;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.ChangeRecordElementHandler;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.ChangeSetElementHandler;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.MetadataElementHandler;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.ParentLinkElementHandler;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.OWLImportsHandlerModified;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.OWLOntologyHandlerModified;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.OrigSWRLAtomListElementHandler;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.OrigSWRLVariableElementHandler;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.RenderConfigurationElementHandler;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.RevisionElementHandler;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.RevisionMarkElementHandler;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VAxiomChangeElementHandler;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VImportChangeElementHandler;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VOntologyAnnotationChangeElementHandler;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VOntologyIDChangeElementHandler;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VPrefixChangeElementHandler;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VPrefixMapElementHandler;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VPrefixMapEntryElementHandler;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VersionedOntologyElementHandler;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.VersionedOntologyDocumentElementHandler;
+import org.hypergraphdb.app.owl.versioning.distributed.serialize.parse.*;
 import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.io.OWLParserURISyntaxException;
 import org.semanticweb.owlapi.model.IRI;
@@ -370,14 +154,6 @@ public class VOWLXMLParserHandler extends OWLXMLParserHandler
 			}
 		});
 
-		addFactory(new AbstractVElementHandlerFactory(REVISION_MARK)
-		{
-			public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler)
-			{
-				return new RevisionMarkElementHandler(graph, handler);
-			}
-		});
-
 		addFactory(new AbstractVElementHandlerFactory(BRANCH)
 		{
 			public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler)
@@ -390,15 +166,7 @@ public class VOWLXMLParserHandler extends OWLXMLParserHandler
 		{
 			public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler)
 			{
-				return new ParentLinkElementHandler(graph, handler);
-			}
-		});
-		
-		addFactory(new AbstractVElementHandlerFactory(CHANGE_MARK)
-		{
-			public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler)
-			{
-				return new ChangeRecordElementHandler(graph, handler);
+				return new ChangeLinkElementHandler(graph, handler);
 			}
 		});
 		

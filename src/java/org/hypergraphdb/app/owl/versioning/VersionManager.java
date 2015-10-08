@@ -9,7 +9,8 @@ import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HGSearchResult;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.util.HGUtils;
+import org.hypergraphdb.algorithms.DefaultALGenerator;
+import org.hypergraphdb.algorithms.HGBreadthFirstTraversal;
 
 /**
  * <p>
@@ -92,15 +93,13 @@ public class VersionManager
 		// instead of graph.add
 		HGHandle bottomRevisionHandle = graph.getHandleFactory().makeHandle();
 		versioned.setBottomRevision(bottomRevisionHandle);
-		graph.define(bottomRevisionHandle, bottomRevision);		
-		HGHandle initialChangeRecord = graph.add(new ChangeRecord(ontology, emptyChangeSetHandle()));		
+		graph.define(bottomRevisionHandle, bottomRevision);				
 		Revision initialRevision = new Revision(versioned.getAtomHandle());
 		initialRevision.user(user);
 		initialRevision.timestamp(now);
 		HGHandle revisionHandle = graph.add(initialRevision);
 		versioned.metadata().createBranch(revisionHandle, defaultBranchName(), user);
 		versioned.setRootRevision(revisionHandle);		
-		graph.add(new RevisionMark(revisionHandle, initialChangeRecord));
 		versioned.setCurrentRevision(revisionHandle);
 		graph.update(versioned);
 		isversionedmap.put(ontology, true);
@@ -150,8 +149,10 @@ public class VersionManager
 		Boolean inmap = this.isversionedmap.get(target);
 		if (inmap == null)
 		{
-			inmap = graph.findOne(hg.and(hg.type(ChangeRecord.class),
-		  		 hg.orderedLink(target, emptyChangeSetHandle()))) != null;
+			// this test is unfortunately not generic...we need to find a way to make it generic,
+			// the abstract Versioned interface doesn't expose a connection to an underlying entity
+			// that is being versioned (the 'target' parameter to this method).
+			inmap = graph.findOne(hg.and(hg.type(VersionedOntology.class), hg.eq("ontology", target))) != null;
 			this.isversionedmap.put(target, inmap);
 		}
 		return inmap;
@@ -196,42 +197,56 @@ public class VersionManager
 				if (isVersioned(ontology))
 				{
 					VersionedOntology vOntology = versioned(ontology);
-					HGHandle voHandle = graph.getHandle(vOntology);
-					versioning.printRevisionGraph(vOntology);
-					List<HGHandle> revisions = graph.findAll(hg.dfs(vOntology.getRootRevision(),
-														     hg.type(ParentLink.class),
-															 hg.type(Revision.class)));
+					HGHandle voHandle = vOntology.getAtomHandle();
+					//versioning.printRevisionGraph(vOntology);
+
 					// TODO: how much of this stuff should be left for garbage collection
 					// we do want this to be a fast operation since it's going to be user performed.
 					// The problem with leaving it to GC is that an immediate (re)clone of the same
 					// ontology will hit a conflict with the partially removed, not GC-ed yet one
 					// since all HGHandles are the same.
+					
+					// remove branches
+					try (HGSearchResult<HGHandle> rs = graph.find(hg.and(hg.type(Branch.class), hg.eq("versioned", vOntology.getAtomHandle()))))
+					{
+						graph.remove(rs.next());
+					}
+					
+					// Remove all ChangeSet, making sure they are not linked to from somewhere else.
+					HGBreadthFirstTraversal traversal = new HGBreadthFirstTraversal(vOntology.getRootRevision(),
+							new DefaultALGenerator(graph,  
+												   hg.type(ChangeLink.class), 
+												   hg.type(Revision.class), 
+												   false,
+												   true,
+												   true,
+												   false));
+					while (traversal.hasNext())
+					{
+						ChangeLink changeLink = graph.get(traversal.next().getFirst());
+						// Don't remove change set if it's linked from some other ChangeLink 
+						// (theoretically possible, though no use case known at this time).
+						if (graph.getIncidenceSet(changeLink.change()).size() > 1)
+							continue;
+						ChangeSet<VersionedOntology> changeSet = graph.get(changeLink.change());
+						changeSet.clear();
+						if (!changeLink.change().equals(emptyChangeSetHandle))
+							graph.remove(changeLink.change(), false);
+					}
+					
+					List<HGHandle> revisions = graph.findAll(hg.dfs(vOntology.getRootRevision(),
+														     		hg.type(ChangeLink.class),
+														     		hg.type(Revision.class),
+														     		true,
+														     		false));
 					for (HGHandle revisionHandle : revisions) 
 					{						 
+						for (String label : vOntology.metadata().labels(revisionHandle))
+							vOntology.metadata().unlabel(revisionHandle, label);
 						// remove ParentLink links as well, hopefully no issue with ongoing traversal!
 						graph.remove(revisionHandle, false); 
 					}
 					graph.remove(vOntology.getRootRevision(), true);
-					HGSearchResult<HGHandle> rs = graph.find(hg.and(hg.incident(vOntology.ontology().getAtomHandle()), 
-										   							hg.type(ChangeRecord.class)));
-					try
-					{
-						while (rs.hasNext()) 
-						{
-							HGHandle changeMarkHandle = rs.next();
-							ChangeRecord changeMark = graph.get(changeMarkHandle);
-							HGHandle changeSetHandle = changeMark.changeset();
-							ChangeSet<VersionedOntology> changeSet = graph.get(changeSetHandle);
-							changeSet.clear();
-							graph.remove(changeMarkHandle, false);
-							if (!changeSetHandle.equals(emptyChangeSetHandle))
-								graph.remove(changeSetHandle, false);
-						}
-					}
-					finally
-					{
-						HGUtils.closeNoException(rs);
-					}					
 					graph.remove(voHandle, false);
 				}
 				return true;

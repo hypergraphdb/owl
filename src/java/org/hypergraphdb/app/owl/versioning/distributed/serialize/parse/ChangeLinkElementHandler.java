@@ -3,20 +3,20 @@ package org.hypergraphdb.app.owl.versioning.distributed.serialize.parse;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserHandler;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.versioning.ParentLink;
+import org.hypergraphdb.app.owl.versioning.ChangeLink;
 import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.UnloadableImportException;
 
-public class ParentLinkElementHandler extends AbstractVOWLElementHandler<ParentLink>
+public class ChangeLinkElementHandler extends AbstractVOWLElementHandler<ChangeLink>
 {
 	private HyperGraph graph;
-	private ParentLink markParent;
+	private ChangeLink link;
 
-	public ParentLinkElementHandler(HyperGraph graph, OWLXMLParserHandler handler)
+	public ChangeLinkElementHandler(HyperGraph graph, OWLXMLParserHandler handler)
 	{
 		super(handler);
 		this.graph = graph;
-		markParent = new ParentLink();
+		link = new ChangeLink();
 	}
 
 	@Override
@@ -24,15 +24,19 @@ public class ParentLinkElementHandler extends AbstractVOWLElementHandler<ParentL
 	{
 		if (localName.equals("parent"))
 		{
-			markParent.parent(graph.getHandleFactory().makeHandle(value));
+			link.parent(graph.getHandleFactory().makeHandle(value));
 		}
 		else if (localName.equals("child"))
 		{
-			markParent.child(graph.getHandleFactory().makeHandle(value));
+			link.child(graph.getHandleFactory().makeHandle(value));
+		}
+		else if (localName.equals("change"))
+		{
+			link.change(graph.getHandleFactory().makeHandle(value));
 		}
 		else if (localName.equals("handle"))
 		{
-			markParent.setAtomHandle(graph.getHandleFactory().makeHandle(value.trim()));
+			link.setAtomHandle(graph.getHandleFactory().makeHandle(value.trim()));
 		}		
 		else
 			throw new IllegalArgumentException("Unrecognized attribute '" + localName + " for ParentLink");
@@ -44,8 +48,8 @@ public class ParentLinkElementHandler extends AbstractVOWLElementHandler<ParentL
 	}
 
 	@Override
-	public ParentLink getOWLObject() throws OWLXMLParserException
+	public ChangeLink getOWLObject() throws OWLXMLParserException
 	{
-		return markParent;
+		return link;
 	}
 }

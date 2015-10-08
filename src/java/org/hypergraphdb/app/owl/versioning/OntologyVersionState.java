@@ -33,9 +33,9 @@ public class OntologyVersionState implements VersionState<VersionedOntology>
 	private HGHandle closestAncestor(HyperGraph graph, HGHandle r1, HGHandle r2)
 	{
 		HGTraversal t1 = new HGBreadthFirstTraversal(r1, 
-			new DefaultALGenerator(graph, hg.type(ParentLink.class), null, true, false, false));
+			new DefaultALGenerator(graph, hg.type(ChangeLink.class), null, true, false, false));
 		HGTraversal t2 = new HGBreadthFirstTraversal(r2, 
-			new DefaultALGenerator(graph, hg.type(ParentLink.class), null, true, false, false));
+			new DefaultALGenerator(graph, hg.type(ChangeLink.class), null, true, false, false));
 		
 		while (true)
 		{
@@ -151,7 +151,7 @@ public class OntologyVersionState implements VersionState<VersionedOntology>
 			// it's a new or not. So we traverse all its descendants and if we hit a head from version
 			// state we are comparing against, then no it's not new, otherwise it's new and all of its
 			// descendants are new so we add them to delta.
-			HGSearchResult<HGHandle> successors = graph.find(hg.bfs(revisionHandle, hg.type(ParentLink.class), hg.type(Revision.class)));
+			HGSearchResult<HGHandle> successors = graph.find(hg.bfs(revisionHandle, hg.type(ChangeLink.class), hg.type(Revision.class)));
 			HashSet<HGHandle> accumulate = new HashSet<HGHandle>();
 			try
 			{
@@ -206,7 +206,7 @@ public class OntologyVersionState implements VersionState<VersionedOntology>
 					}
 				};
 				List<Revision> L = graph.getAll(hg.bfs(parent, 
-													   hg.type(ParentLink.class), 
+													   hg.type(ChangeLink.class), 
 													   nodePredicate));
 				result.addAll(L);
 				result.add((Revision)graph.get(theirHead));

@@ -108,7 +108,7 @@ public interface Versioned<T extends Versioned<T>> extends HGHandleHolder
 	 * being created.
 	 * </p>
 	 */
-	ChangeRecord flushChanges();
+//	ChangeRecord flushChanges();
 	
 	/**
 	 * Return the latest working changes. Those are the changes that will

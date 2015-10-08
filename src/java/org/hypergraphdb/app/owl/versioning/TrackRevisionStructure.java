@@ -66,9 +66,9 @@ public class TrackRevisionStructure
 						revision.getAtomHandle().getPersistent());		
 //				System.out.println("Current HEAD 2: " + versioned.heads());
 			}
-			else if (atom instanceof ParentLink)
+			else if (atom instanceof ChangeLink)
 			{
-				ParentLink parentLink = (ParentLink)atom;
+				ChangeLink parentLink = (ChangeLink)atom;
 				Object child = graph.get(parentLink.child());
 				Object parent = graph.get(parentLink.parent());
 				if (child instanceof Revision && parent instanceof Revision)
@@ -124,9 +124,9 @@ public class TrackRevisionStructure
 				revisionChildIndex(graph).removeEntry(versioned.getBottomRevision().getPersistent(), 
 													  revision.getAtomHandle().getPersistent());
 			}
-			else if (atom instanceof ParentLink)
+			else if (atom instanceof ChangeLink)
 			{
-				ParentLink parentLink = (ParentLink)atom;
+				ChangeLink parentLink = (ChangeLink)atom;
 				Object child = graph.get(parentLink.child());
 				Object parent = graph.get(parentLink.parent());
 				if (child instanceof Revision && parent instanceof Revision)

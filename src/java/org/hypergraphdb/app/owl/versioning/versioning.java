@@ -27,12 +27,22 @@ import org.hypergraphdb.util.Pair;
 public class versioning
 {
 	/**
+	 * Return the changes necessary to go from parent to revision.
+	 */
+	public static <V extends Versioned<V>> ChangeSet<V> changes(HyperGraph graph, HGHandle revision, HGHandle parent)
+	{
+		ChangeLink link = graph.getOne(hg.and(hg.type(ChangeLink.class),
+										   	  hg.orderedLink(parent, hg.anyHandle(), revision)));
+		return graph.get(link.change());
+	}
+	
+	/**
 	 * Return true if revision <code>preceeding</code> is an ancestor
-	 * in the {@link ParentLink} DAG of <code>subsequent</code>.
+	 * in the {@link ChangeLink} DAG of <code>subsequent</code>.
 	 */
 	public static boolean isPrior(HyperGraph graph, HGHandle preceeding, HGHandle subsequent)
 	{
-		return hg.findAll(graph, hg.dfs(preceeding, hg.type(ParentLink.class), null, true, false))
+		return hg.findAll(graph, hg.dfs(preceeding, hg.type(ChangeLink.class), null, true, false))
 				 .contains(subsequent);
 	}
 	
@@ -255,7 +265,7 @@ public class versioning
 			{
 				List<HGHandle> parents = graph.findAll(hg.apply(
 						hg.targetAt(graph, 1), 
-						hg.and(hg.type(ParentLink.class), 
+						hg.and(hg.type(ChangeLink.class), 
 							   hg.orderedLink(current, hg.anyHandle()))));
 				Pair<Integer, Integer> currentCoord = coordinates.get(current);
 				for (HGHandle parent : parents)

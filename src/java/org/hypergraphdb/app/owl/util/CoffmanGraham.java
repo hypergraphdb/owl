@@ -13,7 +13,7 @@ import java.util.TreeMap;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.versioning.ParentLink;
+import org.hypergraphdb.app.owl.versioning.ChangeLink;
 
 public class CoffmanGraham
 {
@@ -51,7 +51,7 @@ public class CoffmanGraham
 		int[] ps = parentSets.get(child);
 		if (ps != null)
 			return ps;
-		List<ParentLink> links = graph.getAll(hg.and(hg.type(ParentLink.class), hg.orderedLink(child, hg.anyHandle())));
+		List<ChangeLink> links = graph.getAll(hg.and(hg.type(ChangeLink.class), hg.orderedLink(hg.anyHandle(), hg.anyHandle(), child)));
 		ps = new int[links.size()];
 		for (int i = 0; i < ps.length; i++)
 			ps[i] = ordering.get(links.get(i).parent());
@@ -99,9 +99,9 @@ public class CoffmanGraham
 			candidates.remove(winner);
 			// Add children of "winner" as new candidates
 			candidates.addAll(graph.findAll(hg.apply(
-					hg.targetAt(graph, 0), 
-					hg.and(hg.type(ParentLink.class), 
-						   hg.orderedLink(hg.anyHandle(), winner)))));
+					hg.targetAt(graph, 2), 
+					hg.and(hg.type(ChangeLink.class), 
+						   hg.orderedLink(winner, hg.anyHandle(), hg.anyHandle())))));
 		}
 	}
 

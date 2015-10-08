@@ -10,9 +10,7 @@ import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
  */
 public interface VOWLElementHandler<O> extends OWLElementHandler<O> 
 {
-	void handleChild(ParentLinkElementHandler h) throws OWLXMLParserException;
-	void handleChild(ChangeRecordElementHandler h) throws OWLXMLParserException;
-	void handleChild(RevisionMarkElementHandler h) throws OWLXMLParserException;
+	void handleChild(ChangeLinkElementHandler h) throws OWLXMLParserException;
 	void handleChild(RevisionElementHandler h) throws OWLXMLParserException;
 	void handleChild(BranchElementHandler h) throws OWLXMLParserException;	
 	void handleChild(RenderConfigurationElementHandler h) throws OWLXMLParserException;

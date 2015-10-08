@@ -27,17 +27,13 @@ import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.hypergraphdb.app.owl.core.OWLTempOntologyImpl;
 import org.hypergraphdb.app.owl.versioning.Branch;
-import org.hypergraphdb.app.owl.versioning.ChangeRecord;
+import org.hypergraphdb.app.owl.versioning.ChangeLink;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
-import org.hypergraphdb.app.owl.versioning.ParentLink;
 import org.hypergraphdb.app.owl.versioning.Revision;
-import org.hypergraphdb.app.owl.versioning.RevisionMark;
 import org.hypergraphdb.app.owl.versioning.Versioned;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.change.VChange;
 import org.hypergraphdb.app.owl.versioning.change.VMetadataChange;
-import org.hypergraphdb.app.owl.versioning.distributed.DistributedOntology;
-import org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLMetadata;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLParser;
@@ -46,7 +42,6 @@ import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLVersione
 import org.hypergraphdb.event.HGAtomAddedEvent;
 import org.hypergraphdb.query.HGAtomPredicate;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
-import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.io.OWLRendererException;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
@@ -55,10 +50,8 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
-import org.semanticweb.owlapi.model.OWLOntologyChangeException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
-import org.semanticweb.owlapi.model.UnloadableImportException;
 
 /**
  * ActivityUtils.
@@ -103,7 +96,7 @@ public class ActivityUtils
 				return isok;
 			}
 		};
-		return graph.findAll(hg.bfs(root, hg.type(ParentLink.class), revisionOk));
+		return graph.findAll(hg.bfs(root, hg.type(ChangeLink.class), revisionOk));
 	}
 	
 	public static Set<HGHandle> collectRevisions(VersionedOntology vo, Collection<HGHandle> roots, Collection<HGHandle> heads)
@@ -127,7 +120,7 @@ public class ActivityUtils
 		{
 			List<VMetadataChange<T>> L = graph.getAll(hg.dfs(
 					latest, 
-					hg.type(ParentLink.class), 
+					hg.type(ChangeLink.class), 
 					lastKnown == null ? null : hg.not(hg.is(lastKnown)), 
 					false, 
 					true));
@@ -247,16 +240,16 @@ public class ActivityUtils
 			manager.getVersionManager().manualVersioned(vo.getOntology());
 			updateVersionedOntology(manager, vo, doc);
 			storeMetadata(graph, doc.getMetadata());
-			Revision root = graph.get(vo.getRootRevision());
-			RevisionMark mark = graph.get(root.revisionMarks().iterator().next());
-			ChangeRecord record = graph.get(mark.changeRecord());
-			if (record == null) // limit case, during cloning this record is not serialzed
-			{
-				record = new ChangeRecord();
-				record.versioned(o.getAtomHandle());
-				record.changeSet(manager.getVersionManager().emptyChangeSetHandle());
-				graph.define(mark.changeRecord(), record);
-			}
+//			Revision root = graph.get(vo.getRootRevision());
+//			RevisionMark mark = graph.get(root.revisionMarks().iterator().next());
+//			ChangeRecord record = graph.get(mark.changeRecord());
+//			if (record == null) // limit case, during cloning this record is not serialzed
+//			{
+//				record = new ChangeRecord();
+//				record.versioned(o.getAtomHandle());
+//				record.changeSet(manager.getVersionManager().emptyChangeSetHandle());
+//				graph.define(mark.changeRecord(), record);
+//			}
 			return vo;
 		}
 		catch (Exception ex)
@@ -292,7 +285,7 @@ public class ActivityUtils
 		for (final HGHandleHolder object : doc.revisionObjects())
 		{
 			if (graph.get(object.getAtomHandle()) != null) continue;
-			if (object instanceof ParentLink) continue;
+			if (object instanceof ChangeLink) continue;
 			if (DBG)
 				System.out.println("Storing object " + object + " with handle " + object.getAtomHandle());
 			graph.getTransactionManager().ensureTransaction(new Callable<Object>(){

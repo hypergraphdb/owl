@@ -24,8 +24,11 @@ import org.hypergraphdb.app.owl.test.versioning.VersionedOntologiesTestData;
 import org.hypergraphdb.app.owl.test.versioning.VersioningTestBase;
 import org.hypergraphdb.app.owl.util.ImplUtils;
 import org.hypergraphdb.app.owl.versioning.Branch;
+import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
+import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.versioning;
 import org.hypergraphdb.app.owl.versioning.distributed.RemoteOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.GetNewRevisionsActivity;
@@ -227,7 +230,9 @@ public class DistributedTests extends VersioningTestBase
 		TU.ctx.set(ctx1);
 		aSubclassOf(owlClass("Employee"), owlClass("Manager"));
 		aInstanceOf(owlClass("Manager"), individual("Rapacious"));
+		HGHandle parentRevision = ctx1.vonto().getCurrentRevision().getPersistent();		
 		ctx1.vo.commit("testuser", "Pull my new changes");
+		HGHandle childRevision = ctx1.vonto().getCurrentRevision().getPersistent();
 //		versioning.printRevisionGraph(ctx1.graph(), ctx1.vonto());
 //		versioning.printRevisionGraph(ctx2.graph(), ctx2.vonto());
 		// now make some changes to peer2 so version diverge
@@ -240,12 +245,18 @@ public class DistributedTests extends VersioningTestBase
 		peer2.getActivityManager().initiateActivity(
 				new VersionUpdateActivity(peer2)
 				.remoteOntology(ctx2.graph.getHandle(remoteOnto))
-				.action("pull")).get();
+				.action("pull")).get();		
 //		versioning.printRevisionGraph(ctx1.graph(), ctx1.vonto());
-//		versioning.printRevisionGraph(ctx2.graph(), ctx2.vonto());		
+//		versioning.printRevisionGraph(ctx2.graph(), ctx2.vonto());
 		assertEquals(2, ctx2.vo.heads().size());
-		assertTrue(ctx2.vo.heads().contains(ctx1.vo.getCurrentRevision()));
-		assertEquals(ctx1.vo.changes(ctx1.vo.revision()), ctx2.vo.changes((Revision)ctx2.graph.get(ctx1.vo.getCurrentRevision().getPersistent())));
+		assertTrue(ctx2.vo.heads().contains(ctx1.vo.getCurrentRevision()));		
+		ChangeSet<VersionedOntology> cs1 = versioning.changes(ctx1.graph(), childRevision, parentRevision);
+		ChangeSet<VersionedOntology> cs2 = versioning.changes(ctx2.graph(), childRevision, parentRevision);
+		assertEquals(cs1, cs2);
+		assertTrue(VersionedOntologiesTestData.compareChangeLists(ctx1.graph(), 
+																  ctx2.graph(), 
+																  cs1.changes(), 
+																  cs2.changes()));
 	}
 
 	@Test
@@ -259,6 +270,7 @@ public class DistributedTests extends VersioningTestBase
 			new VersionUpdateActivity(peer2)
 				.remoteOntology(ctx2.graph.getHandle(remoteOnto))
 				.action(VersionUpdateActivity.ActionType.clone)).get();
+		HGHandle parentRevision = ctx1.vonto().getCurrentRevision().getPersistent();
 		ctx2.vo = vm2.versioned(sourceOntoHandle);
 		ctx2.o = ctx2.vo.ontology();		
 		TU.ctx.set(ctx2);
@@ -269,10 +281,16 @@ public class DistributedTests extends VersioningTestBase
 				new VersionUpdateActivity(peer2)
 				.remoteOntology(ctx2.graph.getHandle(remoteOnto))
 				.action("push")).get();
+		HGHandle childRevision = ctx2.vo.getCurrentRevision().getPersistent();
 		ctx1.vo.goTo((Revision)ctx1.graph.get(ctx2.vo.getCurrentRevision().getPersistent()));
-		assertEquals(ctx2.vo.getCurrentRevision(), ctx1.vo.getCurrentRevision());
-		assertEquals(ctx2.vo.changes(ctx2.vo.revision()), 
-					 ctx1.vo.changes(ctx1.vo.revision()));
+		assertEquals(ctx2.vo.getCurrentRevision(), ctx1.vo.getCurrentRevision());		
+		ChangeSet<VersionedOntology> cs1 = versioning.changes(ctx1.graph(), childRevision, parentRevision);
+		ChangeSet<VersionedOntology> cs2 = versioning.changes(ctx2.graph(), childRevision, parentRevision);
+		assertEquals(cs1, cs2);
+		assertTrue(VersionedOntologiesTestData.compareChangeLists(ctx1.graph(), 
+																  ctx2.graph(), 
+																  cs1.changes(), 
+																  cs2.changes()));
 	}
 	
 	@Test 
@@ -381,7 +399,7 @@ public class DistributedTests extends VersioningTestBase
 		Result result = null;
 		do
 		{
-			result = junit.run(Request.method(DistributedTests.class, "testPullWithMerge"));
+			result = junit.run(Request.method(DistributedTests.class, "testPushRevisionChanges"));
 		} while (false && result.getFailureCount() == 0);
 		System.out.println("Failures " + result.getFailureCount());
 		if (result.getFailureCount() > 0)

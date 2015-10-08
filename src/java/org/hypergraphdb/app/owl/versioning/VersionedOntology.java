@@ -55,26 +55,26 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	 * 
 	 * @return The list of change mark handles.
 	 */
-	private List<HGHandle> marksFrom(HGHandle revisionHandle)
-	{
-		ArrayList<HGHandle> L = new ArrayList<HGHandle>(); 
-		HGHandle lastMark = getRevisionMark(revisionHandle).changeRecord();
-		HGSearchResult<HGHandle> rs = graph.find(hg.dfs(lastMark, 
-				hg.type(ParentLink.class), null, true, false));		
-		try
-		{
-			while (rs.hasNext())
-			{
-				lastMark = rs.next();
-				L.add(lastMark);
-			}
-		}
-		finally
-		{
-			rs.close();
-		}
-		return L;
-	}
+//	private List<HGHandle> marksFrom(HGHandle revisionHandle)
+//	{
+//		ArrayList<HGHandle> L = new ArrayList<HGHandle>(); 
+//		HGHandle lastMark = getRevisionMark(revisionHandle).changeRecord();
+//		HGSearchResult<HGHandle> rs = graph.find(hg.dfs(lastMark, 
+//				hg.type(ChangeLink.class), null, true, false));		
+//		try
+//		{
+//			while (rs.hasNext())
+//			{
+//				lastMark = rs.next();
+//				L.add(lastMark);
+//			}
+//		}
+//		finally
+//		{
+//			rs.close();
+//		}
+//		return L;
+//	}
 	
 	/**
 	 * Return the {@link RevisionMark} for a revision
@@ -83,40 +83,40 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	 * @param revisionHandle The handle of the revision whose {@link ChangeRecord} 
 	 * association is desired.
 	 */
-	public RevisionMark getRevisionMark(HGHandle revisionHandle)
-	{
-		List<RevisionMark> L = graph.getAll(hg.and(hg.type(RevisionMark.class), hg.incident(revisionHandle)));
-		for (RevisionMark markLink : L)
-		{
-			ChangeRecord mark = graph.get(markLink.changeRecord());
-			if (mark.versioned().equals(ontology))
-				return markLink;
-		}
-		return null;
-	}
+//	public RevisionMark getRevisionMark(HGHandle revisionHandle)
+//	{
+//		List<RevisionMark> L = graph.getAll(hg.and(hg.type(RevisionMark.class), hg.incident(revisionHandle)));
+//		for (RevisionMark markLink : L)
+//		{
+//			ChangeRecord mark = graph.get(markLink.changeRecord());
+//			if (mark.versioned().equals(ontology))
+//				return markLink;
+//		}
+//		return null;
+//	}
 	
 	/**
 	 * Return the latest {@link ChangeRecord} representing the last change flush operation.
 	 */
-	public ChangeRecord latestChangeRecord()
-	{
-		HGHandle handleCurrent = getRevisionMark(currentRevision).changeRecord();
-		
-		// Traverse to find the most recent change mark, the "youngest"
-		// descendent of the ChangeRecord that created the current revision.
-		HGSearchResult<HGHandle> rs = graph.find(hg.dfs(handleCurrent, 
-							hg.type(ParentLink.class), null, true, false));
-		try
-		{
-			while (rs.hasNext())
-				handleCurrent = rs.next();
-		}
-		finally
-		{
-			rs.close();
-		}
-		return graph.get(handleCurrent);
-	}
+//	public ChangeRecord latestChangeRecord()
+//	{
+//		HGHandle handleCurrent = getRevisionMark(currentRevision).changeRecord();
+//		
+//		// Traverse to find the most recent change mark, the "youngest"
+//		// descendent of the ChangeRecord that created the current revision.
+//		HGSearchResult<HGHandle> rs = graph.find(hg.dfs(handleCurrent, 
+//							hg.type(ChangeLink.class), null, true, false));
+//		try
+//		{
+//			while (rs.hasNext())
+//				handleCurrent = rs.next();
+//		}
+//		finally
+//		{
+//			rs.close();
+//		}
+//		return graph.get(handleCurrent);
+//	}
 	
 	/**
 	 * Collect all {@link ChangeRecord}s between two adjacent revisions.
@@ -125,35 +125,38 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	 * @param endRevision The child revision
 	 * @return A list of ChangeRecord handles.
 	 */
-	public List<HGHandle> marksBetweenAdjacent(HGHandle startRevision, HGHandle endRevision)
-	{
-		ArrayList<HGHandle> L = new ArrayList<HGHandle>();
-		if (startRevision.equals(endRevision))
-			return L; 
-		HGHandle lastMark = getRevisionMark(startRevision).changeRecord();
-		HGSearchResult<HGHandle> rs = graph.find(hg.dfs(lastMark, 
-				hg.type(ParentLink.class), null, true, false));		
-		try
-		{
-			while (rs.hasNext())
-			{
-				lastMark = rs.next();
-				L.add(lastMark);
-				if (graph.findOne(hg.and(hg.type(RevisionMark.class), 
-								         hg.link(lastMark, endRevision))) != null)
-					break;
-			}
-		}
-		finally
-		{
-			rs.close();
-		}
-		return L;		
-	}
+//	public List<HGHandle> marksBetweenAdjacent(HGHandle startRevision, HGHandle endRevision)
+//	{
+//		ArrayList<HGHandle> L = new ArrayList<HGHandle>();
+//		if (startRevision.equals(endRevision))
+//			return L; 
+//		HGHandle lastMark = getRevisionMark(startRevision).changeRecord();
+//		HGSearchResult<HGHandle> rs = graph.find(hg.dfs(lastMark, 
+//				hg.type(ChangeLink.class), null, true, false));		
+//		try
+//		{
+//			while (rs.hasNext())
+//			{
+//				lastMark = rs.next();
+//				L.add(lastMark);
+//				if (graph.findOne(hg.and(hg.type(RevisionMark.class), 
+//								         hg.link(lastMark, endRevision))) != null)
+//					break;
+//			}
+//		}
+//		finally
+//		{
+//			rs.close();
+//		}
+//		return L;		
+//	}
 	
 	/**
 	 * Constructs a list of changes to be applied from <code>from</code>
-	 * to reach the state of <code>to</code>.
+	 * to reach the state of <code>to</code>. The list is constructed along the shortest
+	 * path where cost is evaluated in terms of how many changes need to be performed 
+	 * to move from one revision to another. It does not matter if the <code>from</code>
+	 * is an ancestor or a descendant of <code>to</code>, or neither.
 	 */
 	public List<VChange<VersionedOntology>> collectChanges(HGHandle from, HGHandle to)
 	{
@@ -162,12 +165,12 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 			   from, 
 			   to, 
 			   new DefaultALGenerator(graph, 
-						  hg.type(ParentLink.class),
+						  hg.type(ChangeLink.class),
 						  hg.type(Revision.class)),
 			   new Mapping<HGHandle, Double>() {
 				   public Double eval(HGHandle parentLink)
 				   {
-					   ParentLink link = graph.get(parentLink);
+					   ChangeLink link = graph.get(parentLink);
 					   return (double)collectChangesAdjacent(link.parent(), 
 							   								 link.child()).size();
 				   }
@@ -182,52 +185,39 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		{
 			HGHandle hPrev = predecessorMatrix.get(hCurrent);
 			Revision current = graph.get(hCurrent);			
-			List<HGHandle> L = null;
 			if (current.parents().contains(hPrev))
 			{
-				L = marksBetweenAdjacent(hPrev, hCurrent);				
-				Collections.reverse(L);
-				for (HGHandle h : L)
-				{
-					ChangeRecord mark = graph.get(h);
-					ChangeSet<VersionedOntology> cs = graph.get(mark.changeset());
-					List<VChange<VersionedOntology>> changeList = cs.changes();
-					Collections.reverse(changeList);
-					for (VChange<VersionedOntology> change : changeList)
-						result.add(change.inverse());
-				}				
+				List<VChange<VersionedOntology>> changeList = collectChangesAdjacent(hPrev, hCurrent);				
+				Collections.reverse(changeList);
+				for (VChange<VersionedOntology> change : changeList)
+					result.add(change.inverse());
 			}
 			else
-			{
-				L = marksBetweenAdjacent(hCurrent, hPrev);
-				for (HGHandle h : L)
-				{
-					ChangeRecord mark = graph.get(h);
-					ChangeSet<VersionedOntology> cs = graph.get(mark.changeset());
-					result.addAll(cs.changes());
-				}
-			}
+				result.addAll(collectChangesAdjacent(hCurrent, hPrev));
 			hCurrent = hPrev;	
 		} while (!hCurrent.equals(from));
 		return result;
 	}
 	
 	/**
-	 * Collect the normalized list of changes needed to reach the state of 
+	 * Collect the list of changes needed to reach the state of 
 	 * revision <code>end</code>, starting from revision <code>start</code>.
-	 * It is assumed that start is a parent revision of end.
+	 * It is assumed that start is a direct parent revision of end.
 	 */
 	private List<VChange<VersionedOntology>> collectChangesAdjacent(HGHandle start, HGHandle end)
 	{
-		List<VChange<VersionedOntology>> changes = new ArrayList<VChange<VersionedOntology>>();
-		for (HGHandle h : marksBetweenAdjacent(start, end))
-		{
-			ChangeRecord mark = graph.get(h);
-			ChangeSet<VersionedOntology> current = graph.get(mark.changeset()); 			
-			for (VChange<VersionedOntology> change : current.changes())
-				changes.add(change);
-		}
-		return changes; // ChangeSet.normalize(this, changes);
+		ChangeLink changeLink = hg.getOne(graph, hg.and(hg.type(ChangeLink.class), hg.orderedLink(start, hg.anyHandle(), end)));
+		ChangeSet<VersionedOntology> changeSet = graph.get(changeLink.change());
+		return changeSet.changes();
+//		List<VChange<VersionedOntology>> changes = new ArrayList<VChange<VersionedOntology>>();
+//		for (HGHandle h : marksBetweenAdjacent(start, end))
+//		{
+//			ChangeRecord mark = graph.get(h);
+//			ChangeSet<VersionedOntology> current = graph.get(mark.changeset()); 			
+//			for (VChange<VersionedOntology> change : current.changes())
+//				changes.add(change);
+//		}
+//		return changes;
 	}
 	
 	public VersionedOntology()
@@ -276,18 +266,14 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 
 	private HGHandle makeRevision(String user, String comment, HGHandle branch)
 	{		
-		ChangeRecord mark = latestChangeRecord();
-		if (currentRevision.equals(mark.revision()))
-			mark = flushChanges();
 		Revision revision = new Revision(thisHandle);
 		if (branch != null)
 			revision.branchHandle(branch);
 		revision.user(user).comment(comment).timestamp(System.currentTimeMillis());
 		HGHandle revisionHandle = graph.add(revision);
-		graph.add(new RevisionMark(revisionHandle, graph.getHandle(mark)));
-		graph.add(new ParentLink(revisionHandle, currentRevision));
+		graph.add(new ChangeLink(currentRevision, workingChanges, revisionHandle));
 		workingChanges = graph.add(new ChangeSet<VersionedOntology>());
-		currentRevision = revisionHandle;
+		currentRevision = revisionHandle;		
 		graph.update(this);
 		return this.currentRevision;
 	}
@@ -355,58 +341,68 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		return graph.add(new ChangeSet<VersionedOntology>(changes));
 	}
 	
+	/**
+	 * Once the common ancestor and the necessary change list to apply to it
+	 * have been computed for a merge operation, we create the actual revision and 
+	 * connect it to all its parents.
+	 * 
+	 * @param user
+	 * @param comment
+	 * @param commonAncestor
+	 * @param mergeChangeList
+	 * @param revisions
+	 * @return
+	 */
 	private Revision createMergedRevision(String user,
 										  String comment,
 										  HGHandle commonAncestor, 
 										  List<VChange<VersionedOntology>> mergeChangeList,
 										  Revision...revisions)
 	{
-//		System.out.println("CA:" + commonAncestor);
-//		for (Revision r: revisions)
-//			System.out.println("M - " + graph.getHandle(r));
-		goTo((Revision)graph.get(commonAncestor));
-		// now we can normalize so only changes effective from the common
-		// merge ancestor will be recorded
-		mergeChangeList = versioning.normalize(this, mergeChangeList);
-//		HGHandle [] mergeChanges = new HGHandle[mergeChangeList.size()];
-//		int i = 0;
-//		for (VChange<VersionedOntology> c : mergeChangeList)
-//			mergeChanges[i++] = hg.assertAtom(graph, c);
-//		ChangeSet<VersionedOntology> changeSet = new ChangeSet<VersionedOntology>(mergeChanges);
-		HGHandle hChangeSet = addChangeSet(mergeChangeList); 
-		ChangeSet<VersionedOntology> changeSet = graph.get(hChangeSet);
 		Revision revision = new Revision(thisHandle);
 		revision.user(user);
 		revision.comment(comment);
 		revision.timestamp(System.currentTimeMillis());
-		HGHandle revisionHandle = graph.add(revision);		
-		changeSet.apply(this);
-		HGHandle mark = graph.add(new ChangeRecord(ontology, hChangeSet));
-		graph.add(new ParentLink(mark, this.getRevisionMark(commonAncestor).changeRecord()));
-		graph.add(new RevisionMark(revisionHandle, mark));
+		HGHandle revisionHandle = graph.add(revision);
+		mergeChangeList = versioning.normalize(this, mergeChangeList);
 		
 		// Create a parent-child relationship between each of the revisions being
 		// merged and the resulting "merge" revision. Not only each of those revisions
 		// must be declared as a parent, but we must also make sure that it is
 		// possible to move the state of the versioned ontology from parent to child
 		// and vice versa easily. Therefore, we must compute the change sets between
-		// each parent revision and the merge result.		
+		// each parent revision and the merge result.
 		for (Revision rev : revisions)
 		{ 
-			List<VChange<VersionedOntology>> diff = this.changeListDiff(mergeChangeList, 
-																		collectChanges(commonAncestor, 
-																					   rev.getAtomHandle()));			
-			mark = graph.add(new ChangeRecord(ontology, addChangeSet(diff)));
-			graph.add(new ParentLink(mark, this.getRevisionMark(rev.getAtomHandle()).changeRecord()));
-			graph.add(new RevisionMark(revisionHandle, mark));			
-			graph.add(new ParentLink(revisionHandle, graph.getHandle(rev)));
+			List<VChange<VersionedOntology>> diff = changeListDiff(mergeChangeList,
+																   collectChanges(commonAncestor, 
+																		   		  rev.getAtomHandle()));			
+			graph.add(new ChangeLink(rev.getAtomHandle(), addChangeSet(diff),  revisionHandle));
 		}
-		workingChanges = graph.add(new ChangeSet<VersionedOntology>());
-		currentRevision = revisionHandle;
-		graph.update(this);
-		return revision();
+		return revision;
 	}
 	
+	/**
+	 * <p>
+	 * Merges a list of a revisions into a newly created single revision. The necessary 
+	 * {@link ChangeSet}s to go from each of the supplied parents to the new revision
+	 * are automatically computed. The merged revision is guaranteed to incorporate changes
+	 * from all parents where any conflicts must have been resolved prior to calling this
+	 * method. If one of the parent revisions is the current revision and there are pending
+	 * working changes, an exception is thrown.
+	 * </p> 
+	 * 
+	 * <p>
+	 * Note that this method will not automatically position the working copy to the result
+	 * of the merge. For this, call the {@link #goTo(Revision)} method with the result 
+	 * return from here.
+	 * </p>
+	 * 
+	 * @param user The username of the user performing the merge.
+	 * @param comment The comment associated with the new revision.
+	 * @param revisions The list of parent revisions.
+	 * @return A newly created merge revision incorporating all changes from all parents.
+	 */
 	@Override
 	public Revision merge(String user, String comment, Revision... revisions)
 	{
@@ -449,10 +445,8 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 			if (!r.children().isEmpty())
 				throw new IllegalArgumentException("Revision " + r + " is not a head revision.");			
 			
-			if (r.equals(currentRevision) && (!changes().isEmpty() || 
-											  !marksFrom(currentRevision).isEmpty()))				
-				throw new IllegalArgumentException("Cannot merge current head revision with uncomitted changes.");
-			
+			if (r.equals(currentRevision) && !changes().isEmpty())				
+				throw new IllegalArgumentException("Cannot merge current head revision with uncomitted changes.");			
 			M.put(r.getAtomHandle(), new ArrayList<VChange<VersionedOntology>>());
 		}
 		
@@ -531,17 +525,17 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	 * Thus a new {@link ChangeRecord} is created as a result of the flush operation and
 	 * made a child (via a {@link ParentLink} link) to the most recent such ChangeRecord.  
 	 */
-	public ChangeRecord flushChanges()
-	{ 
-		ChangeRecord current = latestChangeRecord();
-		ChangeRecord newmark = new ChangeRecord(ontology, workingChanges);
-		newmark.setTimestamp(System.currentTimeMillis());
-		HGHandle markHandle = graph.add(newmark);
-		graph.add(new ParentLink(markHandle, current.getAtomHandle()));
-		workingChanges = graph.add(new ChangeSet<VersionedOntology>());
-		graph.update(this);
-		return newmark;
-	}
+//	public ChangeRecord flushChanges()
+//	{ 
+//		ChangeRecord current = latestChangeRecord();
+//		ChangeRecord newmark = new ChangeRecord(ontology, workingChanges);
+//		newmark.setTimestamp(System.currentTimeMillis());
+//		HGHandle markHandle = graph.add(newmark);
+//		graph.add(new ParentLink(markHandle, current.getAtomHandle()));
+//		workingChanges = graph.add(new ChangeSet<VersionedOntology>());
+//		graph.update(this);
+//		return newmark;
+//	}
 
 	/**
 	 * Return the working {@link ChangeSet} which holds the set of changes since the last
@@ -553,24 +547,31 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		return graph.get(workingChanges);
 	}
 
-	@SuppressWarnings("unchecked")
-	private void changes(ChangeRecord from, List<ChangeSet<VersionedOntology>> L)
-	{
-		L.add((ChangeSet<VersionedOntology>)graph.get(from.changeset()));		
-		for (HGHandle h : from.parents())
-		{
-			ChangeRecord parentMark = graph.get(h);
-			if (parentMark.revision() == null)
-				changes(parentMark, L);
-		}
-	}
+//	@SuppressWarnings("unchecked")
+//	private void changes(ChangeRecord from, List<ChangeSet<VersionedOntology>> L)
+//	{
+//		L.add((ChangeSet<VersionedOntology>)graph.get(from.changeset()));		
+//		for (HGHandle h : from.parents())
+//		{
+//			ChangeRecord parentMark = graph.get(h);
+//			if (parentMark.revision() == null)
+//				changes(parentMark, L);
+//		}
+//	}
 	
+	/**
+	 * Return the set of changes that let to that revision. TODO: the premise here is flawed because
+	 * the changes depend on the parent revision. This makes sense only on a linear order. 
+	 * When the revision is the result of a merge, the changes could be the merged changes
+	 * from the common ancestor or any of the inferred changes from any of the parent revisions.
+	 */
 	public List<ChangeSet<VersionedOntology>> changes(Revision revision)
 	{
-		ArrayList<ChangeSet<VersionedOntology>> L = new ArrayList<ChangeSet<VersionedOntology>>();
-		ChangeRecord mark = graph.get(getRevisionMark(graph.getHandle(revision)).changeRecord());
-		changes(mark, L);
-		return L;
+		//ArrayList<ChangeSet<VersionedOntology>> L = new ArrayList<ChangeSet<VersionedOntology>>();
+//		ChangeRecord mark = graph.get(getRevisionMark(graph.getHandle(revision)).changeRecord());
+//		changes(mark, L);
+		//return L;
+		throw new UnsupportedOperationException();
 	}
 
 	public List<Revision> revisions()

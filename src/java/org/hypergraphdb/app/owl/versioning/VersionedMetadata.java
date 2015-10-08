@@ -47,7 +47,7 @@ public class VersionedMetadata<T extends Versioned<T>>
 		{
 			HGValueLink link = graph.get(current);
 			graph.remove(current);
-			graph.add(new ParentLink(lastChange, link.getTargetAt(0)));
+			graph.add(new ChangeLink(link.getTargetAt(0), lastChange, lastChange));
 		}
 		graph.add(new HGValueLink(METACHANGE_ROOT, lastChange, versioned.getAtomHandle()));
 	}

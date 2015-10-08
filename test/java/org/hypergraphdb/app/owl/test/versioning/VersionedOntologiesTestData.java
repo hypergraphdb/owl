@@ -11,6 +11,8 @@ import static org.hypergraphdb.app.owl.test.TU.oprop;
 import static org.hypergraphdb.app.owl.test.TU.owlClass;
 
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
@@ -19,12 +21,20 @@ import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.test.TU;
-import org.hypergraphdb.app.owl.versioning.ChangeRecord;
-import org.hypergraphdb.app.owl.versioning.ParentLink;
+import org.hypergraphdb.app.owl.versioning.ChangeLink;
+import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
-import org.hypergraphdb.app.owl.versioning.RevisionMark;
+import org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.VisitableObject;
+import org.hypergraphdb.app.owl.versioning.versioning;
+import org.hypergraphdb.app.owl.versioning.change.VAxiomChange;
+import org.hypergraphdb.app.owl.versioning.change.VChange;
+import org.hypergraphdb.app.owl.versioning.change.VImportChange;
+import org.hypergraphdb.app.owl.versioning.change.VModifyOntologyIDChange;
+import org.hypergraphdb.app.owl.versioning.change.VOntologyAnnotationChange;
+import org.hypergraphdb.app.owl.versioning.change.VPrefixChange;
 import org.hypergraphdb.util.HGUtils;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -39,6 +49,60 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
  */
 public class VersionedOntologiesTestData
 {
+	public static boolean compareChangeLists(final HyperGraph lgraph, 
+											 final HyperGraph rgraph, 
+											 final List<VChange<VersionedOntology>> llist, 
+											 final List<VChange<VersionedOntology>> rlist)
+	{
+		Iterator<VChange<VersionedOntology>> liter = llist.iterator();
+		Iterator<VChange<VersionedOntology>> riter = rlist.iterator();
+		while (liter.hasNext())
+		{
+			if (!riter.hasNext())
+				return false;
+			final VChange<VersionedOntology> lchange = liter.next();
+			final VChange<VersionedOntology> rchange = riter.next();
+			if (!lchange.getClass().equals(rchange.getClass()))
+				return false;
+			final boolean [] compare = new boolean[1];
+			if (lchange instanceof VisitableObject)
+				((VisitableObject)lchange).accept(new VOWLObjectVisitor() {
+
+					@Override
+					public void visit(VAxiomChange change)
+					{
+						compare[0] = change.getAxiom().equals(((VAxiomChange)rchange).getAxiom());
+					}
+
+					@Override
+					public void visit(VImportChange change)
+					{
+						compare[0] = change.getImportDeclaration().equals(((VImportChange)rchange).getImportDeclaration());						
+					}
+
+					@Override
+					public void visit(VOntologyAnnotationChange change)
+					{
+						compare[0] = change.getOntologyAnnotation().equals(((VOntologyAnnotationChange)rchange).getOntologyAnnotation());
+					}
+
+					@Override
+					public void visit(VModifyOntologyIDChange change)
+					{
+						compare[0] = change.getNewOntologyID().equals(((VModifyOntologyIDChange)rchange).getNewOntologyID()) &&
+								change.getOldOntologyID().equals(((VModifyOntologyIDChange)rchange).getOldOntologyID());
+					}
+
+					@Override
+					public void visit(VPrefixChange change)
+					{
+						compare[0] = change.getPrefix().equals(((VPrefixChange)rchange).getPrefix());					
+					}					
+				});
+		}
+		return true;
+	}
+	
 	/**
 	 * Full revision graph comparison.
 	 * 
@@ -51,8 +115,8 @@ public class VersionedOntologiesTestData
 	{
 		Set<HGHandle> leftRevisions = new HashSet<HGHandle>();
 		Set<HGHandle> rightRevisions = new HashSet<HGHandle>();
-		leftRevisions.addAll(leftRepo.findAll(hg.dfs(left.getRootRevision(), hg.type(ParentLink.class), hg.type(Revision.class))));
-		rightRevisions.addAll(rightRepo.findAll(hg.dfs(right.getRootRevision(), hg.type(ParentLink.class), hg.type(Revision.class))));
+		leftRevisions.addAll(leftRepo.findAll(hg.dfs(left.getRootRevision(), hg.type(ChangeLink.class), hg.type(Revision.class))));
+		rightRevisions.addAll(rightRepo.findAll(hg.dfs(right.getRootRevision(), hg.type(ChangeLink.class), hg.type(Revision.class))));
 		for (HGHandle revisionHandle : leftRevisions)
 		{
 			if (!rightRevisions.contains(revisionHandle))
@@ -61,24 +125,20 @@ public class VersionedOntologiesTestData
 			Revision revRight = rightRepo.get(revisionHandle);
 			if (!revLeft.parents().equals(revRight.parents()) ||
 				!revLeft.children().equals(revRight.children())  ||
-				!HGUtils.eq(revLeft.branchHandle(), revRight.branchHandle()) ||
-				!revLeft.changeRecords().equals(revRight.changeRecords()))
+				!HGUtils.eq(revLeft.branchHandle(), revRight.branchHandle()))
 				return false;
-			for (HGHandle markHandle : revRight.revisionMarks())
+			for (HGHandle parent : revLeft.parents())
 			{
-				RevisionMark markRight = rightRepo.get(markHandle);				
-				RevisionMark markLeft = leftRepo.get(markHandle);
-				if (!markLeft.revision().equals(markRight.revision()))
-					return false;
-				if (!markLeft.changeRecord().equals(markRight.changeRecord()))
-					return false;
-				ChangeRecord recordLeft = leftRepo.get(markLeft.changeRecord());
-				ChangeRecord recordRight = rightRepo.get(markRight.changeRecord());
-				if (!recordLeft.changeset().equals(recordRight.changeset()) ||
-					!recordLeft.parents().equals(recordRight.parents()) ||
-					!recordLeft.children().equals(recordRight.children()))
-					return false;
-				if (!leftRepo.get(recordLeft.changeset()).equals(rightRepo.get(recordRight.changeset())))
+				ChangeSet<VersionedOntology> leftChanges = versioning.changes(leftRepo, revisionHandle, parent);
+				ChangeSet<VersionedOntology> rightChanges = versioning.changes(rightRepo, revisionHandle, parent);
+				if (leftChanges.equals(rightChanges))
+				{
+					List<VChange<VersionedOntology>> llist = leftChanges.changes();
+					List<VChange<VersionedOntology>> rlist = rightChanges.changes();
+					if (!compareChangeLists(leftRepo, rightRepo, llist, rlist))
+						return false;
+				}
+				else
 					return false;
 			}
 		}
@@ -130,18 +190,15 @@ public class VersionedOntologiesTestData
 			aInstanceOf(owlClass("Employee"), individual("Pedro"));
 			aSubclassOf(owlClass("User"), owlClass("Customer"));
 			declare(owlClass("LoyalCustomer"));
-			ChangeRecord mark1 = ctx.vo.flushChanges();
 			
 			aSubclassOf(owlClass("Customer"), owlClass("LoyalCustomer"));
 			aInstanceOf(owlClass("LoyalCustomer"), individual("Mary"));
 			aInstanceOf(owlClass("LoyalCustomer"), individual("Tom"));
-			ChangeRecord mark2 = ctx.vo.flushChanges();
 			
 			aInstanceOf(owlClass("Customer"), individual("John"));
 			aInstanceOf(owlClass("Employee"), individual("Fred"));
 			declare(oprop("isServing"));		
 			aProp(oprop("isServing"), individual("Fred"), individual("Tom"));
-			ChangeRecord mark3 = ctx.vo.flushChanges();
 			// no changes between last flush and the creation of a new revision
 			Revision revision2 = ctx.vo.commit("administrator", "Second version by admin");		
 			

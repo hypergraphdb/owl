@@ -1,20 +1,8 @@
 package org.hypergraphdb.app.owl;
 
 import java.util.concurrent.Callable;
+
 import java.util.logging.Logger;
-
-
-
-
-
-
-
-
-
-
-
-
-
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HGTypeSystem;
@@ -35,11 +23,9 @@ import org.hypergraphdb.app.owl.type.OWLNamedObjectType;
 import org.hypergraphdb.app.owl.type.OntologyIDType;
 import org.hypergraphdb.app.owl.type.TypeUtils;
 import org.hypergraphdb.app.owl.util.ImplUtils;
-import org.hypergraphdb.app.owl.versioning.ChangeRecord;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
-import org.hypergraphdb.app.owl.versioning.ParentLink;
+import org.hypergraphdb.app.owl.versioning.ChangeLink;
 import org.hypergraphdb.app.owl.versioning.Revision;
-import org.hypergraphdb.app.owl.versioning.RevisionMark;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.indexing.ByPartIndexer;
 import org.hypergraphdb.indexing.ByTargetIndexer;
@@ -174,10 +160,8 @@ public class HGDBApplication extends HGApplication
 	private void registerVersioningTypes(HyperGraph graph)
 	{
 		graph.getTypeSystem().getAtomType(ChangeSet.class);
-		graph.getTypeSystem().getAtomType(ChangeRecord.class);
-		graph.getTypeSystem().getAtomType(ParentLink.class);
-		graph.getTypeSystem().getAtomType(Revision.class);
-		graph.getTypeSystem().getAtomType(RevisionMark.class);		
+		graph.getTypeSystem().getAtomType(ChangeLink.class);
+		graph.getTypeSystem().getAtomType(Revision.class);		
 		graph.getTypeSystem().getAtomType(Revision.class);
 		graph.getTypeSystem().getAtomType(VersionedOntology.class);		
 	}

@@ -63,12 +63,6 @@ public class VersionedOntologyElementHandler extends AbstractVOWLElementHandler<
 	{
 		this.getDocumentRoot().revisionObjects().add(h.getOWLObject());
 	}
-
-	@Override
-	public void handleChild(RevisionMarkElementHandler h) throws OWLXMLParserException
-	{
-		this.getDocumentRoot().revisionObjects().add(h.getOWLObject());
-	}
 	
 	/*
 	 * (non-Javadoc)
@@ -84,15 +78,9 @@ public class VersionedOntologyElementHandler extends AbstractVOWLElementHandler<
 		this.getDocumentRoot().revisionObjects().add(h.getOWLObject());		
 		this.getDocumentRoot().changeSetMap().put(h.getOWLObject(), h.changes());
 	}
-
-	@Override
-	public void handleChild(ChangeRecordElementHandler h) throws OWLXMLParserException
-	{
-		this.getDocumentRoot().revisionObjects().add(h.getOWLObject());		
-	}
 	
 	@Override
-	public void handleChild(ParentLinkElementHandler h) throws OWLXMLParserException
+	public void handleChild(ChangeLinkElementHandler h) throws OWLXMLParserException
 	{
 		this.getDocumentRoot().revisionObjects().add(h.getOWLObject());	
 	}

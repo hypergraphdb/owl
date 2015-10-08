@@ -140,41 +140,19 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 		this.timestamp = timestamp;
 		return this;
 	}
-
-	/**
-	 * Return the revision marks associated this revision to the change sets
-	 * that led to its creation. Note that when the versioned object being tracked
-	 * is not a compound object, e.g. a project made of multiple modules, there will
-	 * be only one revision mark per revision. 
-	 */
-	public Collection<HGHandle> revisionMarks()
-	{
-		return graph.findAll(hg.and(hg.type(RevisionMark.class), hg.incident(thisHandle)));
-	}
-
-	/**
-	 * Return the {@link org.hypergraphdb.app.owl.versioning.ChangeRecord}s of the
-	 * {@link org.hypergraphdb.app.owl.versioning.ChangeSet}s that led to this revision.
-	 */
-	public Collection<HGHandle> changeRecords()
-	{
-		return graph.findAll(hg.apply(hg.targetAt(graph, 1), 
-				hg.and(hg.type(RevisionMark.class), hg.incident(thisHandle))));
-	}
 	
 	/**
 	 * Return the set of direct ancestors of this revision. Under normal
 	 * circumstances, a revision will have only one parent. When there are 
 	 * multiple parents, it means diverging heads/branches had to be merged.  
 	 */
-	@SuppressWarnings("unchecked")
 	public Set<HGHandle> parents()
 	{
 		HashSet<HGHandle> S = new HashSet<HGHandle>();
-		S.addAll((List<HGHandle>)(List<?>)graph.findAll(
-				hg.apply(hg.targetAt(graph, 1), 
-						 hg.and(hg.type(ParentLink.class), 
-								hg.orderedLink(thisHandle, hg.anyHandle())))));
+		S.addAll((Collection<? extends HGHandle>)graph.findAll(
+				hg.apply(hg.targetAt(graph, 0), 
+						 hg.and(hg.type(ChangeLink.class), 
+								hg.orderedLink(hg.anyHandle(), hg.anyHandle(), thisHandle)))));
 		return S;
 	}
 
@@ -200,16 +178,15 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 	 * Return the set of child revisions that "branch off" this revision. A head
 	 * revision will have no branches at all.  
 	 */
-	@SuppressWarnings("unchecked")
 	public Set<HGHandle> children()
 	{
 		HashSet<HGHandle> S = new HashSet<HGHandle>();
-		S.addAll((List<HGHandle>)(List<?>)graph.findAll(
+		S.addAll((Collection<? extends HGHandle>)graph.findAll(
 				hg.apply(hg.targetAt(graph, 0), 
-						 hg.and(hg.type(ParentLink.class), 
-								hg.orderedLink(hg.anyHandle(), thisHandle)))));
+						 hg.and(hg.type(ChangeLink.class), 
+								hg.orderedLink(thisHandle, hg.anyHandle(), hg.anyHandle())))));
 		return S;		
-	}	
+	}
 	
 	@Override
 	public HGHandle getAtomHandle()
