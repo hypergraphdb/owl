@@ -264,6 +264,8 @@ public class DistributedTests extends VersioningTestBase
 	{
 		TU.ctx.set(ctx1);
 		VersionedOntologiesTestData.revisionGraph_1(iri_prefix + "peer1data", null);
+		if (ctx1.vo.changes().size() > 0)
+			ctx1.vo.commit("testuser1", "flush leftover changes");
 		HGHandle sourceOntoHandle = TU.ctx().o.getAtomHandle();
 		RemoteOntology remoteOnto = repo2.remoteOnto(sourceOntoHandle, repo2.remoteRepo(peer1.getIdentity()));
 		peer2.getActivityManager().initiateActivity(
@@ -277,6 +279,7 @@ public class DistributedTests extends VersioningTestBase
 		aInstanceOf(owlClass("LoyalCustomer"), individual("Brandon_Broom"));
 		aInstanceOf(owlClass("LoyalCustomer"), individual("Clair_Zuckerbergengerber"));
 		ctx2.vo.commit("testuser2", "New difference.");
+		// push changes from peer2 to peer1
 		peer2.getActivityManager().initiateActivity(
 				new VersionUpdateActivity(peer2)
 				.remoteOntology(ctx2.graph.getHandle(remoteOnto))
@@ -303,9 +306,11 @@ public class DistributedTests extends VersioningTestBase
 		VersionedOntologiesTestData.makeRevision(ctx1);
 		ctx1.vo.commit("testuser", "create branch", "TestBranch2");
 		VersionedOntologiesTestData.makeRevision(ctx1);
+		ctx1.vo.commit("testuser", "made some changes");
 		ctx1.vo.goTo("TestBranch1");
 		VersionedOntologiesTestData.makeRevision(ctx1);
 		VersionedOntologiesTestData.makeRevision(ctx1);
+		ctx1.vo.commit("testuser", "made changes to branch 1");
 		ctx1.vo.goTo("TestBranch2");
 		VersionedOntologiesTestData.makeRevision(ctx1);
 		HGHandle sourceOntoHandle = TU.ctx().o.getAtomHandle();		
@@ -399,7 +404,7 @@ public class DistributedTests extends VersioningTestBase
 		Result result = null;
 		do
 		{
-			result = junit.run(Request.method(DistributedTests.class, "testPushRevisionChanges"));
+			result = junit.run(Request.method(DistributedTests.class, "testCloneWithBranches"));
 		} while (false && result.getFailureCount() == 0);
 		System.out.println("Failures " + result.getFailureCount());
 		if (result.getFailureCount() > 0)

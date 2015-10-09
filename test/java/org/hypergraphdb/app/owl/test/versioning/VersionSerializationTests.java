@@ -1,7 +1,9 @@
 package org.hypergraphdb.app.owl.test.versioning;
 
 import org.hypergraphdb.HGEnvironment;
+import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.HGDBOntology;
+import org.hypergraphdb.app.owl.HGDBOntologyImpl;
 import org.hypergraphdb.app.owl.OntologyDatabase;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.test.TU;
@@ -52,6 +54,7 @@ public class VersionSerializationTests extends VersioningTestBase
 	@After public void afterTest() throws Exception
 	{
 		remove(ctx.vo);
+		assertTrue(ctx.graph.findAll(hg.type(HGDBOntologyImpl.class)).isEmpty());
 	}
 
 	/**
@@ -90,7 +93,8 @@ public class VersionSerializationTests extends VersioningTestBase
 		assertEquals(ctx.vo.getRootRevision(), vo2.getRootRevision());
 		assertEquals(ctx.vo.getCurrentRevision(), vo2.getCurrentRevision());
 		assertEquals(ctx.vo.getOntology(), vo2.getOntology());
-		assertTrue(vo2.changes().isEmpty());		
+		assertTrue(vo2.changes().isEmpty());	
+		ctx.vo = vo2;
 	}
 	
 	/**
@@ -162,6 +166,7 @@ public class VersionSerializationTests extends VersioningTestBase
 		assertEquals(ctx.vo.getOntology(), vo2.getOntology());
 		assertTrue(vo2.changes().isEmpty());
 		assertEquals(TU.set(vo2.revision().parents().toArray()), TU.set(revision1.getAtomHandle()));
+		ctx.vo = vo2;
 	}
 	
 	public static void main(String []argv)
