@@ -1,11 +1,11 @@
 package org.hypergraphdb.app.owl;
 
 import java.io.PrintWriter;
-
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HGHandle;
@@ -297,6 +297,7 @@ public class OntologyDatabase
 					vm.removeVersioning(ontologyHandle);				
 				HGDBOntology o = graph.get(ontologyHandle);
 				o.setDocumentIRI(null);
+				o.setOntologyID(new OWLOntologyID(IRI.create("hgdb://pendingdelete" + UUID.randomUUID())));
 				graph.replace(ontologyHandle, o);
 			}
 			return ontologyFound;

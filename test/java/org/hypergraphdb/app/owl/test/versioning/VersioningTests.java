@@ -136,9 +136,9 @@ public class VersioningTests extends VersioningTestBase
 		Assert.assertEquals(0, ctx.vonto().changes().size());		
 		HGHandle lastCommitted = ctx.vonto().revision().parents().iterator().next();
 		Assert.assertEquals(revisionBefore.getAtomHandle(), lastCommitted);
-		ChangeSet<?> fromLastCommitted = versioning.changes(ctx.graph, 
-															ctx.vonto().getCurrentRevision(), 
-															lastCommitted);
+		ChangeSet<VersionedOntology> fromLastCommitted = versioning.changes(ctx.graph, 
+																			ctx.vonto().getCurrentRevision(), 
+																			lastCommitted);
 		Assert.assertEquals(changeSet, fromLastCommitted);		
 	}
 	

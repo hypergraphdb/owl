@@ -1632,11 +1632,9 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 	// ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	public synchronized List<OWLOntologyChange> applyChange(
-			OWLOntologyChange change)
+	public synchronized List<OWLOntologyChange> applyChange(OWLOntologyChange change)
 	{
-		List<OWLOntologyChange> appliedChanges = new ArrayList<OWLOntologyChange>(
-				2);
+		List<OWLOntologyChange> appliedChanges = new ArrayList<OWLOntologyChange>(2);
 		OWLOntologyChangeFilter changeFilter = new OWLOntologyChangeFilter();
 		if (DBG)
 			printChange(change);
@@ -1653,8 +1651,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 		return appliedChanges;
 	}
 
-	public synchronized List<OWLOntologyChange> applyChanges(
-			List<OWLOntologyChange> changes)
+	public synchronized List<OWLOntologyChange> applyChanges(List<OWLOntologyChange> changes)
 	{
 		List<OWLOntologyChange> appliedChanges = new ArrayList<OWLOntologyChange>();
 		OWLOntologyChangeFilter changeFilter = new OWLOntologyChangeFilter();

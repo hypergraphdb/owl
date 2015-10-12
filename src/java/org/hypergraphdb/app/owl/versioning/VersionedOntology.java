@@ -21,11 +21,17 @@ import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.algorithms.DefaultALGenerator;
 import org.hypergraphdb.algorithms.GraphClassics;
 import org.hypergraphdb.app.owl.HGDBOntology;
+import org.hypergraphdb.app.owl.HGDBOntologyManager;
+import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
+import org.hypergraphdb.app.owl.core.OWLTempOntologyImpl;
 import org.hypergraphdb.app.owl.versioning.change.VChange;
+import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.query.IndexCondition;
 import org.hypergraphdb.util.HGUtils;
 import org.hypergraphdb.util.Mapping;
+import org.semanticweb.owlapi.model.OWLOntologyChange;
+import org.semanticweb.owlapi.model.OWLOntologyID;
 
 /**
  * <p>
@@ -160,6 +166,9 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	 */
 	public List<VChange<VersionedOntology>> collectChanges(HGHandle from, HGHandle to)
 	{
+		ArrayList<VChange<VersionedOntology>> result = new ArrayList<VChange<VersionedOntology>>();
+		if (from.equals(to))
+			return result;
 		Map<HGHandle, HGHandle> predecessorMatrix = new HashMap<HGHandle, HGHandle>();		
 		if (GraphClassics.dijkstra(
 			   from, 
@@ -179,45 +188,34 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		       predecessorMatrix) == null)
 			throw new IllegalArgumentException("Revisions " + from + " and " + to + 
 					" are not connected - are they part of the same version history?");
-		ArrayList<VChange<VersionedOntology>> result = new ArrayList<VChange<VersionedOntology>>();
 		HGHandle hCurrent = to;		
 		do
 		{
 			HGHandle hPrev = predecessorMatrix.get(hCurrent);
-			Revision current = graph.get(hCurrent);			
-			if (current.parents().contains(hPrev))
-			{
-				List<VChange<VersionedOntology>> changeList = collectChangesAdjacent(hPrev, hCurrent);				
-				Collections.reverse(changeList);
-				for (VChange<VersionedOntology> change : changeList)
-					result.add(change.inverse());
-			}
-			else
-				result.addAll(collectChangesAdjacent(hCurrent, hPrev));
+			result.addAll(collectChangesAdjacent(hPrev, hCurrent));
 			hCurrent = hPrev;	
 		} while (!hCurrent.equals(from));
 		return result;
 	}
 	
 	/**
-	 * Collect the list of changes needed to reach the state of 
-	 * revision <code>end</code>, starting from revision <code>start</code>.
-	 * It is assumed that start is a direct parent revision of end.
+	 * Collect the list of changes needed to reach the state of revision <code>end</code>, starting 
+	 * from revision <code>start</code>. It is assumed that either start is a direct parent revision of end or
+	 * vice versa, that end is a direct parent to start. If end is a parent of start then the recorded change set
+	 * is used to construct an "inverse" change list that can be played to go from start to end.
 	 */
 	private List<VChange<VersionedOntology>> collectChangesAdjacent(HGHandle start, HGHandle end)
 	{
-		ChangeLink changeLink = hg.getOne(graph, hg.and(hg.type(ChangeLink.class), hg.orderedLink(start, hg.anyHandle(), end)));
+		ChangeLink changeLink = hg.getOne(graph, hg.and(hg.type(ChangeLink.class), hg.link(start, hg.anyHandle(), end)));
 		ChangeSet<VersionedOntology> changeSet = graph.get(changeLink.change());
-		return changeSet.changes();
-//		List<VChange<VersionedOntology>> changes = new ArrayList<VChange<VersionedOntology>>();
-//		for (HGHandle h : marksBetweenAdjacent(start, end))
-//		{
-//			ChangeRecord mark = graph.get(h);
-//			ChangeSet<VersionedOntology> current = graph.get(mark.changeset()); 			
-//			for (VChange<VersionedOntology> change : current.changes())
-//				changes.add(change);
-//		}
-//		return changes;
+		List<VChange<VersionedOntology>> result = changeSet.changes();
+		if (!changeLink.parent().equals(start))
+		{
+			Collections.reverse(result);
+			for (int i = 0; i < result.size(); i++)
+				result.set(i, result.get(i).inverse());
+		}
+		return result;		
 	}
 	
 	public VersionedOntology()
@@ -675,7 +673,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 //				}
 				
 				for (VChange<VersionedOntology> c : changes)
-					c.inverse().apply(VersionedOntology.this);
+					c.apply(VersionedOntology.this);
 				currentRevision = revision.getAtomHandle();
 				// reset working set, or restore working set at that
 				// revision
@@ -687,7 +685,15 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	
 	public OWLOntologyEx getRevisionData(HGHandle revisionHandle)
 	{
-		throw new UnsupportedOperationException();
+		HGDBOntologyManager manager = HGOntologyManagerFactory.getOntologyManager(graph.getLocation());		
+		final List<VChange<VersionedOntology>> changes = collectChanges(getRootRevision(), revisionHandle);					
+		OWLOntologyEx inmem_ontology = new OWLTempOntologyImpl(manager, ontology().getOntologyID());//new OWLOntologyID());
+		List<OWLOntologyChange> owlChanges = new ArrayList<OWLOntologyChange>();
+		for (VChange<VersionedOntology> ch : changes)
+			if (ch instanceof VOWLChange)
+				owlChanges.add(((VOWLChange)ch).toOWLChange(this));
+		inmem_ontology.applyChanges(owlChanges);
+		return inmem_ontology;
 	}
 
 	/**

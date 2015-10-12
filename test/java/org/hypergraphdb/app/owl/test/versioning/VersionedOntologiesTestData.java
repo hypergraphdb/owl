@@ -1,14 +1,6 @@
 package org.hypergraphdb.app.owl.test.versioning;
 
-import static org.hypergraphdb.app.owl.test.TU.aInstanceOf;
-import static org.hypergraphdb.app.owl.test.TU.aProp;
-import static org.hypergraphdb.app.owl.test.TU.aSubclassOf;
-import static org.hypergraphdb.app.owl.test.TU.declare;
-import static org.hypergraphdb.app.owl.test.TU.dprop;
-import static org.hypergraphdb.app.owl.test.TU.individual;
-import static org.hypergraphdb.app.owl.test.TU.literal;
-import static org.hypergraphdb.app.owl.test.TU.oprop;
-import static org.hypergraphdb.app.owl.test.TU.owlClass;
+import static org.hypergraphdb.app.owl.test.TU.*;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -21,6 +13,7 @@ import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.test.TU;
+import org.hypergraphdb.app.owl.util.OntologyComparator;
 import org.hypergraphdb.app.owl.versioning.ChangeLink;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
@@ -103,8 +96,14 @@ public class VersionedOntologiesTestData
 		return true;
 	}
 	
+	public static boolean compareWorkingSets(VersionedOntology left, VersionedOntology right)
+	{
+		OntologyComparator comp = new OntologyComparator();
+		return !comp.compare(left.ontology(), right.ontology()).hasChanges();
+	}
 	/**
-	 * Full revision graph comparison.
+	 * Full revision graph comparison. Not that this won't compare the working copies, only the
+	 * revision graphs!
 	 * 
 	 * @param left
 	 * @param right
@@ -181,15 +180,15 @@ public class VersionedOntologiesTestData
 			ctx.vr = new VersionManager(ctx.graph, "testuser");
 			ctx.vo = ctx.vr.versioned(ctx.graph.getHandle(ctx.o));
 			Revision initialRevision = ctx.vo.revision();
-			declare(owlClass("User"));
-			declare(owlClass("Employee"));
+			a(declare(owlClass("User")));
+			a(declare(owlClass("Employee")));
 			aSubclassOf(owlClass("User"), owlClass("Employee"));
 			Revision revision1 = ctx.vo.commit("anonymous", "First version");
 			
-			declare(individual("Pedro"));
+			a(declare(individual("Pedro")));
 			aInstanceOf(owlClass("Employee"), individual("Pedro"));
 			aSubclassOf(owlClass("User"), owlClass("Customer"));
-			declare(owlClass("LoyalCustomer"));
+			a(declare(owlClass("LoyalCustomer")));
 			
 			aSubclassOf(owlClass("Customer"), owlClass("LoyalCustomer"));
 			aInstanceOf(owlClass("LoyalCustomer"), individual("Mary"));
@@ -197,7 +196,7 @@ public class VersionedOntologiesTestData
 			
 			aInstanceOf(owlClass("Customer"), individual("John"));
 			aInstanceOf(owlClass("Employee"), individual("Fred"));
-			declare(oprop("isServing"));		
+			a(declare(oprop("isServing")));		
 			aProp(oprop("isServing"), individual("Fred"), individual("Tom"));
 			// no changes between last flush and the creation of a new revision
 			Revision revision2 = ctx.vo.commit("administrator", "Second version by admin");		

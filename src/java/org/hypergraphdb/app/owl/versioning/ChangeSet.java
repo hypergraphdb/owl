@@ -203,6 +203,10 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 		}, HGTransactionConfig.READONLY);
 	}
 
+	/**
+	 * <p>Return a copy of the list of changes in this change set. Because a copy
+	 * is returned, one is free to modify the resulting list as one pleases.</p> 
+	 */
 	public List<VChange<V>> changes()
 	{
 		return graph.getTransactionManager().ensureTransaction(new Callable<List<VChange<V>>>()

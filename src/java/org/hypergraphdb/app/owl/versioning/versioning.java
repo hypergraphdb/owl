@@ -42,7 +42,7 @@ public class versioning
 	 */
 	public static boolean isPrior(HyperGraph graph, HGHandle preceeding, HGHandle subsequent)
 	{
-		return hg.findAll(graph, hg.dfs(preceeding, hg.type(ChangeLink.class), null, true, false))
+		return hg.findAll(graph, hg.dfs(preceeding, hg.type(ChangeLink.class), null, false, true))
 				 .contains(subsequent);
 	}
 	

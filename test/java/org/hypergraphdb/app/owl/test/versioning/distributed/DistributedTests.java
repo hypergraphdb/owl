@@ -1,11 +1,7 @@
 package org.hypergraphdb.app.owl.test.versioning.distributed;
 
-import static org.hypergraphdb.app.owl.test.TU.aInstanceOf;
-import static org.hypergraphdb.app.owl.test.TU.aSubclassOf;
-import static org.hypergraphdb.app.owl.test.TU.individual;
-import static org.hypergraphdb.app.owl.test.TU.owlClass;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.hypergraphdb.app.owl.test.TU.*;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.util.concurrent.ExecutionException;
@@ -23,12 +19,15 @@ import org.hypergraphdb.app.owl.test.versioning.TestContext;
 import org.hypergraphdb.app.owl.test.versioning.VersionedOntologiesTestData;
 import org.hypergraphdb.app.owl.test.versioning.VersioningTestBase;
 import org.hypergraphdb.app.owl.util.ImplUtils;
+import org.hypergraphdb.app.owl.util.OntologyComparator;
 import org.hypergraphdb.app.owl.versioning.Branch;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.versioning;
+import org.hypergraphdb.app.owl.versioning.change.VAxiomChange;
+import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.app.owl.versioning.distributed.RemoteOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.GetNewRevisionsActivity;
@@ -168,17 +167,57 @@ public class DistributedTests extends VersioningTestBase
 	{
 		TU.ctx.set(ctx1);
 		VersionedOntologiesTestData.revisionGraph_1(iri_prefix + "peer1data", null);
-		HGHandle sourceOntoHandle = TU.ctx().o.getAtomHandle();
+		HGHandle sourceOntoHandle = TU.ctx().o.getAtomHandle();		
+		VersionedOntology vo1 = vm1.versioned(sourceOntoHandle);
+		 // we need something in working set to test it's not cloned
+		assertFalse(vo1.changes().changes().isEmpty());
 		RemoteOntology remoteOnto = repo2.remoteOnto(sourceOntoHandle, repo2.remoteRepo(peer1.getIdentity()));
 		VersionUpdateActivity activity = new VersionUpdateActivity(peer2)
 			.remoteOntology(ctx2.graph.getHandle(remoteOnto))
 			.action(VersionUpdateActivity.ActionType.clone.name());
 		peer2.getActivityManager().initiateActivity(activity).get();
 		assertEquals(WorkflowState.Completed, activity.getState());
-		assertTrue(VersionedOntologiesTestData.compareOntologies(vm1.versioned(sourceOntoHandle), 
+		
+		VersionedOntology vo2 = vm2.versioned(sourceOntoHandle);
+		assertTrue(VersionedOntologiesTestData.compareOntologies(vo1, 
 																 vm1.graph(), 
-																 vm2.versioned(sourceOntoHandle), 
+																 vo2, 
 																 vm2.graph()));
+		// working set changes should not be cloned!
+		OntologyComparator.ComparatorDelta delta = OntologyComparator.compare(vo1.ontology(), vo2.ontology());
+		assertTrue(delta.hasChanges());
+	}
+	
+	@Test public void testCloneSmall() throws Exception
+	{
+		TU.ctx.set(ctx1);
+		ctx1.o = (HGDBOntology)ctx1.m.createOntology(IRI.create(iri_prefix + "peer1data")); 
+		ctx1.vr = new VersionManager(ctx1.graph, "testuser");
+		ctx1.vo = ctx1.vr.versioned(ctx1.graph.getHandle(ctx1.o));		
+		a(declare(owlClass("User")));		
+		HGHandle sourceOntoHandle = TU.ctx().o.getAtomHandle();		
+		VersionedOntology vo1 = vm1.versioned(sourceOntoHandle);
+		vo1.commit("test", "version 1");
+		a(declare(owlClass("Employee")));		
+		 // we need something in working set to test it's not cloned
+		assertFalse(vo1.changes().changes().isEmpty());
+		RemoteOntology remoteOnto = repo2.remoteOnto(sourceOntoHandle, repo2.remoteRepo(peer1.getIdentity()));
+		VersionUpdateActivity activity = new VersionUpdateActivity(peer2)
+			.remoteOntology(ctx2.graph.getHandle(remoteOnto))
+			.action(VersionUpdateActivity.ActionType.clone.name());
+		peer2.getActivityManager().initiateActivity(activity).get();
+		assertEquals(WorkflowState.Completed, activity.getState());
+		
+		VersionedOntology vo2 = vm2.versioned(sourceOntoHandle);
+		assertTrue(VersionedOntologiesTestData.compareOntologies(vo1, 
+																 vm1.graph(), 
+																 vo2, 
+																 vm2.graph()));
+		// working set changes should not be cloned!				
+		OntologyComparator.ComparatorDelta delta = OntologyComparator.compare(vo1.ontology(), vo2.ontology());
+		assertEquals(1, delta.getRemovedAxioms().size());
+		assertEquals(delta.getRemovedAxioms().get(0),
+					 ((VAxiomChange)vo1.changes().changes().get(0)).getAxiom());
 	}
 	
 	/**
@@ -404,7 +443,7 @@ public class DistributedTests extends VersioningTestBase
 		Result result = null;
 		do
 		{
-			result = junit.run(Request.method(DistributedTests.class, "testCloneWithBranches"));
+			result = junit.run(Request.method(DistributedTests.class, "testCloneSmall"));
 		} while (false && result.getFailureCount() == 0);
 		System.out.println("Failures " + result.getFailureCount());
 		if (result.getFailureCount() > 0)

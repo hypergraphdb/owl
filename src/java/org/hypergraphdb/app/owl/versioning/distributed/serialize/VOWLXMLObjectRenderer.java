@@ -136,9 +136,8 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		}
 		
 		if (configuration.revisionSnapshot() != null)
-		{
-			OWLOntologyEx ontologyData = vo.getCurrentRevision().equals(configuration.revisionSnapshot()) ?
-					vo.ontology() : vo.getRevisionData(configuration.revisionSnapshot());
+		{ 
+			OWLOntologyEx ontologyData = vo.getRevisionData(configuration.revisionSnapshot());
 			// Render Ontology Data
 			writer.startOntologyData(ontologyData);
 			ontologyData.accept(owlObjectRenderer);

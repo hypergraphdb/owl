@@ -23,7 +23,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
  */
 public class OntologyComparator {
 
-		public ComparatorDelta compare(OWLOntology from, OWLOntology to) {
+		public static ComparatorDelta compare(OWLOntology from, OWLOntology to) {
 			ComparatorDelta result = new ComparatorDelta();
 			// Compare Axioms
 			Set<OWLAxiom> fromAxioms = from.getAxioms();
