@@ -134,7 +134,10 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 				if (changeHandle == null)
 					throw new IllegalArgumentException("Can't remove change that's not in the database - " + change);
 				if (changes.remove(changeHandle))
+				{
+					graph.remove(changeHandle);
 					graph.update(ChangeSet.this);
+				}
 				return null;
 			}
 		});
@@ -157,7 +160,7 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 				for (int i : indices)
 				{
 					i = i - removedChanges;
-					changes.remove(i);
+					graph.remove(changes.remove(i));
 					removedChanges++;
 				}
 				graph.update(ChangeSet.this);
@@ -167,6 +170,29 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 		return this;
 	}
 
+	/**
+	 * <p>
+	 * Delete this <code>ChagneSet</code> and all individual {@link VChange}s
+	 * in it from the database.
+	 * </p>
+	 * 
+	 * @return <code>this</code>
+	 */
+	public ChangeSet<V> drop()
+	{
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>()
+		{
+			public Object call()
+			{
+				for (HGHandle change : changes)
+					graph.remove(change);;
+				graph.remove(thisHandle, true);
+				return null;
+			}
+		});
+		return this;
+	}
+	
 	public VOWLChange getAt(int index)
 	{
 		return graph.get(changes.get(index));

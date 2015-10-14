@@ -1,6 +1,5 @@
 package org.hypergraphdb.app.owl.versioning;
 
-import java.util.List;
 import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
@@ -95,32 +94,10 @@ public interface Versioned<T extends Versioned<T>> extends HGHandleHolder
 	 * <code>null</code> if there are less than two revision arguments provided. 
 	 */
 	Revision merge(final String user, final String comment, Revision...revisions);
-	
-	/**
-	 * <p>
-	 * Flush (commit) all working changes to create a change mark point.
-	 * This basically resets the working changes to nothing and creates a
-	 * point to which the versioned object can be rolled back. 
-	 * </p>
-	 * 
-	 * <p>
-	 * This operation is usually invoked by the framework when a new revision is
-	 * being created.
-	 * </p>
-	 */
-//	ChangeRecord flushChanges();
-	
+		
 	/**
 	 * Return the latest working changes. Those are the changes that will
 	 * be committed if the {@link flushChanges} method is called.
 	 */
 	ChangeSet<T>  changes();
-
-	/**
-	 * Return the changes that produced the specified {@link Revision}.
-	 * 
-	 * @param revision The revision.
-	 * @return
-	 */
-	List<ChangeSet<T>> changes(Revision revision);
 }

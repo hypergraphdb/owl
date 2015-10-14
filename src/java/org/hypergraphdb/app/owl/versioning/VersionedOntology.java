@@ -1,6 +1,5 @@
 package org.hypergraphdb.app.owl.versioning;
 
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -28,10 +27,8 @@ import org.hypergraphdb.app.owl.core.OWLTempOntologyImpl;
 import org.hypergraphdb.app.owl.versioning.change.VChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.query.IndexCondition;
-import org.hypergraphdb.util.HGUtils;
 import org.hypergraphdb.util.Mapping;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
-import org.semanticweb.owlapi.model.OWLOntologyID;
 
 /**
  * <p>
@@ -54,109 +51,8 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	private HGHandle bottomRevision;
 	private HGHandle currentRevision;
 	private HGHandle workingChanges;
-	private VersionedMetadata<VersionedOntology> metadata;
-		
-	/**
-	 * Get all change marks applied after the revision argument. 
-	 * 
-	 * @return The list of change mark handles.
-	 */
-//	private List<HGHandle> marksFrom(HGHandle revisionHandle)
-//	{
-//		ArrayList<HGHandle> L = new ArrayList<HGHandle>(); 
-//		HGHandle lastMark = getRevisionMark(revisionHandle).changeRecord();
-//		HGSearchResult<HGHandle> rs = graph.find(hg.dfs(lastMark, 
-//				hg.type(ChangeLink.class), null, true, false));		
-//		try
-//		{
-//			while (rs.hasNext())
-//			{
-//				lastMark = rs.next();
-//				L.add(lastMark);
-//			}
-//		}
-//		finally
-//		{
-//			rs.close();
-//		}
-//		return L;
-//	}
-	
-	/**
-	 * Return the {@link RevisionMark} for a revision
-	 * that asserts what change mark created the given revision for this ontology that.
-	 * 
-	 * @param revisionHandle The handle of the revision whose {@link ChangeRecord} 
-	 * association is desired.
-	 */
-//	public RevisionMark getRevisionMark(HGHandle revisionHandle)
-//	{
-//		List<RevisionMark> L = graph.getAll(hg.and(hg.type(RevisionMark.class), hg.incident(revisionHandle)));
-//		for (RevisionMark markLink : L)
-//		{
-//			ChangeRecord mark = graph.get(markLink.changeRecord());
-//			if (mark.versioned().equals(ontology))
-//				return markLink;
-//		}
-//		return null;
-//	}
-	
-	/**
-	 * Return the latest {@link ChangeRecord} representing the last change flush operation.
-	 */
-//	public ChangeRecord latestChangeRecord()
-//	{
-//		HGHandle handleCurrent = getRevisionMark(currentRevision).changeRecord();
-//		
-//		// Traverse to find the most recent change mark, the "youngest"
-//		// descendent of the ChangeRecord that created the current revision.
-//		HGSearchResult<HGHandle> rs = graph.find(hg.dfs(handleCurrent, 
-//							hg.type(ChangeLink.class), null, true, false));
-//		try
-//		{
-//			while (rs.hasNext())
-//				handleCurrent = rs.next();
-//		}
-//		finally
-//		{
-//			rs.close();
-//		}
-//		return graph.get(handleCurrent);
-//	}
-	
-	/**
-	 * Collect all {@link ChangeRecord}s between two adjacent revisions.
-	 * 
-	 * @param startRevision The parent revision
-	 * @param endRevision The child revision
-	 * @return A list of ChangeRecord handles.
-	 */
-//	public List<HGHandle> marksBetweenAdjacent(HGHandle startRevision, HGHandle endRevision)
-//	{
-//		ArrayList<HGHandle> L = new ArrayList<HGHandle>();
-//		if (startRevision.equals(endRevision))
-//			return L; 
-//		HGHandle lastMark = getRevisionMark(startRevision).changeRecord();
-//		HGSearchResult<HGHandle> rs = graph.find(hg.dfs(lastMark, 
-//				hg.type(ChangeLink.class), null, true, false));		
-//		try
-//		{
-//			while (rs.hasNext())
-//			{
-//				lastMark = rs.next();
-//				L.add(lastMark);
-//				if (graph.findOne(hg.and(hg.type(RevisionMark.class), 
-//								         hg.link(lastMark, endRevision))) != null)
-//					break;
-//			}
-//		}
-//		finally
-//		{
-//			rs.close();
-//		}
-//		return L;		
-//	}
-	
+	private VersionedMetadata<VersionedOntology> metadata;	
+
 	/**
 	 * Constructs a list of changes to be applied from <code>from</code>
 	 * to reach the state of <code>to</code>. The list is constructed along the shortest
@@ -519,22 +415,25 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	}
 	
 	/**
-	 * Freeze the latest working changes on this ontology as an immutable change set.
-	 * Thus a new {@link ChangeRecord} is created as a result of the flush operation and
-	 * made a child (via a {@link ParentLink} link) to the most recent such ChangeRecord.  
+	 * <p>
+	 * Undo the changes introduced by the given revision. This operation only makes
+	 * sense when talking about the changes between two consecutive revisions. 
+	 * </p> 
+	 * <p>
+	 * This operation will create a new revision in the current branch (if any), automatically 
+	 * constructing the change set that will reverse the change made from parent to child. 
+	 * </p>
+	 * 
+	 * @param parent
+	 * @param child
+	 * @return The newly created revision.
 	 */
-//	public ChangeRecord flushChanges()
-//	{ 
-//		ChangeRecord current = latestChangeRecord();
-//		ChangeRecord newmark = new ChangeRecord(ontology, workingChanges);
-//		newmark.setTimestamp(System.currentTimeMillis());
-//		HGHandle markHandle = graph.add(newmark);
-//		graph.add(new ParentLink(markHandle, current.getAtomHandle()));
-//		workingChanges = graph.add(new ChangeSet<VersionedOntology>());
-//		graph.update(this);
-//		return newmark;
-//	}
-
+	public Revision undo(HGHandle parent, HGHandle child, String user, String comment)
+	{
+		// TODO
+		throw new UnsupportedOperationException();
+	}
+	
 	/**
 	 * Return the working {@link ChangeSet} which holds the set of changes since the last
 	 * commit or flush (see {@link #flushChanges()}.
@@ -543,33 +442,6 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	public ChangeSet<VersionedOntology> changes()
 	{
 		return graph.get(workingChanges);
-	}
-
-//	@SuppressWarnings("unchecked")
-//	private void changes(ChangeRecord from, List<ChangeSet<VersionedOntology>> L)
-//	{
-//		L.add((ChangeSet<VersionedOntology>)graph.get(from.changeset()));		
-//		for (HGHandle h : from.parents())
-//		{
-//			ChangeRecord parentMark = graph.get(h);
-//			if (parentMark.revision() == null)
-//				changes(parentMark, L);
-//		}
-//	}
-	
-	/**
-	 * Return the set of changes that let to that revision. TODO: the premise here is flawed because
-	 * the changes depend on the parent revision. This makes sense only on a linear order. 
-	 * When the revision is the result of a merge, the changes could be the merged changes
-	 * from the common ancestor or any of the inferred changes from any of the parent revisions.
-	 */
-	public List<ChangeSet<VersionedOntology>> changes(Revision revision)
-	{
-		//ArrayList<ChangeSet<VersionedOntology>> L = new ArrayList<ChangeSet<VersionedOntology>>();
-//		ChangeRecord mark = graph.get(getRevisionMark(graph.getHandle(revision)).changeRecord());
-//		changes(mark, L);
-		//return L;
-		throw new UnsupportedOperationException();
 	}
 
 	public List<Revision> revisions()
@@ -683,6 +555,86 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		});
 	}
 	
+	private void dropChange(HGHandle from, HGHandle to)
+	{
+		ChangeLink changeLink = graph.getOne(hg.and(hg.type(ChangeLink.class),
+				hg.link(from, to)));		
+		ChangeSet<VersionedOntology> cs = graph.get(changeLink.change());
+		cs.drop();
+		graph.remove(changeLink.getAtomHandle());
+	}
+	
+	/**
+	 * <p>
+	 * Delete a head revision from the revision graph as if it never existed. Once deleted,
+	 * the revision can only be recovered by pulling it from somewhere else, if available.
+	 * Thus if a locally created revision that was never pushed to another repository is
+	 * deleted, the changes will be completely lost.  
+	 * </p>
+	 * <p>
+	 * This method is useful to especially in the latter case: if a revision was created locally
+	 * by mistake, it can be dropped with no further consequences. If it was pushed somewhere, then
+	 * since a next pull will bring it back, one must deleted first from all locations where it was
+	 * replicated.
+	 * </p>
+	 * 
+	 * @param revision
+	 * @return
+	 */
+	public VersionedOntology dropHeadRevision(final HGHandle revisionHandle)
+	{
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>() {
+		public Object call()
+		{
+			boolean isNewBranch = true; // did the revision we are deleting introduced a new branch
+			Revision revision = graph.get(revisionHandle);
+			if (revision == null)
+				throw new IllegalArgumentException("Revision " + revisionHandle + " not found.");
+			Set<HGHandle> parents = revision.parents();
+			if (parents.size() == 0)
+				throw new IllegalArgumentException("Cannot delete root revision.");
+			else if (parents.size() > 1)
+			{
+				// we can only delete if no two parents are on the same branch because we don't
+				// allow multiple heads per branch
+				HashSet<HGHandle> parentBranches = new HashSet<HGHandle>();
+				for (HGHandle parentHandle : parents)
+				{
+					Revision parent = graph.get(parentHandle);
+					if (parent.branchHandle() != null)
+					{
+						if (parentBranches.contains(parent.branchHandle()))
+							throw new IllegalArgumentException("Cannot delete merge revision because it will "
+									+ "result in multiple heads for branch " + parent.branch().getName() + ".");
+						else
+							parentBranches.add(parent.branchHandle());
+						if (parent.branchHandle().equals(revision.branchHandle()))
+							isNewBranch = false;
+					}
+				}
+				for (HGHandle parentHandle : parents)
+					dropChange(parentHandle, revisionHandle);
+			}
+			else
+			{
+				Revision parent = graph.get(parents.iterator().next());
+				isNewBranch = revision.branchHandle() != null && 
+							!revision.branchHandle().equals(parent.branchHandle());
+				dropChange(parent.getAtomHandle(), revisionHandle);
+			}
+			if (!graph.getIncidenceSet(revisionHandle).isEmpty())
+				throw new IllegalArgumentException("The revision " + revision + 
+								" still has references to it and cannot be deleted.");		
+			graph.remove(revisionHandle, true);
+			// If the child introduced a new branch, we delete the branch as well
+			if (isNewBranch)
+				metadata().dropBranch(revision.branchHandle());
+			
+			return null;
+		}});
+		return this;
+	}
+	
 	public OWLOntologyEx getRevisionData(HGHandle revisionHandle)
 	{
 		HGDBOntologyManager manager = HGOntologyManagerFactory.getOntologyManager(graph.getLocation());		
@@ -707,24 +659,10 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	public Set<HGHandle> heads()
 	{
 		HashSet<HGHandle> result = new HashSet<HGHandle>();
-//		// This is rather inefficient...we are traversing the whole revision graph to get to the end.
-//		// We should have some more efficient query to start from the "leafs" somehow. That will probably
-//		// entail an adjustment of the representation.
-//		HGSearchResult<HGHandle> rs = graph.find(hg.bfs(this.getRootRevision(), hg.type(ParentLink.class), null));
-		HGSearchResult<HGPersistentHandle> rs = TrackRevisionStructure.revisionChildIndex(graph).find(getBottomRevision().getPersistent());
-		try
+		try (HGSearchResult<HGPersistentHandle> rs = TrackRevisionStructure.revisionChildIndex(graph).find(getBottomRevision().getPersistent()))
 		{
 			while (rs.hasNext())
-			{
-//				HGHandle rev = rs.next();
-//				if (graph.findAll(hg.and(hg.type(ParentLink.class), 
-//										 hg.orderedLink(hg.anyHandle(), rev))).isEmpty())
-					result.add(rs.next());				
-			}
-		}
-		finally
-		{
-			HGUtils.closeNoException(rs);
+				result.add(rs.next());				
 		}
 		return result;
 	}

@@ -1,7 +1,6 @@
 package org.hypergraphdb.app.owl.versioning.distributed.activity;
 
 import static org.hypergraphdb.peer.Messages.CONTENT;
-
 import static org.hypergraphdb.peer.Messages.getReply;
 import static org.hypergraphdb.peer.Messages.getSender;
 import static org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer.OBJECTCONTEXT_REPOSITORY;
@@ -21,6 +20,7 @@ import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.versioning;
 import org.hypergraphdb.app.owl.versioning.change.VChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChangeFactory;
@@ -141,22 +141,14 @@ public class GetRemoteOntologyChangesetActivity extends FSMActivity
 					{
 						VersionedOntology vo = versionManager.versioned(o.getAtomHandle());
 						OWLOntology onto = vo.ontology();
-						List<ChangeSet<VersionedOntology>> csList = vo.changes(revision);// .getChangeSet(revisionID);
+						ChangeSet<VersionedOntology> cs = versioning.changes(graph, revision.getAtomHandle(), 
+										revision.parents().iterator().next()); //vo.changes(revision);// .getChangeSet(revisionID);
 						// Render Changes and send
 						List<String> renderedChanges = new LinkedList<String>();
-						for (ChangeSet<VersionedOntology> cs : csList)
+						for (VChange<VersionedOntology> voc : cs.changes())
 						{
-							for (VChange<VersionedOntology> voc : cs.changes())
-							{
-								OWLOntologyChange change = VOWLChangeFactory.create((VOWLChange)voc, onto, graph);
-								renderedChanges.add(change.toString());
-							}
-						}
-						if (csList.isEmpty())
-						{
-							// Ontology but not changeset
-							throw new RuntimeException(new VOWLException("Source ontology exists but changeset not for revision "
-									+ revision + " not found"));
+							OWLOntologyChange change = VOWLChangeFactory.create((VOWLChange)voc, onto, graph);
+							renderedChanges.add(change.toString());
 						}
 						reply = getReply(msg, Performative.Inform);
 						reply.set(CONTENT, renderedChanges);

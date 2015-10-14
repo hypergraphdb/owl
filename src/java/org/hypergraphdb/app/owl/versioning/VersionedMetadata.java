@@ -150,6 +150,29 @@ public class VersionedMetadata<T extends Versioned<T>>
 	}
 
 	/**
+	 * <p>
+	 * Deletes a branch permanently. This is an irreversible modification intended to be
+	 * used only locally when the branch has not been propagated remotely.  
+	 * </p>
+	 * @param branch
+	 * @return <code>this</code>
+	 */
+	public VersionedMetadata<T> dropBranch(final HGHandle branch)
+	{
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>(){
+			public Object call()
+			{
+				if (!graph.getIncidenceSet(branch).isEmpty())
+					throw new IllegalArgumentException("Branch " + 
+										branch + " still has references to it and cannot be deleted.");
+				graph.remove(branch);
+				return null;
+			}
+		});
+		return this;
+	}
+	
+	/**
 	 * Return a collection of all branches for this versioned object.
 	 */
 	public Collection<Branch> allBranches()

@@ -51,7 +51,7 @@ public class VersioningTests extends VersioningTestBase
 	public static void main(String []argv)
 	{
 		JUnitCore junit = new JUnitCore();
-		Result result = junit.run(Request.method(VersioningTests.class, "testSimpleMerge"));
+		Result result = junit.run(Request.method(VersioningTests.class, "testDeleteRevisionLinear"));
 		System.out.println("Failures " + result.getFailureCount());
 		if (result.getFailureCount() > 0)
 		{
@@ -241,4 +241,38 @@ public class VersioningTests extends VersioningTestBase
 										ctx.graph.getHandle(B2)),
 							merged.parents());
 	}
+		
+	@Test
+	public void testDeleteRevisionLinear()
+	{
+		declare(owlClass("ClassCommit"));
+		declare(owlClass("ClassChangePush"));
+		aSubclassOf(owlClass("ClassCommit"), owlClass("ClassChangePush"));
+		ctx.vonto().commit("test", "first changes");
+		Revision r1 = ctx.vonto().revision();				
+		declare(owlClass("User"));
+		declare(oprop("hasAuthor"));
+		aInstanceOf(owlClass("User"), individual("Veve"));
+		Revision r2 = ctx.vonto().commit("test", "branch 1");		
+		assertEquals(ctx.vonto().revision().branchHandle(), 
+					 ctx.vonto().metadata().findBranch("branch 1").getAtomHandle());
+		ctx.vonto().dropHeadRevision(r2.getAtomHandle());
+		assertEquals(r1.getAtomHandle(), ctx.vonto().getCurrentRevision());
+		assertNull(ctx.vonto().metadata().findBranch("branch 1"));
+	}
+	
+	@Test
+	public void testDeleteRevisionMultipleParents()
+	{
+		// Delete possible here because each parent from different branch.
+		throw new RuntimeException("TODO");
+	}
+	
+	@Test
+	public void testDeleteRevisionMultipleParentsForbidden()
+	{
+		// Delete impossible because two parents have the same branch.
+		throw new RuntimeException("TODO");
+	}
+	
 }
