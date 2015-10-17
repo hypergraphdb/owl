@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl.versioning.distributed;
 
 import java.util.Set;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -17,7 +18,6 @@ import org.hypergraphdb.app.owl.versioning.distributed.activity.BrowseRepository
 import org.hypergraphdb.app.owl.versioning.distributed.activity.GetNewRevisionsActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.GetRemoteOntologyChangesetActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.GetRemoteOntologyRevisionsActivity;
-import org.hypergraphdb.app.owl.versioning.distributed.activity.PushActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.VersionUpdateActivity;
 import org.hypergraphdb.peer.HGPeerIdentity;
 import org.hypergraphdb.peer.HyperGraphPeer;
@@ -122,16 +122,9 @@ public class OntologyDatabasePeer extends OntologyDatabase
 		{
 			e.printStackTrace();
 		}
-		// Bootstrap Push:
-		// Important: to cause static initialization.
-		if (PushActivity.ReceivingInitial == null)
-		{
-		}
 		
 		peer.get().getActivityManager().registerActivityType(VersionUpdateActivity.TYPENAME, VersionUpdateActivity.initializedClass());
 		peer.get().getActivityManager().registerActivityType(GetNewRevisionsActivity.TYPENAME, GetNewRevisionsActivity.class);		
-//		peer.getActivityManager().registerActivityType(PushActivity.TYPENAME, PushActivity.class);
-//		peer.getActivityManager().registerActivityType(PullActivity.TYPENAME, PullActivity.class);
 		peer.get().getActivityManager().registerActivityType(BrowseRepositoryActivity.TYPENAME, BrowseRepositoryActivity.class);
 		peer.get().getActivityManager().registerActivityType(GetRemoteOntologyRevisionsActivity.TYPENAME,
 				GetRemoteOntologyRevisionsActivity.class);

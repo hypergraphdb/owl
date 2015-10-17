@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl.versioning;
 
 import java.util.HashSet;
+
 import java.util.List;
 import java.util.Set;
 
@@ -12,7 +13,6 @@ import org.hypergraphdb.algorithms.DefaultALGenerator;
 import org.hypergraphdb.algorithms.HGBreadthFirstTraversal;
 import org.hypergraphdb.algorithms.HGTraversal;
 import org.hypergraphdb.query.HGAtomPredicate;
-import org.hypergraphdb.util.HGUtils;
 import org.hypergraphdb.util.Pair;
 import org.hypergraphdb.util.SimpleStack;
 
@@ -150,10 +150,9 @@ public class OntologyVersionState implements VersionState<VersionedOntology>
 			// A pending revision is one where we couldn't determine for sure in the previous phase whether
 			// it's a new or not. So we traverse all its descendants and if we hit a head from version
 			// state we are comparing against, then no it's not new, otherwise it's new and all of its
-			// descendants are new so we add them to delta.
-			HGSearchResult<HGHandle> successors = graph.find(hg.bfs(revisionHandle, hg.type(ChangeLink.class), hg.type(Revision.class)));
-			HashSet<HGHandle> accumulate = new HashSet<HGHandle>();
-			try
+			// descendants are new so we add them to delta.			
+			HashSet<HGHandle> accumulate = new HashSet<HGHandle>();							
+			try (HGSearchResult<HGHandle> successors = graph.find(hg.bfs(revisionHandle, hg.type(ChangeLink.class), hg.type(Revision.class))))
 			{
 				while (successors.hasNext())
 				{
@@ -165,10 +164,6 @@ public class OntologyVersionState implements VersionState<VersionedOntology>
 					else
 						accumulate.add(revisionHandle);
 				}
-			}
-			finally
-			{
-				HGUtils.closeNoException(successors);
 			}
 			if (accumulate != null)
 			{

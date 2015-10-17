@@ -253,7 +253,8 @@ public class VersioningTests extends VersioningTestBase
 		declare(owlClass("User"));
 		declare(oprop("hasAuthor"));
 		aInstanceOf(owlClass("User"), individual("Veve"));
-		Revision r2 = ctx.vonto().commit("test", "branch 1");		
+		Revision r2 = ctx.vonto().commit("test", "second changes", "branch 1");
+		assertNotNull(ctx.vonto().metadata().findBranch("branch 1"));
 		assertEquals(ctx.vonto().revision().branchHandle(), 
 					 ctx.vonto().metadata().findBranch("branch 1").getAtomHandle());
 		ctx.vonto().dropHeadRevision(r2.getAtomHandle());

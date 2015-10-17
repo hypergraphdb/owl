@@ -101,7 +101,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		
 		HashSet<ChangeLink> changeLinks = new HashSet<ChangeLink>();
 		HashSet<HGHandle> visited = new HashSet<HGHandle>();		
-		for (HGHandle revisionHandle : revisions)
+		if (revisions != null) for (HGHandle revisionHandle : revisions)
 		{
 			Revision revision = graph.get(revisionHandle);
 			visit(revision);

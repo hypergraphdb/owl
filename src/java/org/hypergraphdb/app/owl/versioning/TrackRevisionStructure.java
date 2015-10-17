@@ -1,12 +1,8 @@
 package org.hypergraphdb.app.owl.versioning;
 
-import java.util.HashSet;
 import java.util.concurrent.Callable;
-
-import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGIndex;
 import org.hypergraphdb.HGPersistentHandle;
-import org.hypergraphdb.HGSearchResult;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.event.HGAtomAddedEvent;
 import org.hypergraphdb.event.HGAtomRemovedEvent;
@@ -57,7 +53,7 @@ public class TrackRevisionStructure
 				Revision revision = (Revision)atom;
 				VersionedOntology versioned = graph.get(revision.versioned());	
 				if (versioned == null)
-					System.out.println("oops no versioned for revision");
+					throw new IllegalArgumentException("BUG: No versioned for revision.");
 /*				else if (versioned.getBottomRevision() == null)
 					System.out.println("oops not bottom revision for versioned"); */
 //				System.out.println("Current HEAD 1: " + versioned.heads());

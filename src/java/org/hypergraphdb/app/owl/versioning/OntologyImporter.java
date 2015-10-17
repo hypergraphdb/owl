@@ -82,7 +82,7 @@ public class OntologyImporter
 		}
 		System.out.print("  Starting repository... ");
 		OntologyDatabasePeer dr = null;
-		HGDBOntologyManager manager = new HGOntologyManagerFactory().getOntologyManager(targetRepo.getAbsolutePath());
+		HGDBOntologyManager manager = HGOntologyManagerFactory.getOntologyManager(targetRepo.getAbsolutePath());
 		dr = (OntologyDatabasePeer) manager.getOntologyRepository();
 		System.out.println("done. ");
 		System.out.print("  Scanning directory... ");

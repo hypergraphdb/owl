@@ -560,6 +560,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		ChangeLink changeLink = graph.getOne(hg.and(hg.type(ChangeLink.class),
 				hg.link(from, to)));		
 		ChangeSet<VersionedOntology> cs = graph.get(changeLink.change());
+		cs.reverseApply(this);
 		cs.drop();
 		graph.remove(changeLink.getAtomHandle());
 	}
@@ -629,7 +630,8 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 			// If the child introduced a new branch, we delete the branch as well
 			if (isNewBranch)
 				metadata().dropBranch(revision.branchHandle());
-			
+			currentRevision = parents.iterator().next();		
+			graph.update(VersionedOntology.this);			
 			return null;
 		}});
 		return this;
