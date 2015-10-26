@@ -27,12 +27,41 @@ import org.hypergraphdb.util.Pair;
 public class versioning
 {
 	/**
+	 * <p>
+	 * Return the parent revision that is from the same branch as the passed in revision.
+	 * </p>
+	 * @param revision The child revision whose same-branch parent is desired.
+	 * @return the parent on the same branch or <code>null</code> if <code>revision</code> is the very
+	 * first revision on that branch. If <code>revision</code> has no branch, then the first  parent with
+	 * anonymous branch as well is returned. 
+	 */
+	public static Revision parentInSameBranch(Revision revision)
+	{
+		HGHandle branch = revision.branchHandle();
+		for (HGHandle parentHandle : revision.parents())
+		{
+			Revision parent = revision.graph().get(parentHandle);
+			if (branch == null)
+			{
+				if (parent.branchHandle() == null)
+					return parent;
+			}
+			else if (branch.equals(parent.branchHandle()))
+				return parent;
+		}
+		return null;
+	}
+	
+	/**
 	 * Return the changes necessary to go from parent to revision.
 	 */
 	public static <V extends Versioned<V>> ChangeSet<V> changes(HyperGraph graph, HGHandle revision, HGHandle parent)
 	{
 		ChangeLink link = graph.getOne(hg.and(hg.type(ChangeLink.class),
 										   	  hg.orderedLink(parent, hg.anyHandle(), revision)));
+		if (link == null)
+			throw new NullPointerException("No connection between " + graph.get(revision) + 
+							" and " + graph.get(parent));
 		return graph.get(link.change());
 	}
 	
@@ -225,10 +254,19 @@ public class versioning
 		}
 	}
 	
+	static String fixedLengthText(String s, int length)
+	{
+		if (s.length() > length)
+			return s.substring(0, length);
+		else while (s.length() < length)
+			s = (s.length() % 2 == 0) ? (s + " ") : (" " + s);
+		return s;
+	}
+	
 	public static void printRevisionGraph(VersionedOntology versioned)
 	{
 		HyperGraph graph = versioned.graph();
-		int width = 5;
+		int width = 3;
 		String hspace = "        ";
 		int idlength = 8; // graph.getHandleFactory().nullHandle().toString().length();
 		int vspace = 5;// graph.getHandleFactory().nullHandle().toString().length();
@@ -246,7 +284,8 @@ public class versioning
 			String line = "";
 			for (HGHandle current : data)
 			{
-				line += current.toString().substring(0, 8);
+				Revision rev = graph.get(current);
+				line += fixedLengthText(rev.comment() == null ? current.toString() : rev.comment(), 8); //current.toString().substring(0, 8);
 				Pair<Integer, Integer> C = new Pair<Integer, Integer>(line.length() - idlength / 2, lineIndex);
 				coordinates.put(current, C);
 				line += hspace;
@@ -263,10 +302,12 @@ public class versioning
 			HGHandle [] data = layers.get(i + 1);
 			for (HGHandle current : data)
 			{
-				List<HGHandle> parents = graph.findAll(hg.apply(
-						hg.targetAt(graph, 1), 
-						hg.and(hg.type(ChangeLink.class), 
-							   hg.orderedLink(current, hg.anyHandle()))));
+				Revision rev = graph.get(current);
+				Set<HGHandle> parents = rev.parents(); 
+//						graph.findAll(hg.apply(
+//						hg.targetAt(graph, 1), 
+//						hg.and(hg.type(ChangeLink.class), 
+//							   hg.orderedLink(current, hg.anyHandle()))));
 				Pair<Integer, Integer> currentCoord = coordinates.get(current);
 				for (HGHandle parent : parents)
 				{

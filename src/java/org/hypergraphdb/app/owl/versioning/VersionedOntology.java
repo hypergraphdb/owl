@@ -193,12 +193,12 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 			HGHandle existingBranch = branch != null ? metadata.findBranchHandle(branch) : null;
 			if (existingBranch != null && !existingBranch.equals(revision().branchHandle()))
 				throw new IllegalArgumentException("Branch already exists: '" + branch + "'.");
-			if (existingBranch != null)
-				System.out.println("Committing on existing branch "+ existingBranch + " with name " + branch);
+//			if (existingBranch != null)
+//				System.out.println("Committing on existing branch "+ existingBranch + " with name " + branch);
 			HGHandle revhandle = makeRevision(user, comment, existingBranch);
 			if (branch != null && existingBranch == null)
 			{
-				System.out.println("Creaning new branch  with name " + branch);
+//				System.out.println("Creaning new branch  with name " + branch);
 				metadata.createBranch(revhandle, branch, user);
 			}
 			return revhandle;
@@ -249,16 +249,30 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	 */
 	private Revision createMergedRevision(String user,
 										  String comment,
+										  String branch,
 										  HGHandle commonAncestor, 
 										  List<VChange<VersionedOntology>> mergeChangeList,
 										  Revision...revisions)
 	{
+		HGHandle existingBranch = null;
+		if (branch != null)
+		{
+			for (Revision rev : revisions)
+				if (rev.branch() != null && rev.branch().name().equals(branch))
+					{ existingBranch = rev.branchHandle(); break; }
+			if (existingBranch == null && metadata().findBranchHandle(branch) != null)
+				throw new IllegalArgumentException(
+					"Cannot create a merge revision on an existing branch different from any of the parent branches:" + branch);
+		}
 		Revision revision = new Revision(thisHandle);
 		revision.user(user);
 		revision.comment(comment);
 		revision.timestamp(System.currentTimeMillis());
+		revision.branchHandle(existingBranch);
 		HGHandle revisionHandle = graph.add(revision);
-		mergeChangeList = versioning.normalize(this, mergeChangeList);
+		if (existingBranch == null && branch != null)
+			metadata.createBranch(revisionHandle, branch, user);			
+		mergeChangeList = versioning.normalize(this, mergeChangeList, false);
 		
 		// Create a parent-child relationship between each of the revisions being
 		// merged and the resulting "merge" revision. Not only each of those revisions
@@ -298,7 +312,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	 * @return A newly created merge revision incorporating all changes from all parents.
 	 */
 	@Override
-	public Revision merge(String user, String comment, Revision... revisions)
+	public Revision merge(String user, String comment, String branch, Revision... revisions)
 	{
 		if (revisions.length < 2)
 			return null;
@@ -391,6 +405,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		HGHandle commonAncestor = M.keySet().iterator().next();
 		return createMergedRevision(user, 
 									comment, 
+									branch,
 									commonAncestor, 
 									M.get(commonAncestor), 
 									revisions);

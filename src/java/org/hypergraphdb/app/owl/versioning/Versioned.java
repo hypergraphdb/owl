@@ -88,12 +88,14 @@ public interface Versioned<T extends Versioned<T>> extends HGHandleHolder
 	 * 
 	 * @param user The user performing the merge.
 	 * @param comment A comment associated with the new revision to be created.
+	 * @param branch The branch for the merged revision. This branch must either be
+	 * a new branch name, or the name of the branch of one of the revisions being merged.
 	 * @param revisions The list of revisions to merge. If there are < 2 revisions, 
 	 * nothing is done.
 	 * @return The newly created {@link Revision} as the result of the merge or
 	 * <code>null</code> if there are less than two revision arguments provided. 
 	 */
-	Revision merge(final String user, final String comment, Revision...revisions);
+	Revision merge(final String user, final String comment, final String branch, Revision...revisions);
 		
 	/**
 	 * Return the latest working changes. Those are the changes that will

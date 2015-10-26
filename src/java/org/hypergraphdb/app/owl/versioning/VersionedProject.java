@@ -34,7 +34,7 @@ public class VersionedProject implements Versioned<VersionedProject>
 	}
 	
 	@Override
-	public Revision merge(String user, String comment, Revision... revisions)
+	public Revision merge(String user, String comment, String branch, Revision... revisions)
 	{
 		// TODO Auto-generated method stub
 		return null;

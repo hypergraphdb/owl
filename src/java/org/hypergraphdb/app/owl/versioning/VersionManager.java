@@ -96,6 +96,7 @@ public class VersionManager
 		graph.define(bottomRevisionHandle, bottomRevision);				
 		Revision initialRevision = new Revision(versioned.getAtomHandle());
 		initialRevision.user(user);
+		initialRevision.setComment("root");
 		initialRevision.timestamp(now);
 		HGHandle revisionHandle = graph.add(initialRevision);
 		versioned.metadata().createBranch(revisionHandle, defaultBranchName(), user);

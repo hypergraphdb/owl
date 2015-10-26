@@ -14,6 +14,7 @@ import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.versioning.ChangeLink;
+import org.hypergraphdb.app.owl.versioning.Revision;
 
 public class CoffmanGraham
 {
@@ -54,7 +55,13 @@ public class CoffmanGraham
 		List<ChangeLink> links = graph.getAll(hg.and(hg.type(ChangeLink.class), hg.orderedLink(hg.anyHandle(), hg.anyHandle(), child)));
 		ps = new int[links.size()];
 		for (int i = 0; i < ps.length; i++)
-			ps[i] = ordering.get(links.get(i).parent());
+		{
+			HGHandle parent = links.get(i).parent();
+			if (!ordering.containsKey(parent))
+				System.err.println("No ordering for parent " + graph.get(parent));
+			else
+				ps[i] = ordering.get(parent);
+		}
 		Arrays.sort(ps);
 		parentSets.put(child, ps);
 		return ps;
@@ -75,6 +82,7 @@ public class CoffmanGraham
 	}
 
 	// Topological ordering based on parents is done
+	@SuppressWarnings("unchecked")
 	void orderNodes()
 	{
 		HashSet<HGHandle> candidates = new HashSet<HGHandle>();
@@ -84,6 +92,7 @@ public class CoffmanGraham
 		{
 			Iterator<HGHandle> candIter = candidates.iterator();
 			HGHandle winner = candIter.next();
+			Revision rev = graph.get(winner);
 			int [] winnerParents = parentSet(winner);
 			while (candIter.hasNext())
 			{
@@ -95,13 +104,16 @@ public class CoffmanGraham
 					winnerParents = candidateParents;
 				}
 			}
+//			System.out.println("Order " + graph.get(winner));
 			ordering.put(winner, position++);
 			candidates.remove(winner);
 			// Add children of "winner" as new candidates
-			candidates.addAll(graph.findAll(hg.apply(
+			for (Revision winnerChild : (List<Revision>)(List)graph.getAll(hg.apply(
 					hg.targetAt(graph, 2), 
 					hg.and(hg.type(ChangeLink.class), 
-						   hg.orderedLink(winner, hg.anyHandle(), hg.anyHandle())))));
+						   hg.orderedLink(winner, hg.anyHandle(), hg.anyHandle())))))
+				if (ordering.keySet().containsAll(winnerChild.parents()))
+					candidates.add(winnerChild.getAtomHandle());
 		}
 	}
 
@@ -129,10 +141,5 @@ public class CoffmanGraham
 		if (!layerData.isEmpty())
 			layers.put(layerIndex, layerData.toArray(EMPTY_HANDLE_ARRAY));
 		return layers;
-	}
-	
-	public void minimizeCrossings(HGHandle [] top, HGHandle [] bottom)
-	{
-		
-	}
+	}	
 }

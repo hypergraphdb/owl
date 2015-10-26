@@ -41,7 +41,7 @@ public class TU
 		ctx.graph = HGEnvironment.get(dblocation);
 		ctx.r = new OntologyDatabase(dblocation);
 		ctx.m = HGOntologyManagerFactory.getOntologyManager(dblocation);
-		ctx.df = ctx.m.getOWLDataFactory();
+		ctx.df = ctx.m.getOWLDataFactory(); 
 		return ctx;
 	}
 	

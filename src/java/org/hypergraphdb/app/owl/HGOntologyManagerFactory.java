@@ -91,7 +91,7 @@ public class HGOntologyManagerFactory implements OWLOntologyManagerFactory
 	}		  
 	
 	private static HGDBOntologyManagerImpl createOWLOntologyManager(final OWLDataFactoryHGDB dataFactory,
-													 		 final OntologyDatabase repository)
+													 		 	    final OntologyDatabase repository)
 	{
 		final HGDBOntologyManagerImpl ontologyManager = new HGDBOntologyManagerImpl(dataFactory, repository);
 		ontologyManager.addOntologyStorer(new RDFXMLOntologyStorer());

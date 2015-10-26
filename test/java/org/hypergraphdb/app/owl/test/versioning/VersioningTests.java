@@ -235,7 +235,7 @@ public class VersioningTests extends VersioningTestBase
 			  individual("PushBranchOnBaseA"), 
 			  literal(Long.toString(System.currentTimeMillis())));
 		Revision B2 = ctx.vonto().commit("test", "branch 2");		
-		Revision merged = ctx.vonto().merge("test2", "simple merging", B1, B2);
+		Revision merged = ctx.vonto().merge("test2", "simple merging", "branch 1", B1, B2);
 		ctx.vonto().goTo(merged);
 		Assert.assertEquals(HGUtils.set(ctx.graph.getHandle(B1), 
 										ctx.graph.getHandle(B2)),

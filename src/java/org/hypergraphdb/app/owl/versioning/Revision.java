@@ -206,6 +206,11 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 		this.graph = graph;
 	}
 
+	public HyperGraph graph()
+	{
+		return this.graph;
+	}
+	
 	public String toString()
 	{
 		return "Revision[" + user() + "," + comment() + "," + new java.util.Date(timestamp) + "]"
