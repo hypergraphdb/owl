@@ -1,7 +1,6 @@
 package org.hypergraphdb.app.owl.test.versioning;
 
 import static org.hypergraphdb.app.owl.test.TU.aInstanceOf;
-
 import static org.hypergraphdb.app.owl.test.TU.aProp;
 import static org.hypergraphdb.app.owl.test.TU.aSubclassOf;
 import static org.hypergraphdb.app.owl.test.TU.declare;
@@ -13,16 +12,20 @@ import static org.hypergraphdb.app.owl.test.TU.owlClass;
 import static org.junit.Assert.*;
 
 import java.util.Iterator;
+import java.util.List;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.test.TU;
+import org.hypergraphdb.app.owl.versioning.ChangeLink;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedMetadata;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.versioning;
+import org.hypergraphdb.app.owl.versioning.change.VChange;
 import org.hypergraphdb.type.HGCompositeType;
 import org.hypergraphdb.util.HGUtils;
 import org.junit.After;
@@ -136,10 +139,10 @@ public class VersioningTests extends VersioningTestBase
 		Assert.assertEquals(0, ctx.vonto().changes().size());		
 		HGHandle lastCommitted = ctx.vonto().revision().parents().iterator().next();
 		Assert.assertEquals(revisionBefore.getAtomHandle(), lastCommitted);
-		ChangeSet<VersionedOntology> fromLastCommitted = versioning.changes(ctx.graph, 
+		List<VChange<VersionedOntology>> fromLastCommitted = versioning.changes(ctx.graph, 
 																			ctx.vonto().getCurrentRevision(), 
 																			lastCommitted);
-		Assert.assertEquals(changeSet, fromLastCommitted);		
+		Assert.assertEquals(changeSet.changes(), fromLastCommitted);		
 	}
 	
 	@Test
@@ -147,16 +150,16 @@ public class VersioningTests extends VersioningTestBase
 	{
 		HGHandle currentChanges = ctx.vonto().getWorkingChanges();
 		Revision rev = ctx.vonto().commit("test", "no changes revision");
-		assertEquals(currentChanges, versioning.changes(ctx.graph, 
-													    rev.getAtomHandle(), 
-													    rev.parents().iterator().next()).getAtomHandle());
+		assertEquals(currentChanges, 
+				ctx.graph().findOne(hg.and(hg.type(ChangeLink.class), 
+									       hg.orderedLink(rev.getAtomHandle(), 
+									    		   		  rev.parents().iterator().next()))));
 		aInstanceOf(owlClass("ClassNoChangesTest"), individual("NoEmptySetIfFlushAlready"));
 		aProp(dprop("theCount"), individual("NoEmptySetIfFlushAlready"), literal("10"));
 		currentChanges = ctx.vonto().getWorkingChanges();
 		rev = ctx.vonto().commit("test", "flushed changes revision");
-		assertEquals(currentChanges, versioning.changes(ctx.graph, 
-			    rev.getAtomHandle(), 
-			    rev.parents().iterator().next()).getAtomHandle());
+		assertEquals(currentChanges, ctx.graph().findOne(hg.and(hg.type(ChangeLink.class),
+				hg.orderedLink(rev.getAtomHandle(), rev.parents().iterator().next()))));
 	}
 	
 	@Test 

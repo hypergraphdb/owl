@@ -125,7 +125,8 @@ public class GetRemoteOntologyRevisionsActivity extends FSMActivity
 				HGDBOntology o = graph.get(sourceUUID);
 				if (o != null)
 				{
-					VersionManager versionManager = new VersionManager(getThisPeer().getGraph(), "fixme-VHDBOntologyRepository");
+					VersionManager versionManager = new VersionManager(getThisPeer().getGraph(), 
+																	   getThisPeer().getPeerInterface().principal().getName());
 					if (versionManager.isVersioned(o.getAtomHandle()))
 					{
 						VersionedOntology vo = versionManager.versioned(o.getAtomHandle());

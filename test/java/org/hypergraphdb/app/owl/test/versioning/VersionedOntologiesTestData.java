@@ -2,6 +2,7 @@ package org.hypergraphdb.app.owl.test.versioning;
 
 import static org.hypergraphdb.app.owl.test.TU.*;
 
+
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -15,7 +16,6 @@ import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.test.TU;
 import org.hypergraphdb.app.owl.util.OntologyComparator;
 import org.hypergraphdb.app.owl.versioning.ChangeLink;
-import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
@@ -98,8 +98,7 @@ public class VersionedOntologiesTestData
 	
 	public static boolean compareWorkingSets(VersionedOntology left, VersionedOntology right)
 	{
-		OntologyComparator comp = new OntologyComparator();
-		return !comp.compare(left.ontology(), right.ontology()).hasChanges();
+		return !OntologyComparator.compare(left.ontology(), right.ontology()).hasChanges();
 	}
 	/**
 	 * Full revision graph comparison. Not that this won't compare the working copies, only the
@@ -128,12 +127,12 @@ public class VersionedOntologiesTestData
 				return false;
 			for (HGHandle parent : revLeft.parents())
 			{
-				ChangeSet<VersionedOntology> leftChanges = versioning.changes(leftRepo, revisionHandle, parent);
-				ChangeSet<VersionedOntology> rightChanges = versioning.changes(rightRepo, revisionHandle, parent);
+				List<VChange<VersionedOntology>> leftChanges = versioning.changes(leftRepo, revisionHandle, parent);
+				List<VChange<VersionedOntology>> rightChanges = versioning.changes(rightRepo, revisionHandle, parent);
 				if (leftChanges.equals(rightChanges))
 				{
-					List<VChange<VersionedOntology>> llist = leftChanges.changes();
-					List<VChange<VersionedOntology>> rlist = rightChanges.changes();
+					List<VChange<VersionedOntology>> llist = leftChanges;
+					List<VChange<VersionedOntology>> rlist = rightChanges;
 					if (!compareChangeLists(leftRepo, rightRepo, llist, rlist))
 						return false;
 				}

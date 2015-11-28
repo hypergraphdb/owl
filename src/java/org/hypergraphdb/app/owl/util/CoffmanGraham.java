@@ -117,6 +117,12 @@ public class CoffmanGraham
 		}
 	}
 
+	/**
+	 * 
+	 * @param width The maximum number of nodes per layers.
+	 * @return The layers index from 1 on. At each layer the set of nodes to display
+	 * provided as an array.
+	 */
 	public SortedMap<Integer, HGHandle[]> coffmanGrahamLayers(int width)
 	{
 		orderNodes();

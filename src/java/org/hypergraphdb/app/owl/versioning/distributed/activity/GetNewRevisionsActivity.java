@@ -79,7 +79,8 @@ public class GetNewRevisionsActivity extends FSMActivity
 		Set<HGHandle> revisionHeads = Messages.fromJson(msg.at(CONTENT).at("heads"));
 		HGHandle lastMetaChange = Messages.fromJson(msg.at(CONTENT).at("lastMetaChange"));
 		OntologyVersionState versionState = new OntologyVersionState(revisionHeads);
-		VersionManager versionManager = new VersionManager(getThisPeer().getGraph(), "fixme-VHDBOntologyRepository");
+		VersionManager versionManager = new VersionManager(getThisPeer().getGraph(), 
+														   getThisPeer().getPeerInterface().principal().getName());
 		if (!versionManager.isVersioned(ontologyHandle))
 			reply(msg, Performative.Failure, "The ontology does not exist or is not versioned.");
 		else if (revisionHeads.isEmpty()) // complete clone

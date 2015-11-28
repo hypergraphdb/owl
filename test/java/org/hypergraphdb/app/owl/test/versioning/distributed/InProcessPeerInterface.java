@@ -1,5 +1,6 @@
 package org.hypergraphdb.app.owl.test.versioning.distributed;
 
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.Future;
@@ -11,8 +12,6 @@ import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.MessageHandler;
 import org.hypergraphdb.peer.Messages;
 import org.hypergraphdb.peer.NetworkPeerPresenceListener;
-import org.hypergraphdb.peer.PeerFilter;
-import org.hypergraphdb.peer.PeerFilterEvaluator;
 import org.hypergraphdb.peer.PeerInterface;
 import org.hypergraphdb.peer.PeerRelatedActivityFactory;
 import org.hypergraphdb.util.CompletedFuture;
@@ -59,6 +58,18 @@ public class InProcessPeerInterface implements PeerInterface
 		}
 	}
 
+    public Principal principal()
+    {
+    	return new Principal()
+    	{
+			public String getName()
+			{
+				return thisPeer.getIdentity().toString();
+			}    		
+    	};
+    }
+
+    
 	@Override
 	public boolean isConnected()
 	{
@@ -87,12 +98,6 @@ public class InProcessPeerInterface implements PeerInterface
 	public void setThisPeer(HyperGraphPeer thisPeer)
 	{
 		this.thisPeer = thisPeer;
-	}
-
-	@Override
-	public PeerFilter newFilterActivity(PeerFilterEvaluator evaluator)
-	{
-		throw new UnsupportedOperationException();		
 	}
 
 	@Override

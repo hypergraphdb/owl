@@ -106,7 +106,8 @@ public class VersionUpdateActivity extends FSMActivity
 	
 	private VersionManager versionManager() 
 	{
-		return new VersionManager(getThisPeer().getGraph(), "fixme-VHDBOntologyRepository");		
+		return new VersionManager(getThisPeer().getGraph(), 
+								  getThisPeer().getPeerInterface().principal().getName());		
 	}
 	
 	Set<String> checkBranchConflicts(RemoteOntology remoteOnto, List<VMetadataChange<VersionedOntology>> metaChanges)
@@ -275,8 +276,8 @@ public class VersionUpdateActivity extends FSMActivity
 //		System.out.println("asked for revisions: " + msg.at(REVISIONS));
 		HGHandle ontologyHandle = Messages.fromJson(msg.at(Messages.CONTENT).at(ONTOLOGY_HANDLE));
 		Set<HGHandle> revisions = Messages.fromJson(msg.at(Messages.CONTENT).at(REVISIONS));
-		VersionManager versionManager = new VersionManager(getThisPeer().getGraph(), 
-														   "fixme-VHDBOntologyRepository");
+		VersionManager versionManager = new VersionManager(getThisPeer().getGraph(),
+														   getThisPeer().getPeerInterface().principal().getName());	
 		if (!versionManager.isVersioned(ontologyHandle))
 		{
 			reply(msg, Performative.Failure, 

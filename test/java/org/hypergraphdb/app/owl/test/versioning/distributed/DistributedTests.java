@@ -1,9 +1,17 @@
 package org.hypergraphdb.app.owl.test.versioning.distributed;
 
-import static org.hypergraphdb.app.owl.test.TU.*;
-import static org.junit.Assert.*;
+import static org.hypergraphdb.app.owl.test.TU.a;
+import static org.hypergraphdb.app.owl.test.TU.aInstanceOf;
+import static org.hypergraphdb.app.owl.test.TU.aSubclassOf;
+import static org.hypergraphdb.app.owl.test.TU.declare;
+import static org.hypergraphdb.app.owl.test.TU.individual;
+import static org.hypergraphdb.app.owl.test.TU.owlClass;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import junit.framework.Assert;
@@ -13,7 +21,6 @@ import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
-import org.hypergraphdb.app.owl.HGDBOntologyFormat;
 import org.hypergraphdb.app.owl.test.TU;
 import org.hypergraphdb.app.owl.test.versioning.TestContext;
 import org.hypergraphdb.app.owl.test.versioning.VersionedOntologiesTestData;
@@ -21,20 +28,18 @@ import org.hypergraphdb.app.owl.test.versioning.VersioningTestBase;
 import org.hypergraphdb.app.owl.util.ImplUtils;
 import org.hypergraphdb.app.owl.util.OntologyComparator;
 import org.hypergraphdb.app.owl.versioning.Branch;
-import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.versioning;
 import org.hypergraphdb.app.owl.versioning.change.VAxiomChange;
-import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
-import org.hypergraphdb.app.owl.versioning.distributed.RemoteOntology;
+import org.hypergraphdb.app.owl.versioning.change.VChange;
 import org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer;
+import org.hypergraphdb.app.owl.versioning.distributed.RemoteOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.GetNewRevisionsActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.VersionUpdateActivity;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.bootstrap.AffirmIdentityBootstrap;
-import org.hypergraphdb.peer.workflow.ActivityResult;
 import org.hypergraphdb.peer.workflow.WorkflowState;
 import org.hypergraphdb.util.HGUtils;
 import org.junit.After;
@@ -45,7 +50,6 @@ import org.junit.runner.Request;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLOntology;
 
 public class DistributedTests extends VersioningTestBase
 {
@@ -257,10 +261,6 @@ public class DistributedTests extends VersioningTestBase
 				.action(VersionUpdateActivity.ActionType.clone)).get();
 		ctx2.vo = vm2.versioned(sourceOntoHandle);
 //		versioning.printRevisionGraph(ctx1.graph(), ctx1.vonto());
-//		if (ctx2.vonto().toString().contains("fixme-VHDBOntologyRepository"))
-//			System.out.println(ctx2.graph().getAll(
-//				hg.and(hg.type(VersionedOntology.class), 
-//					   hg.eq("ontology", sourceOntoHandle))));
 //		versioning.printRevisionGraph(ctx2.graph(), ctx2.vonto());		
 		assertEquals(1, ctx2.vo.heads().size());
 		assertEquals(ctx1.vonto().revisions(), ctx2.vonto().revisions());
@@ -289,13 +289,13 @@ public class DistributedTests extends VersioningTestBase
 //		versioning.printRevisionGraph(ctx2.graph(), ctx2.vonto());
 		assertEquals(2, ctx2.vo.heads().size());
 		assertTrue(ctx2.vo.heads().contains(ctx1.vo.getCurrentRevision()));		
-		ChangeSet<VersionedOntology> cs1 = versioning.changes(ctx1.graph(), childRevision, parentRevision);
-		ChangeSet<VersionedOntology> cs2 = versioning.changes(ctx2.graph(), childRevision, parentRevision);
+		List<VChange<VersionedOntology>> cs1 = versioning.changes(ctx1.graph(), childRevision, parentRevision);
+		List<VChange<VersionedOntology>> cs2 = versioning.changes(ctx2.graph(), childRevision, parentRevision);
 		assertEquals(cs1, cs2);
 		assertTrue(VersionedOntologiesTestData.compareChangeLists(ctx1.graph(), 
 																  ctx2.graph(), 
-																  cs1.changes(), 
-																  cs2.changes()));
+																  cs1, 
+																  cs2));
 	}
 
 	@Test
@@ -326,13 +326,13 @@ public class DistributedTests extends VersioningTestBase
 		HGHandle childRevision = ctx2.vo.getCurrentRevision().getPersistent();
 		ctx1.vo.goTo((Revision)ctx1.graph.get(ctx2.vo.getCurrentRevision().getPersistent()));
 		assertEquals(ctx2.vo.getCurrentRevision(), ctx1.vo.getCurrentRevision());		
-		ChangeSet<VersionedOntology> cs1 = versioning.changes(ctx1.graph(), childRevision, parentRevision);
-		ChangeSet<VersionedOntology> cs2 = versioning.changes(ctx2.graph(), childRevision, parentRevision);
+		List<VChange<VersionedOntology>> cs1 = versioning.changes(ctx1.graph(), childRevision, parentRevision);
+		List<VChange<VersionedOntology>> cs2 = versioning.changes(ctx2.graph(), childRevision, parentRevision);
 		assertEquals(cs1, cs2);
 		assertTrue(VersionedOntologiesTestData.compareChangeLists(ctx1.graph(), 
 																  ctx2.graph(), 
-																  cs1.changes(), 
-																  cs2.changes()));
+																  cs1, 
+																  cs2));
 	}
 	
 	@Test 
@@ -444,7 +444,7 @@ public class DistributedTests extends VersioningTestBase
 		do
 		{
 			result = junit.run(Request.method(DistributedTests.class, "testCloneSmall"));
-		} while (false && result.getFailureCount() == 0);
+		} while (result.getFailureCount() == 0);
 		System.out.println("Failures " + result.getFailureCount());
 		if (result.getFailureCount() > 0)
 		{

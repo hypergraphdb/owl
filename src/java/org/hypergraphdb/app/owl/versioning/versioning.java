@@ -2,6 +2,7 @@ package org.hypergraphdb.app.owl.versioning;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -12,8 +13,11 @@ import java.util.SortedMap;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.HGQuery.hg;
+import org.hypergraphdb.algorithms.DefaultALGenerator;
+import org.hypergraphdb.algorithms.GraphClassics;
 import org.hypergraphdb.app.owl.util.CoffmanGraham;
 import org.hypergraphdb.app.owl.versioning.change.VChange;
+import org.hypergraphdb.util.Mapping;
 import org.hypergraphdb.util.Pair;
 
 /**
@@ -52,17 +56,61 @@ public class versioning
 		return null;
 	}
 	
-	/**
-	 * Return the changes necessary to go from parent to revision.
-	 */
-	public static <V extends Versioned<V>> ChangeSet<V> changes(HyperGraph graph, HGHandle revision, HGHandle parent)
+	private static <V extends Versioned<V>> List<VChange<V>> collectChangesAdjacent(HyperGraph graph, HGHandle start, HGHandle end)
 	{
-		ChangeLink link = graph.getOne(hg.and(hg.type(ChangeLink.class),
-										   	  hg.orderedLink(parent, hg.anyHandle(), revision)));
-		if (link == null)
-			throw new NullPointerException("No connection between " + graph.get(revision) + 
-							" and " + graph.get(parent));
-		return graph.get(link.change());
+		ChangeLink changeLink = hg.getOne(graph, hg.and(hg.type(ChangeLink.class), hg.link(start, hg.anyHandle(), end)));
+		if (changeLink == null)
+			return null;
+		ChangeSet<V> changeSet = graph.get(changeLink.change());
+		List<VChange<V>> result = changeSet.changes();
+		if (!changeLink.parent().equals(start))
+		{
+			Collections.reverse(result);
+			for (int i = 0; i < result.size(); i++)
+				result.set(i, result.get(i).inverse());
+		}
+		return result;		
+	}
+	
+	/**
+	 * Return the changes necessary to go from one revision to another.
+	 */
+	public static <V extends Versioned<V>> List<VChange<V>> changes(final HyperGraph graph, 
+																    final HGHandle from, 
+																    final HGHandle to)
+	{
+		List<VChange<V>> result = new ArrayList<VChange<V>>();
+		if (from.equals(to))
+			return result;
+		Map<HGHandle, HGHandle> predecessorMatrix = new HashMap<HGHandle, HGHandle>();		
+		if (GraphClassics.dijkstra(
+			   from, 
+			   to, 
+			   new DefaultALGenerator(graph, 
+						  hg.type(ChangeLink.class),
+						  hg.type(Revision.class)),
+			   new Mapping<HGHandle, Double>() {
+				   public Double eval(HGHandle parentLink)
+				   {
+					   ChangeLink link = graph.get(parentLink);
+					   return (double)collectChangesAdjacent(graph,
+							   							     link.parent(), 
+							   								 link.child()).size();
+				   }
+			   },
+		       null,
+		       predecessorMatrix) == null)
+			throw new IllegalArgumentException("Revisions " + from + " and " + to + 
+					" are not connected - are they part of the same version history?");
+		HGHandle hCurrent = to;		
+		do
+		{
+			HGHandle hPrev = predecessorMatrix.get(hCurrent);
+			List<VChange<V>> temp = collectChangesAdjacent(graph, hPrev, hCurrent); 
+			result.addAll(temp);
+			hCurrent = hPrev;	
+		} while (!hCurrent.equals(from));
+		return result;			
 	}
 	
 	/**
