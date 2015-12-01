@@ -13,7 +13,7 @@ import org.semanticweb.owlapi.model.OWLOntologyChange;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public abstract class VOWLChange implements VChange<VersionedOntology>, HGLink, VisitableObject, HGGraphHolder
+public abstract class VOWLChange implements Change<VersionedOntology>, HGLink, VisitableObject, HGGraphHolder
 {
 	HyperGraph graph;
 
@@ -31,13 +31,13 @@ public abstract class VOWLChange implements VChange<VersionedOntology>, HGLink, 
 	}
 	
 	@Override
-	public VChange<VersionedOntology> reduce(VChange<VersionedOntology> previous)
+	public Change<VersionedOntology> reduce(Change<VersionedOntology> previous)
 	{
 		return null;
 	}
 	
 	@Override
-	public boolean conflictsWith(VChange<VersionedOntology> other)
+	public boolean conflictsWith(Change<VersionedOntology> other)
 	{
 		return !other.equals(this.inverse());
 	}

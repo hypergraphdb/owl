@@ -20,7 +20,7 @@ public class VRemoveOntologyAnnotationChange extends VOntologyAnnotationChange
 	}
 	
 	@Override
-	public VChange<VersionedOntology> inverse()
+	public Change<VersionedOntology> inverse()
 	{
 		VOWLChange ic = new VAddOntologyAnnotationChange(getOntologyAnnotationHandle());
 		ic.setHyperGraph(graph);

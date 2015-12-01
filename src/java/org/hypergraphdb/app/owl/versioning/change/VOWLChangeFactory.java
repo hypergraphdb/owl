@@ -198,7 +198,7 @@ public class VOWLChangeFactory
 	 * @param graph
 	 * @return
 	 */
-	public static OWLOntologyChange create(VChange<VersionedOntology> voc, OWLOntology onto, HyperGraph graph)
+	public static OWLOntologyChange create(Change<VersionedOntology> voc, OWLOntology onto, HyperGraph graph)
 	{
 		if (voc instanceof VAddImportChange)
 		{

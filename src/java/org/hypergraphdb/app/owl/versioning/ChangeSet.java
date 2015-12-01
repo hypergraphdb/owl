@@ -13,7 +13,7 @@ import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.versioning.change.VChange;
+import org.hypergraphdb.app.owl.versioning.change.Change;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.transaction.HGTransactionConfig;
 
@@ -83,7 +83,7 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 	 * 
 	 * @param change
 	 */
-	public ChangeSet<V> add(final VChange<V> change)
+	public ChangeSet<V> add(final Change<V> change)
 	{
 		graph.getTransactionManager().ensureTransaction(new Callable<Object>()
 		{
@@ -104,7 +104,7 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 	 * 
 	 * @param change
 	 */
-	public ChangeSet<V> add(final List<VChange<V>> changeList)
+	public ChangeSet<V> add(final List<Change<V>> changeList)
 	{
 //		if (changeList.isEmpty())
 //			return this;
@@ -112,7 +112,7 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 		{
 			public Object call()
 			{
-				for (VChange<V> change : changeList)
+				for (Change<V> change : changeList)
 				{
 					HGHandle changeHandle = graph.add(change);
 					changes.add(changeHandle);
@@ -124,7 +124,7 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 		return this;
 	}
 	
-	public ChangeSet<V> remove(final VChange<V> change)
+	public ChangeSet<V> remove(final Change<V> change)
 	{
 		graph.getTransactionManager().ensureTransaction(new Callable<Object>()
 		{
@@ -178,18 +178,18 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 	 * @param indices
 	 * @return
 	 */
-	public List<VChange<V>> getAt(final Set<Integer> indices)
+	public List<Change<V>> getAt(final Set<Integer> indices)
 	{
-		return graph.getTransactionManager().ensureTransaction(new Callable<List<VChange<V>>>()
+		return graph.getTransactionManager().ensureTransaction(new Callable<List<Change<V>>>()
 		{
-			public List<VChange<V>> call()
+			public List<Change<V>> call()
 			{
-				List<VChange<V>> changesLoaded = new ArrayList<VChange<V>>(indices.size());
+				List<Change<V>> changesLoaded = new ArrayList<Change<V>>(indices.size());
 				for (int i : indices)
 				{
 					try
 					{
-						VChange<V> cur = graph.get(changes.get(i));
+						Change<V> cur = graph.get(changes.get(i));
 						changesLoaded.add(cur);
 					}
 					catch (RuntimeException e)
@@ -203,16 +203,16 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 		}, HGTransactionConfig.READONLY);
 	}
 
-	public List<VChange<V>> changes()
+	public List<Change<V>> changes()
 	{
-		return graph.getTransactionManager().ensureTransaction(new Callable<List<VChange<V>>>()
+		return graph.getTransactionManager().ensureTransaction(new Callable<List<Change<V>>>()
 		{
-			public List<VChange<V>> call()
+			public List<Change<V>> call()
 			{
-				List<VChange<V>> changesLoaded = new ArrayList<VChange<V>>(size());
+				List<Change<V>> changesLoaded = new ArrayList<Change<V>>(size());
 				for (HGHandle h : changes)
 				{
-					VChange<V> cur = graph.get(h);
+					Change<V> cur = graph.get(h);
 					changesLoaded.add(cur);
 				}
 				return changesLoaded;
@@ -261,9 +261,9 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 	}
 
 	static <V extends Versioned<V>> 
-	List<VChange<V>> merge(V versioned, List<VChange<V>> one, List<VChange<V>> two)
+	List<Change<V>> merge(V versioned, List<Change<V>> one, List<Change<V>> two)
 	{
-		ArrayList<VChange<V>> result = new ArrayList<VChange<V>>();
+		ArrayList<Change<V>> result = new ArrayList<Change<V>>();
 		result.addAll(one);
 		result.addAll(two);
 		return result;
@@ -272,7 +272,7 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 	/**
 	 * Finds and eliminates changes that became obsolete due to later changes.
 	 */
-	public List<VChange<V>> packed(V versioned)
+	public List<Change<V>> packed(V versioned)
 	{	
 		return versioning.normalize(versioned, changes());
 	}
@@ -293,7 +293,7 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 		{
 			public Object call()
 			{
-				for (VChange<V> change : changes())
+				for (Change<V> change : changes())
 				{
 					change.apply(o);
 				}
@@ -314,7 +314,7 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 		{
 			public Object call()
 			{
-				for (VChange<V> change : changes())
+				for (Change<V> change : changes())
 				{
 					change.inverse().apply(o);
 				}

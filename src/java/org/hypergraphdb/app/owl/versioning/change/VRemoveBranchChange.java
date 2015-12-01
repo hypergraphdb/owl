@@ -33,19 +33,19 @@ public class VRemoveBranchChange<T extends Versioned<T>> extends VMetadataChange
 	}
 	
 	@Override
-	public VChange<T> reduce(VChange<T> previous)
+	public Change<T> reduce(Change<T> previous)
 	{
 		return null;
 	}	
 
 	@Override
-	public VChange<T> inverse()
+	public Change<T> inverse()
 	{
 		return new VAddBranchChange<T>(revision, name, user);
 	}
 
 	@Override
-	public boolean conflictsWith(VChange<T> other)
+	public boolean conflictsWith(Change<T> other)
 	{
 		return other instanceof VAddBranchChange && 
 			  ((VAddBranchChange<T>)other).getName().equals(name) ||

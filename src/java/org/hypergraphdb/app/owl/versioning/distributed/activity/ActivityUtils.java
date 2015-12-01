@@ -32,7 +32,7 @@ import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.Versioned;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
-import org.hypergraphdb.app.owl.versioning.change.VChange;
+import org.hypergraphdb.app.owl.versioning.change.Change;
 import org.hypergraphdb.app.owl.versioning.change.VMetadataChange;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLMetadata;
@@ -182,7 +182,7 @@ public class ActivityUtils
 //		return stringWriter.toString();
 	}
 
-	public static void storeChangeSet(HyperGraph graph, ChangeSet<VersionedOntology> changeSet, List<VChange<VersionedOntology>> changes)
+	public static void storeChangeSet(HyperGraph graph, ChangeSet<VersionedOntology> changeSet, List<Change<VersionedOntology>> changes)
 	{
 		changeSet.add(changes);
 	}
@@ -319,7 +319,7 @@ public class ActivityUtils
 //			if (graph.get(changeSet.getAtomHandle()) == null)
 				storeChangeSet(graph, 
 							   changeSet, 
-							   (List<VChange<VersionedOntology>>)(List<?>)doc.changeSetMap().get(changeSet));
+							   (List<Change<VersionedOntology>>)(List<?>)doc.changeSetMap().get(changeSet));
 		}
 		if (doc.getRenderConfig().revisionSnapshot() != null)
 			vo.goTo((Revision)graph.get(doc.getRenderConfig().revisionSnapshot()));

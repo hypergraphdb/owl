@@ -25,7 +25,7 @@ public class VAddAxiomChange extends VAxiomChange
 	}
 	
 	@Override
-	public VChange<VersionedOntology> inverse()
+	public Change<VersionedOntology> inverse()
 	{
 		VOWLChange ic = new VRemoveAxiomChange(getAxiomHandle());
 		ic.setHyperGraph(graph);

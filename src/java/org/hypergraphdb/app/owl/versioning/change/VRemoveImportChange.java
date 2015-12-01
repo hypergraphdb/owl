@@ -19,7 +19,7 @@ public class VRemoveImportChange extends VImportChange
 	}
 
 	@Override
-	public VChange<VersionedOntology> inverse()
+	public Change<VersionedOntology> inverse()
 	{
 		VOWLChange ic = new VAddImportChange(getImportDeclarationHandle());
 		ic.setHyperGraph(graph);

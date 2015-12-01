@@ -47,7 +47,7 @@ public class VBranchRenameChange<T extends Versioned<T>> extends VMetadataChange
 	}
 
 	@Override
-	public VChange<T> reduce(VChange<T> previous)
+	public Change<T> reduce(Change<T> previous)
 	{
 		if (previous instanceof VAddBranchChange)
 		{
@@ -62,13 +62,13 @@ public class VBranchRenameChange<T extends Versioned<T>> extends VMetadataChange
 	}
 	
 	@Override
-	public VChange<T> inverse()
+	public Change<T> inverse()
 	{
 		return new VBranchRenameChange<T>(newname, currentName); 
 	}
 
 	@Override
-	public boolean conflictsWith(VChange<T> other)
+	public boolean conflictsWith(Change<T> other)
 	{
 		if (other instanceof VBranchRenameChange)
 		{

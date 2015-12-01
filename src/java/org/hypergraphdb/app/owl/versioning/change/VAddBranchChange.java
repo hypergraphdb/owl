@@ -61,13 +61,13 @@ public class VAddBranchChange<T extends Versioned<T>> extends VMetadataChange<T>
 	}
 
 	@Override
-	public VChange<T> reduce(VChange<T> previous)
+	public Change<T> reduce(Change<T> previous)
 	{
 		return null;
 	}
 	
 	@Override
-	public boolean conflictsWith(VChange<T> other)
+	public boolean conflictsWith(Change<T> other)
 	{
 		return other instanceof VAddBranchChange &&
 				((VAddBranchChange<T>)other).getName().equals(name) &&
@@ -79,7 +79,7 @@ public class VAddBranchChange<T extends Versioned<T>> extends VMetadataChange<T>
 	}
 	
 	@Override
-	public VChange<T> inverse()
+	public Change<T> inverse()
 	{
 		return new VRemoveBranchChange<T>(revision, name, createdBy);
 	}

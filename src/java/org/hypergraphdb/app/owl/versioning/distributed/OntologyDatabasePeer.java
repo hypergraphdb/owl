@@ -133,10 +133,10 @@ public class OntologyDatabasePeer extends OntologyDatabase
 //		peer.getActivityManager().registerActivityType(PushActivity.TYPENAME, PushActivity.class);
 //		peer.getActivityManager().registerActivityType(PullActivity.TYPENAME, PullActivity.class);
 		peer.get().getActivityManager().registerActivityType(BrowseRepositoryActivity.TYPENAME, BrowseRepositoryActivity.class);
-		peer.get().getActivityManager().registerActivityType(GetRemoteOntologyRevisionsActivity.TYPENAME,
-				GetRemoteOntologyRevisionsActivity.class);
-		peer.get().getActivityManager().registerActivityType(GetRemoteOntologyChangesetActivity.TYPENAME,
-				GetRemoteOntologyChangesetActivity.class);
+//		peer.get().getActivityManager().registerActivityType(GetRemoteOntologyRevisionsActivity.TYPENAME,
+//				GetRemoteOntologyRevisionsActivity.class);
+//		peer.get().getActivityManager().registerActivityType(GetRemoteOntologyChangesetActivity.TYPENAME,
+//				GetRemoteOntologyChangesetActivity.class);
 		return success;
 	}
 

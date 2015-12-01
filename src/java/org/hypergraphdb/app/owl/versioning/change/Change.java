@@ -12,9 +12,9 @@ import org.hypergraphdb.app.owl.versioning.Versioned;
  * 
  * @author Borislav Iordanov
  *
- * @param <T>
+ * @param <T> The concrete type of the {@link Versioned}.
  */
-public interface VChange<T extends Versioned<T>>
+public interface Change<T extends Versioned<T>>
 {	
 	/**
 	 * Enact this change to the versioned object. Note that applying a change
@@ -33,7 +33,7 @@ public interface VChange<T extends Versioned<T>>
 	 * of this change. Every implementation must be reversible and return
 	 * non-null from this method. 
 	 */
-	VChange<T> inverse();
+	Change<T> inverse();
 	
 	/**
 	 * <p>
@@ -50,7 +50,7 @@ public interface VChange<T extends Versioned<T>>
 	 * <code>this</code> can be reduced, or <code>null</code> if such a merge of the
 	 * two operations is not possible.
 	 */
-	VChange<T> reduce(VChange<T> previous);
+	Change<T> reduce(Change<T> previous);
 	
 	/**
 	 * Return <code>true</code> if there is a conflict between
@@ -59,7 +59,7 @@ public interface VChange<T extends Versioned<T>>
 	 * changes can be applied simultaneously, or in arbitrary
 	 * order.
 	 */
-	boolean conflictsWith(VChange<T> other);
+	boolean conflictsWith(Change<T> other);
 	
 	/**
 	 * Return <code>true</code> if when applied this change will actually

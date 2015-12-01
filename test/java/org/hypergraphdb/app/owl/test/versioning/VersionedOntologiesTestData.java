@@ -30,7 +30,7 @@ import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.VisitableObject;
 import org.hypergraphdb.app.owl.versioning.versioning;
 import org.hypergraphdb.app.owl.versioning.change.VAxiomChange;
-import org.hypergraphdb.app.owl.versioning.change.VChange;
+import org.hypergraphdb.app.owl.versioning.change.Change;
 import org.hypergraphdb.app.owl.versioning.change.VImportChange;
 import org.hypergraphdb.app.owl.versioning.change.VModifyOntologyIDChange;
 import org.hypergraphdb.app.owl.versioning.change.VOntologyAnnotationChange;
@@ -51,17 +51,17 @@ public class VersionedOntologiesTestData
 {
 	public static boolean compareChangeLists(final HyperGraph lgraph, 
 											 final HyperGraph rgraph, 
-											 final List<VChange<VersionedOntology>> llist, 
-											 final List<VChange<VersionedOntology>> rlist)
+											 final List<Change<VersionedOntology>> llist, 
+											 final List<Change<VersionedOntology>> rlist)
 	{
-		Iterator<VChange<VersionedOntology>> liter = llist.iterator();
-		Iterator<VChange<VersionedOntology>> riter = rlist.iterator();
+		Iterator<Change<VersionedOntology>> liter = llist.iterator();
+		Iterator<Change<VersionedOntology>> riter = rlist.iterator();
 		while (liter.hasNext())
 		{
 			if (!riter.hasNext())
 				return false;
-			final VChange<VersionedOntology> lchange = liter.next();
-			final VChange<VersionedOntology> rchange = riter.next();
+			final Change<VersionedOntology> lchange = liter.next();
+			final Change<VersionedOntology> rchange = riter.next();
 			if (!lchange.getClass().equals(rchange.getClass()))
 				return false;
 			final boolean [] compare = new boolean[1];
@@ -133,8 +133,8 @@ public class VersionedOntologiesTestData
 				ChangeSet<VersionedOntology> rightChanges = versioning.changes(rightRepo, revisionHandle, parent);
 				if (leftChanges.equals(rightChanges))
 				{
-					List<VChange<VersionedOntology>> llist = leftChanges.changes();
-					List<VChange<VersionedOntology>> rlist = rightChanges.changes();
+					List<Change<VersionedOntology>> llist = leftChanges.changes();
+					List<Change<VersionedOntology>> rlist = rightChanges.changes();
 					if (!compareChangeLists(leftRepo, rightRepo, llist, rlist))
 						return false;
 				}

@@ -19,7 +19,7 @@ public class VAddPrefixChange extends VPrefixChange
 	}
 
 	@Override
-	public VChange<VersionedOntology> inverse()
+	public Change<VersionedOntology> inverse()
 	{
 		VOWLChange ic = new VRemovePrefixChange(prefixNameToPrefixPairHandle);
 		ic.setHyperGraph(graph);

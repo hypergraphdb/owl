@@ -19,7 +19,7 @@ public class VModifyOntologyIDChange extends VOWLChange
 	private HGHandle newOntologyIDHandle;
 	
 	@Override
-	public VChange<VersionedOntology> inverse()
+	public Change<VersionedOntology> inverse()
 	{
 		VOWLChange ic = new VModifyOntologyIDChange(newOntologyIDHandle, oldOntologyIDHandle);
 		ic.setHyperGraph(graph);

@@ -13,7 +13,7 @@ import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.util.CoffmanGraham;
-import org.hypergraphdb.app.owl.versioning.change.VChange;
+import org.hypergraphdb.app.owl.versioning.change.Change;
 import org.hypergraphdb.util.Pair;
 
 /**
@@ -46,13 +46,13 @@ public class versioning
 				 .contains(subsequent);
 	}
 	
-	public static <V extends Versioned<V>, C extends VChange<V>> 
+	public static <V extends Versioned<V>, C extends Change<V>> 
 	List<C> normalize(V versioned, List<C> L)
 	{
 		return normalize(versioned, L, true);
 	}
 	
-	public static <V extends Versioned<V>, C extends VChange<V>> 
+	public static <V extends Versioned<V>, C extends Change<V>> 
 	List<C> normalize(V versioned, List<C> L, boolean removeIneffective)
 	{
 		Set<Integer> toremove = new HashSet<Integer>();		
@@ -60,10 +60,10 @@ public class versioning
 		{
 			if (toremove.contains(i))
 				continue;
-			VChange<V> c = L.get(i);
+			Change<V> c = L.get(i);
 			if (removeIneffective && !c.isEffective(versioned))
 				toremove.add(i);
-			VChange<V> ic = c.inverse();			
+			Change<V> ic = c.inverse();			
 			if (c.isIdempotent())
 			{
 				if (ic == null || ic.isIdempotent())
@@ -74,7 +74,7 @@ public class versioning
 					int last = i;
 					for (int j = i + 1; j < L.size(); j++)
 					{
-						VChange<V> next = L.get(j);
+						Change<V> next = L.get(j);
 						if (next.equals(c) || next.equals(ic))
 						{
 							toremove.add(last);
@@ -125,7 +125,7 @@ public class versioning
 			{
 				for (int j = i + 1; j < L.size(); j++)
 				{
-					VChange<V> next = L.get(j);
+					Change<V> next = L.get(j);
 					if (next.equals(ic))
 					{
 						toremove.add(i);
@@ -147,7 +147,7 @@ public class versioning
 			// else it's non-idempotent and it has no inverse, just try to merge with something else
 			else for (int j = i + 1; j < L.size(); j++)
 			{
-				VChange<V> next = L.get(j);
+				Change<V> next = L.get(j);
 				@SuppressWarnings("unchecked")
 				C merged = (C)next.reduce(c);
 				if (merged != null)
@@ -168,7 +168,7 @@ public class versioning
 		return normal;
 	}
 	
-	public static <V extends Versioned<V>, C extends VChange<V>> 
+	public static <V extends Versioned<V>, C extends Change<V>> 
 	Set<Pair<C, C>> findConflicts(List<C> base, List<C> incoming)
 	{
 		Set<Pair<C, C>> conflicts = new HashSet<Pair<C, C>>();

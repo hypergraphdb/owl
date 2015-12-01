@@ -122,5 +122,5 @@ public interface Versioned<T extends Versioned<T>> extends HGHandleHolder
 	 * @param revision The revision.
 	 * @return
 	 */
-	List<ChangeSet<T>> changes(Revision revision);
+//	List<ChangeSet<T>> changes(Revision revision);
 }

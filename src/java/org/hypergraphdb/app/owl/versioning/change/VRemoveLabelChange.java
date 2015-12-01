@@ -50,19 +50,19 @@ public class VRemoveLabelChange<T extends Versioned<T>> extends VMetadataChange<
 	}
 
 	@Override
-	public VChange<T> reduce(VChange<T> previous)
+	public Change<T> reduce(Change<T> previous)
 	{
 		return null;
 	}
 	
 	@Override
-	public VChange<T> inverse()
+	public Change<T> inverse()
 	{
 		return new VAddLabelChange<T>(label, labeled);
 	}
 
 	@Override
-	public boolean conflictsWith(VChange<T> other)
+	public boolean conflictsWith(Change<T> other)
 	{
 		if (! (other instanceof VAddLabelChange) )
 			return false;
