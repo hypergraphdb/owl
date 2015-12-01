@@ -1,6 +1,5 @@
-package org.hypergraphdb.app.owl.versioning.change;
+package org.hypergraphdb.app.owl.versioning;
 
-import org.hypergraphdb.app.owl.versioning.Versioned;
 
 /**
  * <p>

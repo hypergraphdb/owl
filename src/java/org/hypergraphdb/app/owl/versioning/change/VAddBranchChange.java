@@ -4,6 +4,7 @@ import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.versioning.Branch;
 import org.hypergraphdb.app.owl.versioning.Revision;
+import org.hypergraphdb.app.owl.versioning.VChange;
 import org.hypergraphdb.app.owl.versioning.Versioned;
 
 /**

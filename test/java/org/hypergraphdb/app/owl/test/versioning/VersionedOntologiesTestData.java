@@ -2,7 +2,6 @@ package org.hypergraphdb.app.owl.test.versioning;
 
 import static org.hypergraphdb.app.owl.test.TU.*;
 
-
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -17,13 +16,13 @@ import org.hypergraphdb.app.owl.test.TU;
 import org.hypergraphdb.app.owl.util.OntologyComparator;
 import org.hypergraphdb.app.owl.versioning.ChangeLink;
 import org.hypergraphdb.app.owl.versioning.Revision;
+import org.hypergraphdb.app.owl.versioning.VChange;
 import org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.VisitableObject;
 import org.hypergraphdb.app.owl.versioning.versioning;
 import org.hypergraphdb.app.owl.versioning.change.VAxiomChange;
-import org.hypergraphdb.app.owl.versioning.change.VChange;
 import org.hypergraphdb.app.owl.versioning.change.VImportChange;
 import org.hypergraphdb.app.owl.versioning.change.VModifyOntologyIDChange;
 import org.hypergraphdb.app.owl.versioning.change.VOntologyAnnotationChange;

@@ -3,6 +3,7 @@ package org.hypergraphdb.app.owl.versioning.change;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.versioning.Branch;
+import org.hypergraphdb.app.owl.versioning.VChange;
 import org.hypergraphdb.app.owl.versioning.Versioned;
 
 public class VRemoveBranchChange<T extends Versioned<T>> extends VMetadataChange<T>

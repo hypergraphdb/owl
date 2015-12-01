@@ -1,7 +1,6 @@
 package org.hypergraphdb.app.owl.versioning.distributed.activity;
 
 import static org.hypergraphdb.peer.Messages.CONTENT;
-
 import static org.hypergraphdb.peer.Messages.getReply;
 import static org.hypergraphdb.peer.Messages.getSender;
 import static org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer.OBJECTCONTEXT_REPOSITORY;
@@ -18,10 +17,10 @@ import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.versioning.Revision;
+import org.hypergraphdb.app.owl.versioning.VChange;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.versioning;
-import org.hypergraphdb.app.owl.versioning.change.VChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChangeFactory;
 import org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer;

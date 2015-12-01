@@ -7,9 +7,9 @@ import org.hypergraphdb.util.HGUtils;
 
 /**
  * <p>
- * Connects two revisions (states in the versioned graph)
- *  in parent-child relationship via the {@link ChangeSet}
- *  that would move the state of the object from the parent revision to the child revision.
+ * Connects two revisions (states in the versioned graph) in parent-child relationship 
+ * via the {@link ChangeSet} that would move the state of the object from the parent 
+ * revision to the child revision.
  * </p>
  * 
  * <p>

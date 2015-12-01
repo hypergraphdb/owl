@@ -1,7 +1,6 @@
 package org.hypergraphdb.app.owl.versioning;
 
 import java.util.ArrayList;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -13,7 +12,6 @@ import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.versioning.change.VChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.transaction.HGTransactionConfig;
 

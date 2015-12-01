@@ -16,7 +16,6 @@ import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.algorithms.DefaultALGenerator;
 import org.hypergraphdb.algorithms.GraphClassics;
 import org.hypergraphdb.app.owl.util.CoffmanGraham;
-import org.hypergraphdb.app.owl.versioning.change.VChange;
 import org.hypergraphdb.util.Mapping;
 import org.hypergraphdb.util.Pair;
 

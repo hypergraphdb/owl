@@ -19,12 +19,6 @@ import org.hypergraphdb.HyperGraph;
  * re-construct the state of the versioned object when the revision was created.
  * </p>
  * 
- * <p>
- * A revision is associated one or more {@link ChangeRecord}s that "lead" to it.
- * The association is represented with the {@link RevisionMark} link. 
- * There may be more than one change mark (a.k.a. "commit") associated with a
- * revision when the versioned object is {@link VersionedProject} for example.  
- * </p>
  *
  * <p>
  * <b>NOTE:</b> For property access this class supports a "fluid" pattern where
