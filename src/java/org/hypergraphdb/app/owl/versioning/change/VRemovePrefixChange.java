@@ -2,7 +2,7 @@ package org.hypergraphdb.app.owl.versioning.change;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.app.owl.core.RemovePrefixChange;
-import org.hypergraphdb.app.owl.versioning.VChange;
+import org.hypergraphdb.app.owl.versioning.Change;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 
@@ -21,7 +21,7 @@ public class VRemovePrefixChange extends VPrefixChange
 	}
 	
 	@Override
-	public VChange<VersionedOntology> inverse()
+	public Change<VersionedOntology> inverse()
 	{
 		VOWLChange ic = new VAddPrefixChange(prefixNameToPrefixPairHandle);
 		ic.setHyperGraph(graph);

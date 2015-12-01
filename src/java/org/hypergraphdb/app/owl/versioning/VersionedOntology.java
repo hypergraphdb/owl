@@ -59,9 +59,9 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	 * to move from one revision to another. It does not matter if the <code>from</code>
 	 * is an ancestor or a descendant of <code>to</code>, or neither.
 	 */
-	public List<VChange<VersionedOntology>> collectChanges(HGHandle from, HGHandle to)
+	public List<Change<VersionedOntology>> collectChanges(HGHandle from, HGHandle to)
 	{
-		ArrayList<VChange<VersionedOntology>> result = new ArrayList<VChange<VersionedOntology>>();
+		ArrayList<Change<VersionedOntology>> result = new ArrayList<Change<VersionedOntology>>();
 		if (from.equals(to))
 			return result;
 		Map<HGHandle, HGHandle> predecessorMatrix = new HashMap<HGHandle, HGHandle>();		
@@ -99,11 +99,11 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	 * vice versa, that end is a direct parent to start. If end is a parent of start then the recorded change set
 	 * is used to construct an "inverse" change list that can be played to go from start to end.
 	 */
-	private List<VChange<VersionedOntology>> collectChangesAdjacent(HGHandle start, HGHandle end)
+	private List<Change<VersionedOntology>> collectChangesAdjacent(HGHandle start, HGHandle end)
 	{
 		ChangeLink changeLink = hg.getOne(graph, hg.and(hg.type(ChangeLink.class), hg.link(start, hg.anyHandle(), end)));
 		ChangeSet<VersionedOntology> changeSet = graph.get(changeLink.change());
-		List<VChange<VersionedOntology>> result = changeSet.changes();
+		List<Change<VersionedOntology>> result = changeSet.changes();
 		if (!changeLink.parent().equals(start))
 		{
 			Collections.reverse(result);
@@ -213,11 +213,11 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	 * normalized. This means that all changes in them are commutative (order of application doesn't matter).
 	 * And in particular there aren't any inverse pairs (a pair consistent of a change ands its inverse). 
 	 */
-	private List<VChange<VersionedOntology>> changeListDiff(List<VChange<VersionedOntology>> left, 
-															List<VChange<VersionedOntology>> right)
+	private List<Change<VersionedOntology>> changeListDiff(List<Change<VersionedOntology>> left, 
+															List<Change<VersionedOntology>> right)
 	{
-		List<VChange<VersionedOntology>> result = new ArrayList<VChange<VersionedOntology>>();
-		for (VChange<VersionedOntology> change : left)
+		List<Change<VersionedOntology>> result = new ArrayList<Change<VersionedOntology>>();
+		for (Change<VersionedOntology> change : left)
 		{
 			if (!right.contains(change))
 				result.add(change);
@@ -225,11 +225,11 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		return result;
 	}
 	
-	private HGHandle addChangeSet(List<VChange<VersionedOntology>> changeList)
+	private HGHandle addChangeSet(List<Change<VersionedOntology>> changeList)
 	{
 		HGHandle [] changes = new HGHandle[changeList.size()];
 		int i = 0;
-		for (VChange<VersionedOntology> c : changeList)
+		for (Change<VersionedOntology> c : changeList)
 			changes[i++] = hg.assertAtom(graph, c);
 		return graph.add(new ChangeSet<VersionedOntology>(changes));
 	}
@@ -250,7 +250,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 										  String comment,
 										  String branch,
 										  HGHandle commonAncestor, 
-										  List<VChange<VersionedOntology>> mergeChangeList,
+										  List<Change<VersionedOntology>> mergeChangeList,
 										  Revision...revisions)
 	{
 		HGHandle existingBranch = null;
@@ -281,7 +281,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		// each parent revision and the merge result.
 		for (Revision rev : revisions)
 		{ 
-			List<VChange<VersionedOntology>> diff = changeListDiff(mergeChangeList,
+			List<Change<VersionedOntology>> diff = changeListDiff(mergeChangeList,
 																   collectChanges(commonAncestor, 
 																		   		  rev.getAtomHandle()));			
 			graph.add(new ChangeLink(rev.getAtomHandle(), addChangeSet(diff),  revisionHandle));
@@ -344,8 +344,8 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		// both the changes from P1 to R and from P2 to R
 		//
 		// are inserted into M as a replacement for r, where the change set p1->r is merged
-		HashMap<HGHandle, List<VChange<VersionedOntology>>> M = 
-				new HashMap<HGHandle, List<VChange<VersionedOntology>>>();
+		HashMap<HGHandle, List<Change<VersionedOntology>>> M = 
+				new HashMap<HGHandle, List<Change<VersionedOntology>>>();
 		for (Revision r : revisions)
 		{
 			// Sanity check that all are head revisions with no changes after that.
@@ -354,42 +354,42 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 			
 			if (r.equals(currentRevision) && !changes().isEmpty())				
 				throw new IllegalArgumentException("Cannot merge current head revision with uncomitted changes.");			
-			M.put(r.getAtomHandle(), new ArrayList<VChange<VersionedOntology>>());
+			M.put(r.getAtomHandle(), new ArrayList<Change<VersionedOntology>>());
 		}
 		
 		while (M.size() > 1)
 		{
-			HashMap<HGHandle, List<VChange<VersionedOntology>>> parents = 
-					new HashMap<HGHandle, List<VChange<VersionedOntology>>>();
+			HashMap<HGHandle, List<Change<VersionedOntology>>> parents = 
+					new HashMap<HGHandle, List<Change<VersionedOntology>>>();
 			for (HGHandle hRev : M.keySet())
 			{				
 				Revision rev = graph.get(hRev);
 				for (HGHandle p : rev.parents())
 				{
-					List<VChange<VersionedOntology>> changes = collectChangesAdjacent(p, hRev);
-					List<VChange<VersionedOntology>> accumulated = parents.get(p);
+					List<Change<VersionedOntology>> changes = collectChangesAdjacent(p, hRev);
+					List<Change<VersionedOntology>> accumulated = parents.get(p);
 					if (accumulated != null)
 						changes = ChangeSet.merge(this, accumulated, changes);
 					parents.put(p, changes);
 				}				
 			}
-			HashMap<HGHandle, List<VChange<VersionedOntology>>> newM = 
-					new HashMap<HGHandle, List<VChange<VersionedOntology>>>();
+			HashMap<HGHandle, List<Change<VersionedOntology>>> newM = 
+					new HashMap<HGHandle, List<Change<VersionedOntology>>>();
 			for (HGHandle hRev : M.keySet())
 			{
 				Revision rev = graph.get(hRev);
 				if (parents.containsKey(hRev))
 				{
-					List<VChange<VersionedOntology>> changes = 
+					List<Change<VersionedOntology>> changes = 
 							ChangeSet.merge(this, M.get(hRev), parents.get(hRev));
-					List<VChange<VersionedOntology>> accumulated = newM.get(hRev);
+					List<Change<VersionedOntology>> accumulated = newM.get(hRev);
 					newM.put(hRev, accumulated == null ? 
 								  changes : ChangeSet.merge(this, accumulated, changes)
 					);
 				}
 				else for (HGHandle p : rev.parents())
 				{
-					List<VChange<VersionedOntology>> accumulated = newM.get(p);
+					List<Change<VersionedOntology>> accumulated = newM.get(p);
 					if (accumulated == null)
 						accumulated = M.get(hRev);
 					else
@@ -543,7 +543,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	{
 		if (revision.getAtomHandle().equals(currentRevision))
 			return this;	
-		final List<VChange<VersionedOntology>> changes = 
+		final List<Change<VersionedOntology>> changes = 
 				collectChanges(currentRevision, revision.getAtomHandle());					
 		return graph.getTransactionManager().ensureTransaction(new Callable<VersionedOntology>() {
 			public VersionedOntology call()
@@ -558,7 +558,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 //					graph.add(new StashLink(workingChanges, currentRevision));
 //				}
 				
-				for (VChange<VersionedOntology> c : changes)
+				for (Change<VersionedOntology> c : changes)
 					c.apply(VersionedOntology.this);
 				currentRevision = revision.getAtomHandle();
 				// reset working set, or restore working set at that
@@ -654,10 +654,10 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	public OWLOntologyEx getRevisionData(HGHandle revisionHandle)
 	{
 		HGDBOntologyManager manager = HGOntologyManagerFactory.getOntologyManager(graph.getLocation());		
-		final List<VChange<VersionedOntology>> changes = collectChanges(getRootRevision(), revisionHandle);					
+		final List<Change<VersionedOntology>> changes = collectChanges(getRootRevision(), revisionHandle);					
 		OWLOntologyEx inmem_ontology = new OWLTempOntologyImpl(manager, ontology().getOntologyID());//new OWLOntologyID());
 		List<OWLOntologyChange> owlChanges = new ArrayList<OWLOntologyChange>();
-		for (VChange<VersionedOntology> ch : changes)
+		for (Change<VersionedOntology> ch : changes)
 			if (ch instanceof VOWLChange)
 				owlChanges.add(((VOWLChange)ch).toOWLChange(this));
 		inmem_ontology.applyChanges(owlChanges);

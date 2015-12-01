@@ -17,7 +17,7 @@ import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.versioning.Revision;
-import org.hypergraphdb.app.owl.versioning.VChange;
+import org.hypergraphdb.app.owl.versioning.Change;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.versioning;
@@ -141,12 +141,12 @@ public class GetRemoteOntologyChangesetActivity extends FSMActivity
 					{
 						VersionedOntology vo = versionManager.versioned(o.getAtomHandle());
 						OWLOntology onto = vo.ontology();
-						List<VChange<VersionedOntology>> cs = 
+						List<Change<VersionedOntology>> cs = 
 								versioning.changes(graph, revision.getAtomHandle(), 
 										revision.parents().iterator().next()); //vo.changes(revision);// .getChangeSet(revisionID);
 						// Render Changes and send
 						List<String> renderedChanges = new LinkedList<String>();
-						for (VChange<VersionedOntology> voc : cs)
+						for (Change<VersionedOntology> voc : cs)
 						{
 							OWLOntologyChange change = VOWLChangeFactory.create((VOWLChange)voc, onto, graph);
 							renderedChanges.add(change.toString());

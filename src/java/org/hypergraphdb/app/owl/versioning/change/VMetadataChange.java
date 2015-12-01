@@ -4,10 +4,10 @@ import org.hypergraphdb.HGGraphHolder;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.app.owl.versioning.VChange;
+import org.hypergraphdb.app.owl.versioning.Change;
 import org.hypergraphdb.app.owl.versioning.Versioned;
 
-public abstract class VMetadataChange<T extends Versioned<T>> implements VChange<T>, HGGraphHolder, HGHandleHolder
+public abstract class VMetadataChange<T extends Versioned<T>> implements Change<T>, HGGraphHolder, HGHandleHolder
 {
 	HyperGraph graph;
 	HGHandle atomHandle;

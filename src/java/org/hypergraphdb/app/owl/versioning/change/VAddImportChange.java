@@ -1,7 +1,7 @@
 package org.hypergraphdb.app.owl.versioning.change;
 
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.app.owl.versioning.VChange;
+import org.hypergraphdb.app.owl.versioning.Change;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
@@ -20,7 +20,7 @@ public class VAddImportChange extends VImportChange
 	}
 
 	@Override
-	public VChange<VersionedOntology> inverse()
+	public Change<VersionedOntology> inverse()
 	{
 		VOWLChange ic = new VRemoveImportChange(getImportDeclarationHandle());
 		ic.setHyperGraph(graph);

@@ -1,7 +1,7 @@
 package org.hypergraphdb.app.owl.versioning.change;
 
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.app.owl.versioning.VChange;
+import org.hypergraphdb.app.owl.versioning.Change;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -26,7 +26,7 @@ public class VAddAxiomChange extends VAxiomChange
 	}
 	
 	@Override
-	public VChange<VersionedOntology> inverse()
+	public Change<VersionedOntology> inverse()
 	{
 		VOWLChange ic = new VRemoveAxiomChange(getAxiomHandle());
 		ic.setHyperGraph(graph);
