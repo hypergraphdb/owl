@@ -7,12 +7,33 @@ import org.hypergraphdb.HGHandleHolder;
 
 /**
  * <p>
- * A versioned artifact is one that undergoes changes that are tracked through
- * revisions. 
+ * A versioned artifact is one that undergoes changes that are tracked through revisions. As such,
+ * a versioned object always has a current revision, the very first one being called the <em>root</em>
+ * revision.  
  * </p>
- * 
+ * <p>
+ * A versioned artifact is assumed to have a current working copy which accumulates
+ * working {@link #changes()} until a certain point in time in which a new revision is created. When that
+ * happens, the working changeset becomes immutable and the new revision created
+ * is associated with it via a {@link ChangeLink}. A new revision can be created
+ * either by <em>committing</em> the current working changes via the 
+ * {@link #commit(String, String)} or {@link #commit(String, String, String)} methods.
+ * </p>
+ *  
+ * <p>
+ * Because multiple people may work simultaneously on a versioned entity, it is possible,
+ * and indeed common, for several parallel versions to coexist at different locations
+ * or within the same repository. Thus the history of a versioned object is not necessarily
+ * linear and there may be multiple "latest" revisions. Each such latest revision is called a 
+ * <em>head</em> and a versioned object may have multiple {@link #heads()}.
+ * </p>
+ * When several independent latest/head revisions need to be marged into a common <em>lineage</em>, 
+ * one calls the {@link #merge(String, String, String, Revision...)}
+ * method. Note that one can merge an arbitrary number of revisions, though usually one just
+ * does a merge on two of them at a time.
+ * </p>
  * @author Borislav Iordanov
- * @param T concrete type
+ * @param T The concrete type.
  */
 public interface Versioned<T extends Versioned<T>> extends HGHandleHolder
 {
@@ -65,7 +86,7 @@ public interface Versioned<T extends Versioned<T>> extends HGHandleHolder
 	Revision commit(final String user, final String comment, String branch);
 	
 	/**
-	 * Drop any un-flushed working set changes and return <code>this</code>.
+	 * Drop any current working set changes and return <code>this</code>.
 	 */
 	T undo();
 	

@@ -67,12 +67,20 @@ public interface Change<T extends Versioned<T>>
 	boolean isEffective(T versioned);
 	
 	/**
+	 * <p>
 	 * Return <code>true</code> is this concrete type of change is idempotent 
 	 * and <code>false</code> otherwise. Idempotent changes change be applied
 	 * multiple times to the same effect. That is, applying an idempotent change
 	 * more than once is pointless. The framework will use this attribute of a
 	 * change type to decide whether some changes are superfluous and can be removed
 	 * from a change set.
+	 * </p>
+	 * <p>
+	 * Note that while the {@link #isEffective(Versioned)} method applies to a
+	 * specific change instance, idempotence is an attribute of the change 
+	 * <em>type</em>. Therefore implementations should be returning a constant value
+	 * <code>true</code> or <code>false</code>.
+	 * </p>  
 	 */
 	boolean isIdempotent();
 }

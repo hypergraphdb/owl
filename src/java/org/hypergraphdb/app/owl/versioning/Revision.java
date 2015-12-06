@@ -42,10 +42,17 @@ public class Revision implements HGHandleHolder, HGGraphHolder, HGLink
 	private String user;	
 	private String comment;
 		
+	/**
+	 * Default constructor is mainly needed for deserialization. 
+	 */
 	public Revision()
 	{	
 	}
 	
+	/**
+	 * The <code>targets</code> param is the tuple [versionedHandle, branchHandle] where the branchHandle
+	 * is optional if the revision is not on a branch.
+	 */
 	public Revision(HGHandle...targets)
 	{
 		assert targets.length == 1 || targets.length == 2;
