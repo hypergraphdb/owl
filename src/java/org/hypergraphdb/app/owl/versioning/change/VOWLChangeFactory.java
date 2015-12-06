@@ -9,7 +9,7 @@ import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.core.AddPrefixChange;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.hypergraphdb.app.owl.core.RemovePrefixChange;
-import org.hypergraphdb.app.owl.versioning.VChange;
+import org.hypergraphdb.app.owl.versioning.Change;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
@@ -199,7 +199,7 @@ public class VOWLChangeFactory
 	 * @param graph
 	 * @return
 	 */
-	public static OWLOntologyChange create(VChange<VersionedOntology> voc, OWLOntology onto, HyperGraph graph)
+	public static OWLOntologyChange create(Change<VersionedOntology> voc, OWLOntology onto, HyperGraph graph)
 	{
 		if (voc instanceof VAddImportChange)
 		{

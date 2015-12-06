@@ -55,13 +55,13 @@ public class versioning
 		return null;
 	}
 	
-	private static <V extends Versioned<V>> List<VChange<V>> collectChangesAdjacent(HyperGraph graph, HGHandle start, HGHandle end)
+	private static <V extends Versioned<V>> List<Change<V>> collectChangesAdjacent(HyperGraph graph, HGHandle start, HGHandle end)
 	{
 		ChangeLink changeLink = hg.getOne(graph, hg.and(hg.type(ChangeLink.class), hg.link(start, hg.anyHandle(), end)));
 		if (changeLink == null)
 			return null;
 		ChangeSet<V> changeSet = graph.get(changeLink.change());
-		List<VChange<V>> result = changeSet.changes();
+		List<Change<V>> result = changeSet.changes();
 		if (!changeLink.parent().equals(start))
 		{
 			Collections.reverse(result);
@@ -74,11 +74,11 @@ public class versioning
 	/**
 	 * Return the changes necessary to go from one revision to another.
 	 */
-	public static <V extends Versioned<V>> List<VChange<V>> changes(final HyperGraph graph, 
+	public static <V extends Versioned<V>> List<Change<V>> changes(final HyperGraph graph, 
 																    final HGHandle from, 
 																    final HGHandle to)
 	{
-		List<VChange<V>> result = new ArrayList<VChange<V>>();
+		List<Change<V>> result = new ArrayList<Change<V>>();
 		if (from.equals(to))
 			return result;
 		Map<HGHandle, HGHandle> predecessorMatrix = new HashMap<HGHandle, HGHandle>();		
@@ -105,7 +105,7 @@ public class versioning
 		do
 		{
 			HGHandle hPrev = predecessorMatrix.get(hCurrent);
-			List<VChange<V>> temp = collectChangesAdjacent(graph, hPrev, hCurrent); 
+			List<Change<V>> temp = collectChangesAdjacent(graph, hPrev, hCurrent); 
 			result.addAll(temp);
 			hCurrent = hPrev;	
 		} while (!hCurrent.equals(from));
@@ -122,13 +122,13 @@ public class versioning
 				 .contains(subsequent);
 	}
 	
-	public static <V extends Versioned<V>, C extends VChange<V>> 
+	public static <V extends Versioned<V>, C extends Change<V>> 
 	List<C> normalize(V versioned, List<C> L)
 	{
 		return normalize(versioned, L, true);
 	}
 	
-	public static <V extends Versioned<V>, C extends VChange<V>> 
+	public static <V extends Versioned<V>, C extends Change<V>> 
 	List<C> normalize(V versioned, List<C> L, boolean removeIneffective)
 	{
 		Set<Integer> toremove = new HashSet<Integer>();		
@@ -136,10 +136,10 @@ public class versioning
 		{
 			if (toremove.contains(i))
 				continue;
-			VChange<V> c = L.get(i);
+			Change<V> c = L.get(i);
 			if (removeIneffective && !c.isEffective(versioned))
 				toremove.add(i);
-			VChange<V> ic = c.inverse();			
+			Change<V> ic = c.inverse();			
 			if (c.isIdempotent())
 			{
 				if (ic == null || ic.isIdempotent())
@@ -150,7 +150,7 @@ public class versioning
 					int last = i;
 					for (int j = i + 1; j < L.size(); j++)
 					{
-						VChange<V> next = L.get(j);
+						Change<V> next = L.get(j);
 						if (next.equals(c) || next.equals(ic))
 						{
 							toremove.add(last);
@@ -201,7 +201,7 @@ public class versioning
 			{
 				for (int j = i + 1; j < L.size(); j++)
 				{
-					VChange<V> next = L.get(j);
+					Change<V> next = L.get(j);
 					if (next.equals(ic))
 					{
 						toremove.add(i);
@@ -223,7 +223,7 @@ public class versioning
 			// else it's non-idempotent and it has no inverse, just try to merge with something else
 			else for (int j = i + 1; j < L.size(); j++)
 			{
-				VChange<V> next = L.get(j);
+				Change<V> next = L.get(j);
 				@SuppressWarnings("unchecked")
 				C merged = (C)next.reduce(c);
 				if (merged != null)
@@ -244,7 +244,7 @@ public class versioning
 		return normal;
 	}
 	
-	public static <V extends Versioned<V>, C extends VChange<V>> 
+	public static <V extends Versioned<V>, C extends Change<V>> 
 	Set<Pair<C, C>> findConflicts(List<C> base, List<C> incoming)
 	{
 		Set<Pair<C, C>> conflicts = new HashSet<Pair<C, C>>();

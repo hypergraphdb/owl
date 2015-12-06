@@ -21,7 +21,7 @@ import org.hypergraphdb.app.owl.test.TU;
 import org.hypergraphdb.app.owl.versioning.ChangeLink;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
-import org.hypergraphdb.app.owl.versioning.VChange;
+import org.hypergraphdb.app.owl.versioning.Change;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedMetadata;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
@@ -139,7 +139,7 @@ public class VersioningTests extends VersioningTestBase
 		Assert.assertEquals(0, ctx.vonto().changes().size());		
 		HGHandle lastCommitted = ctx.vonto().revision().parents().iterator().next();
 		Assert.assertEquals(revisionBefore.getAtomHandle(), lastCommitted);
-		List<VChange<VersionedOntology>> fromLastCommitted = versioning.changes(ctx.graph, 
+		List<Change<VersionedOntology>> fromLastCommitted = versioning.changes(ctx.graph, 
 																			ctx.vonto().getCurrentRevision(), 
 																			lastCommitted);
 		Assert.assertEquals(changeSet.changes(), fromLastCommitted);		

@@ -29,7 +29,7 @@ import org.hypergraphdb.app.owl.util.ImplUtils;
 import org.hypergraphdb.app.owl.util.OntologyComparator;
 import org.hypergraphdb.app.owl.versioning.Branch;
 import org.hypergraphdb.app.owl.versioning.Revision;
-import org.hypergraphdb.app.owl.versioning.VChange;
+import org.hypergraphdb.app.owl.versioning.Change;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.versioning;
@@ -289,8 +289,8 @@ public class DistributedTests extends VersioningTestBase
 //		versioning.printRevisionGraph(ctx2.graph(), ctx2.vonto());
 		assertEquals(2, ctx2.vo.heads().size());
 		assertTrue(ctx2.vo.heads().contains(ctx1.vo.getCurrentRevision()));		
-		List<VChange<VersionedOntology>> cs1 = versioning.changes(ctx1.graph(), childRevision, parentRevision);
-		List<VChange<VersionedOntology>> cs2 = versioning.changes(ctx2.graph(), childRevision, parentRevision);
+		List<Change<VersionedOntology>> cs1 = versioning.changes(ctx1.graph(), childRevision, parentRevision);
+		List<Change<VersionedOntology>> cs2 = versioning.changes(ctx2.graph(), childRevision, parentRevision);
 		assertEquals(cs1, cs2);
 		assertTrue(VersionedOntologiesTestData.compareChangeLists(ctx1.graph(), 
 																  ctx2.graph(), 
@@ -326,8 +326,8 @@ public class DistributedTests extends VersioningTestBase
 		HGHandle childRevision = ctx2.vo.getCurrentRevision().getPersistent();
 		ctx1.vo.goTo((Revision)ctx1.graph.get(ctx2.vo.getCurrentRevision().getPersistent()));
 		assertEquals(ctx2.vo.getCurrentRevision(), ctx1.vo.getCurrentRevision());		
-		List<VChange<VersionedOntology>> cs1 = versioning.changes(ctx1.graph(), childRevision, parentRevision);
-		List<VChange<VersionedOntology>> cs2 = versioning.changes(ctx2.graph(), childRevision, parentRevision);
+		List<Change<VersionedOntology>> cs1 = versioning.changes(ctx1.graph(), childRevision, parentRevision);
+		List<Change<VersionedOntology>> cs2 = versioning.changes(ctx2.graph(), childRevision, parentRevision);
 		assertEquals(cs1, cs2);
 		assertTrue(VersionedOntologiesTestData.compareChangeLists(ctx1.graph(), 
 																  ctx2.graph(), 

@@ -17,7 +17,7 @@ import org.hypergraphdb.app.owl.versioning.Branch;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.ChangeLink;
 import org.hypergraphdb.app.owl.versioning.Revision;
-import org.hypergraphdb.app.owl.versioning.VChange;
+import org.hypergraphdb.app.owl.versioning.Change;
 import org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor;
 import org.hypergraphdb.app.owl.versioning.VersionedMetadata;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
@@ -199,7 +199,7 @@ public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
 		writer.writeStartElement(CHANGE_SET);
 		writer.writeAttribute("timestamp", Long.toString(changeSet.timestamp()));
 		writer.writeAttribute("handle", changeSet.getAtomHandle());
-		for (VChange<VersionedOntology> c : changeSet.changes())
+		for (Change<VersionedOntology> c : changeSet.changes())
 			((VOWLChange)c).accept(this);
 		writer.writeEndElement();
 	}
