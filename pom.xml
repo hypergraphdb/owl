@@ -2,20 +2,13 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
-	<!-- We skip the reference to parent here in order to avoid conflict with 
-		TestNG. The tests here a junit and the parent pom declares testng which embeds 
-		a junit runner that messes things up. When the tests from all modules migrate 
-		to junit,we can restore the reference to the parent. -->
-	<!-- <parent> <groupId>org.hypergraphdb</groupId> <artifactId>hgdbapps</artifactId> 
-		<version>1.3-SNAPSHOT</version> </parent> -->
 	<groupId>org.hypergraphdb</groupId>
 	<version>1.4-SNAPSHOT</version>
 	<properties>
 		<packageit>bundle</packageit>
 		<bundle.symbolicName>org.hypergraph.app.owl;singleton:=true</bundle.symbolicName>
 		<bundle.namespace>org.hypergraphdb.app.owl</bundle.namespace>
-        <hgdb.version>1.3</hgdb.version>
+        <hgdb.version>1.4-SNAPSHOT</hgdb.version>
 	</properties>
 	<packaging>bundle</packaging>
 	<artifactId>hgdbowl</artifactId>
@@ -37,22 +30,22 @@
 		<dependency>
 			<groupId>org.hypergraphdb</groupId>
 			<artifactId>hgdb</artifactId>
-			<version>1.4-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.hypergraphdb</groupId>
-			<artifactId>hgdbmanagement</artifactId>
-			<version>${hgdb.version}</version>
-		</dependency>
+        <dependency>
+            <groupId>org.hypergraphdb</groupId>
+            <artifactId>hgdbmanagement</artifactId>
+            <version>${project.version}</version>
+        </dependency>		
 		<dependency>
 			<groupId>org.hypergraphdb</groupId>
 			<artifactId>hgbdbje</artifactId>
-			<version>${hgdb.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.hypergraphdb</groupId>
 			<artifactId>hgdbp2p</artifactId>
-			<version>1.4-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>net.sourceforge.owlapi</groupId>
