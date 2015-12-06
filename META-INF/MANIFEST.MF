@@ -1,45 +1,4 @@
 Manifest-Version: 1.0
-Bundle-Description: An implementation of the OWLAPI backed by HyperGra
- phDB for transparent and automatic persistence of OWL ontologies. Eac
- h ontology is a subgraph in the graph database.
-Bundle-SymbolicName: org.hypergraphdb.app.owl;singleton:=true
-Built-By: borislav
-Bundle-ManifestVersion: 2
-Bnd-LastModified: 1448939058182
-Import-Package: de.uulm.ecs.ai.owlapi.krssparser,de.uulm.ecs.ai.owlapi
- .krssrenderer,javax.xml.parsers,mjson;version="1.4.0.SNAPSHOT",org.co
- ode.owlapi.functionalparser,org.coode.owlapi.functionalrenderer,org.c
- oode.owlapi.latex,org.coode.owlapi.manchesterowlsyntax,org.coode.owla
- pi.obo.parser,org.coode.owlapi.obo.renderer,org.coode.owlapi.owlxml.r
- enderer,org.coode.owlapi.owlxmlparser,org.coode.owlapi.rdf.rdfxml,org
- .coode.owlapi.rdfxml.parser,org.coode.owlapi.turtle,org.coode.xml,org
- .hypergraphdb,org.hypergraphdb.algorithms,org.hypergraphdb.annotation
- ,org.hypergraphdb.app.management,org.hypergraphdb.app.owl,org.hypergr
- aphdb.app.owl.core,org.hypergraphdb.app.owl.exception,org.hypergraphd
- b.app.owl.gc,org.hypergraphdb.app.owl.model,org.hypergraphdb.app.owl.
- model.axioms,org.hypergraphdb.app.owl.model.classexpr,org.hypergraphd
- b.app.owl.model.classexpr.restrict,org.hypergraphdb.app.owl.model.swr
- l,org.hypergraphdb.app.owl.query,org.hypergraphdb.app.owl.repair,org.
- hypergraphdb.app.owl.type,org.hypergraphdb.app.owl.type.link,org.hype
- rgraphdb.app.owl.usage,org.hypergraphdb.app.owl.util,org.hypergraphdb
- .app.owl.versioning,org.hypergraphdb.app.owl.versioning.change,org.hy
- pergraphdb.app.owl.versioning.distributed,org.hypergraphdb.app.owl.ve
- rsioning.distributed.activity,org.hypergraphdb.app.owl.versioning.dis
- tributed.serialize,org.hypergraphdb.app.owl.versioning.distributed.se
- rialize.parse,org.hypergraphdb.atom,org.hypergraphdb.cache,org.hyperg
- raphdb.event,org.hypergraphdb.handle,org.hypergraphdb.indexing,org.hy
- pergraphdb.maintenance,org.hypergraphdb.peer,org.hypergraphdb.peer.bo
- otstrap,org.hypergraphdb.peer.workflow,org.hypergraphdb.peer.xmpp,org
- .hypergraphdb.query,org.hypergraphdb.query.cond2qry,org.hypergraphdb.
- query.impl,org.hypergraphdb.storage,org.hypergraphdb.transaction,org.
- hypergraphdb.type,org.hypergraphdb.type.javaprimitive,org.hypergraphd
- b.util,org.semanticweb.owlapi.apibinding,org.semanticweb.owlapi.chang
- e,org.semanticweb.owlapi.io,org.semanticweb.owlapi.model,org.semantic
- web.owlapi.util,org.semanticweb.owlapi.vocab,org.w3c.dom,org.xml.sax,
- org.xml.sax.ext,org.xml.sax.helpers,uk.ac.manchester.cs.owl.owlapi,uk
- .ac.manchester.cs.owl.owlapi.mansyntaxrenderer,uk.ac.manchester.cs.ow
- l.owlapi.turtle.parser
-Tool: Bnd-0.0.238
 Export-Package: org.hypergraphdb.app.owl.exception;uses:="org.semantic
  web.owlapi.model,org.hypergraphdb",org.hypergraphdb.app.owl.versionin
  g.distributed.serialize.parse;uses:="org.semanticweb.owlapi.model,org
@@ -153,9 +112,50 @@ Export-Package: org.hypergraphdb.app.owl.exception;uses:="org.semantic
  org.hypergraphdb.util,org.hypergraphdb.app.owl.core,org.hypergraphdb.
  app.owl.versioning",org.hypergraphdb.app.owl.usage;uses:="org.hypergr
  aphdb.app.owl,org.semanticweb.owlapi.model"
-Bundle-Name: HypergraphDB Owl-API Backend
-Bundle-Version: 1.7.0
 Ignore-Package: org.jivesoftware.smack
+Built-By: borislav
+Tool: Bnd-0.0.238
+Bundle-Name: HypergraphDB Owl-API Backend
 Created-By: Apache Maven Bundle Plugin
-Build-Jdk: 1.8.0_40
+Build-Jdk: 1.7.0_60
+Bundle-Version: 1.7.0
+Bnd-LastModified: 1448939058182
+Bundle-ManifestVersion: 2
+Bundle-Description: An implementation of the OWLAPI backed by HyperGra
+ phDB for transparent and automatic persistence of OWL ontologies. Eac
+ h ontology is a subgraph in the graph database.
+Import-Package: de.uulm.ecs.ai.owlapi.krssparser,de.uulm.ecs.ai.owlapi
+ .krssrenderer,javax.xml.parsers,mjson;version="1.4.0.SNAPSHOT",org.co
+ ode.owlapi.functionalparser,org.coode.owlapi.functionalrenderer,org.c
+ oode.owlapi.latex,org.coode.owlapi.manchesterowlsyntax,org.coode.owla
+ pi.obo.parser,org.coode.owlapi.obo.renderer,org.coode.owlapi.owlxml.r
+ enderer,org.coode.owlapi.owlxmlparser,org.coode.owlapi.rdf.rdfxml,org
+ .coode.owlapi.rdfxml.parser,org.coode.owlapi.turtle,org.coode.xml,org
+ .hypergraphdb,org.hypergraphdb.algorithms,org.hypergraphdb.annotation
+ ,org.hypergraphdb.app.management,org.hypergraphdb.app.owl,org.hypergr
+ aphdb.app.owl.core,org.hypergraphdb.app.owl.exception,org.hypergraphd
+ b.app.owl.gc,org.hypergraphdb.app.owl.model,org.hypergraphdb.app.owl.
+ model.axioms,org.hypergraphdb.app.owl.model.classexpr,org.hypergraphd
+ b.app.owl.model.classexpr.restrict,org.hypergraphdb.app.owl.model.swr
+ l,org.hypergraphdb.app.owl.query,org.hypergraphdb.app.owl.repair,org.
+ hypergraphdb.app.owl.type,org.hypergraphdb.app.owl.type.link,org.hype
+ rgraphdb.app.owl.usage,org.hypergraphdb.app.owl.util,org.hypergraphdb
+ .app.owl.versioning,org.hypergraphdb.app.owl.versioning.change,org.hy
+ pergraphdb.app.owl.versioning.distributed,org.hypergraphdb.app.owl.ve
+ rsioning.distributed.activity,org.hypergraphdb.app.owl.versioning.dis
+ tributed.serialize,org.hypergraphdb.app.owl.versioning.distributed.se
+ rialize.parse,org.hypergraphdb.atom,org.hypergraphdb.cache,org.hyperg
+ raphdb.event,org.hypergraphdb.handle,org.hypergraphdb.indexing,org.hy
+ pergraphdb.maintenance,org.hypergraphdb.peer,org.hypergraphdb.peer.bo
+ otstrap,org.hypergraphdb.peer.workflow,org.hypergraphdb.peer.xmpp,org
+ .hypergraphdb.query,org.hypergraphdb.query.cond2qry,org.hypergraphdb.
+ query.impl,org.hypergraphdb.storage,org.hypergraphdb.transaction,org.
+ hypergraphdb.type,org.hypergraphdb.type.javaprimitive,org.hypergraphd
+ b.util,org.semanticweb.owlapi.apibinding,org.semanticweb.owlapi.chang
+ e,org.semanticweb.owlapi.io,org.semanticweb.owlapi.model,org.semantic
+ web.owlapi.util,org.semanticweb.owlapi.vocab,org.w3c.dom,org.xml.sax,
+ org.xml.sax.ext,org.xml.sax.helpers,uk.ac.manchester.cs.owl.owlapi,uk
+ .ac.manchester.cs.owl.owlapi.mansyntaxrenderer,uk.ac.manchester.cs.ow
+ l.owlapi.turtle.parser
+Bundle-SymbolicName: org.hypergraphdb.app.owl;singleton:=true
 
