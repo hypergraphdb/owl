@@ -23,6 +23,9 @@ import org.hypergraphdb.util.SimpleStack;
  * so, what the difference is.
  * </p>
  * 
+ * TODO: this is an internal implementation class and it should/will most likely
+ * be moved to a different place or otherwise refactored.
+ *  
  * @author Borislav Iordanov
  *
  */

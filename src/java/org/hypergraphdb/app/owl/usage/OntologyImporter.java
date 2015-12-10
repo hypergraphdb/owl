@@ -1,4 +1,4 @@
-package org.hypergraphdb.app.owl.versioning;
+package org.hypergraphdb.app.owl.usage;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,6 +12,10 @@ import org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer;
 /**
  * OntologyImporter imports all versioned ontologies from a directory
  * interactively one by one from VOWLXML Format.
+ * 
+ * TODO - this should be moved into a "tools" package alongside
+ * possibly other command line programs, such running a standalone server
+ * etc.
  * 
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Sep 14, 2012

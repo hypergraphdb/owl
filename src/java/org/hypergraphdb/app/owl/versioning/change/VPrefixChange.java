@@ -1,7 +1,6 @@
 package org.hypergraphdb.app.owl.versioning.change;
 
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor;
 import org.hypergraphdb.util.Pair;
 
 /**
@@ -44,7 +43,7 @@ public abstract class VPrefixChange extends VOWLChange
 	}
 
 	@Override
-	public void accept(VOWLObjectVisitor visitor)
+	public void accept(VOWLChangeVisitor visitor)
 	{
 		visitor.visit(this);
 	}

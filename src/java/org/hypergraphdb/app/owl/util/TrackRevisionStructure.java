@@ -1,9 +1,13 @@
-package org.hypergraphdb.app.owl.versioning;
+package org.hypergraphdb.app.owl.util;
 
 import java.util.concurrent.Callable;
+
 import org.hypergraphdb.HGIndex;
 import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.app.owl.versioning.ChangeLink;
+import org.hypergraphdb.app.owl.versioning.Revision;
+import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.event.HGAtomAddedEvent;
 import org.hypergraphdb.event.HGAtomRemovedEvent;
 import org.hypergraphdb.event.HGEvent;
@@ -24,7 +28,7 @@ import org.hypergraphdb.util.HGUtils;
  * </p>
  * 
  * <p>
- * 
+ * This is an implementation level class, not to be used as an API by clients.
  * </p>
  * 
  * @author Borislav Iordanov
@@ -54,13 +58,9 @@ public class TrackRevisionStructure
 				VersionedOntology versioned = graph.get(revision.versioned());	
 				if (versioned == null)
 					throw new IllegalArgumentException("BUG: No versioned for revision.");
-/*				else if (versioned.getBottomRevision() == null)
-					System.out.println("oops not bottom revision for versioned"); */
-//				System.out.println("Current HEAD 1: " + versioned.heads());
 				revisionChildIndex(graph).addEntry(
 						versioned.getBottomRevision().getPersistent(),
 						revision.getAtomHandle().getPersistent());		
-//				System.out.println("Current HEAD 2: " + versioned.heads());
 			}
 			else if (atom instanceof ChangeLink)
 			{
@@ -75,13 +75,10 @@ public class TrackRevisionStructure
 					{
 						HGIndex<HGPersistentHandle, HGPersistentHandle> idx = revisionChildIndex(graph);
 						VersionedOntology versioned = graph.get(((Revision)child).versioned());
-//						System.out.println("Current HEAD 3: " + versioned.heads());						
 						idx.removeEntry(versioned.getBottomRevision().getPersistent(), 
 										parentLink.parent().getPersistent());
 						idx.addEntry(parentLink.child().getPersistent(), parentLink.parent().getPersistent());
-//						System.out.println("Current HEAD 4: " + versioned.heads() + " " + parentLink.parent());						
 					}
-
 				}
 			}
 			return Result.ok;			

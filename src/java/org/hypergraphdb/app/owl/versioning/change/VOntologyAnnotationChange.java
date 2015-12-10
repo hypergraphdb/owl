@@ -2,7 +2,6 @@ package org.hypergraphdb.app.owl.versioning.change;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.app.owl.model.OWLAnnotationHGDB;
-import org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor;
 
 /**
  * VOntologyAnnotationChange.
@@ -92,7 +91,7 @@ public abstract class VOntologyAnnotationChange extends VOWLChange
 	 * .app.owl.versioning.VOWLObjectVisitor)
 	 */
 	@Override
-	public void accept(VOWLObjectVisitor visitor)
+	public void accept(VOWLChangeVisitor visitor)
 	{
 		visitor.visit(this);
 	}

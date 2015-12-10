@@ -2,6 +2,7 @@ package org.hypergraphdb.app.owl.test.versioning;
 
 import static org.hypergraphdb.app.owl.test.TU.*;
 
+
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -17,14 +18,14 @@ import org.hypergraphdb.app.owl.util.OntologyComparator;
 import org.hypergraphdb.app.owl.versioning.ChangeLink;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.Change;
-import org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
-import org.hypergraphdb.app.owl.versioning.VisitableObject;
 import org.hypergraphdb.app.owl.versioning.versioning;
 import org.hypergraphdb.app.owl.versioning.change.VAxiomChange;
 import org.hypergraphdb.app.owl.versioning.change.VImportChange;
 import org.hypergraphdb.app.owl.versioning.change.VModifyOntologyIDChange;
+import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
+import org.hypergraphdb.app.owl.versioning.change.VOWLChangeVisitor;
 import org.hypergraphdb.app.owl.versioning.change.VOntologyAnnotationChange;
 import org.hypergraphdb.app.owl.versioning.change.VPrefixChange;
 import org.hypergraphdb.util.HGUtils;
@@ -57,8 +58,8 @@ public class VersionedOntologiesTestData
 			if (!lchange.getClass().equals(rchange.getClass()))
 				return false;
 			final boolean [] compare = new boolean[1];
-			if (lchange instanceof VisitableObject)
-				((VisitableObject)lchange).accept(new VOWLObjectVisitor() {
+			if (lchange instanceof VOWLChange)
+				((VOWLChange)lchange).accept(new VOWLChangeVisitor() {
 
 					@Override
 					public void visit(VAxiomChange change)

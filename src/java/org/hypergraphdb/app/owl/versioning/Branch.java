@@ -37,7 +37,7 @@ import org.hypergraphdb.HGHandleHolder;
  * of the property. This is a departure from Java Beans conventions and therefore
  * HyperGraphDB doesn't not automatically generate a type for the class. So, we've
  * included standard Java Bean style property setter&getter as well, but that is 
- * temporary, so please don't use them.
+ * temporary, so please don't use them, they are already deprecated!
  * </p>
  
  * @author Borislav Iordanov

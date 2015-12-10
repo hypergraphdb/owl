@@ -2,7 +2,6 @@ package org.hypergraphdb.app.owl.versioning.change;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
-import org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor;
 
 /**
  * VAxiomChange.
@@ -92,7 +91,7 @@ public abstract class VAxiomChange extends VOWLChange
 	 * .app.owl.versioning.VOWLObjectVisitor)
 	 */
 	@Override
-	public void accept(VOWLObjectVisitor visitor)
+	public void accept(VOWLChangeVisitor visitor)
 	{
 		visitor.visit(this);
 	}

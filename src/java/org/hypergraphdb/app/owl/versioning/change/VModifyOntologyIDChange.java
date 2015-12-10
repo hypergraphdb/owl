@@ -2,7 +2,6 @@ package org.hypergraphdb.app.owl.versioning.change;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.app.owl.versioning.Change;
-import org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyID;
@@ -176,7 +175,7 @@ public class VModifyOntologyIDChange extends VOWLChange
 	 * .app.owl.versioning.VOWLObjectVisitor)
 	 */
 	@Override
-	public void accept(VOWLObjectVisitor visitor)
+	public void accept(VOWLChangeVisitor visitor)
 	{
 		visitor.visit(this);
 	}

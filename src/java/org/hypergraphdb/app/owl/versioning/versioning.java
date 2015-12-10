@@ -1,5 +1,6 @@
 package org.hypergraphdb.app.owl.versioning;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -309,8 +310,15 @@ public class versioning
 			s = (s.length() % 2 == 0) ? (s + " ") : (" " + s);
 		return s;
 	}
-	
-	public static void printRevisionGraph(VersionedOntology versioned)
+
+	/**
+	 * <p>
+	 * Print the entire revision graph as ASCII "art" to the provided <code>PrintStream</code>  
+	 * </p>
+	 * 
+	 * @param versioned
+	 */
+	public static void printRevisionGraph(VersionedOntology versioned, PrintStream out)
 	{
 		HyperGraph graph = versioned.graph();
 		int width = 3;
@@ -351,10 +359,6 @@ public class versioning
 			{
 				Revision rev = graph.get(current);
 				Set<HGHandle> parents = rev.parents(); 
-//						graph.findAll(hg.apply(
-//						hg.targetAt(graph, 1), 
-//						hg.and(hg.type(ChangeLink.class), 
-//							   hg.orderedLink(current, hg.anyHandle()))));
 				Pair<Integer, Integer> currentCoord = coordinates.get(current);
 				for (HGHandle parent : parents)
 				{
@@ -367,11 +371,11 @@ public class versioning
 				}
 			}
 		}
-		System.out.println("Revision graph: " + versioned.ontology().getOntologyID().getOntologyIRI() 
+		out.println("Revision graph: " + versioned.ontology().getOntologyID().getOntologyIRI() 
 				+ " @ " + graph.getLocation());
-		System.out.println("----------------------------------------------------------------------------");
+		out.println("----------------------------------------------------------------------------");
 		for (char [] line : ascii)
 			System.out.println(line);
-		System.out.println("----------------------------------------------------------------------------");
+		out.println("----------------------------------------------------------------------------");
 	}
 }

@@ -1,11 +1,11 @@
 package org.hypergraphdb.app.owl.versioning.change;
 
 import org.hypergraphdb.HGGraphHolder;
+
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.versioning.Change;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
-import org.hypergraphdb.app.owl.versioning.VisitableObject;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 
 /**
@@ -14,7 +14,7 @@ import org.semanticweb.owlapi.model.OWLOntologyChange;
  * @author Thomas Hilpold (CIAO/Miami-Dade County)
  * @created Jan 13, 2012
  */
-public abstract class VOWLChange implements Change<VersionedOntology>, HGLink, VisitableObject, HGGraphHolder
+public abstract class VOWLChange implements Change<VersionedOntology>, HGLink, HGGraphHolder
 {
 	HyperGraph graph;
 
@@ -24,6 +24,7 @@ public abstract class VOWLChange implements Change<VersionedOntology>, HGLink, V
 	}
 
 	public abstract OWLOntologyChange toOWLChange(VersionedOntology versioned);
+	public abstract void accept(VOWLChangeVisitor visitor);
 	
 	@Override
 	public void apply(VersionedOntology versioned)

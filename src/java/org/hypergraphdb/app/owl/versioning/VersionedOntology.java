@@ -24,6 +24,7 @@ import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.hypergraphdb.app.owl.core.OWLTempOntologyImpl;
+import org.hypergraphdb.app.owl.util.TrackRevisionStructure;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.query.IndexCondition;
 import org.hypergraphdb.util.Mapping;

@@ -18,7 +18,6 @@ import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.ChangeLink;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.Change;
-import org.hypergraphdb.app.owl.versioning.VOWLObjectVisitor;
 import org.hypergraphdb.app.owl.versioning.VersionedMetadata;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.change.VAddAxiomChange;
@@ -29,6 +28,7 @@ import org.hypergraphdb.app.owl.versioning.change.VAxiomChange;
 import org.hypergraphdb.app.owl.versioning.change.VImportChange;
 import org.hypergraphdb.app.owl.versioning.change.VModifyOntologyIDChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
+import org.hypergraphdb.app.owl.versioning.change.VOWLChangeVisitor;
 import org.hypergraphdb.app.owl.versioning.change.VOntologyAnnotationChange;
 import org.hypergraphdb.app.owl.versioning.change.VPrefixChange;
 import org.hypergraphdb.app.owl.versioning.change.VRemoveAxiomChange;
@@ -62,7 +62,7 @@ import org.semanticweb.owlapi.vocab.Namespaces;
  * @author Thomas Hilpold (CIAO/Miami-Dade County), Borislav Iordanov
  * @created Feb 24, 2012
  */
-public class VOWLXMLObjectRenderer implements VOWLObjectVisitor
+public class VOWLXMLObjectRenderer implements VOWLChangeVisitor
 {
 	private VOWLXMLWriter writer;
 	private OWLXMLObjectRenderer owlObjectRenderer;

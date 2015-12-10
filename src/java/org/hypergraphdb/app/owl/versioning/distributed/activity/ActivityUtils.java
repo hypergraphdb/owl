@@ -1,15 +1,8 @@
 package org.hypergraphdb.app.owl.versioning.distributed.activity;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.io.StringWriter;
-import java.io.Writer;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,10 +20,10 @@ import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.hypergraphdb.app.owl.core.OWLTempOntologyImpl;
 import org.hypergraphdb.app.owl.versioning.Branch;
+import org.hypergraphdb.app.owl.versioning.Change;
 import org.hypergraphdb.app.owl.versioning.ChangeLink;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
-import org.hypergraphdb.app.owl.versioning.Change;
 import org.hypergraphdb.app.owl.versioning.Versioned;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.change.VMetadataChange;
@@ -71,14 +64,6 @@ public class ActivityUtils
 
 	public static final int RENDER_BUFFER_FULL_INITIAL_SIZE = 20 * 1024 * 1024; // characters
 	public static final int RENDER_BUFFER_DELTA_INITIAL_SIZE = 1 * 1024 * 1024; // characters
-
-	public static String RENDER_DIR = System.getProperty("java.io.tmpdir");
-	public static int RENDER_COUNTER = 0;
-
-	static
-	{
-		System.out.println("ACTIVITY RENDER DIRECTORY: " + RENDER_DIR);
-	}
 
 	private static Collection<HGHandle> collectRevisionsFrom(final HGHandle root, 
 															 final Set<HGHandle> sofar, 
@@ -165,21 +150,6 @@ public class ActivityUtils
 		{
 			throw new RuntimeException(ex);
 		}
-	}
-
-	public static String renderVersionedOntology(VersionedOntology versionedOnto, int lastRevisionToRenderIndex) throws OWLRendererException
-	{
-		throw new UnsupportedOperationException();
-//		VOWLXMLRenderConfiguration conf = new VOWLXMLRenderConfiguration();
-//		conf.setLastRevisionData(true);
-//		conf.uncommittedChanges(false);
-//		conf.setLastRevisionIndex(lastRevisionToRenderIndex);
-//		StringWriter stringWriter = new StringWriter(RENDER_BUFFER_FULL_INITIAL_SIZE);
-//		// Would need OWLOntologyManager for Format, but null ok here.
-//		VOWLXMLVersionedOntologyRenderer owlxmlRenderer =
-//				new VOWLXMLVersionedOntologyRenderer(versionedOnto.getWorkingSetData().getOWLOntologyManager());
-//		owlxmlRenderer.render(versionedOnto, stringWriter, conf);
-//		return stringWriter.toString();
 	}
 
 	public static void storeChangeSet(HyperGraph graph, ChangeSet<VersionedOntology> changeSet, List<Change<VersionedOntology>> changes)
@@ -391,47 +361,5 @@ public class ActivityUtils
 		to.setPrefixesFrom(from.getPrefixes());
 		if (DBG)
 			System.out.println("Prefixes stored: nr: " + to.getPrefixes().size());
-	}
-
-	//
-	// DBG OUTPUT UTILS
-	//
-
-	File getTargetXMLFile(String tag)
-	{
-		RENDER_COUNTER++;
-		return new File(RENDER_DIR + File.separator + (new Date().getTime()) + "-" + RENDER_COUNTER + "-" + tag + ".xml");
-	}
-
-	/**
-	 * Saves a full vo as xml file to RENDER_DIR with a timestamped unique
-	 * sequential name ends with the given tag. eg. 1-8271368127-mytag.xml
-	 * Suggested tags: ONTO-SENT-PEERNAME, ONTO-RECEIVED-PEERNAME
-	 * 
-	 * @param vo
-	 * @param tag
-	 * @throws OWLRendererException
-	 * @throws IOException
-	 */
-	void saveVersionedOntologyXML(VersionedOntology vo, String tag) throws OWLRendererException, IOException
-	{
-		throw new UnsupportedOperationException();
-//		VOWLXMLVersionedOntologyRenderer r = new VOWLXMLVersionedOntologyRenderer(vo.getWorkingSetData().getOWLOntologyManager());
-//		Writer fwriter = new OutputStreamWriter(new FileOutputStream(getTargetXMLFile(tag)), Charset.forName("UTF-8"));
-//		r.render(vo, fwriter, new VOWLXMLRenderConfiguration());
-//		fwriter.close();
-	}
-
-	/**
-	 * Saves a given string as xml file to RENDER_DIR with a timestamped unique
-	 * sequential name ends with the given tag. Use this for saving DELTA.
-	 * Suggested tags: DELTA-SENT-PEERNAME, DELTA-RECEIVED-PEERNAME eg.
-	 * 1-8271368127-mytag.xml
-	 */
-	void saveStringXML(String content, String tag) throws IOException
-	{
-		Writer fwriter = new OutputStreamWriter(new FileOutputStream(getTargetXMLFile(tag)), Charset.forName("UTF-8"));
-		fwriter.write(content);
-		fwriter.close();
 	}
 }

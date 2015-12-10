@@ -27,7 +27,6 @@ import org.hypergraphdb.app.owl.model.OWLDataPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLDatatypeHGDB;
 import org.hypergraphdb.app.owl.model.OWLNamedIndividualHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectPropertyHGDB;
-import org.hypergraphdb.app.owl.versioning.TrackRevisionStructure;
 import org.hypergraphdb.event.HGAtomAddedEvent;
 import org.hypergraphdb.event.HGAtomRemovedEvent;
 import org.hypergraphdb.event.HGClosingEvent;
