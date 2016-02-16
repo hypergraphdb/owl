@@ -722,7 +722,7 @@ public class GarbageCollector implements HGDBTask
 				System.err.print(curAtomHandle);
 				try
 				{
-					System.err.print(graph.get(curAtomHandle));
+					System.err.print((Object)graph.get(curAtomHandle));
 				}
 				catch (Exception ex)
 				{
@@ -1244,7 +1244,7 @@ public class GarbageCollector implements HGDBTask
 			System.err.print("Trying to load it: ");
 			try
 			{
-				System.err.println(graph.get(atom));
+				System.err.println((Object)graph.get(atom));
 				System.err.println(graph.get(atom).getClass().toString());
 			}
 			catch (Exception ex)

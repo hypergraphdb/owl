@@ -44,6 +44,7 @@ public class TrackRevisionStructure
 										 BAtoHandle.getInstance(graph.getHandleFactory()), 
 										 BAtoHandle.getInstance(graph.getHandleFactory()), 
 										 new HGHandleType.HandleComparator(), 
+										 null,
 										 true);
 	}
 	

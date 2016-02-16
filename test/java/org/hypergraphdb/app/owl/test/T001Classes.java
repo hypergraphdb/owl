@@ -20,10 +20,10 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 public class T001Classes extends OntologyManagerTest
 {
 
-	public T001Classes() throws Exception
-	{
-		super(OntologyManagerTest.USE_HYPERGRAPH_IMPLEMENTATION);
-	}
+//	public T001Classes() throws Exception
+//	{
+//		super(OntologyManagerTest.USE_HYPERGRAPH_IMPLEMENTATION);
+//	}
 	
 	public T001Classes(int useImplementation) throws Exception
 	{

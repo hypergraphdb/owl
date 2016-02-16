@@ -160,7 +160,7 @@ public class IRIType extends HGAtomTypeBase implements
                     .getStore().getIndex(StringType.INDEX_NAME,
                             BAtoBA.getInstance(),
                             BAtoHandle.getInstance(graph.getHandleFactory()),
-                            comparator, true);
+                            comparator, null, true);
         }
         return valueIndex;
     }

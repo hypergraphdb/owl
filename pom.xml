@@ -5,6 +5,8 @@
 	<groupId>org.hypergraphdb</groupId>
 	<version>1.4-SNAPSHOT</version>
 	<properties>
+      <java.version>1.8</java.version>
+	
 		<packageit>bundle</packageit>
 		<bundle.symbolicName>org.hypergraph.app.owl;singleton:=true</bundle.symbolicName>
 		<bundle.namespace>org.hypergraphdb.app.owl</bundle.namespace>
@@ -13,7 +15,6 @@
 	<artifactId>hgdbowl</artifactId>
 	<name>HyperGraphDB OWL</name>
 	<description>An implementation of the OWLAPI backed by HyperGraphDB for transparent and automatic persistence of OWL ontologies. Each ontology is a subgraph in the graph database.</description>
-
 	<repositories>
 		<repository>
 			<id>hypergraphdb</id>
@@ -107,8 +108,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.0.2</version>
 				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
 				</configuration>
 			</plugin>
 			<plugin>

@@ -13,6 +13,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 public class TestContext implements OntologyContext
 {
+	public String prefix;
 	public HyperGraph graph;
 	public HGDBOntologyManager m;
 	public OntologyDatabase r;

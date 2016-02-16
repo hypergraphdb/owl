@@ -8,6 +8,9 @@ import java.util.Set;
 import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.app.owl.OntologyDatabase;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
+import org.hypergraphdb.app.owl.model.OWLDataPropertyHGDB;
+import org.hypergraphdb.app.owl.model.OWLLiteralHGDB;
+import org.hypergraphdb.app.owl.model.OWLObjectPropertyHGDB;
 import org.hypergraphdb.app.owl.test.versioning.TestContext;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.IRI;
@@ -58,7 +61,10 @@ public class TU
 	public static IRI iri(String name)
 	{
 		if (!name.startsWith("http:"))
-			name = ctx().ontology().getOntologyID().getOntologyIRI().toString() + "#" + name;
+			if (ctx().prefix != null)
+				name = ctx().prefix + "#" + name;
+			else
+				name = ctx().ontology().getOntologyID().getOntologyIRI().toString() + "#" + name;
 		return IRI.create(name);
 	}
 	
@@ -111,18 +117,28 @@ public class TU
 		return ax;
 	}
 
-	public static OWLDataProperty dprop(String name)
+	public static OWLAxiom aProp(OWLDataPropertyExpression property, OWLIndividual individual, String value)
 	{
-		return ctx().df().getOWLDataProperty(iri(name));
+		return aProp(property, individual, literal(value));
 	}
 
-	public static OWLObjectProperty oprop(String name)
+	public static OWLAxiom aProp(OWLDataPropertyExpression property, OWLIndividual individual, int value)
 	{
-		return ctx().df().getOWLObjectProperty(iri(name));
+		return aProp(property, individual, ctx().df().getOWLLiteral(value));
 	}
 	
-	public static OWLLiteral literal(String value)
+	public static OWLDataPropertyHGDB dprop(String name)
 	{
-		return ctx().df().getOWLLiteral(value);
+		return (OWLDataPropertyHGDB)ctx().df().getOWLDataProperty(iri(name));
+	}
+
+	public static OWLObjectPropertyHGDB oprop(String name)
+	{
+		return (OWLObjectPropertyHGDB)ctx().df().getOWLObjectProperty(iri(name));
+	}
+	
+	public static OWLLiteralHGDB literal(String value)
+	{
+		return (OWLLiteralHGDB)ctx().df().getOWLLiteral(value);
 	}
 }
