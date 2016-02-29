@@ -90,24 +90,6 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.hypergraphdb.app.owl.HGDBOntologyManager#hasInMemoryOntology()
-	 */
-	@Override
-	public boolean hasInMemoryOntology()
-	{
-		for (OWLOntology onto : getOntologies())
-		{
-			if (!(onto instanceof HGDBOntology))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
 	 * @see
 	 * uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#removeOntology(
 	 * org.semanticweb.owlapi.model.OWLOntology)
@@ -192,31 +174,6 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 		}
 	}
 	
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.hypergraphdb.app.owl.HGDBOntologyManager#getCurrentTaskSize()
-	 */
-	@Override
-	public int getCurrentTaskSize()
-	{
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.hypergraphdb.app.owl.HGDBOntologyManager#getCurrentTaskProgress()
-	 */
-	@Override
-	public int getCurrentTaskProgress()
-	{
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
 	public void setOntologyFormat(OWLOntology ontology, OWLOntologyFormat format)
 	{
 		if (format instanceof HGDBOntologyFormat)

@@ -36,11 +36,12 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
 
 /**
  * <p>
- * Represents a HyperGraph instance storing OWL ontologies.
+ * Represents a HyperGraph instance storing OWL ontologies. Offers method to manage the set
+ * of ontologies in a HyperGraph database. 
  * </p>
  * 
  * <p>
- * This is a lightweight object, tied to the underlying graph database. 
+ * This is a lightweight object, wrapping the underlying graph database. 
  * </p>
  * 
  * @author Thomas Hilpold (GIC/Miami-Dade County), Borislav Iordanov
@@ -58,7 +59,7 @@ public class OntologyDatabase
 	}
 	
 	/**
-	 * @param graph
+	 * @param hypergraphDBLocation The location of the database.
 	 */
 	public OntologyDatabase(String hypergraphDBLocation)
 	{

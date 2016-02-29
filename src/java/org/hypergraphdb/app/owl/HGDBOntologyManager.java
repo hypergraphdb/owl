@@ -23,25 +23,25 @@ import org.semanticweb.owlapi.model.UnloadableImportException;
  */
 public interface HGDBOntologyManager extends OWLOntologyManager
 {
-
 	/**
-	 * @return the dbRepository
+	 * @return The {@link OntologyDatabase} repository where ontologies are persisted.
 	 */
 	OntologyDatabase getOntologyRepository();
 
-	VersionManager getVersionManager();	
-
 	/**
-	 * Determines if at least one In Memory ontology is managed.
-	 * 
-	 * @return
+	 * <p>Return the {@link org.hypergraphdb.app.owl.versioning.VersionManager} instance associated
+	 * with this ontology manager. There is always a <code>VersionManager</code> available even if
+	 * no ontologies in the database are currently under version control.
 	 */
-	boolean hasInMemoryOntology();
+	VersionManager getVersionManager();	
 
 	/**
 	 * Imports a versioned Ontology from a VOWLXMLFormat saved file into the
 	 * repository. All revisions, changesets and the full workingset will be
 	 * stored.
+	 * 
+	 * TODO - this method should either be removed from this interface, or a corresponding
+	 * exportVersionedOntology should be added!
 	 * 
 	 * @param vowlxmlFile
 	 * @return
@@ -78,19 +78,4 @@ public interface HGDBOntologyManager extends OWLOntologyManager
 	 * {@link org.hypergraphdb.appl.owl.HGDBOntology} instance.
 	 */
 	HGDBOntology importOntology(IRI documentIRI);
-	
-	/**
-	 * Gets the current long task Size for saveAs and open. This is thread safe.
-	 * The underlying fields need to be volatile.
-	 * 
-	 * @return
-	 */
-	int getCurrentTaskSize();
-
-	/**
-	 * Gets the current progress task value for saveAs and open.
-	 * 
-	 * @return a value that is lower or equal to CurrentTaskSize
-	 */
-	int getCurrentTaskProgress();
 }

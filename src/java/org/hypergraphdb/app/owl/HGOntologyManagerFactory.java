@@ -50,10 +50,8 @@ import de.uulm.ecs.ai.owlapi.krssrenderer.KRSS2OWLSyntaxOntologyStorer;
  * </p>
  * 
  * <p>
- * Normally you'd obtain a manager by first obtaining an OWLDataFactory through
- * the {@link OWLDataFactoryHGDB#get(HyperGraph)} method and then calling
- * {@link #buildOWLOntologyManager(OWLDataFactory)}. This is the way to ensure
- * that the OWL manager is using the database you want it to use.
+ * The best way to obtain a manager bound to a desired database instance is to call
+ * the static method {{@link #getOntologyManager(String)}.
  * </p>
  * 
  * @author Borislav Iordanov
@@ -61,6 +59,11 @@ import de.uulm.ecs.ai.owlapi.krssrenderer.KRSS2OWLSyntaxOntologyStorer;
  */
 public class HGOntologyManagerFactory implements OWLOntologyManagerFactory
 {
+	/**
+	 * <p>Return the default graph location as specified by the <code>hgdbowl.defaultdb</code>
+	 * property. If no such system property is specified, the default location will be
+	 * <code>System.getProperty("java.io.tmpdir") + File.separator + "hgdbowl.defaultdb"</code>.
+	 */
 	public static String graphLocation()
 	{
 		String location = System.getProperty("hgdbowl.defaultdb");
@@ -68,6 +71,33 @@ public class HGOntologyManagerFactory implements OWLOntologyManagerFactory
 			return System.getProperty("java.io.tmpdir") + File.separator + "hgdbowl.defaultdb";
 		else
 			return location;
+	}
+	
+	/**
+	 * Get the {@link HGDBOntologyManager} for this graph database location.
+	 * There is a single HGDB ontology manager per open database.
+	 */
+	public static HGDBOntologyManager getOntologyManager(final String graphLocation)
+	{
+		final HyperGraph graph = ImplUtils.owldb(graphLocation);
+		return Context.of(graph).singleton(HGDBOntologyManager.class, new Callable<HGDBOntologyManager>() {
+			public HGDBOntologyManager call()
+			{
+				return createOWLOntologyManager(OWLDataFactoryHGDB.get(graph), 
+						   					    new OntologyDatabase(graphLocation));
+				
+			}		
+		});
+	}	
+
+	/**
+	 * Return the <code>OWLDataFactory</code> associated with the default database location (see
+	 * comments on {{@link #graphLocation()} method.
+	 */
+	public static OWLDataFactory getDataFactory()
+	{
+		HyperGraph graph = ImplUtils.owldb(graphLocation()); 
+		return  OWLDataFactoryHGDB.get(graph);				
 	}
 	
 	private static OWLOntologyManager inMemoryManager(OWLDataFactory dataFactory)
@@ -113,22 +143,8 @@ public class HGOntologyManagerFactory implements OWLOntologyManagerFactory
 	}
 	
 	/**
-	 * Get the {@link HGDBOntologyManager} for this graph database location.
-	 * There is a single HGDB ontology manager per open database.
+	 * Return the ontology manager bound to the default {{@link #graphLocation()}.
 	 */
-	public static HGDBOntologyManager getOntologyManager(final String graphLocation)
-	{
-		final HyperGraph graph = ImplUtils.owldb(graphLocation);
-		return Context.of(graph).singleton(HGDBOntologyManager.class, new Callable<HGDBOntologyManager>() {
-			public HGDBOntologyManager call()
-			{
-				return createOWLOntologyManager(OWLDataFactoryHGDB.get(graph), 
-						   new OntologyDatabase(graphLocation));
-				
-			}		
-		});
-	}
-	
 	@Override
 	public OWLOntologyManager buildOWLOntologyManager()
 	{
@@ -146,16 +162,13 @@ public class HGOntologyManagerFactory implements OWLOntologyManagerFactory
 			return inMemoryManager(df);
 	}
 
+	/**
+	 * Return {{@link #getDataFactory()}.
+	 */
 	@Override
 	public OWLDataFactory getFactory()
 	{
 		return getDataFactory();
-	}
-
-	public static OWLDataFactory getDataFactory()
-	{
-		HyperGraph graph = ImplUtils.owldb(graphLocation()); 
-		return  OWLDataFactoryHGDB.get(graph);				
 	}
 	
 	static
