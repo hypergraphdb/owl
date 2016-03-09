@@ -15,7 +15,6 @@ import org.semanticweb.owlapi.model.OWLAnnotationObjectVisitor;
 import org.semanticweb.owlapi.model.OWLAnnotationObjectVisitorEx;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
-import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectVisitor;
@@ -27,8 +26,8 @@ import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
  * @created Nov 14, 2011
  */
 public class OWLAnnotationHGDB extends OWLObjectHGDB implements HGChangeableLink, OWLAnnotation {
-
-    private HGHandle propertyHandle;           // index   0
+	private static final long serialVersionUID = 1L;
+	private HGHandle propertyHandle;           // index   0
     private HGHandle valueHandle;              // index   1 
     private List<HGHandle> annotationsHandles; // indices 2..
     // private OWLAnnotationProperty property;

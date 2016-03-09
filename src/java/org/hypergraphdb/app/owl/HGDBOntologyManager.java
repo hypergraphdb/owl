@@ -11,6 +11,7 @@ import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntologyChangeException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.UnloadableImportException;
@@ -78,4 +79,12 @@ public interface HGDBOntologyManager extends OWLOntologyManager
 	 * {@link org.hypergraphdb.appl.owl.HGDBOntology} instance.
 	 */
 	HGDBOntology importOntology(IRI documentIRI);
+	
+	/**
+	 * Return the <code>OWLDataFactory</code> bound to the HyperGraphDB instance 
+	 * of this ontology manager. Each graph instance gets its own data factory, which
+	 * immediately perists all objects created through it.
+	 */
+	OWLDataFactory getDataFactory();
+	
 }

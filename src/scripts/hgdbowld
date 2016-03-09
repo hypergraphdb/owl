@@ -1,0 +1,47 @@
+#!/bin/sh
+SERVICE_NAME=hgdbowld
+# change the following line to the path to the uber jar build with maven assembly
+PATH_TO_JAR=/Users/borislav/code/hgapps/owl/target/hgdbowl-1.4-SNAPSHOT-jar-with-dependencies.jar
+# possibly adjust the following file location
+P2P_CONFIG_FILE=/etc/hgdbowlserver.p2p
+# possibly adjust the database location as well
+DBLOCATION=/var/hypergraphdb/owlrepo
+PID_PATH_NAME=/tmp/hgdbowld-pid
+case $1 in
+    start)
+        echo "Starting $SERVICE_NAME ..."
+        if [ ! -f $PID_PATH_NAME ]; then
+            nohup java -jar $PATH_TO_JAR /tmp 2>> /dev/null >> /dev/null &
+                        echo $! > $PID_PATH_NAME
+            echo "$SERVICE_NAME started ..."
+        else
+            echo "$SERVICE_NAME is already running ..."
+        fi
+    ;;
+    stop)
+        if [ -f $PID_PATH_NAME ]; then
+            PID=$(cat $PID_PATH_NAME);
+            echo "$SERVICE_NAME stoping ..."
+            kill $PID;
+            echo "$SERVICE_NAME stopped ..."
+            rm $PID_PATH_NAME
+        else
+            echo "$SERVICE_NAME is not running ..."
+        fi
+    ;;
+    restart)
+        if [ -f $PID_PATH_NAME ]; then
+            PID=$(cat $PID_PATH_NAME);
+            echo "$SERVICE_NAME stopping ...";
+            kill $PID;
+            echo "$SERVICE_NAME stopped ...";
+            rm $PID_PATH_NAME
+            echo "$SERVICE_NAME starting ..."
+            nohup java -jar $PATH_TO_JAR /tmp 2>> /dev/null >> /dev/null &
+                        echo $! > $PID_PATH_NAME
+            echo "$SERVICE_NAME started ..."
+        else
+            echo "$SERVICE_NAME is not running ..."
+        fi
+    ;;
+esac

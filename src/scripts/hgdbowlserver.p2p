@@ -1,0 +1,16 @@
+{
+"interfaceType" : "org.hypergraphdb.peer.xmpp.XMPPPeerInterface",
+"peerName"  : "HGDBPeer",
+"bootstrap" : [ {"class" : "org.hypergraphdb.peer.bootstrap.AffirmIdentityBootstrap", "config" : {}},
+                {"class" : "org.hypergraphdb.peer.bootstrap.CACTBootstrap", "config" : {}}
+              ],
+"interfaceConfig" :
+  {
+    "user" : "<some user>",
+    "password" : "<their password>",
+    "serverUrl" : "hypergraphdb.org",
+    "autoRegister" : true,
+    "room":"<the room where all other peers connect>",
+    "ignoreRoster" : true
+  }
+}

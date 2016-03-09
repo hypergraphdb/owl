@@ -45,6 +45,8 @@ import uk.ac.manchester.cs.owl.owlapi.ImplUtils;
 public class OWLDataPropertyHGDB extends OWLPropertyExpressionHGDB<OWLDataRange, OWLDataPropertyExpression> implements
 		OWLDataProperty
 {
+	private static final long serialVersionUID = 1L;
+
 	private IRI iri;
 
 	private boolean builtin;

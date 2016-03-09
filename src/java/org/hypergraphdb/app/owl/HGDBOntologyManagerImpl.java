@@ -17,6 +17,7 @@ import org.hypergraphdb.app.owl.versioning.distributed.activity.ActivityUtils;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
@@ -166,7 +167,9 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 			setOntologyFormat(o, format);
 			setOntologyDocumentIRI(o, hgdbDocumentIRI);
 			saveOntology(o, format, hgdbDocumentIRI);
-			return ontologyRepository.getOntologyByDocumentIRI(hgdbDocumentIRI);
+			HGDBOntology result = ontologyRepository.getOntologyByDocumentIRI(hgdbDocumentIRI);
+			result.setOWLOntologyManager(this);
+			return result;
 		}
 		catch (Exception ex)
 		{
@@ -225,5 +228,10 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 			}
 		}
 		return null;
+	}
+	
+	public OWLDataFactory getDataFactory()
+	{
+		return OWLDataFactoryHGDB.get(ontologyRepository.getHyperGraph());
 	}
 }

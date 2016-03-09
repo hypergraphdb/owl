@@ -25,7 +25,8 @@ import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
  * @created Nov 14, 2011
  */
 public class OWLAnnotationAssertionAxiomHGDB extends OWLAxiomHGDB implements HGChangeableLink, OWLAnnotationAssertionAxiom {
-    
+
+	private static final long serialVersionUID = 1L;
 	private HGHandle subjectHandle;  //index 0
     private HGHandle propertyHandle; //index 1
     private HGHandle valueHandle;    //index 2

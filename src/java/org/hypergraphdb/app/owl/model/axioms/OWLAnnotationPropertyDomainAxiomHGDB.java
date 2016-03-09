@@ -24,8 +24,8 @@ import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
  * @created Nov 14, 2011
  */
 public class OWLAnnotationPropertyDomainAxiomHGDB extends OWLAxiomHGDB implements HGLink, OWLAnnotationPropertyDomainAxiom {
-
-    private HGHandle propertyHandle;
+	private static final long serialVersionUID = 1L;
+	private HGHandle propertyHandle;
     private HGHandle domainHandle;
     // private OWLAnnotationProperty property;
     // private IRI domain;

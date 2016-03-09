@@ -25,6 +25,7 @@ import org.semanticweb.owlapi.model.OWLRuntimeException;
  */
 public class OWLDataComplementOfHGDB extends OWLObjectHGDB implements HGLink, OWLDataComplementOf
 {
+	private static final long serialVersionUID = 1L;
 	private HGHandle dataRangeHandle;
 
 	// private OWLDataRange dataRange;

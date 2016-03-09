@@ -39,6 +39,8 @@ Import-Package: de.uulm.ecs.ai.owlapi.krssparser,de.uulm.ecs.ai.owlapi
  ax.helpers,uk.ac.manchester.cs.owl.owlapi,uk.ac.manchester.cs.owl.owl
  api.mansyntaxrenderer,uk.ac.manchester.cs.owl.owlapi.turtle.parser
 Tool: Bnd-0.0.238
+Main-Class: org.hypergraphdb.app.owl.versioning.distributed.VDHGDBOnto
+ logyServer
 Export-Package: org.hypergraphdb.app.owl.exception;uses:="org.semantic
  web.owlapi.model,org.hypergraphdb",org.hypergraphdb.app.owl.versionin
  g.distributed.serialize.parse;uses:="org.semanticweb.owlapi.model,org

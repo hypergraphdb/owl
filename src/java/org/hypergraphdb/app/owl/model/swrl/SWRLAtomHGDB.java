@@ -2,13 +2,13 @@ package org.hypergraphdb.app.owl.model.swrl;
 
 import java.util.List;
 
+
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
 import org.hypergraphdb.annotation.HGIgnore;
 import org.hypergraphdb.app.owl.core.OWLObjectHGDB;
 import org.semanticweb.owlapi.model.SWRLArgument;
 import org.semanticweb.owlapi.model.SWRLAtom;
-import org.semanticweb.owlapi.model.SWRLDArgument;
 import org.semanticweb.owlapi.model.SWRLPredicate;
 
 /**
@@ -22,6 +22,8 @@ import org.semanticweb.owlapi.model.SWRLPredicate;
  */
 public abstract class SWRLAtomHGDB extends OWLObjectHGDB implements SWRLAtom, HGLink
 {
+	private static final long serialVersionUID = 1L;
+	
 	private HGHandle predicateHandle;
 
 	public SWRLAtomHGDB(HGHandle... args)

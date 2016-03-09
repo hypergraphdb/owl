@@ -146,7 +146,7 @@ public class HGOntologyManagerFactory implements OWLOntologyManagerFactory
 	 * Return the ontology manager bound to the default {{@link #graphLocation()}.
 	 */
 	@Override
-	public OWLOntologyManager buildOWLOntologyManager()
+	public HGDBOntologyManager buildOWLOntologyManager()
 	{
 		return getOntologyManager(graphLocation());
 	}

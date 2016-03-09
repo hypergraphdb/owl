@@ -24,8 +24,8 @@ import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
  * @created Nov 14, 2011
  */
 public class OWLAnnotationPropertyRangeAxiomHGDB extends OWLAxiomHGDB implements HGLink, OWLAnnotationPropertyRangeAxiom {
-
-    private HGHandle propertyHandle; // index 0
+	private static final long serialVersionUID = 1L;
+	private HGHandle propertyHandle; // index 0
     protected HGHandle rangeHandle;  // index 1
     // private OWLAnnotationProperty property;
     // protected IRI range;

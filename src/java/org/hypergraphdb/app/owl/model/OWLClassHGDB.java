@@ -4,8 +4,6 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
-
-import org.hypergraphdb.util.HashCodeUtil;
 import org.semanticweb.owlapi.model.ClassExpressionType;
 import org.semanticweb.owlapi.model.EntityType;
 import org.semanticweb.owlapi.model.IRI;

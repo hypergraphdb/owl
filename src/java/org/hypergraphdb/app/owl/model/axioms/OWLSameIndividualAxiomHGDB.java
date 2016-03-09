@@ -25,6 +25,8 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
  */
 public class OWLSameIndividualAxiomHGDB extends OWLNaryIndividualAxiomHGDB implements OWLSameIndividualAxiom
 {
+	private static final long serialVersionUID = 1L;
+
 	public OWLSameIndividualAxiomHGDB(HGHandle... args)
 	{
 		super(args);
