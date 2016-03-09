@@ -6,11 +6,11 @@
               ],
 "interfaceConfig" :
   {
-    "user" : "granthika",
-    "password" : "password",
+    "user" : "<some user>",
+    "password" : "<their password>",
     "serverUrl" : "hypergraphdb.org",
     "autoRegister" : true,
-    "room":"granthika@conference.hypergraphdb.org",
+    "room":"<the room where all other peers connect>",
     "ignoreRoster" : true
   }
 }

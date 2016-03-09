@@ -3,15 +3,16 @@ SERVICE_NAME=hgdbowld
 # change the following line to the path to the uber jar build with maven assembly
 PATH_TO_JAR=/Users/borislav/code/hgapps/owl/target/hgdbowl-1.4-SNAPSHOT-jar-with-dependencies.jar
 # possibly adjust the following file location
-P2P_CONFIG_FILE=/etc/hgdbowlserver.p2p
+P2P_CONFIG_FILE=hgdbowlserver.p2p
 # possibly adjust the database location as well
 DBLOCATION=/var/hypergraphdb/owlrepo
 PID_PATH_NAME=/tmp/hgdbowld-pid
+LOGFILE=/var/log/hgdbowl.log
 case $1 in
     start)
         echo "Starting $SERVICE_NAME ..."
         if [ ! -f $PID_PATH_NAME ]; then
-            nohup java -jar $PATH_TO_JAR /tmp 2>> /dev/null >> /dev/null &
+            nohup java -jar $PATH_TO_JAR $P2P_CONFIG_FILE db=$DBLOCATION >>$LOGFILE 2>&1 &
                         echo $! > $PID_PATH_NAME
             echo "$SERVICE_NAME started ..."
         else
