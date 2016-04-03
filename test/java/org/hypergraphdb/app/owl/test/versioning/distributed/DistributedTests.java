@@ -13,7 +13,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import junit.framework.Assert;
@@ -239,15 +241,34 @@ public class DistributedTests extends VersioningTestBase
 		VersionedOntologiesTestData.revisionGraph_1(iri_prefix + "peer1data", null);
 		HGHandle sourceOntoHandle = TU.ctx().o.getAtomHandle();
 		RemoteOntology remoteOnto = repo1.remoteOnto(sourceOntoHandle, repo1.remoteRepo(peer2.getIdentity()));
+		// peer1 publishing to peer2
 		VersionUpdateActivity activity = new VersionUpdateActivity(peer1)
 			.remoteOntology(ctx1.graph.getHandle(remoteOnto))
 			.action(VersionUpdateActivity.ActionType.publish.name());
 		peer1.getActivityManager().initiateActivity(activity).get();
 		assertEquals(WorkflowState.Completed, activity.getState());
+		ctx2.vo = vm2.versioned(sourceOntoHandle);
 		assertTrue(VersionedOntologiesTestData.compareOntologyRevisions(vm1.versioned(sourceOntoHandle), 
 																 vm1.graph(), 
 																 vm2.versioned(sourceOntoHandle), 
 																 vm2.graph()));
+		assertTrue(ctx1.vonto().ontology().getAxioms().containsAll(ctx2.vonto().ontology().getAxioms()));		
+		// Now if we push again the same ontology with no changes, the RemoteOnto should be unchanged
+		RemoteOntology remoteAtPeer2 = repo2.remoteOnto(sourceOntoHandle, repo2.remoteRepo(peer1.getIdentity()));
+		Set<HGHandle> saveHeads = new HashSet<HGHandle>();
+		saveHeads.addAll(remoteAtPeer2.getRevisionHeads());
+		HGHandle lastMeta = remoteAtPeer2.getLastMetaChange();
+		activity = new VersionUpdateActivity(peer1).remoteOntology(ctx1.graph().getHandle(remoteOnto))
+												   .action(VersionUpdateActivity.ActionType.push.name());
+		peer1.getActivityManager().initiateActivity(activity).get();
+		assertEquals(WorkflowState.Completed, activity.getState());
+		assertTrue(VersionedOntologiesTestData.compareOntologyRevisions(vm1.versioned(sourceOntoHandle), 
+				 vm1.graph(), 
+				 vm2.versioned(sourceOntoHandle), 
+				 vm2.graph()));
+		assertTrue(ctx1.vonto().ontology().getAxioms().containsAll(ctx2.vonto().ontology().getAxioms()));
+		assertEquals(saveHeads, remoteAtPeer2.getRevisionHeads());
+		assertEquals(lastMeta, remoteAtPeer2.getLastMetaChange());
 	}
 	
 	@Test public void testPublishWithInitialDataButNoRevisions() throws Exception
@@ -522,7 +543,7 @@ public class DistributedTests extends VersioningTestBase
 		Result result = null;
 		do
 		{
-			result = junit.run(Request.method(DistributedTests.class, "testPublishWithInitialDataButNoRevisions"));
+			result = junit.run(Request.method(DistributedTests.class, "testPublish"));
 		} while (result.getFailureCount() == 0 && false);
 		System.out.println("Failures " + result.getFailureCount());
 		if (result.getFailureCount() > 0)

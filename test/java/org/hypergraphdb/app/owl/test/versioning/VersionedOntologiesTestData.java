@@ -105,6 +105,11 @@ public class VersionedOntologiesTestData
 	
 	public static boolean compareOntologies(HGDBOntology left, HGDBOntology right)
 	{
+		System.out.println(left.getAxioms());
+		System.out.println(right.getAxioms());
+		for (OWLAxiom ax : left.getAxioms())
+			if (!right.getAxioms().contains(ax))
+				System.out.println("Missing  " + ax);
 		return left.getAxioms().equals(right.getAxioms());
 	}
 	
