@@ -164,7 +164,11 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		if (branch != null)
 			revision.branchHandle(branch);
 		revision.user(user).comment(comment).timestamp(System.currentTimeMillis());
+		if (graph.get(currentRevision) == null)
+			throw new NullPointerException("no current revision");		
 		HGHandle revisionHandle = graph.add(revision);
+		if (graph.get(currentRevision) == null)
+			throw new NullPointerException("no current revision");
 		graph.add(new ChangeLink(currentRevision, workingChanges, revisionHandle));
 		workingChanges = graph.add(new ChangeSet<VersionedOntology>());
 		currentRevision = revisionHandle;		
@@ -187,9 +191,21 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	@Override
 	public Revision commit(final String user, final String comment, final String branch)
 	{
+		if (graph.get(currentRevision) == null)
+			throw new NullPointerException("no current revision");			
+		else if (graph.getStore().getLink(currentRevision.getPersistent()) == null)
+		{
+			throw new NullPointerException("not in permanent storage");			
+		}
 		graph.getTransactionManager().ensureTransaction(new Callable<HGHandle>(){
 		public HGHandle call()
 		{
+			if (graph.get(currentRevision) == null)
+			{
+				@SuppressWarnings("unused")
+				Object x = graph.get(currentRevision);
+				throw new NullPointerException("no current revision");
+			}
 			HGHandle existingBranch = branch != null ? metadata.findBranchHandle(branch) : null;
 			if (existingBranch != null && !existingBranch.equals(revision().branchHandle()))
 				throw new IllegalArgumentException("Branch already exists: '" + branch + "'.");

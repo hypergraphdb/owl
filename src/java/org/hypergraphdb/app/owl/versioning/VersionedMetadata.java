@@ -23,7 +23,7 @@ import org.hypergraphdb.app.owl.versioning.change.VRemoveLabelChange;
  * history needs to be preserved just like for the regular versioned object, but
  * it is hidden from the user and there is no notion of revisions etc. The
  * history is needed because each change is a transaction that potentially has
- * to be propagated to other peers. When a user set the working copy of a
+ * to be propagated to other peers. When a user sets the working copy of a
  * versioned to a certain revision, this should not modify the metadata view at
  * all. That is, branches and labels should remain the same regardless of where
  * in the main revision graph one decides to work. And in that respect, branches

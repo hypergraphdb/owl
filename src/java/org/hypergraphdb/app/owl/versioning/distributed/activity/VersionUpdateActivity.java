@@ -191,7 +191,7 @@ public class VersionUpdateActivity extends FSMActivity
 		{
 			msg = createMessage(Performative.Request, 
 								Json.object(ONTOLOGY_HANDLE, remoteOntology.getOntologyHandle(),
-											"heads", remoteOntology.getRevisionHeads(),
+//											"heads", remoteOntology.getOntologyHandle(),
 											"action", ActionType.pull.name()));
 			send(remoteOntology.getRepository().getPeer(), msg);				
 			getState().assign(PullRequested);			
@@ -259,11 +259,13 @@ public class VersionUpdateActivity extends FSMActivity
 
 		RemoteOntology remoteOnto = remoteOnto();	
 		if (delta != null)
-			remoteOnto.setRevisionHeads(delta.heads);
+			remoteOnto.updateRevisionHeads(graph, delta.heads);
 		else
 			remoteOnto.setRevisionHeads(vo.heads());
-		if (metaChanges != null)
+		if (metaChanges != null && !metaChanges.isEmpty())
 			remoteOnto.setLastMetaChange(vo.metadata().applyChanges(metaChanges));
+		else if (doc.getMetadata() != null && doc.getMetadata().lastChange() != null)
+			remoteOnto.setLastMetaChange(doc.getMetadata().lastChange());
 		//System.out.println("New revision heads: " + delta.heads);
 		getThisPeer().getGraph().update(remoteOnto);
 		if (msg.has(Messages.REPLY_WITH))
@@ -374,12 +376,12 @@ public class VersionUpdateActivity extends FSMActivity
 				reply(msg, Performative.Refuse, "Unknown ontology.");
 				return WorkflowStateConstant.Failed;
 			}						
-			Set<HGHandle> heads = fromJson(msg.at(CONTENT).at("heads"));			
+			//Set<HGHandle> heads = fromJson(msg.at(CONTENT).at("heads"));			
 			HGPeerIdentity otherPeer = getThisPeer().getIdentity(getSender(msg));			
 			OntologyDatabasePeer repo = new OntologyDatabasePeer(getThisPeer());
 			RemoteOntology remote = repo.remoteOnto(ontologyHandle, repo.remoteRepo(otherPeer));
-			remote.setRevisionHeads(heads);
-			getThisPeer().getGraph().update(remote);
+			//remote.setRevisionHeads(heads);
+			//getThisPeer().getGraph().update(remote);
 			remoteOntologyHandle = getThisPeer().getGraph().getHandle(remote);
 			reply(msg, Performative.Agree, Json.object());
 			return startPulling();

@@ -114,12 +114,9 @@ public abstract class VImportChange extends VOWLChange
 			return false;
 		VImportChange other = (VImportChange) obj;
 		if (importDeclarationHandle == null)
-		{
-			if (other.importDeclarationHandle != null)
-				return false;
-		}
-		else if (!importDeclarationHandle.equals(other.importDeclarationHandle))
-			return false;
-		return true;
+			return other.importDeclarationHandle == null;
+		else 
+			return importDeclarationHandle.equals(other.importDeclarationHandle) ||
+				   this.getImportDeclaration().equals(other.getImportDeclaration());
 	}
 }

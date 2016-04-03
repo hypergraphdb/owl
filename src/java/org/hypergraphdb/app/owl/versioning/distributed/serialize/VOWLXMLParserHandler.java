@@ -134,7 +134,7 @@ public class VOWLXMLParserHandler extends OWLXMLParserHandler
 		{
 			public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler)
 			{
-				return new MetadataElementHandler(handler);
+				return new MetadataElementHandler(graph, handler);
 			}
 		});
 		

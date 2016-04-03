@@ -110,7 +110,8 @@ public class ActivityUtils
 					false, 
 					true));
 			VMetadataChange<T> last = graph.get(latest);
-			L.add(last);
+			if (!latest.equals(lastKnown))
+				L.add(last);
 			metaChanges.addAll(L);
 		}
 		return metaChanges;

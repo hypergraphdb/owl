@@ -6,11 +6,14 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HGSearchResult;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.algorithms.DefaultALGenerator;
 import org.hypergraphdb.algorithms.HGBreadthFirstTraversal;
+import org.hypergraphdb.app.owl.versioning.change.VAddAxiomChange;
+import org.semanticweb.owlapi.model.OWLAxiom;
 
 /**
  * <p>
@@ -90,7 +93,8 @@ public class VersionManager
 		bottomRevision.timestamp(now);
 		// chicken & egg: we have to have the bottomRevisionHandle available for the 
 		// listener in TrackRevisionStructure, so we set it first and do a graph.define here
-		// instead of graph.add
+		// instead of graph.add. The bottom revision is the child of all head revisions, it's basically
+		// a way to quickly find head revisions without traversing the whole graph from the root
 		HGHandle bottomRevisionHandle = graph.getHandleFactory().makeHandle();
 		versioned.setBottomRevision(bottomRevisionHandle);
 		graph.define(bottomRevisionHandle, bottomRevision);				
@@ -104,6 +108,18 @@ public class VersionManager
 		versioned.setCurrentRevision(revisionHandle);
 		graph.update(versioned);
 		isversionedmap.put(ontology, true);
+		
+		// Now, if the ontology is not empty, we need to make an automatic initial
+		// commit. Otherwise, the working copy will never become part of a proper 
+		// revision.
+		if (versioned.ontology().getAxiomCount() > 0)
+		{
+			for (OWLAxiom ax : versioned.ontology().getAxioms())
+			{
+				versioned.changes().add(new VAddAxiomChange(((HGHandleHolder)ax).getAtomHandle()));
+			}
+			versioned.commit(user, "auto-commit of initial data");
+		}
 		return versioned;
 	}
 	

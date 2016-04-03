@@ -116,12 +116,9 @@ public abstract class VOntologyAnnotationChange extends VOWLChange
 			return false;
 		VOntologyAnnotationChange other = (VOntologyAnnotationChange) obj;
 		if (ontologyAnnotationHandle == null)
-		{
-			if (other.ontologyAnnotationHandle != null)
-				return false;
-		}
-		else if (!ontologyAnnotationHandle.equals(other.ontologyAnnotationHandle))
-			return false;
-		return true;
+			return other.ontologyAnnotationHandle == null;
+		else 
+			return ontologyAnnotationHandle.equals(other.ontologyAnnotationHandle) ||
+			this.getOntologyAnnotation().equals(other.getOntologyAnnotation());
 	}
 }

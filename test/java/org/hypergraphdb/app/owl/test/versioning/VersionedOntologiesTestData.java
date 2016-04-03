@@ -33,6 +33,8 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
+import junit.framework.Assert;
+
 /**
  * Some static methods to generate various versioned ontologies for
  * testing purposes.
@@ -100,6 +102,12 @@ public class VersionedOntologiesTestData
 	{
 		return !OntologyComparator.compare(left.ontology(), right.ontology()).hasChanges();
 	}
+	
+	public static boolean compareOntologies(HGDBOntology left, HGDBOntology right)
+	{
+		return left.getAxioms().equals(right.getAxioms());
+	}
+	
 	/**
 	 * Full revision graph comparison. Not that this won't compare the working copies, only the
 	 * revision graphs!
@@ -108,8 +116,8 @@ public class VersionedOntologiesTestData
 	 * @param right
 	 * @return
 	 */
-	public static boolean compareOntologies(VersionedOntology left, HyperGraph leftRepo, 
-											VersionedOntology right, HyperGraph rightRepo)
+	public static boolean compareOntologyRevisions(VersionedOntology left, HyperGraph leftRepo, 
+												   VersionedOntology right, HyperGraph rightRepo)
 	{
 		Set<HGHandle> leftRevisions = new HashSet<HGHandle>();
 		Set<HGHandle> rightRevisions = new HashSet<HGHandle>();
@@ -183,7 +191,7 @@ public class VersionedOntologiesTestData
 			a(declare(owlClass("Employee")));
 			aSubclassOf(owlClass("User"), owlClass("Employee"));
 			Revision revision1 = ctx.vo.commit("anonymous", "First version");
-			
+			Assert.assertNotNull(ctx.vo.revision());
 			a(declare(individual("Pedro")));
 			aInstanceOf(owlClass("Employee"), individual("Pedro"));
 			aSubclassOf(owlClass("User"), owlClass("Customer"));
@@ -199,9 +207,10 @@ public class VersionedOntologiesTestData
 			aProp(oprop("isServing"), individual("Fred"), individual("Tom"));
 			// no changes between last flush and the creation of a new revision
 			Revision revision2 = ctx.vo.commit("administrator", "Second version by admin");		
-			
+			Assert.assertNotNull(ctx.vo.revision());
 			// some more in working set, shouldn't be serialized
 			aProp(dprop("hasAge"), individual("Mary"), literal("54"));
+			Assert.assertNotNull(ctx.vo.revision());
 		}
 		catch (OWLOntologyCreationException e)
 		{
@@ -230,7 +239,7 @@ public class VersionedOntologiesTestData
 	 * about them.
 	 * @param ctx
 	 */
-	public static Set<OWLAxiom> makeRevision(TestContext ctx)
+	public static Set<OWLAxiom> makeSomeOntologyChanges(TestContext ctx)
 	{
 		TestContext saveCtx = TU.ctx();
 		try

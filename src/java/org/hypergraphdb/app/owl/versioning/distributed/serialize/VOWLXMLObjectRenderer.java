@@ -347,6 +347,7 @@ public class VOWLXMLObjectRenderer implements VOWLChangeVisitor
 	public void visit(VersionedMetadata<VersionedOntology> metadata)
 	{
 		writer.writeStartElement(VOWLXMLVocabulary.METADATA);
+		writer.writeAttribute(VOWLXMLVocabulary.NAMESPACE + "lastMetaChange", "" + metadata.lastChange().getPersistent());
 		for (Branch branch : metadata.allBranches())
 		{
 			visit(branch);

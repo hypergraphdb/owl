@@ -4,7 +4,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.annotation.AtomReference;
+import org.hypergraphdb.app.owl.versioning.versioning;
 
 /**
  * <p>
@@ -47,6 +49,21 @@ public class RemoteOntology
 		this.ontologyHandle = ontologyHandle;
 		this.repository = repository;
 		this.revisionHeads = revisionHeads;
+	}
+	
+	public RemoteOntology updateRevisionHeads(HyperGraph graph, Set<HGHandle> deltaHeads)
+	{
+		Set<HGHandle> newHeads = new HashSet<HGHandle>();
+		newHeads.addAll(getRevisionHeads());
+		for (HGHandle deltaHead : deltaHeads)
+		{
+			for (HGHandle currentHead : getRevisionHeads())
+				if (versioning.isPrior(graph, currentHead, deltaHead))
+					newHeads.remove(currentHead);
+			newHeads.add(deltaHead);
+		}
+		setRevisionHeads(newHeads);
+		return this;
 	}
 	
 	public RemoteRepository getRepository()

@@ -118,6 +118,6 @@ public abstract class VAxiomChange extends VOWLChange
 		if (axiom == null)
 			return other.axiom != null;
 		else
-			return axiom.equals(other.axiom); // || getAxiom().equals(other.getAxiom());
+			return axiom.equals(other.axiom) || getAxiom().equals(other.getAxiom());
 	}	
 }

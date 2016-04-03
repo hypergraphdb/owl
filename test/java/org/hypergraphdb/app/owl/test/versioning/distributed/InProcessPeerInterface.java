@@ -2,7 +2,9 @@ package org.hypergraphdb.app.owl.test.versioning.distributed;
 
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Future;
 
 import mjson.Json;
@@ -30,8 +32,8 @@ public class InProcessPeerInterface implements PeerInterface
     private ArrayList<NetworkPeerPresenceListener> presenceListeners = 
             new ArrayList<NetworkPeerPresenceListener>();
 
-    static HashMap<HGPeerIdentity, InProcessPeerInterface> allpeers = 
-    		new HashMap<HGPeerIdentity, InProcessPeerInterface>();
+    static Map<HGPeerIdentity, InProcessPeerInterface> allpeers = 
+    		Collections.synchronizedMap(new HashMap<HGPeerIdentity, InProcessPeerInterface>());
     
 	@Override
 	public void setMessageHandler(MessageHandler messageHandler)
@@ -109,21 +111,27 @@ public class InProcessPeerInterface implements PeerInterface
 	@Override
 	public void broadcast(Json msg)
 	{
-		for (InProcessPeerInterface peer : allpeers.values())
-			if (peer != this)
-				peer.messageHandler.handleMessage(msg);
+		synchronized (allpeers)
+		{
+			for (InProcessPeerInterface peer : allpeers.values())
+				if (peer != this)
+					peer.messageHandler.handleMessage(msg);
+		}
 	}
 
 	@Override
 	public Future<Boolean> send(Object networkTarget, Json msg)
 	{
-		InProcessPeerInterface peer = allpeers.get(networkTarget);
-		if (peer == null)
-			throw new NullPointerException("Peer for " + networkTarget + " could not be found.");
-		if (!msg.has(Messages.REPLY_TO))
-			msg.set(Messages.REPLY_TO, Json.make(thisPeer.getIdentity()));
-		peer.messageHandler.handleMessage(msg);
-		return new CompletedFuture<Boolean>(true); 
+		synchronized (allpeers)
+		{		
+			InProcessPeerInterface peer = allpeers.get(networkTarget);
+			if (peer == null)
+				throw new NullPointerException("Peer for " + networkTarget + " could not be found.");
+			if (!msg.has(Messages.REPLY_TO))
+				msg.set(Messages.REPLY_TO, Json.make(thisPeer.getIdentity()));
+			peer.messageHandler.handleMessage(msg);
+			return new CompletedFuture<Boolean>(true); 
+		}
 	}
 
 	@Override

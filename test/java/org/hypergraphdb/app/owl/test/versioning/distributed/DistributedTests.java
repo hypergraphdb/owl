@@ -2,9 +2,11 @@ package org.hypergraphdb.app.owl.test.versioning.distributed;
 
 import static org.hypergraphdb.app.owl.test.TU.a;
 import static org.hypergraphdb.app.owl.test.TU.aInstanceOf;
+import static org.hypergraphdb.app.owl.test.TU.aProp;
 import static org.hypergraphdb.app.owl.test.TU.aSubclassOf;
 import static org.hypergraphdb.app.owl.test.TU.declare;
 import static org.hypergraphdb.app.owl.test.TU.individual;
+import static org.hypergraphdb.app.owl.test.TU.oprop;
 import static org.hypergraphdb.app.owl.test.TU.owlClass;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -20,6 +22,7 @@ import mjson.Json;
 import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.test.TU;
 import org.hypergraphdb.app.owl.test.versioning.TestContext;
@@ -30,6 +33,7 @@ import org.hypergraphdb.app.owl.util.OntologyComparator;
 import org.hypergraphdb.app.owl.versioning.Branch;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.Change;
+import org.hypergraphdb.app.owl.versioning.ChangeLink;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.versioning;
@@ -120,7 +124,7 @@ public class DistributedTests extends VersioningTestBase
 		HGUtils.dropHyperGraphInstance(location.getAbsolutePath());
 		HyperGraph graph = HGEnvironment.get(location.getAbsolutePath());
 		String connectionString = "hgpeer://" + user + ":" + 
-				password +  "@" + "hypergraphdb.org" + "#" + "junit@conference.chat.evalhalla.com";
+				password +  "@" + "hypergraphdb.org" + "#" + "junit@conference.hypergraphdb.org";
 		HyperGraphPeer peer = ImplUtils.peer(connectionString, 
 											 graph.getLocation());		
 		if (!peer.start().get())
@@ -161,7 +165,7 @@ public class DistributedTests extends VersioningTestBase
 			new VersionUpdateActivity(peer2)
 				.remoteOntology(ctx2.graph.getHandle(remoteOnto))
 				.action(VersionUpdateActivity.ActionType.clone)).get();
-		assertTrue(VersionedOntologiesTestData.compareOntologies(vm1.versioned(sourceOntoHandle), 
+		assertTrue(VersionedOntologiesTestData.compareOntologyRevisions(vm1.versioned(sourceOntoHandle), 
 																 vm1.graph(), 
 																 vm2.versioned(sourceOntoHandle), 
 																 vm2.graph()));		
@@ -183,7 +187,7 @@ public class DistributedTests extends VersioningTestBase
 		assertEquals(WorkflowState.Completed, activity.getState());
 		
 		VersionedOntology vo2 = vm2.versioned(sourceOntoHandle);
-		assertTrue(VersionedOntologiesTestData.compareOntologies(vo1, 
+		assertTrue(VersionedOntologiesTestData.compareOntologyRevisions(vo1, 
 																 vm1.graph(), 
 																 vo2, 
 																 vm2.graph()));
@@ -198,13 +202,14 @@ public class DistributedTests extends VersioningTestBase
 		ctx1.o = (HGDBOntology)ctx1.m.createOntology(IRI.create(iri_prefix + "peer1data")); 
 		ctx1.vr = new VersionManager(ctx1.graph, "testuser");
 		ctx1.vo = ctx1.vr.versioned(ctx1.graph.getHandle(ctx1.o));		
+		HGHandle sourceOntoHandle = TU.ctx().o.getAtomHandle();				
 		a(declare(owlClass("User")));		
-		HGHandle sourceOntoHandle = TU.ctx().o.getAtomHandle();		
-		VersionedOntology vo1 = vm1.versioned(sourceOntoHandle);
-		vo1.commit("test", "version 1");
+//		VersionedOntology vo1 = vm1.versioned(sourceOntoHandle);
+//		assertEquals(vo1, ctx1.vo);
+		ctx1.vo.commit("test", "version 1");
 		a(declare(owlClass("Employee")));		
-		 // we need something in working set to test it's not cloned
-		assertFalse(vo1.changes().changes().isEmpty());
+//		 // we need something in working set to test it's not cloned
+		assertFalse(ctx1.vo.changes().changes().isEmpty());
 		RemoteOntology remoteOnto = repo2.remoteOnto(sourceOntoHandle, repo2.remoteRepo(peer1.getIdentity()));
 		VersionUpdateActivity activity = new VersionUpdateActivity(peer2)
 			.remoteOntology(ctx2.graph.getHandle(remoteOnto))
@@ -212,16 +217,16 @@ public class DistributedTests extends VersioningTestBase
 		peer2.getActivityManager().initiateActivity(activity).get();
 		assertEquals(WorkflowState.Completed, activity.getState());
 		
-		VersionedOntology vo2 = vm2.versioned(sourceOntoHandle);
-		assertTrue(VersionedOntologiesTestData.compareOntologies(vo1, 
+		ctx2.vo = vm2.versioned(sourceOntoHandle);
+		assertTrue(VersionedOntologiesTestData.compareOntologyRevisions(ctx1.vo, 
 																 vm1.graph(), 
-																 vo2, 
+																 ctx2.vo, 
 																 vm2.graph()));
 		// working set changes should not be cloned!				
-		OntologyComparator.ComparatorDelta delta = OntologyComparator.compare(vo1.ontology(), vo2.ontology());
+		OntologyComparator.ComparatorDelta delta = OntologyComparator.compare(ctx1.vo.ontology(), ctx2.vo.ontology());
 		assertEquals(1, delta.getRemovedAxioms().size());
 		assertEquals(delta.getRemovedAxioms().get(0),
-					 ((VAxiomChange)vo1.changes().changes().get(0)).getAxiom());
+					 ((VAxiomChange)ctx1.vo.changes().changes().get(0)).getAxiom());
 	}
 	
 	/**
@@ -239,10 +244,45 @@ public class DistributedTests extends VersioningTestBase
 			.action(VersionUpdateActivity.ActionType.publish.name());
 		peer1.getActivityManager().initiateActivity(activity).get();
 		assertEquals(WorkflowState.Completed, activity.getState());
-		assertTrue(VersionedOntologiesTestData.compareOntologies(vm1.versioned(sourceOntoHandle), 
+		assertTrue(VersionedOntologiesTestData.compareOntologyRevisions(vm1.versioned(sourceOntoHandle), 
 																 vm1.graph(), 
 																 vm2.versioned(sourceOntoHandle), 
 																 vm2.graph()));
+	}
+	
+	@Test public void testPublishWithInitialDataButNoRevisions() throws Exception
+	{
+		TU.ctx.set(ctx1);		
+		ctx1.o = (HGDBOntology)ctx1.m.createOntology(IRI.create(iri_prefix + "data_but_no_revisions"));
+		a(declare(owlClass("User")));
+		a(declare(owlClass("Employee")));
+		aSubclassOf(owlClass("User"), owlClass("Employee"));
+		a(declare(individual("Pedro")));
+		aInstanceOf(owlClass("Employee"), individual("Pedro"));
+		aSubclassOf(owlClass("User"), owlClass("Customer"));
+		a(declare(owlClass("LoyalCustomer")));
+		
+		aSubclassOf(owlClass("Customer"), owlClass("LoyalCustomer"));
+		aInstanceOf(owlClass("LoyalCustomer"), individual("Mary"));
+		aInstanceOf(owlClass("LoyalCustomer"), individual("Tom"));
+		
+		aInstanceOf(owlClass("Customer"), individual("John"));
+		aInstanceOf(owlClass("Employee"), individual("Fred"));
+		a(declare(oprop("isServing")));		
+		aProp(oprop("isServing"), individual("Fred"), individual("Tom"));		
+		
+		// now make into versioned and publish
+		ctx1.vr = new VersionManager(ctx1.graph(), "testuser");
+		ctx1.vo = ctx1.vr.versioned(ctx1.graph().getHandle(ctx1.o));
+		HGHandle sourceOntoHandle = TU.ctx().o.getAtomHandle();
+		RemoteOntology remoteOnto = repo1.remoteOnto(sourceOntoHandle, repo1.remoteRepo(peer2.getIdentity()));
+		VersionUpdateActivity activity = new VersionUpdateActivity(peer1)
+			.remoteOntology(ctx1.graph.getHandle(remoteOnto))
+			.action(VersionUpdateActivity.ActionType.publish.name());
+		peer1.getActivityManager().initiateActivity(activity).get();
+		assertEquals(WorkflowState.Completed, activity.getState());
+		ctx2.o = vm2.versioned(sourceOntoHandle).ontology(); 
+		assertTrue(VersionedOntologiesTestData.compareOntologies(ctx1.o, ctx2.ontology()));		
 	}
 	
 	@Test
@@ -338,26 +378,65 @@ public class DistributedTests extends VersioningTestBase
 	@Test 
 	public void testCloneWithBranches() throws Exception
 	{
-		TU.ctx.set(ctx1);
+		TU.ctx.set(ctx1);		
+		// an ontology with some random data
 		VersionedOntologiesTestData.revisionGraph_1(iri_prefix + "peer1data", null);
-		ctx1.vo.commit("testuser", "create branch", "TestBranch1");
-		VersionedOntologiesTestData.makeRevision(ctx1);		
-		VersionedOntologiesTestData.makeRevision(ctx1);
-		ctx1.vo.commit("testuser", "create branch", "TestBranch2");
-		VersionedOntologiesTestData.makeRevision(ctx1);
-		ctx1.vo.commit("testuser", "made some changes");
+		Assert.assertNotNull(ctx1.vo.revision());		
+		// we create an branch with no change set
+		ctx1.vo.commit("testuser", "create branch 1", "TestBranch1");
+		Assert.assertNotNull(ctx1.vo.revision());
+		VersionedOntologiesTestData.makeSomeOntologyChanges(ctx1);
+		Assert.assertNotNull(ctx1.vo.revision());
+		VersionedOntologiesTestData.makeSomeOntologyChanges(ctx1);
+		Assert.assertNotNull(ctx1.vo.revision());
+		ctx1.vo.commit("testuser", "create branch 2", "TestBranch2");
+		Assert.assertNotNull(ctx1.vo.revision());
+		VersionedOntologiesTestData.makeSomeOntologyChanges(ctx1);
+		ctx1.vo.commit("testuser", "made some changes to branch 2");
+		List<ChangeLink> allchangelinks = hg.getAll(ctx1.graph(), hg.type(ChangeLink.class));
+		for (ChangeLink chlink : allchangelinks)
+		{
+			System.out.println("Checking link " + chlink);
+			if (ctx1.graph().get(chlink.parent()) == null)
+			{
+				System.out.println("Change " + ctx1.graph().get(chlink.change()));
+				System.out.println("Child " + ctx1.graph().get(chlink.child()));
+				throw new NullPointerException("no parent");
+			}
+			else if (ctx1.graph().get(chlink.change()) == null)
+				throw new NullPointerException("no change");
+			else if (ctx1.graph().get(chlink.child()) == null)
+				throw new NullPointerException("no child");
+			System.out.println("link ok");
+		}		
 		ctx1.vo.goTo("TestBranch1");
-		VersionedOntologiesTestData.makeRevision(ctx1);
-		VersionedOntologiesTestData.makeRevision(ctx1);
+		VersionedOntologiesTestData.makeSomeOntologyChanges(ctx1);
+		VersionedOntologiesTestData.makeSomeOntologyChanges(ctx1);
 		ctx1.vo.commit("testuser", "made changes to branch 1");
+		allchangelinks = hg.getAll(ctx1.graph(), hg.type(ChangeLink.class));
+		for (ChangeLink chlink : allchangelinks)
+		{
+			System.out.println("Checking link " + chlink);
+			if (ctx1.graph().get(chlink.parent()) == null)
+			{
+				System.out.println("Change " + ctx1.graph().get(chlink.change()));
+				System.out.println("Child " + ctx1.graph().get(chlink.child()));
+				throw new NullPointerException("no parent");
+			}
+			else if (ctx1.graph().get(chlink.change()) == null)
+				throw new NullPointerException("no change");
+			else if (ctx1.graph().get(chlink.child()) == null)
+				throw new NullPointerException("no child");
+			System.out.println("link ok");
+		}
 		ctx1.vo.goTo("TestBranch2");
-		VersionedOntologiesTestData.makeRevision(ctx1);
+		VersionedOntologiesTestData.makeSomeOntologyChanges(ctx1);
 		HGHandle sourceOntoHandle = TU.ctx().o.getAtomHandle();		
 		RemoteOntology remoteOnto = repo2.remoteOnto(sourceOntoHandle, repo2.remoteRepo(peer1.getIdentity()));
 		peer2.getActivityManager().initiateActivity(
 			new VersionUpdateActivity(peer2)
 				.remoteOntology(ctx2.graph.getHandle(remoteOnto)).action("clone")).get();
-		assertTrue(VersionedOntologiesTestData.compareOntologies(vm1.versioned(sourceOntoHandle), 
+		assertTrue(VersionedOntologiesTestData.compareOntologyRevisions(vm1.versioned(sourceOntoHandle), 
 																 vm1.graph(), 
 																 vm2.versioned(sourceOntoHandle), 
 																 vm2.graph()));
@@ -369,7 +448,7 @@ public class DistributedTests extends VersioningTestBase
 		TU.ctx.set(ctx1);
 		VersionedOntologiesTestData.revisionGraph_1(iri_prefix + "peer1data", null);
 		ctx1.vo.commit("testuser", "create branch", "TestBranch1");
-		VersionedOntologiesTestData.makeRevision(ctx1);		
+		VersionedOntologiesTestData.makeSomeOntologyChanges(ctx1);		
 
 		// clone from peer1 to peer2
 		HGHandle sourceOntoHandle = TU.ctx().o.getAtomHandle();		
@@ -386,12 +465,12 @@ public class DistributedTests extends VersioningTestBase
 		
 		// create another branch at peer1 
 		ctx1.vo.commit("testuser", "create branch", "TestBranch2");
-		VersionedOntologiesTestData.makeRevision(ctx1);
+		VersionedOntologiesTestData.makeSomeOntologyChanges(ctx1);
 
 		// and then a branch with the same name at peer2, that's a conflict
-		VersionedOntologiesTestData.makeRevision(ctx2);
+		VersionedOntologiesTestData.makeSomeOntologyChanges(ctx2);
 		ctx2.vo.commit("testuser", "create branch", "TestBranch2");
-		VersionedOntologiesTestData.makeRevision(ctx2);
+		VersionedOntologiesTestData.makeSomeOntologyChanges(ctx2);
 
 		// Now pulling changes should result in 1 conflict
 		VersionUpdateActivity updateActivity = new VersionUpdateActivity(peer2)
@@ -443,8 +522,8 @@ public class DistributedTests extends VersioningTestBase
 		Result result = null;
 		do
 		{
-			result = junit.run(Request.method(DistributedTests.class, "testCloneSmall"));
-		} while (result.getFailureCount() == 0);
+			result = junit.run(Request.method(DistributedTests.class, "testPublishWithInitialDataButNoRevisions"));
+		} while (result.getFailureCount() == 0 && false);
 		System.out.println("Failures " + result.getFailureCount());
 		if (result.getFailureCount() > 0)
 		{
@@ -453,6 +532,7 @@ public class DistributedTests extends VersioningTestBase
 				failure.getException().printStackTrace();
 			}
 		}
+		System.exit(0);
 	}
 	
 }
