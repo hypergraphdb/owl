@@ -368,13 +368,18 @@ public class DistributedTests extends VersioningTestBase
 			ctx1.vo.commit("testuser1", "flush leftover changes");
 		HGHandle sourceOntoHandle = TU.ctx().o.getAtomHandle();
 		RemoteOntology remoteOnto = repo2.remoteOnto(sourceOntoHandle, repo2.remoteRepo(peer1.getIdentity()));
+		// clone from peer1 into peer2
 		peer2.getActivityManager().initiateActivity(
 			new VersionUpdateActivity(peer2)
 				.remoteOntology(ctx2.graph.getHandle(remoteOnto))
 				.action(VersionUpdateActivity.ActionType.clone)).get();
+		remoteOnto = repo1.remoteOnto(sourceOntoHandle, repo1.remoteRepo(peer2.getIdentity()));
 		HGHandle parentRevision = ctx1.vonto().getCurrentRevision().getPersistent();
 		ctx2.vo = vm2.versioned(sourceOntoHandle);
 		ctx2.o = ctx2.vo.ontology();		
+		System.out.println("vo1 last change: " + ctx1.vo.metadata().lastChange());
+		System.out.println("vo2 last change: " + ctx2.vo.metadata().lastChange());		
+		
 		TU.ctx.set(ctx2);
 		aInstanceOf(owlClass("LoyalCustomer"), individual("Brandon_Broom"));
 		aInstanceOf(owlClass("LoyalCustomer"), individual("Clair_Zuckerbergengerber"));
@@ -543,7 +548,7 @@ public class DistributedTests extends VersioningTestBase
 		Result result = null;
 		do
 		{
-			result = junit.run(Request.method(DistributedTests.class, "testPublish"));
+			result = junit.run(Request.method(DistributedTests.class, "testPushRevisionChanges"));
 		} while (result.getFailureCount() == 0 && false);
 		System.out.println("Failures " + result.getFailureCount());
 		if (result.getFailureCount() > 0)

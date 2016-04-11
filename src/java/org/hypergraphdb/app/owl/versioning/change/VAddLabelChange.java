@@ -14,6 +14,11 @@ public class VAddLabelChange<T extends Versioned<T>> extends VMetadataChange<T>
 	{		
 	}
 	
+	public void visit(VMetaChangeVisitor<T> visitor)
+	{
+		visitor.visit(this);
+	}
+	
 	public VAddLabelChange(HGHandle label, HGHandle labeled)
 	{		
 		this.label = label;

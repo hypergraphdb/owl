@@ -3,6 +3,9 @@ package org.hypergraphdb.app.owl.versioning.distributed.serialize.parse;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserException;
 import org.coode.owlapi.owlxmlparser.OWLXMLParserHandler;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.change.VAddBranchChange;
+import org.hypergraphdb.app.owl.versioning.change.VMetadataChange;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLMetadata;
 import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.UnloadableImportException;
@@ -30,10 +33,10 @@ public class MetadataElementHandler extends AbstractVOWLElementHandler<VOWLXMLMe
 			throw new OWLParserException("Attribute: " + localName + " not recognized.", getLineNumber(), getColumnNumber());
 		}		
 	}	
-	@Override
-	public void handleChild(BranchElementHandler h) throws OWLXMLParserException
+
+	public void handleChange(VMetadataChange<VersionedOntology> change)
 	{
-		metadata.branches().add(h.getOWLObject());
+		metadata.changes().add(change);
 	}
 	
 	@Override

@@ -28,6 +28,11 @@ public class VAddBranchChange<T extends Versioned<T>> extends VMetadataChange<T>
 	{		
 	}
 	
+	public void visit(VMetaChangeVisitor<T> visitor)
+	{
+		visitor.visit(this);
+	}
+	
 	public VAddBranchChange(HGHandle revision, String name, String createdBy)
 	{
 		this(revision, name, createdBy, System.currentTimeMillis());
@@ -145,13 +150,13 @@ public class VAddBranchChange<T extends Versioned<T>> extends VMetadataChange<T>
 		this.revision = revision;
 	}
 
-	public HGHandle getHandle()
-	{
-		return handle;
-	}
-
-	public void setHandle(HGHandle handle)
-	{
-		this.handle = handle;
-	}	
+//	public HGHandle getHandle()
+//	{
+//		return handle;
+//	}
+//
+//	public void setHandle(HGHandle handle)
+//	{
+//		this.handle = handle;
+//	}	
 }

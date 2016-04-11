@@ -1,5 +1,6 @@
 package org.hypergraphdb.app.owl.versioning;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -69,6 +70,14 @@ public class VersionedMetadata<T extends Versioned<T>>
 		this.versioned = versioned;
 	}
 
+	public HyperGraph graph()
+	{
+		return graph;
+	}
+	
+	/**
+	 * <p>Return the last metadata change applied to the versioned.</p>
+	 */
 	public HGHandle lastChange()
 	{
 		HGLink link = graph.getOne(hg.and(hg.eq(METACHANGE_ROOT), hg.incident(versioned.getAtomHandle())));
@@ -78,6 +87,29 @@ public class VersionedMetadata<T extends Versioned<T>>
 			return link.getTargetAt(0);
 	}
 
+	/**
+	 * <p>
+	 * Collect all recent metadata change up to, but NOT including, the <code>metachange</code> 
+	 * parameter. 
+	 * </p>
+	 * 
+	 * @param metachange The handle of the change when to stop the iteration. If you pass <code>null</code>
+	 * as this parameter, you will get all known metadata changes.
+	 * @return A list of the recent changes up to <code>metachange</code>.
+	 */
+	public List<HGHandle> changesUpTo(HGHandle metachange)
+	{
+		List<HGHandle> result = new ArrayList<HGHandle>();
+		HGHandle last = lastChange();
+		while (last != null && last != metachange)
+		{
+			result.add(last);
+			ChangeLink link = hg.getOne(graph, hg.orderedLink(hg.anyHandle(), last, last));
+			last = link == null ? null : link.getTargetAt(0);
+		}
+		return result;
+	}
+	
 	public HGHandle createBranch(final HGHandle revhandle, final String name, final String user)
 	{
 		return graph.getTransactionManager().ensureTransaction(new Callable<HGHandle>()

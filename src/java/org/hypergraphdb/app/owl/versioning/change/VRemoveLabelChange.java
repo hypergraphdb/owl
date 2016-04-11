@@ -19,7 +19,12 @@ public class VRemoveLabelChange<T extends Versioned<T>> extends VMetadataChange<
 		this.label = label;
 		this.labeled = labeled;
 	}
-		
+	
+	public void visit(VMetaChangeVisitor<T> visitor)
+	{
+		visitor.visit(this);
+	}
+	
 	public HGHandle getLabel()
 	{
 		return label;

@@ -30,6 +30,11 @@ public class VBranchRenameChange<T extends Versioned<T>> extends VMetadataChange
 		this.newname = newname;
 	}
 	
+	public void visit(VMetaChangeVisitor<T> visitor)
+	{
+		visitor.visit(this);
+	}
+	
 	@Override
 	public void apply(T versioned)
 	{

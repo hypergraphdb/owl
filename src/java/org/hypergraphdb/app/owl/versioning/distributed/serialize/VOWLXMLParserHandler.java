@@ -161,6 +161,46 @@ public class VOWLXMLParserHandler extends OWLXMLParserHandler
 				return new BranchElementHandler(graph, handler);
 			}
 		});
+
+		addFactory(new AbstractVElementHandlerFactory(ADDBRANCH)
+		{
+			public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler)
+			{
+				return new AddBranchElementHandler(graph, handler);
+			}
+		});
+		
+		addFactory(new AbstractVElementHandlerFactory(REMOVEBRANCH)
+		{
+			public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler)
+			{
+				return new RemoveBranchElementHandler(graph, handler);
+			}
+		});
+		
+		addFactory(new AbstractVElementHandlerFactory(RENAMEBRANCH)
+		{
+			public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler)
+			{
+				return new RenameBranchElementHandler(graph, handler);
+			}
+		});
+		
+		addFactory(new AbstractVElementHandlerFactory(ADDLABEL)
+		{
+			public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler)
+			{
+				return new AddLabelElementHandler(graph, handler);
+			}
+		});
+		
+		addFactory(new AbstractVElementHandlerFactory(REMOVELABEL)
+		{
+			public OWLElementHandler<?> createHandler(OWLXMLParserHandler handler)
+			{
+				return new RemoveLabelElementHandler(graph, handler);
+			}
+		});
 		
 		addFactory(new AbstractVElementHandlerFactory(MARK_PARENT)
 		{

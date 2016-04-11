@@ -23,6 +23,11 @@ public class VRemoveBranchChange<T extends Versioned<T>> extends VMetadataChange
 		this.user = user;
 	}
 	
+	public void visit(VMetaChangeVisitor<T> visitor)
+	{
+		visitor.visit(this);
+	}
+	
 	@Override
 	public void apply(T versioned)
 	{ 

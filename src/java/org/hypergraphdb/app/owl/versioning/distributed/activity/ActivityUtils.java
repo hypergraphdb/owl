@@ -1,6 +1,7 @@
 package org.hypergraphdb.app.owl.versioning.distributed.activity;
 
 import java.io.StringWriter;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -19,12 +20,12 @@ import org.hypergraphdb.app.owl.HGDBOntologyManager;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.hypergraphdb.app.owl.core.OWLTempOntologyImpl;
-import org.hypergraphdb.app.owl.versioning.Branch;
 import org.hypergraphdb.app.owl.versioning.Change;
 import org.hypergraphdb.app.owl.versioning.ChangeLink;
 import org.hypergraphdb.app.owl.versioning.ChangeSet;
 import org.hypergraphdb.app.owl.versioning.Revision;
 import org.hypergraphdb.app.owl.versioning.Versioned;
+import org.hypergraphdb.app.owl.versioning.VersionedMetadata;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.change.VMetadataChange;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
@@ -210,7 +211,7 @@ public class ActivityUtils
 			graph.define(versionedHandle, vo);			
 			manager.getVersionManager().manualVersioned(vo.getOntology());
 			updateVersionedOntology(manager, vo, doc);
-			storeMetadata(graph, doc.getMetadata());
+			storeMetadata(vo.metadata(), doc.getMetadata());
 //			Revision root = graph.get(vo.getRootRevision());
 //			RevisionMark mark = graph.get(root.revisionMarks().iterator().next());
 //			ChangeRecord record = graph.get(mark.changeRecord());
@@ -229,12 +230,9 @@ public class ActivityUtils
 		}
 	}
 	
-	public static void storeMetadata(HyperGraph graph, VOWLXMLMetadata metadata)
+	public static void storeMetadata(VersionedMetadata<VersionedOntology> dest, VOWLXMLMetadata src)
 	{
-		for (Branch branch : metadata.branches())
-		{
-			graph.define(branch.getAtomHandle(), branch);
-		}
+		dest.applyChanges(src.changes());
 	}
 	
 	/**

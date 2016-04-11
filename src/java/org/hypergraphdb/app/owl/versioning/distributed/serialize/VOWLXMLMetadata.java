@@ -1,19 +1,20 @@
 package org.hypergraphdb.app.owl.versioning.distributed.serialize;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.app.owl.versioning.Branch;
+import org.hypergraphdb.app.owl.versioning.VersionedOntology;
+import org.hypergraphdb.app.owl.versioning.change.VMetadataChange;
 
 public class VOWLXMLMetadata
 {
-	Collection<Branch> branches =  new ArrayList<Branch>();
+	List<VMetadataChange<VersionedOntology>> changes =  new ArrayList<VMetadataChange<VersionedOntology>>();
 	HGHandle lastChange;
 	
-	public Collection<Branch> branches()
+	public List<VMetadataChange<VersionedOntology>> changes()
 	{
-		return branches;
+		return changes;
 	}
 	
 	public VOWLXMLMetadata lastChange(HGHandle lastChange)

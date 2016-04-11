@@ -21,18 +21,25 @@ import org.hypergraphdb.app.owl.versioning.Change;
 import org.hypergraphdb.app.owl.versioning.VersionedMetadata;
 import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.change.VAddAxiomChange;
+import org.hypergraphdb.app.owl.versioning.change.VAddBranchChange;
 import org.hypergraphdb.app.owl.versioning.change.VAddImportChange;
+import org.hypergraphdb.app.owl.versioning.change.VAddLabelChange;
 import org.hypergraphdb.app.owl.versioning.change.VAddOntologyAnnotationChange;
 import org.hypergraphdb.app.owl.versioning.change.VAddPrefixChange;
 import org.hypergraphdb.app.owl.versioning.change.VAxiomChange;
+import org.hypergraphdb.app.owl.versioning.change.VBranchRenameChange;
 import org.hypergraphdb.app.owl.versioning.change.VImportChange;
+import org.hypergraphdb.app.owl.versioning.change.VMetaChangeVisitor;
+import org.hypergraphdb.app.owl.versioning.change.VMetadataChange;
 import org.hypergraphdb.app.owl.versioning.change.VModifyOntologyIDChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChangeVisitor;
 import org.hypergraphdb.app.owl.versioning.change.VOntologyAnnotationChange;
 import org.hypergraphdb.app.owl.versioning.change.VPrefixChange;
 import org.hypergraphdb.app.owl.versioning.change.VRemoveAxiomChange;
+import org.hypergraphdb.app.owl.versioning.change.VRemoveBranchChange;
 import org.hypergraphdb.app.owl.versioning.change.VRemoveImportChange;
+import org.hypergraphdb.app.owl.versioning.change.VRemoveLabelChange;
 import org.hypergraphdb.app.owl.versioning.change.VRemoveOntologyAnnotationChange;
 import org.hypergraphdb.app.owl.versioning.change.VRemovePrefixChange;
 import org.semanticweb.owlapi.model.OWLOntologyID;
@@ -62,7 +69,7 @@ import org.semanticweb.owlapi.vocab.Namespaces;
  * @author Thomas Hilpold (CIAO/Miami-Dade County), Borislav Iordanov
  * @created Feb 24, 2012
  */
-public class VOWLXMLObjectRenderer implements VOWLChangeVisitor
+public class VOWLXMLObjectRenderer implements VOWLChangeVisitor, VMetaChangeVisitor<VersionedOntology>
 {
 	private VOWLXMLWriter writer;
 	private OWLXMLObjectRenderer owlObjectRenderer;
@@ -171,14 +178,51 @@ public class VOWLXMLObjectRenderer implements VOWLChangeVisitor
 		writer.writeEndElement();
 	}
 	
-	public void visit(Branch branch)
+	public void visit(VAddBranchChange<VersionedOntology> change)
 	{			
-		writer.writeStartElement(BRANCH)
-			  .writeAttribute("name", branch.getName())
-			  .writeAttribute("createdOn", Long.toString(branch.getCreatedOn()))
-			  .writeAttribute("createdBy", branch.getCreatedBy())
-			  .writeAttribute("versioned", branch.versioned())
-			  .writeAttribute("handle", branch.getAtomHandle())
+		writer.writeStartElement(ADDBRANCH)
+			  .writeAttribute("handle", change.getAtomHandle())
+			  .writeAttribute("createdOn", Long.toString(change.getCreatedOn()))
+			  .writeAttribute("createdBy", change.getCreatedBy())
+			  .writeAttribute("revision", change.getRevision())
+			  .writeEndElement();				
+	}
+
+	public void visit(VAddLabelChange<VersionedOntology> change)
+	{			
+		writer.writeStartElement(ADDLABEL)
+			  .writeAttribute("handle", change.getAtomHandle())
+			  .writeAttribute("labelHandle", change.getLabel())
+			  .writeAttribute("label", change.graph().get(change.getLabel()).toString())
+			  .writeAttribute("labeled", change.getLabeled())
+			  .writeEndElement();				
+	}
+
+	public void visit(VBranchRenameChange<VersionedOntology> change)
+	{			
+		writer.writeStartElement(RENAMEBRANCH)
+			  .writeAttribute("handle", change.getAtomHandle())
+			  .writeAttribute("currentName", change.getCurrentName())
+			  .writeAttribute("newName", change.getNewname())
+			  .writeEndElement();				
+	}
+	
+	public void visit(VRemoveBranchChange<VersionedOntology> change)
+	{			
+		writer.writeStartElement(REMOVEBRANCH)
+			  .writeAttribute("handle", change.getAtomHandle())
+			  .writeAttribute("name", change.getName())
+			  .writeAttribute("user", change.getUser())
+			  .writeAttribute("revision", change.getRevision())
+			  .writeEndElement();				
+	}
+
+	public void visit(VRemoveLabelChange<VersionedOntology> change)
+	{			
+		writer.writeStartElement(REMOVELABEL)
+			  .writeAttribute("handle", change.getAtomHandle())
+			  .writeAttribute("label", change.getLabel())
+			  .writeAttribute("labeled", change.getLabeled())
 			  .writeEndElement();				
 	}
 	
@@ -348,9 +392,10 @@ public class VOWLXMLObjectRenderer implements VOWLChangeVisitor
 	{
 		writer.writeStartElement(VOWLXMLVocabulary.METADATA);
 		writer.writeAttribute(VOWLXMLVocabulary.NAMESPACE + "lastMetaChange", "" + metadata.lastChange().getPersistent());
-		for (Branch branch : metadata.allBranches())
+		for (HGHandle chHandle : metadata.changesUpTo(null))
 		{
-			visit(branch);
+			VMetadataChange<VersionedOntology> change = metadata.graph().get(chHandle);
+			change.visit(this);
 		}
 		writer.writeEndElement();
 	}

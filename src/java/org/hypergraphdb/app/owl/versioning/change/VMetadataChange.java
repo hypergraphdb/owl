@@ -23,6 +23,13 @@ public abstract class VMetadataChange<T extends Versioned<T>> implements Change<
 	HyperGraph graph;
 	HGHandle atomHandle;
 	
+	public HyperGraph graph()
+	{
+		return graph;
+	}
+	
+	public abstract void visit(VMetaChangeVisitor<T> visitor);
+	
 	@Override
 	public void setHyperGraph(HyperGraph graph)
 	{

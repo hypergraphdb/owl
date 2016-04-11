@@ -21,7 +21,7 @@ import org.hypergraphdb.HGHandle;
  * empty, then everything is being serialized.
  * </p>
  * revLeft.parents().equals(revRight.parents()) 
- * @author Thomas Hilpold (CIAO/Miami-Dade County)
+ * @author Thomas Hilpold (CIAO/Miami-Dade County), Borislav Iordanov
  * @author borislav
  * @created Feb 24, 2012
  */
