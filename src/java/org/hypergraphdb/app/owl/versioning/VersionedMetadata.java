@@ -312,7 +312,8 @@ public class VersionedMetadata<T extends Versioned<T>>
 			public HGHandle call()
 			{
 				for (VMetadataChange<T> change : changes)
-					VersionedMetadata.this.performChange(change);
+					if (graph.get(change.getAtomHandle()) == null)
+						VersionedMetadata.this.performChange(change);
 				return lastChange();
 			}
 		});

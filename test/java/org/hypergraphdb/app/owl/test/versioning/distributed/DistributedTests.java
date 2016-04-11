@@ -373,7 +373,6 @@ public class DistributedTests extends VersioningTestBase
 			new VersionUpdateActivity(peer2)
 				.remoteOntology(ctx2.graph.getHandle(remoteOnto))
 				.action(VersionUpdateActivity.ActionType.clone)).get();
-		remoteOnto = repo1.remoteOnto(sourceOntoHandle, repo1.remoteRepo(peer2.getIdentity()));
 		HGHandle parentRevision = ctx1.vonto().getCurrentRevision().getPersistent();
 		ctx2.vo = vm2.versioned(sourceOntoHandle);
 		ctx2.o = ctx2.vo.ontology();		
