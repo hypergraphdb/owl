@@ -2,9 +2,6 @@ package org.hypergraph.app.owltest.suite;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
-import org.semanticweb.owlapi.api.test.DifferentPhysicalURISameOntologyIRITestCase;
-import org.semanticweb.owlapi.api.test.LargeDifferentIndividualsTestCase;
-import org.semanticweb.owlapi.api.test.RenameToExistingOntologyTestCase;
 import org.semanticweb.owlapi.api.test.SWRLRuleTestCase;
 
 /**

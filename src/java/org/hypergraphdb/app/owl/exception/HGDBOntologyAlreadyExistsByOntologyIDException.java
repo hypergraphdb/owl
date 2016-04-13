@@ -15,6 +15,7 @@ public class HGDBOntologyAlreadyExistsByOntologyIDException extends OWLOntologyC
 	private OWLOntologyID ontologyID;
 	
 	public HGDBOntologyAlreadyExistsByOntologyIDException(OWLOntologyID ontologyID) {
+    	super("Ontology with ID " + ontologyID + " already in HypergraphDB repository.");		
 	    this.ontologyID = ontologyID;
 	}
 	

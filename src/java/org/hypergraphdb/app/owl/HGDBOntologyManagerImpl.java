@@ -25,9 +25,11 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 
 /**
- * HGDBOntologyManagerImpl.
+ * <p>
+ * HyperGraphDB backed implementation an <code>OWLOntologyManager</code>.
+ * </p>
  * 
- * @author Thomas Hilpold (CIAO/Miami-Dade County)
+ * @author Thomas Hilpold (CIAO/Miami-Dade County), Borislav Iordanov
  * @created Feb 3, 2012
  */
 public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements HGDBOntologyManager, PrefixChangeListener
@@ -70,6 +72,11 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 		this.addOntologyChangeListener(new VersioningChangeListener(versionManager));
 		addIRIMapper(new HGDBIRIMapper(ontologyRepository));
 		dataFactory.setHyperGraph(ontologyRepository.getHyperGraph());
+		for (HGDBOntology onto : ontologyRepository.getOntologies())
+		{
+			this.ontologiesByID.put(onto.getOntologyID(), onto);
+			this.documentIRIsByID.put(onto.getOntologyID(), onto.getDocumentIRI());
+		}
 	}
 
 	/*
@@ -163,7 +170,7 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 		{
 			OWLOntology o = loadOntologyFromOntologyDocument(documentIRI);
 			HGDBOntologyFormat format = new HGDBOntologyFormat();
-			IRI hgdbDocumentIRI = HGDBOntologyFormat.convertToHGDBDocumentIRI(documentIRI);
+			IRI hgdbDocumentIRI = HGDBOntologyFormat.convertToHGDBDocumentIRI(o.getOntologyID().getOntologyIRI());
 			setOntologyFormat(o, format);
 			setOntologyDocumentIRI(o, hgdbDocumentIRI);
 			saveOntology(o, format, hgdbDocumentIRI);

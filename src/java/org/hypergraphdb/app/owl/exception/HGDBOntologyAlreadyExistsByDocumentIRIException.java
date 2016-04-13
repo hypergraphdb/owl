@@ -19,6 +19,7 @@ public class HGDBOntologyAlreadyExistsByDocumentIRIException extends OWLOntology
 	private IRI ontologyDocumentIRI;
 
     public HGDBOntologyAlreadyExistsByDocumentIRIException(IRI ontologyDocumentIRI) {
+    	super("Document IRI " + ontologyDocumentIRI + " already in HypergraphDB repository.");
         this.ontologyDocumentIRI = ontologyDocumentIRI;
     }
 
