@@ -18,7 +18,7 @@ import org.hypergraphdb.app.owl.versioning.Versioned;
  */
 public class VAddBranchChange<T extends Versioned<T>> extends VMetadataChange<T>
 {
-	private HGHandle handle;
+	private HGHandle branchHandle;
 	private String name;
 	private String createdBy;
 	private long createdOn;
@@ -56,12 +56,12 @@ public class VAddBranchChange<T extends Versioned<T>> extends VMetadataChange<T>
 			branch.setCreatedBy(createdBy);
 			branch.setCreatedOn(createdOn);
 			branch.setVersioned(versioned.getAtomHandle());
-			if (handle == null)
-				handle = graph.add(branch);
+			if (branchHandle == null)
+				branchHandle = graph.add(branch);
 			else
-				graph.define(handle, branch);
+				graph.define(branchHandle, branch);
 			Revision rev = graph.get(revision);
-			rev.branchHandle(handle);
+			rev.branchHandle(branchHandle);
 			graph.update(rev);
 		}
 	}
@@ -93,10 +93,20 @@ public class VAddBranchChange<T extends Versioned<T>> extends VMetadataChange<T>
 	@Override
 	public boolean isEffective(T versioned)
 	{
-		return graph.findOne(hg.and(hg.type(Branch.class),
+		// If branch already exists for this versioned, the change is not effective.
+		if (graph.findOne(hg.and(hg.type(Branch.class),
 				hg.eq("name", name),
-				hg.eq("versioned", versioned.getAtomHandle()))) == null &&
-				((Revision)graph.get(revision)).branchHandle() == null;
+				hg.eq("versioned", versioned.getAtomHandle()))) != null)
+			return false;
+		// If the revision we are attaching the branch already has another branch, the
+		// change is not effective either. However, if the revision has already the 
+		// same branch handle stored in it, the change *is* effective because it simly means
+		// we are missing the branch object in the graph.
+		HGHandle bhandle =  ((Revision)graph.get(revision)).branchHandle();
+		if (bhandle == null || bhandle.equals(this.branchHandle))
+			return true;
+		else
+			return false;
 	}
 	
 	public String toString()
@@ -150,13 +160,13 @@ public class VAddBranchChange<T extends Versioned<T>> extends VMetadataChange<T>
 		this.revision = revision;
 	}
 
-//	public HGHandle getHandle()
-//	{
-//		return handle;
-//	}
-//
-//	public void setHandle(HGHandle handle)
-//	{
-//		this.handle = handle;
-//	}	
+	public HGHandle getBranchHandle()
+	{
+		return branchHandle;
+	}
+
+	public void setBranchHandle(HGHandle handle)
+	{
+		this.branchHandle = handle;
+	}	
 }

@@ -22,10 +22,18 @@ public class AddBranchElementHandler extends AbstractVOWLElementHandler<VAddBran
 	
 	public void attribute(String localName, String value) throws OWLParserException
 	{
-		if (localName.equals("handle"))
+		if (localName.equals("changeHandle"))
 		{
 			change.setAtomHandle(graph.getHandleFactory().makeHandle(value));
 		}
+		else if (localName.equals("branchHandle"))
+		{
+			change.setBranchHandle(graph.getHandleFactory().makeHandle(value));
+		}
+		else if (localName.equals("name"))
+		{
+			change.setName(value);
+		}		
 		else if (localName.equals("createdOn"))
 		{
 			change.setCreatedOn(Long.parseLong(value));

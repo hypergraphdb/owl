@@ -13,6 +13,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -44,8 +45,10 @@ import org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer;
 import org.hypergraphdb.app.owl.versioning.distributed.RemoteOntology;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.GetNewRevisionsActivity;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.VersionUpdateActivity;
+import org.hypergraphdb.app.owl.versioning.distributed.activity.VersionUpdateActivity.ActionType;
 import org.hypergraphdb.peer.HyperGraphPeer;
 import org.hypergraphdb.peer.bootstrap.AffirmIdentityBootstrap;
+import org.hypergraphdb.peer.workflow.ActivityResult;
 import org.hypergraphdb.peer.workflow.WorkflowState;
 import org.hypergraphdb.util.HGUtils;
 import org.junit.After;
@@ -56,6 +59,7 @@ import org.junit.runner.Request;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAxiom;
 
 public class DistributedTests extends VersioningTestBase
 {
@@ -153,8 +157,11 @@ public class DistributedTests extends VersioningTestBase
 		VersionedOntologiesTestData.revisionGraph_1(iri_prefix + "peer1data", null);
 		HGHandle sourceOntoHandle = TU.ctx().o.getAtomHandle();
 		RemoteOntology remoteOnto = repo2.remoteOnto(sourceOntoHandle, repo2.remoteRepo(peer1.getIdentity()));
-		peer2.getActivityManager().initiateActivity(
+		ActivityResult result = peer2.getActivityManager().initiateActivity(
 				new GetNewRevisionsActivity(peer2, ctx2.graph.getHandle(remoteOnto))).get();
+		Assert.assertNull(result.getException());
+		Assert.assertEquals(TU.ctx().vonto().revisions().size(),
+				((GetNewRevisionsActivity)result.getActivity()).delta().revisions.size());
 	}
 	
 	@Test public void cloneEmpty() throws Exception
@@ -367,27 +374,17 @@ public class DistributedTests extends VersioningTestBase
 		if (ctx1.vo.changes().size() > 0)
 			ctx1.vo.commit("testuser1", "flush leftover changes");
 		HGHandle sourceOntoHandle = TU.ctx().o.getAtomHandle();
-		RemoteOntology remoteOnto = repo2.remoteOnto(sourceOntoHandle, repo2.remoteRepo(peer1.getIdentity()));
-		// clone from peer1 into peer2
-		peer2.getActivityManager().initiateActivity(
-			new VersionUpdateActivity(peer2)
-				.remoteOntology(ctx2.graph.getHandle(remoteOnto))
-				.action(VersionUpdateActivity.ActionType.clone)).get();
+//		// clone from peer1 into peer2		
+		TU.versionUpdate(sourceOntoHandle, ActionType.clone, repo2, repo1);		
 		HGHandle parentRevision = ctx1.vonto().getCurrentRevision().getPersistent();
 		ctx2.vo = vm2.versioned(sourceOntoHandle);
 		ctx2.o = ctx2.vo.ontology();		
-		System.out.println("vo1 last change: " + ctx1.vo.metadata().lastChange());
-		System.out.println("vo2 last change: " + ctx2.vo.metadata().lastChange());		
-		
 		TU.ctx.set(ctx2);
 		aInstanceOf(owlClass("LoyalCustomer"), individual("Brandon_Broom"));
 		aInstanceOf(owlClass("LoyalCustomer"), individual("Clair_Zuckerbergengerber"));
 		ctx2.vo.commit("testuser2", "New difference.");
 		// push changes from peer2 to peer1
-		peer2.getActivityManager().initiateActivity(
-				new VersionUpdateActivity(peer2)
-				.remoteOntology(ctx2.graph.getHandle(remoteOnto))
-				.action("push")).get();
+		TU.versionUpdate(sourceOntoHandle, ActionType.push, repo2, repo1);
 		HGHandle childRevision = ctx2.vo.getCurrentRevision().getPersistent();
 		ctx1.vo.goTo((Revision)ctx1.graph.get(ctx2.vo.getCurrentRevision().getPersistent()));
 		assertEquals(ctx2.vo.getCurrentRevision(), ctx1.vo.getCurrentRevision());		
@@ -468,6 +465,52 @@ public class DistributedTests extends VersioningTestBase
 	}
 
 	@Test 
+	public void testAFewSmallPushes() throws Exception
+	{
+		TU.ctx.set(ctx1);		
+		ctx1.newonto(IRI.create(iri_prefix + "peer1data"), true);
+		HGHandle ontoHandle = TU.ctx().o.getAtomHandle();		
+		// Publish yet empty repository
+		TU.versionUpdate(ontoHandle, ActionType.publish, repo1, repo2);
+		ctx2.setonto(ontoHandle);		
+		ctx1.assertEqualOntology(ctx2);
+		a(declare(owlClass("A")));
+		ctx1.vo.commit("testuser", "push 1");
+		TU.versionUpdate(ontoHandle, ActionType.push, repo1, repo2);
+		ctx2.vonto().goTo(ctx2.vonto().revision().branch().name());
+		ctx1.assertEqualOntology(ctx2);
+	}
+	
+	@Test 
+	public void testPushWithNewBranches() throws Exception
+	{
+		TU.ctx.set(ctx1);		
+		ctx1.newonto(IRI.create(iri_prefix + "peer1data"), true);
+		HGHandle sourceOntoHandle = TU.ctx().o.getAtomHandle();		
+		a(declare(owlClass("Event")));
+		a(declare(owlClass("Character")));
+		ctx1.vo.commit("testuser1", "Initial commit.");
+		TU.versionUpdate(sourceOntoHandle, ActionType.publish, repo1, repo2);
+		ctx2.setonto(sourceOntoHandle);		
+		ctx1.assertEqualOntology(ctx2);
+//		ctx1.vo.metadata().createBranch(ctx1.vonto().getCurrentRevision(), "branch1", "testuser1");
+		aSubclassOf(owlClass("User"), owlClass("Employee"));
+		ctx1.vo.commit("testuser1", "Commit newly created branch", "branch1");
+		Assert.assertEquals("branch1", ctx1.vonto().revision().branch().name());
+		ActivityResult result = TU.versionUpdate(sourceOntoHandle, ActionType.push, repo1, repo2);
+		Assert.assertNull(result.getException());
+		// test new branch is also transferred
+		Assert.assertEquals("master", ctx2.vonto().revision().branch().name());
+		assertTrue(VersionedOntologiesTestData.compareOntologyRevisions(
+				 ctx1.vonto(), 
+				 ctx1.graph(), 
+				 ctx2.vonto(), 
+				 ctx2.graph()));		
+		ctx2.vonto().goTo("branch1");
+		ctx1.assertEqualOntology(ctx2);
+	}
+	
+	@Test 
 	public void testBranchConflicts() throws Exception
 	{
 		TU.ctx.set(ctx1);
@@ -480,7 +523,8 @@ public class DistributedTests extends VersioningTestBase
 		RemoteOntology remoteOnto = repo2.remoteOnto(sourceOntoHandle, repo2.remoteRepo(peer1.getIdentity()));
 		peer2.getActivityManager().initiateActivity(
 				new VersionUpdateActivity(peer2)
-					.remoteOntology(ctx2.graph.getHandle(remoteOnto)).action(VersionUpdateActivity.ActionType.clone)).get();
+					.remoteOntology(ctx2.graph.getHandle(remoteOnto))
+					.action(VersionUpdateActivity.ActionType.clone)).get();
 		ctx2.vo = vm2.versioned(sourceOntoHandle);
 		ctx2.o = ctx2.vo.ontology();		
 		
@@ -517,22 +561,46 @@ public class DistributedTests extends VersioningTestBase
 		Assert.assertEquals(WorkflowState.Completed, updateActivity.getState());		
 	}
 	
+	/**
+	 * Test case where we have to merge changes on the same branches 
+	 */
 	@Test
 	public void testPullWithMerge() throws Exception
 	{
-		HGDBOntology o = ctx1.m.importOntology(
+		ctx1.o = ctx1.m.importOntology(
 				IRI.create(getClass().getResource("/ontologies/opencirmupper.owl").toURI()));
-		ctx1.vo = vm1.versioned(o.getAtomHandle());
-		RemoteOntology remoteOnto = repo2.remoteOnto(o.getAtomHandle(), 
-										repo2.remoteRepo(peer1.getIdentity()));
-		VersionUpdateActivity activity = new VersionUpdateActivity(peer2)
-			.remoteOntology(ctx2.graph.getHandle(remoteOnto))
-			.action(VersionUpdateActivity.ActionType.clone.name());		
-		peer2.getActivityManager().initiateActivity(activity);
-		activity.getFuture().get();
-		Assert.assertTrue(activity.getState().isCompleted());
+		ctx1.vo = vm1.versioned(ctx1.o.getAtomHandle());
+		ActivityResult result = TU.versionUpdate(ctx1.o.getAtomHandle(), ActionType.publish, repo1, repo2);
+		Assert.assertTrue(result.getActivity().getState().isCompleted());
+		ctx2.setonto(ctx1.o.getAtomHandle());				
 		
-		// TODO....
+		// now, both sides will diverge
+		TU.ctx.set(ctx1);
+		OWLAxiom a1 = a(declare(owlClass("Context1Class")));
+		OWLAxiom a2 = aInstanceOf(owlClass("Context1Class"), individual("Context1_Individual"));
+		ctx1.vonto().commit("testuser1", "Commit on peer 1");
+		
+		TU.ctx.set(ctx2);
+		a(declare(owlClass("Context2Class")));
+		aInstanceOf(owlClass("Context2Class"), individual("Context2_Individual"));
+		ctx2.vonto().commit("testuser2", "Commit on peer 2");
+		
+		// Pull changes peer 1 -> peer 2
+		Assert.assertTrue(TU.versionUpdate(ctx1.o.getAtomHandle().getPersistent(), ActionType.pull, repo2, repo1)
+				.getActivity().getState().isCompleted());
+		Set<HGHandle> heads = ctx2.vonto().heads();
+		List<Revision> masterHeads = new ArrayList<Revision>();
+		for (HGHandle revHandle : heads)
+		{
+			Revision rev = ctx2.graph().get(revHandle);
+			if ("master".equals(rev.branch().name()))
+				masterHeads.add(rev);
+		}
+		ctx2.vonto().merge("testuser2", "merge", "master", masterHeads.toArray(new Revision[0]));
+		ctx2.vonto().goTo("master");
+		System.out.println(ctx2.o.getAxioms());
+		Assert.assertTrue(ctx2.o.containsAxiom(a1));
+		Assert.assertTrue(ctx2.o.containsAxiom(a2));
 	}
 	
 	@Test
@@ -547,7 +615,7 @@ public class DistributedTests extends VersioningTestBase
 		Result result = null;
 		do
 		{
-			result = junit.run(Request.method(DistributedTests.class, "testPushRevisionChanges"));
+			result = junit.run(Request.method(DistributedTests.class, "testCloneWithBranches"));
 		} while (result.getFailureCount() == 0 && false);
 		System.out.println("Failures " + result.getFailureCount());
 		if (result.getFailureCount() > 0)

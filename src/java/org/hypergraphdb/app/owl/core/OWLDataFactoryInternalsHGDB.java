@@ -259,10 +259,10 @@ public class OWLDataFactoryInternalsHGDB {
      * @return a loaded or created OwlEntityObject of type type.
      */
     @SuppressWarnings("unchecked")
-	private <V extends OWLEntity> OWLEntity ensureCreateEntityInDatabase(final Class<V> entityType, final IRI iri, final BuildableObjects buildable) {
+	private <V extends OWLEntity> OWLEntity ensureCreateEntityInDatabase(final Class<V> entityType, final IRI iri, final BuildableObjects buildable) 
+    {
     	final HyperGraph graph = factory.getHyperGraph();
-    	boolean isBuiltin = OWLRDFVocabulary.BUILT_IN_VOCABULARY_IRIS.contains(iri) ||
-    			  		    XSD_VOCABULARY_IRIS.contains(iri);
+    	boolean isBuiltin = OWLRDFVocabulary.BUILT_IN_VOCABULARY_IRIS.contains(iri) || XSD_VOCABULARY_IRIS.contains(iri);
     	
     	//check builtin cache
     	V e;

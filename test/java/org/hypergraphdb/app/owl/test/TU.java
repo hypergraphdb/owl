@@ -4,14 +4,21 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import org.hypergraphdb.HGEnvironment;
+import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.app.owl.OntologyDatabase;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.model.OWLDataPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLLiteralHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectPropertyHGDB;
 import org.hypergraphdb.app.owl.test.versioning.TestContext;
+import org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer;
+import org.hypergraphdb.app.owl.versioning.distributed.RemoteOntology;
+import org.hypergraphdb.app.owl.versioning.distributed.activity.VersionUpdateActivity;
+import org.hypergraphdb.app.owl.versioning.distributed.activity.VersionUpdateActivity.ActionType;
+import org.hypergraphdb.peer.workflow.ActivityResult;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -140,5 +147,18 @@ public class TU
 	public static OWLLiteralHGDB literal(String value)
 	{
 		return (OWLLiteralHGDB)ctx().df().getOWLLiteral(value);
+	}
+	
+	public static ActivityResult versionUpdate(HGHandle ontoHandle, 
+											   ActionType actionType, 
+											   OntologyDatabasePeer initiatingPeer, 
+											   OntologyDatabasePeer otherPeer)
+			throws ExecutionException, InterruptedException
+	{
+		RemoteOntology remoteOnto = initiatingPeer.remoteOnto(ontoHandle, initiatingPeer.remoteRepo(otherPeer.getPeer().getIdentity()));
+		return initiatingPeer.getPeer().getActivityManager().initiateActivity(
+				new VersionUpdateActivity(initiatingPeer.getPeer())
+					.remoteOntology(initiatingPeer.getHyperGraph().getHandle(remoteOnto))
+					.action(actionType)).get();		
 	}
 }

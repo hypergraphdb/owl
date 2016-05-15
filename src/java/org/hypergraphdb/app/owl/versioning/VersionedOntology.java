@@ -176,9 +176,27 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		return this.currentRevision;
 	}
 	
+	/**
+	 * <p>
+	 * Create a new revision from the latest working {@link ChangeSet}. Note that an empty
+	 * working change set is allowed. One can commit as many times and create as many revisions
+	 * as one wishes. 
+	 * </p>
+	 * 
+	 * <p>
+	 * The revision will be assigned the same branch as the current revision.
+	 * </p>
+	 * 
+	 * @param user The user making the commit.
+	 * @param comment The comment associated with the commit.
+	 */
 	@Override
 	public Revision commit(final String user, final String comment)
 	{
+		if (graph.get(currentRevision) == null) 
+			throw new NullPointerException("no current revision");			
+		else if (graph.getStore().getLink(currentRevision.getPersistent()) == null)
+			throw new NullPointerException("not in permanent storage");			
 		graph.getTransactionManager().ensureTransaction(new Callable<HGHandle>(){
 		public HGHandle call()
 		{
@@ -188,36 +206,53 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 		return revision();
 	}
 
+	/**
+	 * <p>
+	 * Create a revision on a new branch. Behavior described in {@link #commit(String, String)} method
+	 * applies, except we are creating a new branch with a new name. 
+	 * </p>
+	 * 
+	 * <p>
+	 * The name of the new branch must not have been used before for this
+	 * versioned ontology. If you want to commit the working changes to a different branch, you must
+	 * first detach them and save them, switch to the other branch, re-apply the changes and commit there.
+	 * </p>
+	 * 
+	 * @param user The user making the commit.
+	 * @param comment The comment associated with the commit.
+	 * @param branch The name of the new branch. If this parameter is <code>null</code>, the branch of
+	 * the current revision is used (i.e. this is equivalent to calling {@link #commit(String, String)}. 
+	 * 
+	 */
 	@Override
 	public Revision commit(final String user, final String comment, final String branch)
 	{
-		if (graph.get(currentRevision) == null)
+		if (branch == null)
+			return commit(user, comment);
+		if (graph.get(currentRevision) == null) 
 			throw new NullPointerException("no current revision");			
 		else if (graph.getStore().getLink(currentRevision.getPersistent()) == null)
-		{
 			throw new NullPointerException("not in permanent storage");			
-		}
 		graph.getTransactionManager().ensureTransaction(new Callable<HGHandle>(){
 		public HGHandle call()
 		{
-			if (graph.get(currentRevision) == null)
+			HGHandle existingBranch = metadata.findBranchHandle(branch);
+			if (existingBranch != null)
 			{
-				@SuppressWarnings("unused")
-				Object x = graph.get(currentRevision);
-				throw new NullPointerException("no current revision");
+				if (!existingBranch.equals(revision().branchHandle()))
+					throw new IllegalArgumentException("Branch already exists: '" + branch + "'.");
+				else
+					return makeRevision(user, comment, revision().branchHandle());
 			}
-			HGHandle existingBranch = branch != null ? metadata.findBranchHandle(branch) : null;
-			if (existingBranch != null && !existingBranch.equals(revision().branchHandle()))
-				throw new IllegalArgumentException("Branch already exists: '" + branch + "'.");
-//			if (existingBranch != null)
-//				System.out.println("Committing on existing branch "+ existingBranch + " with name " + branch);
-			HGHandle revhandle = makeRevision(user, comment, existingBranch);
-			if (branch != null && existingBranch == null)
+			else
 			{
-//				System.out.println("Creaning new branch  with name " + branch);
+				// A new revision can be temporarily created with no branch within a transaction, but it will
+				// get assigned a branch in the following lines
+				HGHandle revhandle = makeRevision(user, comment, existingBranch);
+	//				System.out.println("Creaning new branch  with name " + branch);
 				metadata.createBranch(revhandle, branch, user);
+				return revhandle;
 			}
-			return revhandle;
 		}
 		});
 		return revision();
@@ -324,6 +359,7 @@ public class VersionedOntology implements Versioned<VersionedOntology>, HGGraphH
 	 * 
 	 * @param user The username of the user performing the merge.
 	 * @param comment The comment associated with the new revision.
+	 * @param branch The branch of the newly created revision.  
 	 * @param revisions The list of parent revisions.
 	 * @return A newly created merge revision incorporating all changes from all parents.
 	 */

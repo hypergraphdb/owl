@@ -130,16 +130,18 @@ public class VersionedOntologiesTestData
 		rightRevisions.addAll(rightRepo.findAll(hg.dfs(right.getRootRevision(), hg.type(ChangeLink.class), hg.type(Revision.class))));
 		for (HGHandle revisionHandle : leftRevisions)
 		{
+			revisionHandle = revisionHandle.getPersistent(); // make sure it's a different lookup in each repo, otherwise it returns just the object inside the live handle!
 			if (!rightRevisions.contains(revisionHandle))
 				return false;
 			Revision revLeft = leftRepo.get(revisionHandle);
 			Revision revRight = rightRepo.get(revisionHandle);
 			if (!revLeft.parents().equals(revRight.parents()) ||
 				!revLeft.children().equals(revRight.children())  ||
-				!HGUtils.eq(revLeft.branchHandle(), revRight.branchHandle()))
+				!HGUtils.eq(revLeft.branch(), revRight.branch()))
 				return false;
 			for (HGHandle parent : revLeft.parents())
 			{
+				parent = parent.getPersistent(); // make sure object inside live handle is not returned for both repos
 				List<Change<VersionedOntology>> leftChanges = versioning.changes(leftRepo, revisionHandle, parent);
 				List<Change<VersionedOntology>> rightChanges = versioning.changes(rightRepo, revisionHandle, parent);
 				if (leftChanges.equals(rightChanges))

@@ -236,10 +236,13 @@ public class ActivityUtils
 	}
 	
 	/**
+	 * <p>
 	 * Update the given version ontology from the VOWLXMLDocument obtain from a peer. 
 	 * It is assumed that there is already a local copy of the ontology so only the new
 	 * revisions and all change objects are stored. The the current head is set to 
-	 * the head specified as "revisionSnapshot" in the VOWLXMLDocument.
+	 * the head specified as "revisionSnapshot" in the VOWLXMLDocument. If there is no
+	 * <code>revisionSnapshot</code>, then the current is not moved at all.
+	 * </p>
 	 * 
 	 * @param manager 
 	 * @param vo

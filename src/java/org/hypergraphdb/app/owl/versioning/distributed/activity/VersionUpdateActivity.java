@@ -270,6 +270,7 @@ public class VersionUpdateActivity extends FSMActivity
 		getThisPeer().getGraph().update(remoteOnto);
 		if (msg.has(Messages.REPLY_WITH))
 			reply(msg, Performative.Confirm, Json.nil());
+		completedMessage = "ok";
 		return WorkflowState.Completed;
 	}
 	
@@ -320,6 +321,7 @@ public class VersionUpdateActivity extends FSMActivity
 		if (data == null)
 			return WorkflowState.Failed;
 		reply(msg, Performative.InformRef, data);
+		completedMessage = "ok";
 		return WorkflowState.Completed;
 	}
 	
@@ -349,6 +351,7 @@ public class VersionUpdateActivity extends FSMActivity
 	@OnMessage(performative="Confirm")
 	public WorkflowStateConstant changesPushed(Json msg)
 	{
+		completedMessage = "ok";
 		return WorkflowState.Completed;
 	}	
 

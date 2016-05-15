@@ -2,6 +2,7 @@ package org.hypergraphdb.app.owl;
 
 import java.io.File;
 
+
 import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HyperGraph;
@@ -16,9 +17,11 @@ import org.hypergraphdb.app.owl.versioning.VersioningChangeListener;
 import org.hypergraphdb.app.owl.versioning.distributed.activity.ActivityUtils;
 import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
 import org.semanticweb.owlapi.io.FileDocumentSource;
+import org.semanticweb.owlapi.io.IRIDocumentSource;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
@@ -163,12 +166,34 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 		});
 	}
 
+	public HGDBOntology createOntologyInDatabase(IRI ontologyIRI) throws OWLOntologyCreationException
+	{
+		try
+		{
+			HGDBOntologyFormat format = new HGDBOntologyFormat();
+			IRI hgdbDocumentIRI = HGDBOntologyFormat.convertToHGDBDocumentIRI(ontologyIRI);
+			OWLOntology o = super.createOntology(ontologyIRI);
+			setOntologyFormat(o, format);
+			setOntologyDocumentIRI(o, hgdbDocumentIRI);
+			saveOntology(o, format, hgdbDocumentIRI);
+			HGDBOntology result = ontologyRepository.getOntologyByDocumentIRI(hgdbDocumentIRI);
+			result.setOWLOntologyManager(this);
+			this.ontologiesByID.put(o.getOntologyID(), result);
+			return result;
+		}
+		catch (Exception ex)
+		{
+			throw new RuntimeException(ex);
+		}
+	}
 
 	public HGDBOntology importOntology(IRI documentIRI)
 	{
 		try
 		{
-			OWLOntology o = loadOntologyFromOntologyDocument(documentIRI);
+			this.setSilentMissingImportsHandling(true);
+//			OWLOntologyLoaderConfiguration config = new OWLOntologyLoaderConfiguration().addIgnoredImport(IRI.create("http://www.essepuntato.it/2008/12/pattern"));
+			OWLOntology o = loadOntologyFromOntologyDocument(new IRIDocumentSource(documentIRI)/*, config*/);
 			HGDBOntologyFormat format = new HGDBOntologyFormat();
 			IRI hgdbDocumentIRI = HGDBOntologyFormat.convertToHGDBDocumentIRI(o.getOntologyID().getOntologyIRI());
 			setOntologyFormat(o, format);

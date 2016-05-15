@@ -181,7 +181,9 @@ public class VOWLXMLObjectRenderer implements VOWLChangeVisitor, VMetaChangeVisi
 	public void visit(VAddBranchChange<VersionedOntology> change)
 	{			
 		writer.writeStartElement(ADDBRANCH)
-			  .writeAttribute("handle", change.getAtomHandle())
+			  .writeAttribute("changeHandle", change.getAtomHandle())
+			  .writeAttribute("branchHandle", change.getBranchHandle())
+			  .writeAttribute("name", change.getName())
 			  .writeAttribute("createdOn", Long.toString(change.getCreatedOn()))
 			  .writeAttribute("createdBy", change.getCreatedBy())
 			  .writeAttribute("revision", change.getRevision())
