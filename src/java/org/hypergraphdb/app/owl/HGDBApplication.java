@@ -72,8 +72,7 @@ public class HGDBApplication extends HGApplication
 
 		if (typeSystem.getTypeHandleIfDefined(IRI.class) == null)
 		{
-			HGPersistentHandle typeHandle = graph.getHandleFactory()
-					.makeHandle();
+			HGPersistentHandle typeHandle = graph.getHandleFactory().makeHandle();
 			HGAtomType type = new IRIType();
 			type.setHyperGraph(graph);
 			typeSystem.addPredefinedType(typeHandle, type, IRI.class);

@@ -1,22 +1,12 @@
 package org.hypergraphdb.app.owl;
 
-import java.io.File;
-
-
-import java.util.concurrent.Callable;
-
-import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.core.AddPrefixChange;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.hypergraphdb.app.owl.core.PrefixChange;
 import org.hypergraphdb.app.owl.core.PrefixChangeListener;
 import org.hypergraphdb.app.owl.core.RemovePrefixChange;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
-import org.hypergraphdb.app.owl.versioning.VersionedOntology;
 import org.hypergraphdb.app.owl.versioning.VersioningChangeListener;
-import org.hypergraphdb.app.owl.versioning.distributed.activity.ActivityUtils;
-import org.hypergraphdb.app.owl.versioning.distributed.serialize.VOWLXMLDocument;
-import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.io.IRIDocumentSource;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -24,6 +14,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
+import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 
@@ -135,37 +126,6 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 		}
 	}
 
-	/**
-	 * Imports a full versionedOntology from a VOWLXMLFormat file. Throws one
-	 * of: OWLOntologyChangeException, UnloadableImportException,
-	 * HGDBOntologyAlreadyExistsByDocumentIRIException,
-	 * HGDBOntologyAlreadyExistsByOntologyIDException,
-	 * HGDBOntologyAlreadyExistsByOntologyUUIDException, OWLParserException,
-	 * IOException wrapped as cause of a RuntimeException.
-	 */
-	public VersionedOntology importVersionedOntology(File vowlxmlFile) throws RuntimeException
-	{
-		if (!vowlxmlFile.exists())
-			throw new IllegalArgumentException("File does not exist: " + vowlxmlFile);
-		final FileDocumentSource fds = new FileDocumentSource(vowlxmlFile);
-		HyperGraph graph = ontologyRepository.getHyperGraph();
-		return graph.getTransactionManager().ensureTransaction(new Callable<VersionedOntology>()
-		{
-			public VersionedOntology call()
-			{
-				try
-				{
-					VOWLXMLDocument doc = ActivityUtils.parseVersionedDoc(HGDBOntologyManagerImpl.this, fds);
-					return ActivityUtils.storeClonedOntology(HGDBOntologyManagerImpl.this, doc);
-				}
-				catch (Exception e)
-				{
-					throw new RuntimeException(e);
-				}
-			}
-		});
-	}
-
 	public HGDBOntology createOntologyInDatabase(IRI ontologyIRI) throws OWLOntologyCreationException
 	{
 		try
@@ -187,13 +147,15 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 		}
 	}
 
-	public HGDBOntology importOntology(IRI documentIRI)
+	public HGDBOntology importOntology(IRI documentIRI, HGDBImportConfig config)
 	{
 		try
 		{
-			this.setSilentMissingImportsHandling(true);
-//			OWLOntologyLoaderConfiguration config = new OWLOntologyLoaderConfiguration().addIgnoredImport(IRI.create("http://www.essepuntato.it/2008/12/pattern"));
-			OWLOntology o = loadOntologyFromOntologyDocument(new IRIDocumentSource(documentIRI)/*, config*/);
+			this.setSilentMissingImportsHandling(config.silentMissingImports());			
+			OWLOntologyLoaderConfiguration owlapiConfig = new OWLOntologyLoaderConfiguration();
+			for (IRI ignoredIri : config.ignored())
+				owlapiConfig.addIgnoredImport(ignoredIri);
+			OWLOntology o = loadOntologyFromOntologyDocument(new IRIDocumentSource(documentIRI), owlapiConfig);
 			HGDBOntologyFormat format = new HGDBOntologyFormat();
 			IRI hgdbDocumentIRI = HGDBOntologyFormat.convertToHGDBDocumentIRI(o.getOntologyID().getOntologyIRI());
 			setOntologyFormat(o, format);

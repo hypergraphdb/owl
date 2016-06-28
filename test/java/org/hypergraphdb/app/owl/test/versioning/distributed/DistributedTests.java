@@ -26,6 +26,7 @@ import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.HGQuery.hg;
+import org.hypergraphdb.app.owl.HGDBImportConfig;
 import org.hypergraphdb.app.owl.HGDBOntology;
 import org.hypergraphdb.app.owl.test.TU;
 import org.hypergraphdb.app.owl.test.versioning.TestContext;
@@ -568,7 +569,8 @@ public class DistributedTests extends VersioningTestBase
 	public void testPullWithMerge() throws Exception
 	{
 		ctx1.o = ctx1.m.importOntology(
-				IRI.create(getClass().getResource("/ontologies/opencirmupper.owl").toURI()));
+				IRI.create(getClass().getResource("/ontologies/opencirmupper.owl").toURI()), 
+				new HGDBImportConfig());
 		ctx1.vo = vm1.versioned(ctx1.o.getAtomHandle());
 		ActivityResult result = TU.versionUpdate(ctx1.o.getAtomHandle(), ActionType.publish, repo1, repo2);
 		Assert.assertTrue(result.getActivity().getState().isCompleted());

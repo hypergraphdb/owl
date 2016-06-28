@@ -1,22 +1,10 @@
 package org.hypergraphdb.app.owl;
 
-import java.io.File;
-
-import java.io.IOException;
-
-import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
-import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
-import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyUUIDException;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
-import org.hypergraphdb.app.owl.versioning.VersionedOntology;
-import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyChangeException;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.UnloadableImportException;
 
 /**
  * <p>
@@ -42,30 +30,6 @@ public interface HGDBOntologyManager extends OWLOntologyManager
 	VersionManager getVersionManager();	
 
 	/**
-	 * Imports a versioned Ontology from a VOWLXMLFormat saved file into the
-	 * repository. All revisions, changesets and the full workingset will be
-	 * stored.
-	 * 
-	 * TODO - this method should either be removed from this interface, or a corresponding
-	 * exportVersionedOntology should be added!
-	 * 
-	 * @param vowlxmlFile
-	 * @return
-	 * @throws OWLOntologyChangeException
-	 * @throws UnloadableImportException
-	 * @throws HGDBOntologyAlreadyExistsByDocumentIRIException
-	 * @throws HGDBOntologyAlreadyExistsByOntologyIDException
-	 * @throws HGDBOntologyAlreadyExistsByOntologyUUIDException
-	 * @throws OWLParserException
-	 * @throws IOException
-	 */
-	VersionedOntology importVersionedOntology(File vowlxmlFile) throws OWLOntologyChangeException,
-			UnloadableImportException, HGDBOntologyAlreadyExistsByDocumentIRIException,
-			HGDBOntologyAlreadyExistsByOntologyIDException, HGDBOntologyAlreadyExistsByOntologyUUIDException, OWLParserException,
-			IOException;
-
-
-	/**
 	 * <p>
 	 * Import an ontology into the database from the given ontology document.
 	 * </p>
@@ -82,7 +46,7 @@ public interface HGDBOntologyManager extends OWLOntologyManager
 	 * @return The newly created, database-backed 
 	 * {@link org.hypergraphdb.appl.owl.HGDBOntology} instance.
 	 */
-	HGDBOntology importOntology(IRI documentIRI);
+	HGDBOntology importOntology(IRI documentIRI, HGDBImportConfig config);
 	
 	/**
 	 * Return the <code>OWLDataFactory</code> bound to the HyperGraphDB instance 

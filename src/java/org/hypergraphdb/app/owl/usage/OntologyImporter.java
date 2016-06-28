@@ -108,7 +108,7 @@ public class OntologyImporter
 			}
 			try
 			{
-				manager.importVersionedOntology(importFile);
+				new ExportImport(targetRepo.getAbsolutePath()).importVersionedOntology(importFile);
 			}
 			catch (Exception e)
 			{
