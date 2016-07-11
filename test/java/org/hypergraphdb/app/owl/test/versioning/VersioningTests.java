@@ -54,7 +54,7 @@ public class VersioningTests extends VersioningTestBase
 	public static void main(String []argv)
 	{
 		JUnitCore junit = new JUnitCore();
-		Result result = junit.run(Request.method(VersioningTests.class, "testDeleteRevisionLinear"));
+		Result result = junit.run(Request.method(VersioningTests.class, "testSimpleChanges"));
 		System.out.println("Failures " + result.getFailureCount());
 		if (result.getFailureCount() > 0)
 		{
@@ -63,18 +63,6 @@ public class VersioningTests extends VersioningTestBase
 				failure.getException().printStackTrace();
 			}
 		}		
-//		try
-//		{
-//			setupDatabase();
-//			NewVersioningTests t = new NewVersioningTests();						
-//			t.beforeTest();
-//			t.testSimpleMerge();
-//			t.afterTest();
-//		}
-//		catch (Throwable t)
-//		{
-//			t.printStackTrace(System.err);
-//		}
 	}
 		
 	

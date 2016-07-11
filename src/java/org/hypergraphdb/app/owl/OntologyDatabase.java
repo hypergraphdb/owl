@@ -32,6 +32,7 @@ import org.semanticweb.owlapi.model.OWLFacetRestriction;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
 /**
@@ -134,6 +135,7 @@ public class OntologyDatabase
 	
 	public List<HGDBOntology> getOntologies()
 	{
+		System.out.println("Ontology count: " + graph.count(hg.typePlus(OWLOntology.class)));
 		// 2011.12.01 HGException: Transaction configured as read-only was used
 		// to modify data!
 		// Therefore wrapped in normal transaction.
@@ -142,14 +144,11 @@ public class OntologyDatabase
 				{
 					public List<HGDBOntology> call()
 					{
-						// 2011.12.20 added condition OntologyId not null.
-						// 2012.04.03 return hg.getAll(graph,
-						// hg.and(hg.type(HGDBOntologyImpl.class),
-						// hg.not(hg.eq("ontologyID", null))));
-						return hg.getAll(
-								graph,
-								hg.and(hg.type(HGDBOntologyImpl.class),
-										hg.not(hg.eq("documentIRI", null))));
+						return graph.getAll(hg.type(HGDBOntologyImpl.class));
+//						return hg.getAll(
+//								graph,
+//								hg.and(hg.type(HGDBOntologyImpl.class),
+//										hg.not(hg.eq("documentIRI", null))));
 					}
 				}, HGTransactionConfig.DEFAULT);
 		// USE: HGTransactionConfig.READONLY); and ensure >0 ontos in graph to
@@ -352,7 +351,7 @@ public class OntologyDatabase
 	{
 		List<HGDBOntology> l = getOntologies();
 		System.out.println("************* ONTOLOGIES IN HYPERGRAPH REPOSITORY "
-				+ graph.getLocation() + "*************");
+							+ graph.getLocation() + "*************");
 		for (HGDBOntology hgdbMutableOntology : l)
 		{
 			printOntology(hgdbMutableOntology);

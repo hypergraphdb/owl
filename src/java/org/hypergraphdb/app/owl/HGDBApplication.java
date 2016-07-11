@@ -56,7 +56,7 @@ public class HGDBApplication extends HGApplication
 	 */
 	private void registerAllAtomTypes(HyperGraph graph)
 	{
-		System.out.println("Register types for " + graph.getLocation());
+//		System.out.println("Register types for " + graph.getLocation());
 		registerTypeIRI(graph);
 		registerTypeOntologyID(graph);
 		registerTypeOWLImportsDeclaration(graph);
@@ -85,7 +85,7 @@ public class HGDBApplication extends HGApplication
 			{
 				e.printStackTrace();
 			}
-			log.info("HG IRI type registered.");
+//			log.info("HG IRI type registered.");
 		}
 	}
 
@@ -101,7 +101,7 @@ public class HGDBApplication extends HGApplication
 			HGAtomType type = new OntologyIDType();
 			type.setHyperGraph(graph);
 			typeSystem.addPredefinedType(typeHandle, type, OWLOntologyID.class);
-			log.info("HG OWLOntologyID type registered.");
+//			log.info("HG OWLOntologyID type registered.");
 		}
 	}
 
@@ -118,7 +118,7 @@ public class HGDBApplication extends HGApplication
 			type.setHyperGraph(graph);
 			typeSystem.addPredefinedType(typeHandle, type,
 					OWLImportsDeclarationImpl.class);
-			log.info("HG OwlImportsDeclaration/Impl type registered.");
+//			log.info("HG OwlImportsDeclaration/Impl type registered.");
 		}
 	}
 
@@ -140,10 +140,10 @@ public class HGDBApplication extends HGApplication
 				HGHandle typeHandle = graph.add(type);
 				typeSystem.setTypeForClass(typeHandle, c);
 				// typeSystem.addPredefinedType(typeHandle,type, c);
-				log.info("OWLNamedObjectType registered: " + c.getSimpleName());
+//				log.info("OWLNamedObjectType registered: " + c.getSimpleName());
 				graph.getTypeSystem().assertSubtype(oWLNamedObjectTypeHandle, typeHandle);
 				graph.getTypeSystem().assertSubtype(owlEntityTypeHandle, typeHandle);
-				log.info("Supertype registered: " + c.getSimpleName());
+//				log.info("Supertype registered: " + c.getSimpleName());
 			}
 			else
 			{
@@ -226,7 +226,7 @@ public class HGDBApplication extends HGApplication
 	@SuppressWarnings("unused")
 	private void printAllTypes(HyperGraph graph)
 	{
-		System.out.println("PRINTING SUPERTYPES for just registered classes");
+//		System.out.println("PRINTING SUPERTYPES for just registered classes");
 		TypeUtils.printAllSupertypes(graph,
 				graph.getTypeSystem().getAtomType(OWLClassHGDB.class));
 		TypeUtils.printAllSupertypes(graph,
@@ -240,10 +240,10 @@ public class HGDBApplication extends HGApplication
 				graph.getTypeSystem().getAtomType(OWLDataPropertyHGDB.class));
 		TypeUtils.printAllSupertypes(graph,
 				graph.getTypeSystem().getAtomType(OWLObjectPropertyHGDB.class));
-		System.out.println("Higher level classes");
+//		System.out.println("Higher level classes");
 		TypeUtils.printAllSupertypes(graph,
 				graph.getTypeSystem().getAtomType(OWLClass.class));
-		System.out.println("SUBTYPES: FOR ");
+//		System.out.println("SUBTYPES: FOR ");
 		TypeUtils.printAllSubtypes(graph,
 				graph.getTypeSystem().getAtomType(OWLObjectHGDB.class));
 		TypeUtils.printAllSubtypes(graph,

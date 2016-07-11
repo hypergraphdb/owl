@@ -125,7 +125,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB
 		assert assertsEnabled = true; // force assertions.
 		if (!assertsEnabled)
 		{
-			Logger.getLogger(HGDBOntologyInternalsImpl.class.getCanonicalName()).info(
+			Logger.getLogger(HGDBOntologyInternalsImpl.class.getCanonicalName()).warning(
 					"Asserts are disabled for HGDBOntologyInternalsImpl");
 			// throw new
 			// RuntimeException("We need Asserts to be enabled. Use: java -ea:org.hypergraphdb.app.owl...");
@@ -1339,11 +1339,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB
 
 	public void addAxiomsByType(final AxiomType<?> type, final OWLAxiom axiom)
 	{
-		if (DBG)
-		{
-			log.info("ADD Axiom: " + axiom.getClass().getSimpleName() + "Type: " + type + " Hash: " + axiom.hashCode() + " Ax: "
-					+ axiom);
-		}
+		//log.info("ADD Axiom: " + axiom.getClass().getSimpleName() + "Type: " + type + " Hash: " + axiom.hashCode() + " Ax: " + axiom);
 		if (AxiomTypeToHGDBMap.getAxiomClassHGDB(type) != null)
 		{
 			graph.getTransactionManager().ensureTransaction(new Callable<Boolean>()

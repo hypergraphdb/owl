@@ -55,11 +55,10 @@ public class VDHGDBOntologyServer
 					die("Invalid parameter name " + A[0]);
 			}
 			String databaseLocation = config.at(PeerConfig.LOCAL_DB).asString();
-			System.out.println("Starting ontology server peer at " + 
-							config.at(PeerConfig.LOCAL_DB));
+			System.out.println("Starting ontology server peer at " +  config.at(PeerConfig.LOCAL_DB));
 
 			dr = new OntologyDatabasePeer(databaseLocation, 
-											  ImplUtils.connectionStringFromConfiguration(config));
+										  ImplUtils.connectionStringFromConfiguration(config));
 //			dr.setOntologyServer(true);
 			dr.printAllOntologies();
 			dr.printStatistics();

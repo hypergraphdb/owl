@@ -14,6 +14,7 @@ import org.hypergraphdb.HGLink;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.app.owl.versioning.change.VOWLChange;
 import org.hypergraphdb.transaction.HGTransactionConfig;
+import org.hypergraphdb.transaction.TxList;
 
 /**
  * 
@@ -77,7 +78,7 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 	
 	/**
 	 * Stores a change in the graph and adds it to the changeset. The changeset
-	 * will be updated in the graph. Should be called within HGTransaction.
+	 * will be updated in the graph.
 	 * 
 	 * @param change
 	 */
@@ -98,14 +99,15 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 
 	/**
 	 * Stores a list of changes in the graph and add them to the changeset. The changeset
-	 * will be updated in the graph. Should be called within HGTransaction.
+	 * will be updated in the graph.
 	 * 
-	 * @param change
+	 * @param changeList
+	 * @return <code>this</code>
 	 */
 	public ChangeSet<V> add(final List<Change<V>> changeList)
 	{
-//		if (changeList.isEmpty())
-//			return this;
+		if (changeList.isEmpty())
+			return this;
 		graph.getTransactionManager().ensureTransaction(new Callable<Object>()
 		{
 			public Object call()
@@ -133,7 +135,7 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 					throw new IllegalArgumentException("Can't remove change that's not in the database - " + change);
 				if (changes.remove(changeHandle))
 				{
-					graph.remove(changeHandle);
+					graph.remove(changeHandle, true);
 					graph.update(ChangeSet.this);
 				}
 				return null;
@@ -158,7 +160,7 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 				for (int i : indices)
 				{
 					i = i - removedChanges;
-					graph.remove(changes.remove(i));
+					graph.remove(changes.remove(i), true);
 					removedChanges++;
 				}
 				graph.update(ChangeSet.this);
@@ -183,7 +185,7 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 			public Object call()
 			{
 				for (HGHandle change : changes)
-					graph.remove(change);;
+					graph.remove(change, true);
 				graph.remove(thisHandle, true);
 				return null;
 			}
@@ -298,6 +300,39 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 	}
 	
 	/**
+	 * <p>
+	 * Simplify this change set by removing all changes that will not be effective 
+	 * </p>
+	 * 
+	 * @param versioned
+	 * @return
+	 */
+	public ChangeSet<V> pack(final V versioned)
+	{		
+		final ChangeSet<V> self = this;
+		graph.getTransactionManager().ensureTransaction(new Callable<Object>()
+		{
+			public Object call()
+			{
+				List<Change<V>> changeList = changes();
+				Set<Integer> toremove = versioning.collectSuperfluous(versioned, changeList, true);
+				for (Integer i : toremove)
+				{
+					Change<V> change = changeList.get(i);
+					HGHandle changeHandle = graph.getHandle(change);
+					if (changes.remove(changeHandle))
+					{
+						graph.remove(changeHandle, true);
+					}					
+				}
+				graph.update(self);				
+				return null;
+			}
+		});
+		return this;
+	}
+	
+	/**
 	 * Finds and eliminates changes that became obsolete due to later changes.
 	 */
 	public List<Change<V>> packed(V versioned)
@@ -352,59 +387,32 @@ public class ChangeSet<V extends Versioned<V>> implements HGLink, HGGraphHolder,
 		return this;		
 	}
 	
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.hypergraphdb.HGGraphHolder#setHyperGraph(org.hypergraphdb.HyperGraph)
-	 */
 	@Override
 	public void setHyperGraph(HyperGraph graph)
 	{
 		this.graph = graph;
+		if (! (changes instanceof TxList)) // it will be already a TxList if we've done graph.update(this)!
+			this.changes = new TxList<HGHandle>(graph.getTransactionManager(), this.changes);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.hypergraphdb.HGLink#getArity()
-	 */
 	@Override
 	public int getArity()
 	{
 		return changes.size();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.hypergraphdb.HGLink#getTargetAt(int)
-	 */
 	@Override
 	public HGHandle getTargetAt(int i)
 	{
 		return changes.get(i);
 	}
 
-	
-	
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.hypergraphdb.HGLink#notifyTargetHandleUpdate(int,
-	 * org.hypergraphdb.HGHandle)
-	 */
 	@Override
 	public void notifyTargetHandleUpdate(int i, HGHandle handle)
 	{
 		changes.set(i, handle);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.hypergraphdb.HGLink#notifyTargetRemoved(int)
-	 */
 	@Override
 	public void notifyTargetRemoved(int i)
 	{

@@ -50,7 +50,7 @@ public class HGDBOntologyFactory implements OWLOntologyFactory
 	public OWLOntology createOWLOntology(OWLOntologyID ontologyID, IRI documentIRI, OWLOntologyCreationHandler handler)
 			throws OWLOntologyCreationException
 	{
-		logger.info("HGDB createOWLOntology docIRI:" + documentIRI);
+//		logger.info("HGDB createOWLOntology docIRI:" + documentIRI);
 		// Check if exists by docIRI
 		if (!repository.existsOntologyByDocumentIRI(documentIRI))
 		{
@@ -108,7 +108,7 @@ public class HGDBOntologyFactory implements OWLOntologyFactory
 	public HGDBOntology loadOWLOntology(OWLOntologyDocumentSource documentSource, OWLOntologyCreationHandler handler)
 			throws OWLOntologyCreationException
 	{
-		logger.info("HGDB loadOWLOntology from " + documentSource.getDocumentIRI());
+		//logger.info("HGDB loadOWLOntology from " + documentSource.getDocumentIRI());
 		if (!canCreateFromDocumentIRI(documentSource.getDocumentIRI()))
 		{
 			throw new OWLOntologyCreationException("Wrong scheme. Need:" + HGDBOntologyFormat.HGDB_SCHEME);
@@ -121,7 +121,7 @@ public class HGDBOntologyFactory implements OWLOntologyFactory
 		}
 		// TODO Intercept creation? Set a manager in HG Type?
 		o.setOWLOntologyManager(manager);
-		logger.info("Loaded: Ontology" + o.getOntologyID());
+		//logger.info("Loaded: Ontology" + o.getOntologyID());
 		//
 		// Resolve Imports
 		//
@@ -141,7 +141,7 @@ public class HGDBOntologyFactory implements OWLOntologyFactory
 			OWLOntologyLoaderConfiguration configuration) throws OWLOntologyCreationException
 	{
 		// OWLOntologyLoaderConfiguration ignored
-		logger.info("HGDB loadOWLOntology with config from: " + documentSource.getDocumentIRI());
+		//logger.info("HGDB loadOWLOntology with config from: " + documentSource.getDocumentIRI());
 		return loadOWLOntology(documentSource, handler);
 	}
 

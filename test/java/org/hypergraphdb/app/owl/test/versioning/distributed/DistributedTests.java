@@ -617,7 +617,7 @@ public class DistributedTests extends VersioningTestBase
 		Result result = null;
 		do
 		{
-			result = junit.run(Request.method(DistributedTests.class, "testCloneWithBranches"));
+			result = junit.run(Request.method(DistributedTests.class, "testClone"));
 		} while (result.getFailureCount() == 0 && false);
 		System.out.println("Failures " + result.getFailureCount());
 		if (result.getFailureCount() > 0)

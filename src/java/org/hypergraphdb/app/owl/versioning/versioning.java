@@ -128,9 +128,9 @@ public class versioning
 	{
 		return normalize(versioned, L, true);
 	}
-	
+
 	public static <V extends Versioned<V>, C extends Change<V>> 
-	List<C> normalize(V versioned, List<C> L, boolean removeIneffective)
+	Set<Integer> collectSuperfluous(V versioned, List<C> L, boolean removeIneffective)
 	{
 		Set<Integer> toremove = new HashSet<Integer>();		
 		for (int i = 0; i < L.size(); i++)
@@ -138,8 +138,6 @@ public class versioning
 			if (toremove.contains(i))
 				continue;
 			Change<V> c = L.get(i);
-			if (removeIneffective && !c.isEffective(versioned))
-				toremove.add(i);
 			Change<V> ic = c.inverse();			
 			if (c.isIdempotent())
 			{
@@ -234,6 +232,21 @@ public class versioning
 				}
 			}				
 		}
+		for (int i = 0; i < L.size(); i++)
+		{
+			if (toremove.contains(i))
+				continue;
+			Change<V> c = L.get(i);		
+			if (removeIneffective && !c.isEffective(versioned))
+				toremove.add(i);
+		}		
+		return toremove;
+	}
+	
+	public static <V extends Versioned<V>, C extends Change<V>> 
+	List<C> normalize(V versioned, List<C> L, boolean removeIneffective)
+	{
+		Set<Integer> toremove = collectSuperfluous(versioned, L, removeIneffective);
 		List<C> normal = new ArrayList<C>();		
 		for (int i = 0; i < L.size(); i++)
 		{
