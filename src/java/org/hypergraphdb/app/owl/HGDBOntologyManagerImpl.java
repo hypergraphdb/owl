@@ -147,6 +147,26 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 		}
 	}
 
+	private IRI importOne(OWLOntology o, HGDBImportConfig config) throws Exception
+	{
+		try
+		{
+			HGDBOntologyFormat format = new HGDBOntologyFormat();
+			IRI hgdbDocumentIRI = HGDBOntologyFormat.convertToHGDBDocumentIRI(o.getOntologyID().getOntologyIRI());
+			setOntologyFormat(o, format);
+			setOntologyDocumentIRI(o, hgdbDocumentIRI);
+			saveOntology(o, format, hgdbDocumentIRI);
+			return hgdbDocumentIRI;
+		}
+		catch (Exception ex)
+		{
+			if (config.silentMissingImports())
+				return null;
+			else
+				throw ex;
+		}
+	}
+	
 	public HGDBOntology importOntology(IRI documentIRI, HGDBImportConfig config)
 	{
 		try
@@ -156,11 +176,12 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 			for (IRI ignoredIri : config.ignored())
 				owlapiConfig.addIgnoredImport(ignoredIri);
 			OWLOntology o = loadOntologyFromOntologyDocument(new IRIDocumentSource(documentIRI), owlapiConfig);
-			HGDBOntologyFormat format = new HGDBOntologyFormat();
-			IRI hgdbDocumentIRI = HGDBOntologyFormat.convertToHGDBDocumentIRI(o.getOntologyID().getOntologyIRI());
-			setOntologyFormat(o, format);
-			setOntologyDocumentIRI(o, hgdbDocumentIRI);
-			saveOntology(o, format, hgdbDocumentIRI);
+			IRI hgdbDocumentIRI = importOne(o, config);
+			for (OWLOntology imp : o.getImportsClosure())
+				if (!imp.getOntologyID().equals(o.getOntologyID()))
+				{
+					importOne(imp, config);
+				}
 			HGDBOntology result = ontologyRepository.getOntologyByDocumentIRI(hgdbDocumentIRI);
 			result.setOWLOntologyManager(this);
 			return result;

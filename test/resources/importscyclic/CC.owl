@@ -9,16 +9,16 @@
 ]>
 
 
-<rdf:RDF xmlns="http://test.org/complexontologies/B.owl#"
-     xml:base="http://test.org/complexontologies/B.owl"
+<rdf:RDF xmlns="http://test.org/compleximports/CC.owl#"
+     xml:base="http://test.org/compleximports/CC.owl"
      xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
      xmlns:owl="http://www.w3.org/2002/07/owl#"
      xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-    <owl:Ontology rdf:about="http://test.org/complexontologies/B.owl">
-        <owl:imports rdf:resource="http://test.org/compleximports/A.owl"/>
+    <owl:Ontology rdf:about="http://test.org/compleximports/CC.owl">
+        <owl:imports rdf:resource="http://test.org/compleximports/AC.owl"/>
     </owl:Ontology>
     
-    <owl:Class rdf:about="BClass"/>
+        <owl:Class rdf:about="CClass"/>
+    
 </rdf:RDF>
-

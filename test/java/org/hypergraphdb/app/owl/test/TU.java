@@ -1,5 +1,7 @@
 package org.hypergraphdb.app.owl.test;
 
+
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -8,8 +10,8 @@ import java.util.concurrent.ExecutionException;
 
 import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.app.owl.OntologyDatabase;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
+import org.hypergraphdb.app.owl.OntologyDatabase;
 import org.hypergraphdb.app.owl.model.OWLDataPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLLiteralHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectPropertyHGDB;
@@ -24,13 +26,11 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLDataPropertyExpression;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 
 /**
@@ -63,6 +63,15 @@ public class TU
 	public static <T> List<T> list(T...items)
 	{
 		return Arrays.asList(items);
+	}
+	
+	public static IRI resourceIri(String resourcePath)
+	{
+		URL url = TU.class.getResource(resourcePath);
+		if (url == null)
+			throw new RuntimeException("Can't find resource " + resourcePath);
+		try { return IRI.create(url); }
+		catch (Exception ex) { throw new RuntimeException(ex); }
 	}
 	
 	public static IRI iri(String name)
