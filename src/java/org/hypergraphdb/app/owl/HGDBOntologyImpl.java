@@ -570,16 +570,12 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 	public boolean containsAnnotationPropertyInSignature(IRI propIRI)
 	{
 		// TODO Check, if we actually refer to it; for now:
-		if (OWLRDFVocabulary.BUILT_IN_ANNOTATION_PROPERTY_IRIS
-				.contains(propIRI))
+		if (OWLRDFVocabulary.BUILT_IN_ANNOTATION_PROPERTY_IRIS.contains(propIRI))
 		{
-			System.out
-					.println("containsAnnotationPropertyInSignature: BUILTIN "
-							+ propIRI);
+//			System.out.println("containsAnnotationPropertyInSignature: BUILTIN " + propIRI);
 			return true;
 		}
-		boolean b = internals.containsOwlAnnotationProperty(getOWLDataFactory()
-				.getOWLAnnotationProperty(propIRI));
+		boolean b = internals.containsOwlAnnotationProperty(getOWLDataFactory().getOWLAnnotationProperty(propIRI));
 		if (b)
 		{
 			return true;
@@ -764,9 +760,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 		if (OWLRDFVocabulary.BUILT_IN_ANNOTATION_PROPERTY_IRIS
 				.contains(property.getIRI()))
 		{
-			System.out
-					.println("containsAnnotationPropertyInSignature: BUILTIN "
-							+ property.getIRI());
+			//System.out.println("containsAnnotationPropertyInSignature: BUILTIN " + property.getIRI());
 			return true;
 		}
 		return internals.containsOwlAnnotationProperty(property);
@@ -1360,8 +1354,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 	 *             If this ontology is no longer managed by its manager because
 	 *             it was removed from the manager.
 	 */
-	public Set<IRI> getDirectImportsDocuments()
-			throws UnknownOWLOntologyException
+	public Set<IRI> getDirectImportsDocuments() throws UnknownOWLOntologyException
 	{
 		Set<IRI> result = createSet();
 
@@ -1373,8 +1366,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 		//
 		// graph.add(new HGValueLink("importsLink", ontologyHandle, iriHandle));
 
-		for (OWLImportsDeclaration importsDeclaration : internals
-				.getImportsDeclarations())
+		for (OWLImportsDeclaration importsDeclaration : internals.getImportsDeclarations())
 		{
 			result.add(importsDeclaration.getIRI());
 		}
@@ -1403,14 +1395,12 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 	 *             If this ontology is no longer managed by its manager because
 	 *             it was removed from the manager.
 	 */
-	public Set<OWLOntology> getDirectImports()
-			throws UnknownOWLOntologyException
+	public Set<OWLOntology> getDirectImports() throws UnknownOWLOntologyException
 	{
 		return manager.getDirectImports(this);
 	}
 
-	public Set<OWLOntology> getImportsClosure()
-			throws UnknownOWLOntologyException
+	public Set<OWLOntology> getImportsClosure() throws UnknownOWLOntologyException
 	{
 		return getOWLOntologyManager().getImportsClosure(this);
 	}
@@ -1866,7 +1856,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 			}
 			else
 			{
-				System.out.println("Graph location : " + graph.getLocation());
+				//System.out.println("Graph location : " + graph.getLocation());
 				throw new IllegalStateException(
 						"getHandle(entity) for entity " + object + " in memory returned null. Implement find?");
 			}

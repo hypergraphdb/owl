@@ -39,12 +39,6 @@ public class HGDBStorer implements OWLOntologyStorer, HGDBTask
 	private volatile int taskSize;
 	private volatile int taskProgess;
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.semanticweb.owlapi.model.OWLOntologyStorer#canStoreOntology(org.
-	 * semanticweb.owlapi.model.OWLOntologyFormat)
-	 */
 	@Override
 	public boolean canStoreOntology(OWLOntologyFormat ontologyFormat)
 	{
@@ -66,8 +60,11 @@ public class HGDBStorer implements OWLOntologyStorer, HGDBTask
 	}
 
 	@Override
-	public void storeOntology(OWLOntologyManager manager, OWLOntology ontology, IRI documentIRI, OWLOntologyFormat ontologyFormat)
-			throws OWLOntologyStorageException, IOException
+	public void storeOntology(OWLOntologyManager manager, 
+							  OWLOntology ontology, 
+							  IRI documentIRI, 
+							  OWLOntologyFormat ontologyFormat)
+		throws OWLOntologyStorageException, IOException
 	{
 		// Store ontology using low level API but do not make known to
 		// OntologyManager.
@@ -130,7 +127,7 @@ public class HGDBStorer implements OWLOntologyStorer, HGDBTask
 			// Add Import Declarations
 			for (OWLImportsDeclaration i : ontology.getImportsDeclarations())
 			{
-				newOnto.applyChange(new AddImport(newOnto, i));
+				man.applyChange(new AddImport(newOnto, i));
 			}
 			// Save prefixes in HGDBOntology
 			storePrefixes(format, newOnto);
@@ -162,23 +159,15 @@ public class HGDBStorer implements OWLOntologyStorer, HGDBTask
 		onto.setPrefixesFrom(prefixMap);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.semanticweb.owlapi.model.OWLOntologyStorer#storeOntology(org.semanticweb
-	 * .owlapi.model.OWLOntologyManager,
-	 * org.semanticweb.owlapi.model.OWLOntology,
-	 * org.semanticweb.owlapi.io.OWLOntologyDocumentTarget,
-	 * org.semanticweb.owlapi.model.OWLOntologyFormat)
-	 */
 	@Override
-	public void storeOntology(OWLOntologyManager manager, OWLOntology ontology, OWLOntologyDocumentTarget target,
-			OWLOntologyFormat ontologyFormat) throws OWLOntologyStorageException, IOException
+	public void storeOntology(OWLOntologyManager manager, 
+							  OWLOntology ontology, 
+							  OWLOntologyDocumentTarget target,
+							  OWLOntologyFormat ontologyFormat) throws OWLOntologyStorageException, IOException
 	{
 		// TODO storeOntology Necessary? maybe export? based on saveAs with a
 		// selection of formats.
-		System.out.println("HGDBStorer.storeOntology");
+		//System.out.println("HGDBStorer.storeOntology");
 		if (!(ontologyFormat instanceof HGDBOntologyFormat))
 		{
 			throw new OWLOntologyStorageException("illegal format, need HGDBOntologyFormat, was " + ontologyFormat.getClass());
@@ -186,13 +175,9 @@ public class HGDBStorer implements OWLOntologyStorer, HGDBTask
 		storeOntology(manager, ontology, target.getDocumentIRI(), ontologyFormat);
 	}
 
-	//
-	//
-	//
-
 	private void printProgress(OntologyDatabase repo)
 	{
-		System.out.println("Saved axioms: " + taskProgess + " of " + taskSize + " at " + new Date());
+		//System.out.println("Saved axioms: " + taskProgess + " of " + taskSize + " at " + new Date());
 		repo.printStatistics();
 		System.out.println("By Signature test onto member: "
 				+ HGDBOntologyInternalsImpl.PERFCOUNTER_FIND_BY_SIGNATURE_ONTOLOGY_MEMBERS);
@@ -200,36 +185,20 @@ public class HGDBStorer implements OWLOntologyStorer, HGDBTask
 		System.out.println("By HashCode test equals: " + HGDBOntologyInternalsImpl.PERFCOUNTER_FIND_BY_HASHCODE_EQUALS);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.hypergraphdb.app.owl.core.HGDBTask#getTaskSize()
-	 */
 	@Override
 	public int getTaskSize()
 	{
 		return taskSize;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.hypergraphdb.app.owl.core.HGDBTask#getTaskProgess()
-	 */
 	@Override
 	public int getTaskProgess()
 	{
 		return taskProgess;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.hypergraphdb.app.owl.core.HGDBTask#cancelTask()
-	 */
 	@Override
 	public void cancelTask()
 	{
-		// do nothing. Store cannot be cancelled.
 	}
 }

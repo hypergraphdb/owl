@@ -1,5 +1,8 @@
 package org.hypergraphdb.app.owl;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.hypergraphdb.app.owl.core.AddPrefixChange;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.hypergraphdb.app.owl.core.PrefixChange;
@@ -10,11 +13,13 @@ import org.hypergraphdb.app.owl.versioning.VersioningChangeListener;
 import org.semanticweb.owlapi.io.IRIDocumentSource;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
+import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
 
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 
@@ -70,14 +75,10 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 		{
 			this.ontologiesByID.put(onto.getOntologyID(), onto);
 			this.documentIRIsByID.put(onto.getOntologyID(), onto.getDocumentIRI());
+			onto.setOWLOntologyManager(this);
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.hypergraphdb.app.owl.HGDBOntologyManager#getOntologyRepository()
-	 */
 	@Override
 	public OntologyDatabase getOntologyRepository()
 	{
@@ -89,13 +90,6 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 		return versionManager;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#removeOntology(
-	 * org.semanticweb.owlapi.model.OWLOntology)
-	 */
 	@Override
 	public void removeOntology(OWLOntology ontology)
 	{
@@ -201,13 +195,30 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 		super.setOntologyFormat(ontology, format);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.hypergraphdb.app.owl.core.PrefixChangeListener#prefixChanged(org.
-	 * hypergraphdb.app.owl.core.PrefixChange)
+	/**
+	 * We override the OWLAPI version which insists on having the imported ontology currently loaded in memory.
+	 * In our case, we have it in the database loaded on demand, so as long as we can find the ontology 
+	 * and the load the object (without necessarily all the axioms), we are good.
 	 */
+    @Override
+    public Set<OWLOntology> getDirectImports(OWLOntology ontology) throws UnknownOWLOntologyException 
+    {
+        if (!contains(ontology)) 
+        {
+            throw new UnknownOWLOntologyException(ontology.getOntologyID());
+        }
+        Set<OWLOntology> imports = new HashSet<OWLOntology>();
+        for (OWLImportsDeclaration axiom : ontology.getImportsDeclarations()) 
+        {
+            OWLOntology importedOntology = this.getOntology(axiom.getIRI());
+            if (importedOntology != null) 
+            {
+                imports.add(importedOntology);
+            }
+        }
+        return imports;
+    }
+	
 	@Override
 	public void prefixChanged(PrefixChange e)
 	{

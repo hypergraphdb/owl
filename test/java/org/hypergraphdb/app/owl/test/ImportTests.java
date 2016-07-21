@@ -2,11 +2,17 @@ package org.hypergraphdb.app.owl.test;
 
 import java.net.URL;
 import static org.junit.Assert.*;
-
 import org.hypergraphdb.app.owl.HGDBImportConfig;
+import org.hypergraphdb.app.owl.HGDBOntology;
 import org.junit.Test;
+import org.junit.runner.JUnitCore;
+import org.junit.runner.Request;
+import org.junit.runner.Result;
+import org.junit.runner.notification.Failure;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
+
+import junit.framework.Assert;
 
 public class ImportTests extends BaseTestOwl
 {
@@ -58,6 +64,8 @@ public class ImportTests extends BaseTestOwl
 		assertNotNull(ctx.m.getOntology(IRI.create("http://test.org/compleximports/B.owl")));
 		assertNotNull(ctx.m.getOntology(IRI.create("http://test.org/compleximports/C.owl")));
 		assertNotNull(ctx.m.getOntology(IRI.create("http://test.org/compleximports/D.owl")));
+		HGDBOntology O = (HGDBOntology)ctx.m.getOntology(IRI.create("http://test.org/compleximports/D.owl"));
+		Assert.assertEquals(4, O.getImportsClosure().size());
 	}
 	
 	@Test
@@ -96,4 +104,21 @@ public class ImportTests extends BaseTestOwl
 		assertNotNull(ctx.m.getOntology(IRI.create("http://test.org/compleximports/CC.owl")));
 		assertNotNull(ctx.m.getOntology(IRI.create("http://test.org/compleximports/DC.owl")));
 	}	
+	
+	public static void main(String []argv)
+	{
+		JUnitCore junit = new JUnitCore();
+		Result result = null;
+		result = junit.run(Request.method(ImportTests.class, "testImportImports"));
+		System.out.println("Failures " + result.getFailureCount());
+		if (result.getFailureCount() > 0)
+		{
+			for (Failure failure : result.getFailures())
+			{
+				failure.getException().printStackTrace();
+			}
+		}
+		System.exit(0);
+	}
+	
 }
