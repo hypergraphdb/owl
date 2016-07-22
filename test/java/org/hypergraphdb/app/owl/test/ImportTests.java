@@ -66,6 +66,8 @@ public class ImportTests extends BaseTestOwl
 		assertNotNull(ctx.m.getOntology(IRI.create("http://test.org/compleximports/D.owl")));
 		HGDBOntology O = (HGDBOntology)ctx.m.getOntology(IRI.create("http://test.org/compleximports/D.owl"));
 		Assert.assertEquals(4, O.getImportsClosure().size());
+		// Check prefixes get save while we're at it.
+		Assert.assertEquals("http://test.org/complexImports/B.owl#", O.getPrefixes().get("bns:"));
 	}
 	
 	@Test

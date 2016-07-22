@@ -81,13 +81,6 @@ public class HGDBOntologyFormat extends PrefixOWLOntologyFormat
 	// this.fireChanges = fireChanges;
 	// }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.semanticweb.owlapi.vocab.PrefixOWLOntologyFormat#setPrefix(java.lang.
-	 * String, java.lang.String)
-	 */
 	@Override
 	public void setPrefix(String prefixName, String prefix)
 	{
@@ -105,11 +98,6 @@ public class HGDBOntologyFormat extends PrefixOWLOntologyFormat
 		super.setPrefix(prefixName, prefix);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.semanticweb.owlapi.vocab.PrefixOWLOntologyFormat#clearPrefixes()
-	 */
 	@Override
 	public void clearPrefixes()
 	{
@@ -122,13 +110,6 @@ public class HGDBOntologyFormat extends PrefixOWLOntologyFormat
 		super.clearPrefixes();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.semanticweb.owlapi.vocab.PrefixOWLOntologyFormat#setDefaultPrefix(
-	 * java.lang.String)
-	 */
 	@Override
 	public void setDefaultPrefix(String namespace)
 	{

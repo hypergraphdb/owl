@@ -42,7 +42,7 @@ public class OWLTempOntologyImpl extends OWLOntologyImpl implements OWLOntologyE
 	 * @see org.hypergraphdb.app.owl.core.PrefixHolder#setPrefixesFrom(java.util.Map)
 	 */
 	@Override
-	public void setPrefixesFrom(Map<String, String> prefixMap) {
+	public void setPrefixes(Map<String, String> prefixMap) {
 		this.prefixMap = prefixMap;
 	}
 	

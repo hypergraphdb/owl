@@ -444,7 +444,7 @@ public class GarbageCollector implements HGDBTask
 				}
 				if (!analyzeMode)
 				{
-					onto.setPrefixesFrom(Collections.<String, String> emptyMap());
+					onto.setPrefixes(Collections.<String, String> emptyMap());
 				}
 
 				// C) Collect Ontology

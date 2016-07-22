@@ -2359,14 +2359,6 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 		return "Ontology(" + getOntologyID() + ")";
 	}
 
-	// --------------------------------------------------------
-	// PREFIXES
-	//
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.hypergraphdb.app.owl.HGDBOntology#getPrefixMap()
-	 */
 	@Override
 	@HGIgnore
 	public Map<String, String> getPrefixes()
@@ -2380,7 +2372,8 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 	 * 
 	 * @return
 	 */
-	public void setPrefixesFrom(Map<String, String> prefixMap)
+	@HGIgnore
+	public void setPrefixes(Map<String, String> prefixMap)
 	{
 		internals.setPrefixesFrom(prefixMap);
 	}

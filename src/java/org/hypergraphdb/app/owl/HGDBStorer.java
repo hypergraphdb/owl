@@ -156,7 +156,7 @@ public class HGDBStorer implements OWLOntologyStorer, HGDBTask
 	{
 		Map<String, String> prefixMap = new HashMap<String, String>();
 		prefixMap.putAll(format.getPrefixName2PrefixMap());
-		onto.setPrefixesFrom(prefixMap);
+		onto.setPrefixes(prefixMap);
 	}
 
 	@Override

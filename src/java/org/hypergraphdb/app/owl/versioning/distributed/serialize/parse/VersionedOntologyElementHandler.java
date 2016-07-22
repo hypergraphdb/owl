@@ -108,7 +108,7 @@ public class VersionedOntologyElementHandler extends AbstractVOWLElementHandler<
 			throw new OWLXMLParserException("VPrefixMap must not exist without an OwlOntology data entry.", getLineNumber(),
 					getColumnNumber());
 		}
-		ontologyHeadData.setPrefixesFrom((Map<String, String>) h.getOWLObject());
+		ontologyHeadData.setPrefixes((Map<String, String>) h.getOWLObject());
 	}
 
 	/*

@@ -360,7 +360,7 @@ public class ActivityUtils
 		{
 			to.applyChange(new AddImport(to, im));
 		}
-		to.setPrefixesFrom(from.getPrefixes());
+		to.setPrefixes(from.getPrefixes());
 		if (DBG)
 			System.out.println("Prefixes stored: nr: " + to.getPrefixes().size());
 	}

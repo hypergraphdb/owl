@@ -20,6 +20,7 @@ import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
+import org.semanticweb.owlapi.vocab.PrefixOWLOntologyFormat;
 
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 
@@ -146,6 +147,9 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 		try
 		{
 			HGDBOntologyFormat format = new HGDBOntologyFormat();
+			OWLOntologyFormat oldFormat = o.getOWLOntologyManager().getOntologyFormat(o);
+			if (oldFormat.isPrefixOWLOntologyFormat())
+				format.copyPrefixesFrom(oldFormat.asPrefixOWLOntologyFormat());
 			IRI hgdbDocumentIRI = HGDBOntologyFormat.convertToHGDBDocumentIRI(o.getOntologyID().getOntologyIRI());
 			setOntologyFormat(o, format);
 			setOntologyDocumentIRI(o, hgdbDocumentIRI);

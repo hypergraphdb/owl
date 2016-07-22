@@ -19,7 +19,7 @@ public interface PrefixHolder {
 	 * Sets a Map of PrefixNames to Prefixes.
 	 * @return
 	 */
-	void setPrefixesFrom(Map<String, String> prefixMap);
+	void setPrefixes(Map<String, String> prefixMap);
 	
 
 }
