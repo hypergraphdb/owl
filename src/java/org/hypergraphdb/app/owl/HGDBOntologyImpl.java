@@ -125,9 +125,6 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 
 	protected Logger log = Logger.getLogger(this.getClass().getCanonicalName());
 
-//	protected HGHandle handle;
-//	protected HyperGraph graph;
-
 	// hilpold private final OWLOntologyManager manager;
 	private OWLOntologyManager manager; // stick to it until HGDBOM is
 										// justified.
@@ -1275,8 +1272,6 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 	public Set<OWLAnonymousIndividual> getReferencedAnonymousIndividuals()
 	{
 		return internals.getReturnSet(internals.getOwlAnonymousIndividuals());
-		// return
-		// internals.getReturnSet(internals.getOwlAnonymousIndividualReferences().keySet());
 	}
 
 	/**
@@ -1661,8 +1656,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 		log.info("OWLOntoChange: " + c.toString());
 	}
 
-	protected class OWLOntologyChangeFilter implements
-			HGDBOntologyChangeVisitor
+	protected class OWLOntologyChangeFilter implements HGDBOntologyChangeVisitor
 	{
 
 		private List<OWLOntologyChange> appliedChanges;
@@ -1701,7 +1695,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 			OWLAxiom axiom = change.getAxiom();
 			if (containsAxiom(axiom))
 			{
-				// TODO Define transaction here. Use AbortACtion to revert
+				// TODO Define transaction here. Use AbortAction to revert
 				// appliedchanges.add)
 				OWLAxiomVisitor changeVisitor = getAxiomVisitor(false);
 				axiom.accept(changeVisitor);
@@ -1936,23 +1930,9 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 			}
 			// internals.addOwlAnonymousIndividualReferences(ind, axiom);
 		}
-		// if (axiom.isAnnotated()) {
-		// internals.addLogicalAxiom2AnnotatedAxiomMap(axiom);
-		// }
 		if (DBG)
 			printGraphStats("After HandleAxAdded");
 	}
-
-	// protected OWLNamedObjectReferenceAdder getReferenceAdder() {
-	// return new OWLNamedObjectReferenceAdderImpl(internals);
-	// }
-	//
-	// protected OWLNamedObjectReferenceRemover getReferenceRemover() {
-	// return new OWLNamedObjectReferenceRemoverImpl(internals);
-	// }
-
-	// private OWLNamedObjectReferenceRemover referenceRemover = new
-	// OWLNamedObjectReferenceRemover();
 
 	private void handleAxiomRemoved(OWLAxiom axiom)
 	{
@@ -2009,13 +1989,6 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 						"getHandle(entity) for entity in memory returned null. Implement find? "
 								+ object + " axiom: " + axiom);
 			}
-			// } else {
-			// if (DBG)
-			// log.info("handleAxiomRemoved: found builtin entity in Axiom signature: "
-			// + object);
-			// }
-			// old referenceRemover.setAxiom(axiom);
-			// old object.accept(referenceRemover);
 		}
 		for (OWLAnonymousIndividual ind : anons)
 		{
@@ -2118,9 +2091,7 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 
 	protected OWLAxiomVisitor getAxiomVisitor(boolean add)
 	{
-		ChangeAxiomVisitorHGDB toReturn = new ChangeAxiomVisitorHGDB(internals,
-				add);
-		return toReturn;
+		return new ChangeAxiomVisitorHGDB(internals, add);
 	}
 
 	public void accept(OWLObjectVisitor visitor)

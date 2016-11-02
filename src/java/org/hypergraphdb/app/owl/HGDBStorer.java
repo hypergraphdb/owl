@@ -1,7 +1,6 @@
 package org.hypergraphdb.app.owl;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -98,41 +97,7 @@ public class HGDBStorer implements OWLOntologyStorer, HGDBTask
 			// final OWLMutableOntology newOnto = (OWLMutableOntology)
 			// manager.createOntology(documentIRI);
 			newOnto = repo.createOWLOntology(ontology.getOntologyID(), documentIRI);
-			// if (!(newOnto instanceof HGDBOntologyImpl)) {
-			// throw new
-			// IllegalStateException("We did not get a HGDBOntologyImpl, but : "
-			// + newOnto);
-			// }
-			// Set ID
-			// Done on creation ! newOnto.applyChange(new
-			// VModifyOntologyIDChange(newOnto, ontology.getOntologyID()))
-			final Set<OWLAxiom> axioms = ontology.getAxioms();
-			taskSize = axioms.size();
-			taskProgess = 0;
-			for (OWLAxiom axiom : axioms)
-			{
-				taskProgess++;
-				if (taskProgess % 5000 == 0)
-				{
-					printProgress(repo);
-				}
-				newOnto.applyChange(new AddAxiom(newOnto, axiom));
-			}
-			// manager.addAxioms(newOnto, axioms);
-			// Add Ontology Annotations
-			for (OWLAnnotation a : ontology.getAnnotations())
-			{
-				newOnto.applyChange(new AddOntologyAnnotation(newOnto, a));
-			}
-			// Add Import Declarations
-			for (OWLImportsDeclaration i : ontology.getImportsDeclarations())
-			{
-				man.applyChange(new AddImport(newOnto, i));
-			}
-			// Save prefixes in HGDBOntology
-			storePrefixes(format, newOnto);
-			// no need to store in HG, already done by createOntology.
-			printProgress(repo);
+			copyAxioms(man, ontology, newOnto);
 		}
 		catch (OWLOntologyChangeException e)
 		{
@@ -152,6 +117,37 @@ public class HGDBStorer implements OWLOntologyStorer, HGDBTask
 		stopWatch.stop("Done: HGDBStorer.storeOntology ");
 	}
 
+	public void copyAxioms(HGDBOntologyManager man, OWLOntology from, HGDBOntology to)
+	{
+		final Set<OWLAxiom> axioms = from.getAxioms();
+		taskSize = axioms.size();
+		taskProgess = 0;
+		for (OWLAxiom axiom : axioms)
+		{
+			taskProgess++;
+			if (taskProgess % 5000 == 0)
+			{
+				printProgress(man.getOntologyRepository());
+			}
+			to.applyChange(new AddAxiom(to, axiom));
+		}
+		// manager.addAxioms(newOnto, axioms);
+		// Add Ontology Annotations
+		for (OWLAnnotation a : from.getAnnotations())
+		{
+			to.applyChange(new AddOntologyAnnotation(to, a));
+		}
+		// Add Import Declarations
+		for (OWLImportsDeclaration i : from.getImportsDeclarations())
+		{
+			man.applyChange(new AddImport(to, i));
+		}
+		// Save prefixes in HGDBOntology
+		storePrefixes(new HGDBOntologyFormat(), to);
+		// no need to store in HG, already done by createOntology.
+		printProgress(man.getOntologyRepository());		
+	}
+	
 	private void storePrefixes(HGDBOntologyFormat format, HGDBOntology onto)
 	{
 		Map<String, String> prefixMap = new HashMap<String, String>();
