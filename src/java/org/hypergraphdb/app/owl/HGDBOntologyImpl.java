@@ -1397,6 +1397,8 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 
 	public Set<OWLOntology> getImportsClosure() throws UnknownOWLOntologyException
 	{
+		if (getOWLOntologyManager() == null)
+			throw new RuntimeException("Ontology : " + this.getOntologyID() + " has no manager.");
 		return getOWLOntologyManager().getImportsClosure(this);
 	}
 

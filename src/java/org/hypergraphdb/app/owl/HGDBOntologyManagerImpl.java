@@ -20,8 +20,6 @@ import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
-import org.semanticweb.owlapi.vocab.PrefixOWLOntologyFormat;
-
 import uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl;
 
 /**
@@ -95,7 +93,7 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 	public void removeOntology(OWLOntology ontology)
 	{
 		super.removeOntology(ontology);
-		if (isDeleteOntologiesOnRemove())
+		if (isDeleteOntologiesOnRemove() && ontology instanceof HGDBOntology)
 		{
 			OWLOntologyID oid = ontology.getOntologyID();
 			if (ontologyRepository.existsOntology(oid))
@@ -154,6 +152,9 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 			setOntologyFormat(o, format);
 			setOntologyDocumentIRI(o, hgdbDocumentIRI);
 			saveOntology(o, format, hgdbDocumentIRI);
+			o = ontologyRepository.getOntologyByDocumentIRI(hgdbDocumentIRI);			
+			ontologiesByID.put(o.getOntologyID(), o);
+			((HGDBOntology)o).setOWLOntologyManager(this);
 			return hgdbDocumentIRI;
 		}
 		catch (Exception ex)
@@ -180,9 +181,7 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 				{
 					importOne(imp, config);
 				}
-			HGDBOntology result = ontologyRepository.getOntologyByDocumentIRI(hgdbDocumentIRI);
-			result.setOWLOntologyManager(this);
-			return result;
+			return ontologyRepository.getOntologyByDocumentIRI(hgdbDocumentIRI);
 		}
 		catch (Exception ex)
 		{
