@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.app.owl.core.AddPrefixChange;
 import org.hypergraphdb.app.owl.core.PrefixChange;
 import org.hypergraphdb.app.owl.core.PrefixChangeListener;
@@ -32,7 +33,8 @@ public class HGDBOntologyFormat extends PrefixOWLOntologyFormat
 	public final static String HGDB_SCHEME = "hgdb";
 
 	private boolean isFiringChange = false;
-
+	private HGHandle atomHandle;
+	
 	@Override
 	public String toString()
 	{
@@ -66,20 +68,6 @@ public class HGDBOntologyFormat extends PrefixOWLOntologyFormat
 		String scheme = documentIRI.getScheme();
 		return HGDB_SCHEME.equals(scheme);
 	}
-
-	// /**
-	// * @return the fireChanges
-	// */
-	// protected boolean isFireChanges() {
-	// return fireChanges;
-	// }
-	//
-	// /**
-	// * @param fireChanges the fireChanges to set
-	// */
-	// protected void setFireChanges(boolean fireChanges) {
-	// this.fireChanges = fireChanges;
-	// }
 
 	@Override
 	public void setPrefix(String prefixName, String prefix)
@@ -234,4 +222,7 @@ public class HGDBOntologyFormat extends PrefixOWLOntologyFormat
 	{
 		this.isFiringChange = isFiringChange;
 	}
+	
+	public HGHandle atomHandle() { return atomHandle; }
+	public HGDBOntologyFormat atomHandle(HGHandle atomHandle) { this.atomHandle = atomHandle; return this; }
 }

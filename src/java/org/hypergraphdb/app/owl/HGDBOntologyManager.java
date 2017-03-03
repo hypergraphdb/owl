@@ -1,5 +1,6 @@
 package org.hypergraphdb.app.owl;
 
+import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -69,7 +70,12 @@ public interface HGDBOntologyManager extends OWLOntologyManager
 	 * tools such as Protege like to freely create temporary/new ontology without too much concern
 	 * of memory or side-effects.
 	 * </p>
+	 * 
+	 * @param ontologyIRI the ontology universal ID (IRI), must be a valid IRI and cannot be null.
+	 * @param handle The HyperGraphDB handle of the ontology. This can be <code>null</code> in
+	 * which case a new handle will be created. However, when importing an ontology from another HyperGraphDB
+	 * instance, you might want to match the database handle with its IRI.
 	 */
-	HGDBOntology createOntologyInDatabase(IRI ontologyIRI) throws OWLOntologyCreationException;
+	HGDBOntology createOntologyInDatabase(IRI ontologyIRI, HGHandle handle) throws OWLOntologyCreationException;
 	
 }

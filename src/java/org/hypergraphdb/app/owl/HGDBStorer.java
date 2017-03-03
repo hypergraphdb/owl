@@ -8,6 +8,7 @@ import java.util.Set;
 import org.hypergraphdb.app.owl.core.HGDBTask;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByDocumentIRIException;
 import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyIDException;
+import org.hypergraphdb.app.owl.exception.HGDBOntologyAlreadyExistsByOntologyUUIDException;
 import org.hypergraphdb.app.owl.util.StopWatch;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentTarget;
 import org.semanticweb.owlapi.model.AddAxiom;
@@ -96,7 +97,9 @@ public class HGDBStorer implements OWLOntologyStorer, HGDBTask
 			//
 			// final OWLMutableOntology newOnto = (OWLMutableOntology)
 			// manager.createOntology(documentIRI);
-			newOnto = repo.createOWLOntology(ontology.getOntologyID(), documentIRI);
+			newOnto = repo.createOWLOntology(ontology.getOntologyID(), 
+										     documentIRI, 
+										     format.atomHandle());
 			copyAxioms(man, ontology, newOnto);
 		}
 		catch (OWLOntologyChangeException e)
@@ -111,6 +114,10 @@ public class HGDBStorer implements OWLOntologyStorer, HGDBTask
 			throw new OWLOntologyStorageException(e);
 		}
 		catch (HGDBOntologyAlreadyExistsByOntologyIDException e)
+		{
+			throw new OWLOntologyStorageException(e);
+		}
+		catch (HGDBOntologyAlreadyExistsByOntologyUUIDException e)
 		{
 			throw new OWLOntologyStorageException(e);
 		}

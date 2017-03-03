@@ -10,7 +10,6 @@ import java.util.concurrent.Callable;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGLink;
-import org.hypergraphdb.HGPersistentHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HGRandomAccessResult;
 import org.hypergraphdb.HyperGraph;
@@ -112,11 +111,13 @@ public class OntologyDatabase
 	 * @throws HGDBOntologyAlreadyExistsByOntologyIDException
 	 * @throws HGDBOntologyAlreadyExistsByOntologyUUIDException
 	 */
-	public HGDBOntology createOWLOntology(OWLOntologyID ontologyID, IRI documentIRI, HGPersistentHandle ontologyUUID)
+	public HGDBOntology createOWLOntology(OWLOntologyID ontologyID, IRI documentIRI, HGHandle ontologyHandle)
 			throws HGDBOntologyAlreadyExistsByDocumentIRIException,
 				   HGDBOntologyAlreadyExistsByOntologyIDException,
 				   HGDBOntologyAlreadyExistsByOntologyUUIDException
 	{
+		if (ontologyHandle == null)
+			return this.createOWLOntology(ontologyID, documentIRI);
 		if (ontologyID == null || documentIRI == null)
 			throw new IllegalArgumentException();
 		if (existsOntologyByDocumentIRI(documentIRI))
@@ -124,12 +125,11 @@ public class OntologyDatabase
 					documentIRI);
 		if (existsOntology(ontologyID))
 			throw new HGDBOntologyAlreadyExistsByOntologyIDException(ontologyID);
-		if (graph.get(ontologyUUID) != null)
-			throw new HGDBOntologyAlreadyExistsByOntologyUUIDException(
-					ontologyUUID);
+		if (graph.get(ontologyHandle) != null)
+			throw new HGDBOntologyAlreadyExistsByOntologyUUIDException(ontologyHandle);
 		HGDBOntology o;
 		o = new HGDBOntologyImpl(ontologyID, documentIRI, graph);
-		graph.define(ontologyUUID, o);
+		graph.define(ontologyHandle, o);
 		return o;
 	}
 	

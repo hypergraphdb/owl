@@ -1,6 +1,6 @@
 package org.hypergraphdb.app.owl.exception;
 
-import org.hypergraphdb.HGPersistentHandle;
+import org.hypergraphdb.HGHandle;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 /**
@@ -12,13 +12,13 @@ public class HGDBOntologyAlreadyExistsByOntologyUUIDException extends OWLOntolog
 	
 	private static final long serialVersionUID = 1L;
 
-	private HGPersistentHandle ontologyUUID;
+	private HGHandle ontologyUUID;
 	
-	public HGDBOntologyAlreadyExistsByOntologyUUIDException(HGPersistentHandle ontologyUUID) {
+	public HGDBOntologyAlreadyExistsByOntologyUUIDException(HGHandle ontologyUUID) {
 	    this.ontologyUUID = ontologyUUID;
 	}
 	
-	public HGPersistentHandle getOntologyUUID() {
+	public HGHandle getOntologyUUID() {
 	    return ontologyUUID;
 	}
 }

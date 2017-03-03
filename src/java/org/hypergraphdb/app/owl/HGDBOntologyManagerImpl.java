@@ -3,6 +3,7 @@ package org.hypergraphdb.app.owl;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.app.owl.core.AddPrefixChange;
 import org.hypergraphdb.app.owl.core.OWLDataFactoryHGDB;
 import org.hypergraphdb.app.owl.core.PrefixChange;
@@ -119,11 +120,11 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 		}
 	}
 
-	public HGDBOntology createOntologyInDatabase(IRI ontologyIRI) throws OWLOntologyCreationException
+	public HGDBOntology createOntologyInDatabase(IRI ontologyIRI, HGHandle handle) throws OWLOntologyCreationException
 	{
 		try
 		{
-			HGDBOntologyFormat format = new HGDBOntologyFormat();
+			HGDBOntologyFormat format = new HGDBOntologyFormat().atomHandle(handle);
 			IRI hgdbDocumentIRI = HGDBOntologyFormat.convertToHGDBDocumentIRI(ontologyIRI);
 			OWLOntology o = super.createOntology(ontologyIRI);
 			setOntologyFormat(o, format);
