@@ -1,0 +1,23 @@
+# This is a sample file for a systemd service (Ubuntu 16.04+ uses system as the default for daemons)
+# To setup an OWL repository service, copy this file under /etc/systemd/system, then:
+#
+# 1. Decide on where you want to install the package, this file assumes /opt/owlrepo
+# 2. Copy the fat jar (with dependencies) to that location and copy the connection configuration hgdbowlserver.p2p there as well
+# 3. Decide on a location for the database itself and set that as the 'db' command line argument (see db=/var/hypergraphdb/owlrepo) below
+# 4. Decide on a user to run the service as, e.g. create and 'owlrepo' user and make sure /var/hypergraphdb/owlrepo can be written
+#    to be that user
+# 5. Edit hgdbowlserver.p2p to configure the XMPP settings for the server. You need an XMPP server to establish communication and the OWL
+#    repository is simply one peer in that XMPP network.
+# 6. Start the service with 'systemctl start owlrepo'
+
+[Unit]
+Description=owlrepo
+
+[Service]
+ExecStart=/usr/bin/java -jar /opt/owlrepo/hgdbowl-1.4-SNAPSHOT-jar-with-dependencies.jar /opt/owlrepo/hgdbowlserver.p2p db=/var/hypergraphdb/owlrepo
+Type=simple
+User=owlrepo
+Group=owlrepo
+
+[Install]
+WantedBy=multi-user.target
