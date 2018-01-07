@@ -3,7 +3,7 @@ Bundle-Description: An implementation of the OWLAPI backed by HyperGra
  phDB for transparent and automatic persistence of OWL ontologies. Eac
  h ontology is a subgraph in the graph database.
 Bundle-SymbolicName: org.hypergraphdb.app.owl;singleton:=true
-Built-By: borislav
+Built-By: ubuntu
 Bundle-ManifestVersion: 2
 Bnd-LastModified: 1488226152623
 Import-Package: de.uulm.ecs.ai.owlapi.krssparser,de.uulm.ecs.ai.owlapi
@@ -156,5 +156,5 @@ Bundle-Name: HypergraphDB Owl-API Backend
 Bundle-Version: 1.7.0
 Ignore-Package: org.jivesoftware.smack
 Created-By: Apache Maven Bundle Plugin
-Build-Jdk: 1.8.0_40
+Build-Jdk: 1.8.0_121
 
