@@ -1085,6 +1085,10 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB
 		// Strategy: get/find Entity by IRI (indexed), find DeclarationAxiom in
 		// (direct) incidence set.
 		final OWLEntity owlEntity = axiom.getEntity();
+		if (owlEntity == null) {
+			OWLEntity again = axiom.getEntity();
+			throw new IllegalArgumentException("Declaration axiom without an entity!");
+		}
 		HGHandle owlEntityHandle;
 		owlEntityHandle = graph.getHandle(owlEntity);
 		if (owlEntityHandle == null)

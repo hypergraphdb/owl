@@ -26,10 +26,7 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
  */
 public class OWLClassAssertionHGDB extends OWLIndividualAxiomHGDB implements HGChangeableLink, OWLClassAssertionAxiom
 {
-
-	// private OWLIndividual individual;
-
-	// private OWLClassExpression classExpression;
+	private static final long serialVersionUID = 1L;
 
 	private HGHandle individualHandle; // index 0
 

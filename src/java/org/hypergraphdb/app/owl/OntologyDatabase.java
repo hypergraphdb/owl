@@ -44,7 +44,6 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
  * This is a lightweight object, wrapping the underlying graph database. 
  * </p>
  * 
- * @author Thomas Hilpold (GIC/Miami-Dade County), Borislav Iordanov
  */
 public class OntologyDatabase
 {
