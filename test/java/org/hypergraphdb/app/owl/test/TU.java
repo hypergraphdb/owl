@@ -12,8 +12,10 @@ import org.hypergraphdb.HGEnvironment;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.app.owl.HGOntologyManagerFactory;
 import org.hypergraphdb.app.owl.OntologyDatabase;
+import org.hypergraphdb.app.owl.model.OWLClassHGDB;
 import org.hypergraphdb.app.owl.model.OWLDataPropertyHGDB;
 import org.hypergraphdb.app.owl.model.OWLLiteralHGDB;
+import org.hypergraphdb.app.owl.model.OWLNamedIndividualHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectPropertyHGDB;
 import org.hypergraphdb.app.owl.test.versioning.TestContext;
 import org.hypergraphdb.app.owl.versioning.distributed.OntologyDatabasePeer;
@@ -84,14 +86,14 @@ public class TU
 		return IRI.create(name);
 	}
 	
-	public static OWLClass owlClass(String name)
+	public static OWLClassHGDB owlClass(String name)
 	{
-		return ctx().df().getOWLClass(iri(name));
+		return (OWLClassHGDB)ctx().df().getOWLClass(iri(name));
 	}
 	
-	public static OWLNamedIndividual individual(String name)
+	public static OWLNamedIndividualHGDB individual(String name)
 	{
-		return ctx().df().getOWLNamedIndividual(iri(name));
+		return (OWLNamedIndividualHGDB)ctx().df().getOWLNamedIndividual(iri(name));
 	}
 	
 	public static OWLAxiom a(OWLAxiom ax)

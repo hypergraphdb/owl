@@ -22,6 +22,7 @@ import org.hypergraphdb.app.owl.core.AddPrefixChange;
 import org.hypergraphdb.app.owl.core.ChangeAxiomVisitorHGDB;
 import org.hypergraphdb.app.owl.core.HGChangeableLink;
 import org.hypergraphdb.app.owl.core.HGDBOntologyChangeVisitor;
+import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
 import org.hypergraphdb.app.owl.core.OWLSubgraphObject;
 import org.hypergraphdb.app.owl.core.RemovePrefixChange;
 import org.hypergraphdb.query.HGQueryCondition;
@@ -2364,5 +2365,10 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 	public List<HGHandle> findAll(HGQueryCondition condition)
 	{
 		return graph.findAll(hg.and(condition, hg.memberOf(thisHandle)));
+	}
+	
+	public OWLAxiomHGDB findAxiom(OWLAxiom axiom)
+	{
+		return internals.findEqualAxiom(axiom, true);
 	}
 }

@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -567,4 +568,5 @@ public interface HGDBOntologyInternals
 
 	String removePrefix(String prefixName);
 
+	OWLAxiomHGDB findEqualAxiom(final OWLAxiom axiom, boolean ignoreAnnotations);
 }

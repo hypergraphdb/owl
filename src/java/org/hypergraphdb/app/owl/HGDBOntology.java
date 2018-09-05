@@ -5,8 +5,10 @@ import org.hypergraphdb.HGHandleHolder;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.HyperNode;
 import org.hypergraphdb.annotation.HGIgnore;
+import org.hypergraphdb.app.owl.core.OWLAxiomHGDB;
 import org.hypergraphdb.app.owl.core.OWLOntologyEx;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
@@ -67,5 +69,14 @@ public interface HGDBOntology extends OWLOntologyEx, HyperNode, HGHandleHolder, 
 	 * Return the HyperGraph instance where this ontology is stored.
 	 */
 	HyperGraph getHyperGraph();
+	
+	/**
+	 * Lookup an axiom as an atom in the HyperGraphDB database. The lookup will only return
+	 * an atom if it is a member of this ontology.
+	 *   
+	 * @param axiom
+	 * @return
+	 */
+	OWLAxiomHGDB findAxiom(OWLAxiom axiom);
 
 }

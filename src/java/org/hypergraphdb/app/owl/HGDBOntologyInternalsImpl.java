@@ -759,7 +759,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB
 		// // return axioms != null && axioms.contains(axiom);
 	}
 
-	protected OWLAxiom findEqualAxiom(final OWLAxiom axiom, boolean ignoreAnnotations)
+	public OWLAxiomHGDB findEqualAxiom(final OWLAxiom axiom, boolean ignoreAnnotations)
 	{
 		// 2012.04.04 only use hashcode, if ignoreAnnotations is not set.
 		// we'll need to implement index and store 2 hashcodes per axiom if we
@@ -783,7 +783,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB
 	 * @param ignoreAnnotations
 	 * @return
 	 */
-	protected OWLAxiom findEqualAxiomByHashCode(final OWLAxiom axiom, final boolean ignoreAnnotations)
+	protected OWLAxiomHGDB findEqualAxiomByHashCode(final OWLAxiom axiom, final boolean ignoreAnnotations)
 	{
 		if (axiom == null)
 			throw new NullPointerException("axiom");
@@ -844,7 +844,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB
 	 * @return an axiom object that is guaranteed to be in the graph and equal
 	 *         to the given axiom.
 	 */
-	protected OWLAxiom findEqualAxiomOptimized(final OWLAxiom axiom, boolean ignoreAnnotations)
+	protected OWLAxiomHGDB findEqualAxiomOptimized(final OWLAxiom axiom, boolean ignoreAnnotations)
 	{
 		if (axiom == null)
 			throw new NullPointerException("axiom");
@@ -868,7 +868,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB
 			PERFCOUNTER_FIND_EQUALS++;
 			// signature empty possible?
 			// expensive and slow O(N) equals search
-			OWLAxiom foundAxiom = null;
+			OWLAxiomHGDB foundAxiom = null;
 			Class<?> hgdbType = AxiomTypeToHGDBMap.getAxiomClassHGDB(axiom.getAxiomType());
 			List<OWLAxiomHGDB> axiomsOneTypeInOnto = ontology.getAll(hg.type(hgdbType));
 			// expensive scan
