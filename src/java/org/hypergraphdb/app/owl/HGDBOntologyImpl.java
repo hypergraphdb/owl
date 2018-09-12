@@ -159,6 +159,11 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 		// as soon as we have a graph, we'll have internals.
 	}
 
+	public HGDBOntologyInternals internals()
+	{
+		return internals;
+	}
+	
 	public void ensureInternals()
 	{
 		internals = new HGDBOntologyInternalsImpl();

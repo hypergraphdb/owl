@@ -106,9 +106,9 @@ public interface HGDBOntologyInternals
 
 	boolean removeOntologyAnnotation(OWLAnnotation ann);
 
-	public void addAxiomsByType(AxiomType<?> type, OWLAxiom axiom);
+	void addAxiomsByType(AxiomType<?> type, OWLAxiom axiom);
 
-	public void removeAxiomsByType(AxiomType<?> type, OWLAxiom axiom);
+	void removeAxiomsByType(AxiomType<?> type, OWLAxiom axiom);
 
 	// 2011.11.17 Map<OWLAxiom, Set<OWLAxiom>>
 	// getLogicalAxiom2AnnotatedAxiomMap();
@@ -117,6 +117,14 @@ public interface HGDBOntologyInternals
 
 	// 2011.11.23 Set<OWLAxiom> getLogicalAxiom2AnnotatedAxiom(OWLAxiom ax);
 
+	// Declare that the implementations can safely assumed that axioms
+	// are not annotated. This is important for the distinction b/w 
+	// "with  or without" annotations when doing axiom lookup. There
+	// is a fast, hash-based version which can be used in all cases
+	// if this method is called. So it's an important optimization if you
+	// are not annotating axioms (which is more often the case).
+	//void axiomsDontHaveAnnotations(); 
+	
 	boolean containsAxiomIgnoreAnnotations(OWLAxiom ax);
 
 	Set<OWLAxiom> getAxiomsIgnoreAnnotations(OWLAxiom ax);
@@ -233,137 +241,6 @@ public interface HGDBOntologyInternals
 	// boolean containsOwlAnnotationPropertyReferences(OWLAnnotationProperty c);
 	boolean containsOwlAnnotationProperty(OWLAnnotationProperty c);
 
-	// hilpold Map<OWLEntity, Set<OWLDeclarationAxiom>>
-	// getDeclarationsByEntity();
-
-	// void removeDeclarationsByEntity(OWLEntity c, OWLDeclarationAxiom ax);
-
-	// void addDeclarationsByEntity(OWLEntity c, OWLDeclarationAxiom ax);
-
-	// boolean containsDeclarationsByEntity(OWLEntity c);
-
-	// 2011.10.06 Map<OWLClass, Set<OWLClassAxiom>> getClassAxiomsByClass();
-	//
-	// Map<OWLClass, Set<OWLSubClassOfAxiom>> getSubClassAxiomsByLHS();
-	//
-	// Map<OWLClass, Set<OWLSubClassOfAxiom>> getSubClassAxiomsByRHS();
-
-	// 2011.10.13 Map<OWLClass, Set<OWLEquivalentClassesAxiom>>
-	// getEquivalentClassesAxiomsByClass();
-
-	// 2011.10.13 Map<OWLClass, Set<OWLDisjointClassesAxiom>>
-	// getDisjointClassesAxiomsByClass();
-
-	// 2011.10.13 Map<OWLClass, Set<OWLDisjointUnionAxiom>>
-	// getDisjointUnionAxiomsByClass();
-
-	// 2011.11.09 Map<OWLClass, Set<OWLHasKeyAxiom>> getHasKeyAxiomsByClass();
-
-	// 2011.10.07 Map<OWLObjectPropertyExpression,
-	// Set<OWLSubObjectPropertyOfAxiom>> getObjectSubPropertyAxiomsByLHS();
-
-	// 2011.10.07 Map<OWLObjectPropertyExpression,
-	// Set<OWLSubObjectPropertyOfAxiom>> getObjectSubPropertyAxiomsByRHS();
-
-	// 2011.11.07 Map<OWLObjectPropertyExpression,
-	// Set<OWLEquivalentObjectPropertiesAxiom>>
-	// getEquivalentObjectPropertyAxiomsByProperty();
-
-	// Map<OWLObjectPropertyExpression, Set<OWLDisjointObjectPropertiesAxiom>>
-	// getDisjointObjectPropertyAxiomsByProperty();
-
-	// 2011.10.07 Map<OWLObjectPropertyExpression,
-	// Set<OWLObjectPropertyDomainAxiom>>
-	// getObjectPropertyDomainAxiomsByProperty();
-
-	// 2011.10.07 Map<OWLObjectPropertyExpression,
-	// Set<OWLObjectPropertyRangeAxiom>>
-	// getObjectPropertyRangeAxiomsByProperty();
-
-	// 2011.11.07 Map<OWLObjectPropertyExpression,
-	// Set<OWLFunctionalObjectPropertyAxiom>>
-	// getFunctionalObjectPropertyAxiomsByProperty();
-
-	// 2011.11.07 Map<OWLObjectPropertyExpression,
-	// Set<OWLInverseFunctionalObjectPropertyAxiom>>
-	// getInverseFunctionalPropertyAxiomsByProperty();
-
-	// 2011.11.07 Map<OWLObjectPropertyExpression,
-	// Set<OWLSymmetricObjectPropertyAxiom>>
-	// getSymmetricPropertyAxiomsByProperty();
-
-	// 2011.11.07 Map<OWLObjectPropertyExpression,
-	// Set<OWLAsymmetricObjectPropertyAxiom>>
-	// getAsymmetricPropertyAxiomsByProperty();
-
-	// 2011.11.07 Map<OWLObjectPropertyExpression,
-	// Set<OWLReflexiveObjectPropertyAxiom>>
-	// getReflexivePropertyAxiomsByProperty();
-
-	// 2011.11.07 Map<OWLObjectPropertyExpression,
-	// Set<OWLIrreflexiveObjectPropertyAxiom>>
-	// getIrreflexivePropertyAxiomsByProperty();
-
-	// 2011.11.07 Map<OWLObjectPropertyExpression,
-	// Set<OWLTransitiveObjectPropertyAxiom>>
-	// getTransitivePropertyAxiomsByProperty();
-
-	// 2011.11.07 Map<OWLObjectPropertyExpression,
-	// Set<OWLInverseObjectPropertiesAxiom>>
-	// getInversePropertyAxiomsByProperty();
-
-	// 2011.10.07 Map<OWLDataPropertyExpression, Set<OWLSubDataPropertyOfAxiom>>
-	// getDataSubPropertyAxiomsByLHS();
-
-	// 2011.10.07 Map<OWLDataPropertyExpression, Set<OWLSubDataPropertyOfAxiom>>
-	// getDataSubPropertyAxiomsByRHS();
-
-	// 2011.11.07 Map<OWLDataPropertyExpression,
-	// Set<OWLEquivalentDataPropertiesAxiom>>
-	// getEquivalentDataPropertyAxiomsByProperty();
-
-	// 2011.11.07 Map<OWLDataPropertyExpression,
-	// Set<OWLDisjointDataPropertiesAxiom>>
-	// getDisjointDataPropertyAxiomsByProperty();
-
-	// 2011.10.07 Map<OWLDataPropertyExpression,
-	// Set<OWLDataPropertyDomainAxiom>> getDataPropertyDomainAxiomsByProperty();
-
-	// 2011.10.07 Map<OWLDataPropertyExpression, Set<OWLDataPropertyRangeAxiom>>
-	// getDataPropertyRangeAxiomsByProperty();
-
-	// 2011.11.07 Map<OWLDataPropertyExpression,
-	// Set<OWLFunctionalDataPropertyAxiom>>
-	// getFunctionalDataPropertyAxiomsByProperty();
-
-	// 2011.11.08 Map<OWLIndividual, Set<OWLClassAssertionAxiom>>
-	// getClassAssertionAxiomsByIndividual();
-
-	// 2011.11.08 Map<OWLClassExpression, Set<OWLClassAssertionAxiom>>
-	// getClassAssertionAxiomsByClass();
-
-	// 2011.11.08 Map<OWLIndividual, Set<OWLObjectPropertyAssertionAxiom>>
-	// getObjectPropertyAssertionsByIndividual();
-
-	// 2011.11.08 Map<OWLIndividual, Set<OWLDataPropertyAssertionAxiom>>
-	// getDataPropertyAssertionsByIndividual();
-
-	// 2011.11.08 Map<OWLIndividual,
-	// Set<OWLNegativeObjectPropertyAssertionAxiom>>
-	// getNegativeObjectPropertyAssertionAxiomsByIndividual();
-
-	// 2011.11.08 Map<OWLIndividual, Set<OWLNegativeDataPropertyAssertionAxiom>>
-	// getNegativeDataPropertyAssertionAxiomsByIndividual();
-
-	// 2011.11.08 Map<OWLIndividual, Set<OWLDifferentIndividualsAxiom>>
-	// getDifferentIndividualsAxiomsByIndividual();
-
-	// 2011.11.08 Map<OWLIndividual, Set<OWLSameIndividualAxiom>>
-	// getSameIndividualsAxiomsByIndividual();
-
-	// 2011.11.14 Map<OWLAnnotationSubject, Set<OWLAnnotationAssertionAxiom>>
-	// getAnnotationAssertionAxiomsBySubject();
-
 	boolean isDeclared(OWLDeclarationAxiom ax);
 
 	Set<OWLDatatypeDefinitionAxiom> getDatatypeDefinitions(OWLDatatype datatype);
@@ -374,57 +251,7 @@ public interface HGDBOntologyInternals
 
 	Set<OWLAnnotationPropertyRangeAxiom> getAnnotationPropertyRangeAxioms(OWLAnnotationProperty property);
 
-	/**
-	 * A convenience method that adds an axiom to a set, but checks that the set
-	 * isn't null before the axiom is added. This is needed because many of the
-	 * indexing sets are built lazily.
-	 * 
-	 * @param axiom
-	 *            The axiom to be added.
-	 * @param axioms
-	 *            The set of axioms that the axiom should be added to. May be
-	 *            <code>null</code>.
-	 */
-	// <K extends OWLAxiom> void addAxiomToSet(K axiom, Set<K> axioms);
-
-	// <K extends OWLAxiom> void removeAxiomFromSet(K axiom, Set<K> axioms);
-
-	/**
-	 * Adds an axiom to a set contained in a map, which maps some key (e.g. an
-	 * entity such as and individual, class etc.) to the set of axioms.
-	 * 
-	 * @param key
-	 *            The key that indexes the set of axioms
-	 * @param map
-	 *            The map, which maps the key to a set of axioms, to which the
-	 *            axiom will be added.
-	 * @param axiom
-	 *            The axiom to be added
-	 */
-	// <K, V extends OWLAxiom> void addToIndexedSet(K key, Map<K, Set<V>> map, V
-	// axiom);
-
-	/**
-	 * Removes an axiom from a set of axioms, which is the value for a specified
-	 * key in a specified map.
-	 * 
-	 * @param key
-	 *            The key that indexes the set of axioms.
-	 * @param map
-	 *            The map, which maps keys to sets of axioms.
-	 * @param axiom
-	 *            The axiom to remove from the set of axioms.
-	 * @param removeSetIfEmpty
-	 *            Specifies whether or not the indexed set should be removed
-	 *            from the map if it is empty after removing the specified axiom
-	 */
-	// <K, V extends OWLAxiom> void removeAxiomFromSet(K key, Map<K, Set<V>>
-	// map, V axiom, boolean removeSetIfEmpty);
-
 	<E> Set<E> getReturnSet(Set<E> set);
-
-	// <K extends OWLObject, V extends OWLAxiom> Set<V> getAxioms(K key, Map<K,
-	// Set<V>> map);
 
 	Set<OWLDeclarationAxiom> getDeclarationAxioms(OWLEntity entity);
 

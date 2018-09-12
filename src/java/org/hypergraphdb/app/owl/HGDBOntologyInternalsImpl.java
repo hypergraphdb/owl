@@ -117,6 +117,8 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB
 	 */
 	private int recLevel = 0;
 
+	private boolean no_axiom_annotations = true;
+	
 	protected Logger log = Logger.getLogger(this.getClass().getCanonicalName());
 
 	static
@@ -765,6 +767,9 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB
 		// we'll need to implement index and store 2 hashcodes per axiom if we
 		// want to
 		// be able to ignore annotations and use a hashcode indexer.
+		
+		ignoreAnnotations = no_axiom_annotations ? false : ignoreAnnotations;
+		
 		if (USE_CONTAINS_AXIOM_BY_HASHCODE && !ignoreAnnotations)
 		{
 			return findEqualAxiomByHashCode(axiom, ignoreAnnotations);
@@ -783,8 +788,10 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB
 	 * @param ignoreAnnotations
 	 * @return
 	 */
-	protected OWLAxiomHGDB findEqualAxiomByHashCode(final OWLAxiom axiom, final boolean ignoreAnnotations)
+	protected OWLAxiomHGDB findEqualAxiomByHashCode(final OWLAxiom axiom, boolean ignoreAnnotationsParam)
 	{
+		final boolean ignoreAnnotations = no_axiom_annotations ? false : ignoreAnnotationsParam;
+		
 		if (axiom == null)
 			throw new NullPointerException("axiom");
 		if (ignoreAnnotations)
@@ -844,8 +851,10 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB
 	 * @return an axiom object that is guaranteed to be in the graph and equal
 	 *         to the given axiom.
 	 */
-	protected OWLAxiomHGDB findEqualAxiomOptimized(final OWLAxiom axiom, boolean ignoreAnnotations)
+	protected OWLAxiomHGDB findEqualAxiomOptimized(final OWLAxiom axiom, boolean ignoreAnnotationsParam)
 	{
+		final boolean ignoreAnnotations = no_axiom_annotations ? false : ignoreAnnotationsParam;
+		
 		if (axiom == null)
 			throw new NullPointerException("axiom");
 		if (axiom.getAxiomType() == AxiomType.DECLARATION)
@@ -910,8 +919,12 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB
 	 * @param signature
 	 * @return
 	 */
-	private OWLAxiomHGDB findEqualAxiomBySignature(OWLAxiom axiom, Set<OWLEntity> signature, boolean ignoreAnnotations)
+	private OWLAxiomHGDB findEqualAxiomBySignature(OWLAxiom axiom, 
+												   Set<OWLEntity> signature, 
+												   boolean ignoreAnnotationsParam)
 	{
+		final boolean ignoreAnnotations = no_axiom_annotations ? false : ignoreAnnotationsParam;
+		
 		if (signature.isEmpty())
 			throw new IllegalArgumentException("Find Axiom by signature, signature empty not allowed.");
 		// Find signature object with small incidence set.
@@ -995,100 +1008,20 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB
 		return foundAxiom;
 	}
 
-	// 2012.02.06 hilpold following is version used for profiling before 11:10
-	// AM.
-	//
-	// /**
-	// * Finds an equal axiom efficiently by using a two step process: <br>
-	// * 1. Find an entity with a small incidence set in the signature.
-	// * 2. use this entity to BFS for the wanted axiom checking:
-	// * A) ontology membership,
-	// * B) get and is OWLAxiomHGDB instance,
-	// * C) matching AxiomType, and
-	// * D) Full Axiom equals.
-	// *
-	// *
-	// * @param axiom
-	// * @param signature
-	// * @return
-	// */
-	// private OWLAxiomHGDB findEqualAxiomBySignature(OWLAxiom axiom,
-	// Set<OWLEntity> signature, boolean ignoreAnnotations) {
-	// if (signature.isEmpty()) throw new
-	// IllegalArgumentException("Find Axiom by signature, signature empty not allowed.");
-	// //Find signature object with small incidence set.
-	// IncidenceSet curIS, lookupEntityIS = null;
-	// HGHandle lookupEntity = null;
-	// for (OWLEntity e : signature) {
-	// HGHandle eHandle = graph.getHandle(e);
-	// curIS = graph.getIncidenceSet(eHandle);
-	// if (curIS.size() < PERFORMANCE_INCIDENCE_SET_SIZE) {
-	// lookupEntityIS = curIS;
-	// lookupEntity = eHandle;
-	// break;
-	// } else {
-	// //we might have to go through all entities to find min size.
-	// if (lookupEntityIS == null) {
-	// lookupEntityIS = curIS;
-	// lookupEntity = eHandle;
-	// } else if (lookupEntityIS.size() > curIS.size()) {
-	// lookupEntityIS = curIS;
-	// lookupEntity = eHandle;
-	// }
-	// }
-	// }
-	// //Find axiom in Ontology and by type BFS => fast, if axiom is not too
-	// deep.
-	// IncidenceSetALGenerator isALG = new IncidenceSetALGenerator(graph);
-	// HGBreadthFirstTraversal bfsIS = new HGBreadthFirstTraversal(lookupEntity,
-	// isALG);
-	// OWLAxiomHGDB foundAxiom = null;
-	// while (foundAxiom == null && bfsIS.hasNext()) {
-	// Pair<HGHandle, HGHandle> cur = bfsIS.next();
-	// HGHandle curHandle = cur.getSecond();
-	// PERFCOUNTER_FIND_BY_SIGNATURE_ONTOLOGY_MEMBERS ++;
-	// if (ontology.isMember(curHandle)) {
-	// //Axioms are members in ontologies. We have a candidate, get it:
-	// Object candidate = graph.get(curHandle);
-	// if (candidate instanceof OWLAxiomHGDB) {
-	// OWLAxiomHGDB axiomCandidate = (OWLAxiomHGDB) candidate;
-	// if (axiomCandidate.getAxiomType().equals(axiom.getAxiomType())) {
-	// //types match, do expensive equals compare, loading all dependent
-	// objects.
-	// PERFCOUNTER_FIND_BY_SIGNATURE_EQUALS ++;
-	// if (ignoreAnnotations) {
-	// // compare excluding annotations
-	// if (axiom.equalsIgnoreAnnotations(axiomCandidate)) {
-	// foundAxiom = axiomCandidate;
-	// } //else equalsIgnoreAnno false, sth else did not match
-	// } else {
-	// // compare including annotations
-	// if (axiom.equals(axiomCandidate)) {
-	// foundAxiom = axiomCandidate;
-	// } //else equals false, maybe annotations or sth else did not match
-	// }
-	// } //else different types
-	// } //else no axiomHGDB
-	// } //else not our member
-	// } //while
-	// return foundAxiom;
-	// }
-
 	/**
 	 * ALWAYS CALLED WITHIN TRANSACTION.
 	 * 
 	 * @param axiom
 	 * @return
 	 */
-	private OWLDeclarationAxiomHGDB findEqualDeclarationAxiom(OWLDeclarationAxiom axiom, boolean ignoreAnnotations)
+	private OWLDeclarationAxiomHGDB findEqualDeclarationAxiom(OWLDeclarationAxiom axiom, 
+															  boolean ignoreAnnotationsParam)
 	{
+		final boolean ignoreAnnotations = no_axiom_annotations ? false : ignoreAnnotationsParam;
+		
 		// Strategy: get/find Entity by IRI (indexed), find DeclarationAxiom in
 		// (direct) incidence set.
 		final OWLEntity owlEntity = axiom.getEntity();
-		if (owlEntity == null) {
-			OWLEntity again = axiom.getEntity();
-			throw new IllegalArgumentException("Declaration axiom without an entity!");
-		}
 		HGHandle owlEntityHandle;
 		owlEntityHandle = graph.getHandle(owlEntity);
 		if (owlEntityHandle == null)
@@ -1397,7 +1330,7 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB
 			}
 		});
 	}
-
+	
 	@Override
 	public boolean containsAxiomIgnoreAnnotations(final OWLAxiom axiom)
 	{
@@ -1925,36 +1858,6 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB
 		}, HGTransactionConfig.READONLY);
 	}
 
-	// /**
-	// * This is an expensive operation, because the hashmap has to be created.
-	// * Maybe the hashmap should be lazy and backed by HG? (Protege never calls
-	// * this.)
-	// */
-	// public Map<OWLEntity, Set<OWLDeclarationAxiom>> getDeclarationsByEntity()
-	// {
-	// // return new HashMap<OWLEntity, Set<OWLDeclarationAxiom>>(
-	// // this.declarationsByEntity);
-	// // hilpold - for now.
-	// return null;
-	// }
-
-	// public void removeDeclarationsByEntity(OWLEntity c, OWLDeclarationAxiom
-	// ax) {
-	// removeAxiomFromSet(c, declarationsByEntity, ax, true);
-	// }
-
-	// public void addDeclarationsByEntity(OWLEntity c, OWLDeclarationAxiom ax)
-	// {
-	// throw new
-	// IllegalArgumentException("Operation no longer supported; Interface will be changed.");
-	// //addToIndexedSet(c, declarationsByEntity, ax);
-	// }
-
-	// public boolean containsDeclarationsByEntity(OWLEntity c) {
-	// // return this.declarationsByEntity.containsKey(c);
-	// return false;
-	// }
-
 	public static String toStringPerfCounters()
 	{
 		return "---- Performance counters -----" + "\n Find axiom calls total         : " + PERFCOUNTER_FIND_AXIOM
@@ -1966,11 +1869,6 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB
 				+ "\n ---------------------------------\n";
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.hypergraphdb.app.owl.HGDBOntologyInternals#getPrefixes()
-	 */
 	@Override
 	public Map<String, String> getPrefixes()
 	{
