@@ -417,22 +417,13 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB
 							axiomList.add((OWLAxiom) o);
 						} // else ignore axiom not part of our onto.
 					}
-					else
+					else if (o instanceof OWLClassExpression || o instanceof OWLObjectPropertyExpression
+							|| o instanceof OWLDataRange || o instanceof OWLLiteral || o instanceof OWLFacetRestriction
+							|| o instanceof OWLAnnotation || o instanceof SWRLObject || o instanceof SWRLConjuction)
 					{
-						// we have no cycles up incidence sets starting
-						// on an entity.
-						if (!(o instanceof VOWLChange))
-						{
-							if (!(o instanceof OWLClassExpression || o instanceof OWLObjectPropertyExpression
-									|| o instanceof OWLDataRange || o instanceof OWLLiteral || o instanceof OWLFacetRestriction
-									|| o instanceof OWLAnnotation || o instanceof SWRLObject || o instanceof SWRLConjuction))
-							{
-								throw new IllegalStateException("We encountered an unexpected object in an incidenceset:" + o);
-							}
-							recLevel++;
-							collectOntologyAxiomsRecursive(incidentAtomHandle, axiomList);
-							recLevel--;
-						}
+						recLevel++;
+						collectOntologyAxiomsRecursive(incidentAtomHandle, axiomList);
+						recLevel--;
 					} // else we don't recurse on changes.
 				} // else o == null do nothing
 			} // for

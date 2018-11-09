@@ -5,7 +5,7 @@ Bundle-Description: An implementation of the OWLAPI backed by HyperGra
 Bundle-SymbolicName: org.hypergraphdb.app.owl;singleton:=true
 Built-By: borislav
 Bundle-ManifestVersion: 2
-Bnd-LastModified: 1536003466775
+Bnd-LastModified: 1540576251025
 Import-Package: de.uulm.ecs.ai.owlapi.krssparser,de.uulm.ecs.ai.owlapi
  .krssrenderer,javax.xml.parsers,mjson;version="1.4",org.coode.owlapi.
  functionalparser,org.coode.owlapi.functionalrenderer,org.coode.owlapi
@@ -156,5 +156,5 @@ Bundle-Name: HypergraphDB Owl-API Backend
 Bundle-Version: 1.7.0
 Ignore-Package: org.jivesoftware.smack
 Created-By: Apache Maven Bundle Plugin
-Build-Jdk: 1.8.0_40
+Build-Jdk: 1.8.0_181
 

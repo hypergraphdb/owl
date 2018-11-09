@@ -1808,7 +1808,9 @@ public abstract class AbstractInternalsHGDB implements HGDBOntologyInternals, HG
 					HGHandle incidentAtomHandle = iSetRAR.next();
 //					if (members.goTo(incidentAtomHandle, true) != HGRandomAccessResult.GotoResult.found)
 //						continue;
-					Object o = graph.get(incidentAtomHandle); 
+					Object o = graph.get(incidentAtomHandle);
+					if (o == null)
+						throw new NullPointerException("DB corruption, no atom for " + incidentAtomHandle);
 					if (!o.getClass().equals(axiomTypeHGDB))
 						continue;
 					OWLAxiomHGDB axHGDB  = (OWLAxiomHGDB)o;					
