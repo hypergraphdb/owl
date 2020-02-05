@@ -121,19 +121,6 @@ public class HGDBOntologyInternalsImpl extends AbstractInternalsHGDB
 	
 	protected Logger log = Logger.getLogger(this.getClass().getCanonicalName());
 
-	static
-	{
-		boolean assertsEnabled = false;
-		assert assertsEnabled = true; // force assertions.
-		if (!assertsEnabled)
-		{
-			Logger.getLogger(HGDBOntologyInternalsImpl.class.getCanonicalName()).warning(
-					"Asserts are disabled for HGDBOntologyInternalsImpl");
-			// throw new
-			// RuntimeException("We need Asserts to be enabled. Use: java -ea:org.hypergraphdb.app.owl...");
-		}
-	}
-
 	public HGDBOntologyInternalsImpl()
 	{
 	}

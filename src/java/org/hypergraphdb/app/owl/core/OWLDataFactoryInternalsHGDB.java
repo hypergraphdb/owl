@@ -21,6 +21,7 @@ import org.hypergraphdb.app.owl.model.OWLNamedIndividualHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectPropertyHGDB;
 import org.hypergraphdb.app.owl.type.link.AxiomAnnotatedBy;
 import org.hypergraphdb.transaction.HGTransactionConfig;
+import org.hypergraphdb.transaction.TxMap;
 import org.hypergraphdb.util.Pair;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -73,7 +74,7 @@ public class OWLDataFactoryInternalsHGDB {
     //private final WeakHashMap<IRI, WeakReference<? extends OWLEntity>> individualsByURI;
     //private final WeakHashMap<IRI, WeakReference<? extends OWLEntity>> annotationPropertiesByURI;
 	
-	private final HashMap<Pair<IRI, Class<? extends OWLEntity>>, OWLEntity> builtinByIRIClassPairCache;
+	private final TxMap<Pair<IRI, Class<? extends OWLEntity>>, OWLEntity> builtinByIRIClassPairCache;
     private final Set<IRI> XSD_VOCABULARY_IRIS = new HashSet<IRI>();
     
     private final OWLDataFactoryHGDB factory;
@@ -130,7 +131,8 @@ public class OWLDataFactoryInternalsHGDB {
     
     public OWLDataFactoryInternalsHGDB(OWLDataFactoryHGDB f) {
         factory = f;
-        builtinByIRIClassPairCache = new HashMap<Pair<IRI, Class<? extends OWLEntity>>, OWLEntity>(OWLRDFVocabulary.BUILT_IN_VOCABULARY_IRIS.size() * 6 + 1);
+        builtinByIRIClassPairCache = new TxMap<Pair<IRI, Class<? extends OWLEntity>>, OWLEntity>
+        										(f.getHyperGraph().getTransactionManager(), null);
         //classesByURI = new WeakHashMap<IRI, WeakReference<? extends OWLEntity>>();
         //objectPropertiesByURI = new WeakHashMap<IRI, WeakReference<? extends OWLEntity>>();
         //dataPropertiesByURI = new WeakHashMap<IRI, WeakReference<? extends OWLEntity>>();
@@ -281,11 +283,8 @@ public class OWLDataFactoryInternalsHGDB {
     	}
     	CACHE_MISS ++;
     	final HGQuery<OWLEntity> query = entityByIRIQuery(entityType);
-    	//TRANSACTION START READONLY
     	e = (V)query.var("iri", iri).findOne();
-    	//TRANSACTION END READONLY
     	if (e == null) {
-        	//TRANSACTION START WRITE
         	e = graph.getTransactionManager().ensureTransaction(new Callable<V>() {
     			public V call() {
 		    		//DOUBLE CHECK
@@ -299,9 +298,7 @@ public class OWLDataFactoryInternalsHGDB {
 		        	}
 		        	return eInt;
     			}}, HGTransactionConfig.DEFAULT);
-        	//TRANSACTION END WRITE
     	}
-    	//TRANSACTION END
 		//Cache put if BUILTIN and cache miss.
 		if (isBuiltin) {
 			//assert (!builtinByIRIClassPairCache.containsKey(iri);

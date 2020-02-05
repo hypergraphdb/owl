@@ -134,7 +134,8 @@ public class OntologyDatabase
 	
 	public List<HGDBOntology> getOntologies()
 	{
-		System.out.println("Ontology count: " + graph.count(hg.typePlus(OWLOntology.class)));
+		if (DBG)
+			System.out.println("Ontology count: " + graph.count(hg.typePlus(OWLOntology.class)));
 		// 2011.12.01 HGException: Transaction configured as read-only was used
 		// to modify data!
 		// Therefore wrapped in normal transaction.

@@ -121,7 +121,8 @@ public class HGDBStorer implements OWLOntologyStorer, HGDBTask
 		{
 			throw new OWLOntologyStorageException(e);
 		}
-		stopWatch.stop("Done: HGDBStorer.storeOntology ");
+		if (DBG)
+			stopWatch.stop("Done: HGDBStorer.storeOntology ");
 	}
 
 	public void copyAxioms(HGDBOntologyManager man, OWLOntology from, HGDBOntology to)
@@ -180,12 +181,14 @@ public class HGDBStorer implements OWLOntologyStorer, HGDBTask
 
 	private void printProgress(OntologyDatabase repo)
 	{
-		//System.out.println("Saved axioms: " + taskProgess + " of " + taskSize + " at " + new Date());
-		repo.printStatistics();
-		System.out.println("By Signature test onto member: "
-				+ HGDBOntologyInternalsImpl.PERFCOUNTER_FIND_BY_SIGNATURE_ONTOLOGY_MEMBERS);
-		System.out.println("By Signature test slow equals: " + HGDBOntologyInternalsImpl.PERFCOUNTER_FIND_BY_SIGNATURE_EQUALS);
-		System.out.println("By HashCode test equals: " + HGDBOntologyInternalsImpl.PERFCOUNTER_FIND_BY_HASHCODE_EQUALS);
+		if (DBG) 
+		{
+			repo.printStatistics();
+			System.out.println("By Signature test onto member: "
+					+ HGDBOntologyInternalsImpl.PERFCOUNTER_FIND_BY_SIGNATURE_ONTOLOGY_MEMBERS);
+			System.out.println("By Signature test slow equals: " + HGDBOntologyInternalsImpl.PERFCOUNTER_FIND_BY_SIGNATURE_EQUALS);
+			System.out.println("By HashCode test equals: " + HGDBOntologyInternalsImpl.PERFCOUNTER_FIND_BY_HASHCODE_EQUALS);
+		}
 	}
 
 	@Override

@@ -141,17 +141,24 @@ public class OWLDataFactoryHGDB implements OWLDataFactory
 	private HyperGraph graph;
 	private boolean ignoreOntologyScope = false;
 
-	public static OWLDataFactoryHGDB get(HyperGraph graph)
+	public static OWLDataFactoryHGDB get(final HyperGraph graph)
 	{
 		OWLDataFactoryHGDB f = Context.of(graph).singleton(
-				OWLDataFactoryHGDB.class);
+				OWLDataFactoryHGDB.class,
+				new Callable<OWLDataFactoryHGDB>() {
+					public OWLDataFactoryHGDB call()
+					{
+						return new OWLDataFactoryHGDB(graph); 
+					}
+				});
 		if (f.getHyperGraph() == null)
 			f.setHyperGraph(graph);
 		return f;
 	}
 
-	public OWLDataFactoryHGDB()
+	public OWLDataFactoryHGDB(HyperGraph graph)
 	{
+		this.graph = graph;
 		data = new OWLDataFactoryInternalsHGDB(this);
 	}
 

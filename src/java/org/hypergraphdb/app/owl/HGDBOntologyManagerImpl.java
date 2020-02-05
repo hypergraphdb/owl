@@ -44,7 +44,7 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 {
 	private static final long serialVersionUID = 1L;
 
-	public static boolean DBG = true;
+	public static boolean DBG = false;
 
 	/**
 	 * Set this to have all removed ontologies also deleted from the repository.
