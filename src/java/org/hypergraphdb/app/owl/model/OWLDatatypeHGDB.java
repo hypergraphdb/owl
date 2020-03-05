@@ -30,6 +30,7 @@ import org.semanticweb.owlapi.model.OWLObjectVisitor;
 import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLRuntimeException;
+import org.semanticweb.owlapi.util.HashCode;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
@@ -344,4 +345,10 @@ public class OWLDatatypeHGDB extends OWLObjectHGDB implements OWLDatatype
 	{
 		return ontology.getReferencingAxioms(this, includeImports);
 	}
+	
+    @Override
+    public int hashCode() 
+    {
+        return HashCode.hashCode(this);
+    }	
 }
