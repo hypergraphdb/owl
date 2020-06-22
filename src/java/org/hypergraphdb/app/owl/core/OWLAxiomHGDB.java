@@ -40,7 +40,7 @@ public abstract class OWLAxiomHGDB extends OWLObjectHGDB implements OWLAxiom, HG
 
 	public int getHashCode()
 	{
-		return getHashCodeInt();
+		return hashCode();
 	}
 
 	public void setHashCode(int hashCode)
