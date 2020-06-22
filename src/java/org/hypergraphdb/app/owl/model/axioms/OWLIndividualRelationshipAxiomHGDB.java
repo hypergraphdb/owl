@@ -91,9 +91,7 @@ public abstract class OWLIndividualRelationshipAxiomHGDB<P extends OWLPropertyEx
 		{
 			return diff;
 		}
-		// TODO hilpold 2011.11.08 THIS IS WRONG??? :
-		// TODO should be getObject()
-		return o.compareTo(other.getObject());
+		return this.getObject().compareTo(other.getObject());
 	}
 
 	/*
