@@ -16,7 +16,7 @@ import org.hypergraphdb.app.owl.model.OWLDatatypeHGDB;
 import org.hypergraphdb.app.owl.model.OWLLiteralHGDB;
 import org.hypergraphdb.app.owl.model.OWLNamedIndividualHGDB;
 import org.hypergraphdb.app.owl.model.OWLObjectPropertyHGDB;
-import org.hypergraphdb.app.owl.model.axioms.OWLSubClassOfAxiomHGDB;
+import org.hypergraphdb.app.owl.model.axioms.*;
 import org.hypergraphdb.app.owl.type.IRIType;
 import org.hypergraphdb.app.owl.type.OWLImportsDeclarationType;
 import org.hypergraphdb.app.owl.type.OWLNamedObjectType;
@@ -62,6 +62,7 @@ public class HGDBApplication extends HGApplication
 		registerTypeOWLImportsDeclaration(graph);
 		// All Entity types:
 		registerTypeOWLNamedObjectTypesHGDB(graph);
+		registerAxiomTypes(graph);
 		registerVersioningTypes(graph);
 	}
 
@@ -122,6 +123,62 @@ public class HGDBApplication extends HGApplication
 		}
 	}
 
+	private void registerAxiomTypes(HyperGraph graph)
+	{
+		graph.getTypeSystem().getAtomType(OWLAnnotationAssertionAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLAnnotationPropertyDomainAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLAnnotationPropertyRangeAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLAsymmetricObjectPropertyAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLClassAssertionHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLClassAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLDataPropertyAssertionAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLDataPropertyCharacteristicAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLDataPropertyDomainAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLDataPropertyRangeAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLDatatypeDefinitionAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLDeclarationAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLDifferentIndividualsAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLDisjointClassesAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLDisjointDataPropertiesAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLDisjointObjectPropertiesAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLDisjointUnionAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLEquivalentClassesAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLEquivalentDataPropertiesAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLEquivalentObjectPropertiesAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLFunctionalDataPropertyAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLFunctionalObjectPropertyAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLHasKeyAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLIndividualAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLIndividualRelationshipAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLInverseFunctionalObjectPropertyAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLInverseObjectPropertiesAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLIrreflexiveObjectPropertyAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLLogicalAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLNaryClassAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLNaryIndividualAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLNaryPropertyAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLNegativeDataPropertyAssertionAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLNegativeObjectPropertyAssertionAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLObjectPropertyAssertionAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLObjectPropertyCharacteristicAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLObjectPropertyDomainAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLObjectPropertyRangeAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLPropertyAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLPropertyDomainAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLPropertyRangeAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLReflexiveObjectPropertyAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLSameIndividualAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLSubAnnotationPropertyOfAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLSubClassOfAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLSubDataPropertyOfAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLSubObjectPropertyOfAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLSubPropertyAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLSubPropertyChainAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLSymmetricObjectPropertyAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLTransitiveObjectPropertyAxiomHGDB.class);
+		graph.getTypeSystem().getAtomType(OWLUnaryPropertyAxiomHGDB.class);
+	}
+	
 	private void registerTypeOWLNamedObjectTypesHGDB(HyperGraph graph)
 	{
 		HGTypeSystem typeSystem = graph.getTypeSystem();
