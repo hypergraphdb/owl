@@ -41,6 +41,11 @@ public class IRIType extends HGAtomTypeBase implements
      */
     private int dataOffset = 4; // Like Stringtype
 
+    
+    // The valueIndex here actually points to the StringType valueIndex, which kind of makes
+    // sense if we want to share the values of IRIs whether they are stored as strings
+    // in record properties or IRI atom values. We are retrieving here to make this
+    // atom type searchable. 
     protected HGSortIndex<byte[], HGPersistentHandle> valueIndex = null;
 
     private static IRIComparator comparatorInstance;

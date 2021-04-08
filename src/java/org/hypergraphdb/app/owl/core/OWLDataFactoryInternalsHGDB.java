@@ -95,7 +95,7 @@ public class OWLDataFactoryInternalsHGDB {
     private void preCompileQueries()
     {
         lookupIRIByValue = HGQuery.make(HGHandle.class, factory.getHyperGraph()).compile(
-        		hg.and(hg.typePlus(IRI.class), hg.eq(hg.var("iri"))));
+        		hg.and(hg.type(IRI.class), hg.eq(hg.var("iri"))));
         lookupLiteral = HGQuery.make(HGHandle.class, factory.getHyperGraph()).compile(
         		hg.and(hg.type(OWLLiteralHGDB.class), 
         			   hg.eq("literal", hg.var("literal")),

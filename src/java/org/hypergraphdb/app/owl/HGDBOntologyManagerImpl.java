@@ -136,7 +136,7 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 		{
 			HGDBOntologyFormat format = new HGDBOntologyFormat().atomHandle(handle);
 			IRI hgdbDocumentIRI = HGDBOntologyFormat.convertToHGDBDocumentIRI(ontologyIRI);
-			OWLOntology o = super.createOntology(ontologyIRI);
+			final OWLOntology o = super.createOntology(ontologyIRI);
 			setOntologyFormat(o, format);
 			setOntologyDocumentIRI(o, hgdbDocumentIRI);
 			saveOntology(o, format, hgdbDocumentIRI);
@@ -145,7 +145,11 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 			this.ontologiesByID.put(o.getOntologyID(), result);
 			HGTransaction tx = ontologyRepository.getHyperGraph().getTransactionManager().getContext().getCurrent();
 			if (tx != null)
-			    tx.addAbortAction(() -> this.ontologiesByID.remove(o.getOntologyID()));
+			    tx.addAbortAction(new Runnable(){
+            public void run() {
+              ontologiesByID.remove(o.getOntologyID());
+            }
+          });
 			return result;
 		}
 		catch (Exception ex)
