@@ -15,6 +15,7 @@ import org.hypergraphdb.app.owl.core.PrefixChangeListener;
 import org.hypergraphdb.app.owl.core.RemovePrefixChange;
 import org.hypergraphdb.app.owl.versioning.VersionManager;
 import org.hypergraphdb.app.owl.versioning.VersioningChangeListener;
+import org.hypergraphdb.transaction.HGTransaction;
 import org.semanticweb.owlapi.io.IRIDocumentSource;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -142,6 +143,9 @@ public class HGDBOntologyManagerImpl extends OWLOntologyManagerImpl implements H
 			HGDBOntology result = ontologyRepository.getOntologyByDocumentIRI(hgdbDocumentIRI);
 			result.setOWLOntologyManager(this);
 			this.ontologiesByID.put(o.getOntologyID(), result);
+			HGTransaction tx = ontologyRepository.getHyperGraph().getTransactionManager().getContext().getCurrent();
+			if (tx != null)
+			    tx.addAbortAction(() -> this.ontologiesByID.remove(o.getOntologyID()));
 			return result;
 		}
 		catch (Exception ex)
