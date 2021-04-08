@@ -1985,13 +1985,19 @@ public class HGDBOntologyImpl extends OWLSubgraphObject implements
 				}
 				else
 				{
-					throw new IllegalStateException(
-							"Just removed an axiom that did refer to an entity outside our ontology:"
-									+ object + " axiom: " + axiom);
+				    // Doesn't help to throw an exception here, better to just report as a warning.
+				    System.err.println(
+				        "HGDBOWL Warning: Just removed an axiom that did refer to an entity outside our ontology:"
+				                + object + " axiom: " + axiom);
+//					throw new IllegalStateException(
+//							"Just removed an axiom that did refer to an entity outside our ontology:"
+//									+ object + " axiom: " + axiom);
 				}
 			}
 			else
 			{
+			    System.err.println("HGDBOWL Warning: getHandle(entity) for entity in memory returned null. Implement find? "
+                        + object + " axiom: " + axiom);
 				// We assume here that no
 				throw new IllegalStateException(
 						"getHandle(entity) for entity in memory returned null. Implement find? "
