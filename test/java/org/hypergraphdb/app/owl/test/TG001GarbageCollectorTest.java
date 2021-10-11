@@ -9,7 +9,7 @@ import org.junit.runners.Parameterized;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 
-import com.sun.corba.se.impl.orbutil.graph.Graph;
+import org.jboss.com.sun.corba.se.impl.orbutil.graph.Graph;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
